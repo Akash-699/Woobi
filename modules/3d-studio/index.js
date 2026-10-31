@@ -1,8 +1,11 @@
-/**
- * @module modules/3d-studio
- * Public interface specification for Woobi 3D Studio.
- * External modules must interact with the 3D scene exclusively through this contract.
- */
+import { StageModel, STAGE_CONFIG, StageMaterials, createStage } from './stage/index.js';
+
+export {
+  StageModel,
+  STAGE_CONFIG,
+  StageMaterials,
+  createStage
+};
 
 export const StudioContract = {
   // Scene lifecycle
@@ -15,10 +18,10 @@ export const StudioContract = {
   
   // 3D Objects & Managers
   stage: {
-    getDaisElevation: () => 0.080, // 8.0 cm elevated dais
-    getDaisRadius: () => 0.95,     // 1.90m diameter
-    setRotation: (angleY) => {},
-    triggerRotationArc: () => {}
+    getDaisElevation: () => STAGE_CONFIG.daisElevation, // 0.080 m
+    getDaisRadius: () => STAGE_CONFIG.radius,           // 0.95 m
+    getShadowRadius: () => STAGE_CONFIG.shadowRadius,   // 1.18 m
+    createStage: (scene, textures, THREE) => createStage(scene, textures, THREE)
   },
   
   wardrobe: {

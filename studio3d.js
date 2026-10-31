@@ -548,47 +548,28 @@
 
     /**
      * Circular Woven Bouclé Wool Rug directly beneath Avatar
-     * Replaces the plain stone cylinder with a refined woven texture and soft rotation arc
+     * Powered by extracted Stage module: modules/3d-studio/stage/StageModel.js
      */
     buildWovenRug() {
+      if (typeof window !== 'undefined' && window.WoobiStage && typeof window.WoobiStage.createStage === 'function') {
+        this.stageModel = window.WoobiStage.createStage(this.scene, this.textures, THREE);
+        this.stageGroup = this.stageModel.group;
+        return;
+      }
+
+      // Procedural fallback if module has not loaded
       const rugGroup = new THREE.Group();
       rugGroup.position.set(0, 0, 0);
 
-      // Deep ground contact shadow disc
       const shadowGeo = new THREE.CircleGeometry(1.18, 64);
-      const shadowMat = new THREE.MeshBasicMaterial({
-        color: 0x22180F,
-        transparent: true,
-        opacity: 0.30
-      });
+      const shadowMat = new THREE.MeshBasicMaterial({ color: 0x22180F, transparent: true, opacity: 0.30 });
       const shadowDisc = new THREE.Mesh(shadowGeo, shadowMat);
       shadowDisc.rotation.x = -Math.PI / 2;
       shadowDisc.position.y = 0.002;
       rugGroup.add(shadowDisc);
 
-      // Circular Elevated Stage Podium (8.0 cm elevated dais stage)
       const rugRadius = 0.95;
       const rugThickness = 0.080;
-
-      // Attempt to load authentic 3D Stage asset from Astra (seren_stage.glb)
-      if (typeof THREE.GLTFLoader !== 'undefined') {
-        const gltfLoader = new THREE.GLTFLoader();
-        const stagePaths = ['3D - Stage by Astra/seren_stage.glb', 'seren_stage.glb'];
-
-        const loadStageGLB = (idx) => {
-          if (idx >= stagePaths.length) return;
-          gltfLoader.load(stagePaths[idx], (gltf) => {
-            const stageModel = gltf.scene;
-            stageModel.position.set(0, 0, 0);
-            rugGroup.add(stageModel);
-            if (rug) rug.visible = false;
-            if (rimTrim) rimTrim.visible = false;
-          }, undefined, () => loadStageGLB(idx + 1));
-        };
-        loadStageGLB(0);
-      }
-
-      // Circular Woven Elevated Stage Platform
       const rugGeo = new THREE.CylinderGeometry(rugRadius, rugRadius + 0.012, rugThickness, 64);
       const rugMat = new THREE.MeshStandardMaterial({
         map: this.textures.wovenRug,
@@ -602,41 +583,15 @@
       rug.castShadow = true;
       rugGroup.add(rug);
 
-      // Stitched Rounded Top Edge Trim
       const trimGeo = new THREE.TorusGeometry(rugRadius + 0.004, 0.012, 16, 64);
-      const trimMat = new THREE.MeshStandardMaterial({
-        color: 0xDFD6C8,
-        roughness: 0.85
-      });
+      const trimMat = new THREE.MeshStandardMaterial({ color: 0xDFD6C8, roughness: 0.85 });
       const rimTrim = new THREE.Mesh(trimGeo, trimMat);
       rimTrim.rotation.x = Math.PI / 2;
       rimTrim.position.y = rugThickness;
       rugGroup.add(rimTrim);
 
-      // Subtle 360-Degree Rotation Arc on the elevated stage surface (matching reference image)
-      const arcMat = new THREE.MeshBasicMaterial({
-        color: 0xFFFFFF,
-        transparent: true,
-        opacity: 0.60
-      });
-      [-1, 1].forEach((dir) => {
-        const arc = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.005, 8, 32, Math.PI * 0.45), arcMat);
-        arc.rotation.x = Math.PI / 2;
-        arc.rotation.z = (dir === 1 ? Math.PI * 0.28 : -Math.PI * 0.72);
-        arc.position.y = rugThickness + 0.003;
-        rugGroup.add(arc);
-      });
-
-      // Secondary peeking accent rug at foreground right (matching reference)
-      const accentRug = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.75, 0.76, 0.016, 48),
-        rugMat
-      );
-      accentRug.position.set(1.45, 0.008, 1.6);
-      accentRug.receiveShadow = true;
-      rugGroup.add(accentRug);
-
       this.scene.add(rugGroup);
+      this.stageGroup = rugGroup;
     }
 
     /**
@@ -2047,6 +2002,9 @@
     destroy() {
       if (this.animationFrameId) {
         cancelAnimationFrame(this.animationFrameId);
+      }
+      if (this.stageModel) {
+        this.stageModel.dispose(this.scene);
       }
       if (this.renderer) {
         this.renderer.dispose();
