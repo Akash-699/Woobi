@@ -116,7 +116,7 @@
     }
   ];
 
-  const state = {
+  const rawState = {
     currentScreen: 'welcome',
     todayCanvasMode: 'model', // 'model' or 'flat'
     stylistViewMode: 'model', // 'model' or 'flat'
@@ -149,11 +149,24 @@
     wearHistoryCount: 6
   };
 
+  const state = new Proxy(rawState, {
+    set(target, prop, value) {
+      target[prop] = value;
+      if (typeof window !== 'undefined' && window.woobiStore) {
+        window.woobiStore.setState({ [prop]: value });
+      }
+      return true;
+    }
+  });
+
   // =========================================================================
   // 2. SCREEN ROUTER & NAVIGATION
   // =========================================================================
   function goToScreen(screenId) {
     state.currentScreen = screenId;
+    if (typeof window !== 'undefined' && window.navigationRouter) {
+      window.navigationRouter.currentScreen = screenId;
+    }
 
     // Update screen selector dropdown if present
     const select = document.getElementById('screenSelect');
@@ -1196,14 +1209,17 @@
   }
 
   // Toast Notification Helper
-  function showToast(msg) {
+  function showToast(msg, type = 'info', duration = 3200) {
+    if (typeof window !== 'undefined' && window.toastService && typeof window.toastService.show === 'function') {
+      window.toastService.show(msg, type, duration);
+    }
     const toast = document.getElementById('toastPopup');
     if (!toast) return;
     toast.textContent = msg;
     toast.classList.add('visible');
     setTimeout(() => {
       toast.classList.remove('visible');
-    }, 3200);
+    }, duration);
   }
 
   // =========================================================================
@@ -2313,6 +2329,9 @@
   }
 
   function init() {
+    if (typeof window !== 'undefined' && window.appBootstrap && typeof window.appBootstrap.start === 'function') {
+      window.appBootstrap.start();
+    }
     initStreakState();
 
     renderCurrentLook();
