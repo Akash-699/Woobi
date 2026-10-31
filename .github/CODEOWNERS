@@ -1,0 +1,39 @@
+# ==============================================================================
+# WOOBI CORPORATE MONOREPO - CODEOWNERS
+# ==============================================================================
+# Syntax: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Rules:
+# - Default fallback: Global admin oversight required for all changes
+# - Core infrastructure: Requires 2 approvals including Admin
+# - Team boundaries: Respective module teams own their submodules
+
+# Global fallback
+*                            @Troyz-Solutions/admin-reviewers
+
+# Application Entry Points
+/apps/web/                   @Troyz-Solutions/frontend-team @Troyz-Solutions/admin-reviewers
+/apps/android/               @Troyz-Solutions/mobile-team @Troyz-Solutions/admin-reviewers
+
+# Module 1: 3D Studio (Physical World, Models, Dais, Lights, Camera)
+/modules/3d-studio/          @Troyz-Solutions/3d-team @Troyz-Solutions/admin-reviewers
+
+# Module 2: 3D Studio Features (Try-on, Interactions, Recommendations)
+/modules/3d-studio-features/ @Troyz-Solutions/fashion-team @Troyz-Solutions/frontend-team
+
+# Module 3: Settings (Preferences, Account, Privacy)
+/modules/settings/           @Troyz-Solutions/frontend-team
+
+# Module 4: Backend (API, Auth, Storage, Security)
+/modules/backend/            @Troyz-Solutions/backend-team @Troyz-Solutions/admin-reviewers
+
+# Module 5: Core (Foundation, Contracts, State, Error Handling)
+# Critical shared infrastructure: Requires two approvals including Admin
+/modules/core/               @Troyz-Solutions/admin-reviewers
+
+# Canonical 3D Assets & Blender Pipeline
+/assets/                     @Troyz-Solutions/3d-team
+
+# DevOps, CI/CD & Governance
+/.github/                    @Troyz-Solutions/admin-reviewers
+/scripts/                    @Troyz-Solutions/admin-reviewers
