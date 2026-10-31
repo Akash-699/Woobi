@@ -596,12 +596,18 @@
 
     /**
      * LEFT-SIDE LUXURY BUILT-IN NATURAL OAK WARDROBE
-     * Rebuilt with rich details matching Target Reference:
-     * Integrated LED strips, luxury box with gold pull, cascading trailing ivy,
-     * realistic 3D hanging garments on wooden hangers, luxury leather handbag,
-     * folded knitwear stacks, 2 drawers with brass pulls, and 4 footwear pairs
+     * Powered by extracted Wardrobe module: modules/3d-studio/wardrobe/WardrobeModel.js
      */
     buildWardrobeFurniture() {
+      if (typeof window !== 'undefined' && window.WoobiWardrobe && typeof window.WoobiWardrobe.createWardrobe === 'function') {
+        this.wardrobeModel = window.WoobiWardrobe.createWardrobe(this.scene, this.textures, THREE);
+        this.wardrobeGroup = this.wardrobeModel.group;
+        if (Array.isArray(this.wardrobeModel.interactiveObjects)) {
+          this.wardrobeModel.interactiveObjects.forEach(obj => this.interactiveObjects.push(obj));
+        }
+        return;
+      }
+
       const wardrobeGroup = new THREE.Group();
       // Position naturally on left wall with angled perspective matching Reference D
       wardrobeGroup.position.set(-0.96, 0, -0.32);
@@ -2005,6 +2011,9 @@
       }
       if (this.stageModel) {
         this.stageModel.dispose(this.scene);
+      }
+      if (this.wardrobeModel) {
+        this.wardrobeModel.dispose(this.scene);
       }
       if (this.renderer) {
         this.renderer.dispose();

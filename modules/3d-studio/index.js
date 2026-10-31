@@ -1,10 +1,17 @@
 import { StageModel, STAGE_CONFIG, StageMaterials, createStage } from './stage/index.js';
+import { WardrobeModel, WARDROBE_CONFIG, WardrobeMaterials, WardrobeAnimations, WardrobeAssets, createWardrobe } from './wardrobe/index.js';
 
 export {
   StageModel,
   STAGE_CONFIG,
   StageMaterials,
-  createStage
+  createStage,
+  WardrobeModel,
+  WARDROBE_CONFIG,
+  WardrobeMaterials,
+  WardrobeAnimations,
+  WardrobeAssets,
+  createWardrobe
 };
 
 export const StudioContract = {
@@ -25,10 +32,12 @@ export const StudioContract = {
   },
   
   wardrobe: {
+    createWardrobe: (scene, textures, THREE) => createWardrobe(scene, textures, THREE),
     openDoors: () => {},
     closeDoors: () => {},
     toggleDoors: () => {},
-    isDoorOpen: () => false
+    isDoorOpen: () => false,
+    getConfig: () => WARDROBE_CONFIG
   },
   
   vanity: {
