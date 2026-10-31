@@ -1201,6 +1201,21 @@
      * minimalist chunky white platform sneakers, and idle breathing + blinking animation
      */
     buildHumanoidAvatar() {
+      // Delegate to modular 3D Studio Avatar submodule if available
+      if (typeof window !== 'undefined' && window.WoobiAvatar && typeof window.WoobiAvatar.createAvatar === 'function') {
+        this.avatarModel = window.WoobiAvatar.createAvatar(this.scene, this.textures, THREE);
+        this.avatarController = new window.WoobiAvatar.AvatarController(this.avatarModel);
+        this.avatarRoot = this.avatarModel.avatarRoot;
+        this.sculptedAvatarGroup = this.avatarModel.sculptedAvatarGroup;
+        this.headGroup = this.avatarModel.rig ? this.avatarModel.rig.headGroup : null;
+        this.chestGroup = this.avatarModel.rig ? this.avatarModel.rig.chestGroup : null;
+        this.eyelids = this.avatarModel.rig ? this.avatarModel.rig.eyelids : [];
+        this.skinMaterials = this.avatarModel.materials ? this.avatarModel.materials.skinMaterials : [];
+        this.hairMaterials = this.avatarModel.materials ? this.avatarModel.materials.hairMaterials : [];
+        this.activeAvatarType = this.avatarModel.activeAvatarType;
+        return;
+      }
+
       this.avatarRoot = new THREE.Group();
       this.avatarRoot.position.set(0, 0.080, 0); // Grounded on elevated 8cm stage dais
 
@@ -1554,6 +1569,20 @@
      * Replaces procedural meshes with genuine rigged 3D character if available
      */
     loadRiggedAvatarGLB() {
+      if (this.avatarModel && typeof this.avatarModel.loadRiggedAvatarGLB === 'function') {
+        this.avatarModel.loadRiggedAvatarGLB(
+          (model, url) => {
+            console.log('Studio3D: Rigged 3D avatar loaded successfully from', url);
+            this.gltfAvatarGroup = this.avatarModel.gltfAvatarGroup;
+            this.activeAvatarType = this.avatarModel.activeAvatarType;
+          },
+          (err) => {
+            console.log('Studio3D: Using high-definition sculpted avatar.');
+          }
+        );
+        return;
+      }
+
       if (typeof THREE.GLTFLoader === 'undefined') {
         return;
       }
@@ -1791,6 +1820,10 @@
      */
     setSkinTone(hex) {
       this.avatarConfig.skinTone = hex;
+      if (this.avatarController && typeof this.avatarController.setSkinTone === 'function') {
+        this.avatarController.setSkinTone(hex);
+        return;
+      }
       const col = new THREE.Color(hex);
       this.skinMaterials.forEach(mat => {
         if (mat) {
@@ -1806,6 +1839,10 @@
      */
     setHairColor(hex) {
       this.avatarConfig.hairColor = hex;
+      if (this.avatarController && typeof this.avatarController.setHairColor === 'function') {
+        this.avatarController.setHairColor(hex);
+        return;
+      }
       const col = new THREE.Color(hex);
       this.hairMaterials.forEach(mat => {
         if (mat) {
@@ -1821,6 +1858,10 @@
      */
     setHairstyle(styleName) {
       this.avatarConfig.hairStyle = styleName;
+      if (this.avatarController && typeof this.avatarController.setHairstyle === 'function') {
+        this.avatarController.setHairstyle(styleName);
+        return;
+      }
       this.savePreferences();
     }
 
@@ -1829,6 +1870,10 @@
      */
     setBodyProportions(preset) {
       this.avatarConfig.proportions = preset;
+      if (this.avatarController && typeof this.avatarController.setBodyProportions === 'function') {
+        this.avatarController.setBodyProportions(preset);
+        return;
+      }
       let scaleX = 1.0;
       let scaleY = 1.0;
 
@@ -1865,6 +1910,10 @@
      */
     setGenderPresentation(gender) {
       this.avatarConfig.gender = gender;
+      if (this.avatarController && typeof this.avatarController.setGenderPresentation === 'function') {
+        this.avatarController.setGenderPresentation(gender);
+        return;
+      }
       if (gender === 'masculine') {
         this.setBodyProportions('athletic');
       } else {
@@ -1879,6 +1928,10 @@
     toggleAccessory(name, isActive) {
       if (!this.avatarConfig.accessories) this.avatarConfig.accessories = {};
       this.avatarConfig.accessories[name] = isActive;
+      if (this.avatarController && typeof this.avatarController.toggleAccessory === 'function') {
+        this.avatarController.toggleAccessory(name, isActive);
+        return;
+      }
       this.savePreferences();
     }
 
@@ -1887,6 +1940,11 @@
      */
     applyAvatarConfig(cfg) {
       if (!cfg) return;
+      if (this.avatarController && typeof this.avatarController.applyAvatarConfig === 'function') {
+        this.avatarController.applyAvatarConfig(cfg);
+        this.avatarConfig = Object.assign(this.avatarConfig, this.avatarController.avatarConfig);
+        return;
+      }
       if (cfg.skinTone) this.setSkinTone(cfg.skinTone);
       if (cfg.hairColor) this.setHairColor(cfg.hairColor);
       if (cfg.proportions) this.setBodyProportions(cfg.proportions);
@@ -1955,39 +2013,49 @@
       const delta = this.clock.getDelta();
       const time = this.clock.getElapsedTime();
 
-      // 1. Smooth Avatar Rotation Damping
-      this.avatarRotationY += (this.targetRotationY - this.avatarRotationY) * 0.12;
-      if (this.avatarRoot) {
-        this.avatarRoot.rotation.y = this.avatarRotationY;
-      }
-
-      // 2. Subtle Idle Breathing Motion
-      const breath = Math.sin(time * 1.6) * 0.003;
-      if (this.chestGroup) {
-        this.chestGroup.position.y = 1.22 + breath;
-      }
-      if (this.headGroup) {
-        this.headGroup.position.y = 1.54 + breath * 0.6;
-      }
-
-      // 3. Natural Periodic Eyelid Blinking
-      this.blinkTimer += delta;
-      if (this.blinkTimer > this.nextBlinkTime) {
-        this.isBlinking = true;
-        this.blinkProgress += delta * 12; // Quick blink motion
-        if (this.blinkProgress >= Math.PI) {
-          this.isBlinking = false;
-          this.blinkProgress = 0;
-          this.blinkTimer = 0;
-          this.nextBlinkTime = 2.8 + Math.random() * 2.6; // Random interval
+      // 1. Smooth Avatar Rotation Damping & Animations
+      if (this.avatarModel && typeof this.avatarModel.update === 'function') {
+        if (this.avatarController) {
+          this.avatarController.setTargetRotation(this.targetRotationY);
         }
-      }
+        this.avatarModel.update(delta, time);
+        if (this.avatarModel.animations) {
+          this.avatarRotationY = this.avatarModel.animations.avatarRotationY;
+        }
+      } else {
+        this.avatarRotationY += (this.targetRotationY - this.avatarRotationY) * 0.12;
+        if (this.avatarRoot) {
+          this.avatarRoot.rotation.y = this.avatarRotationY;
+        }
 
-      if (this.eyelids && this.eyelids.length > 0) {
-        const lidScaleY = this.isBlinking ? Math.sin(this.blinkProgress) * 0.72 : 0.02;
-        this.eyelids.forEach(lid => {
-          lid.scale.y = Math.max(0.02, lidScaleY);
-        });
+        // 2. Subtle Idle Breathing Motion
+        const breath = Math.sin(time * 1.6) * 0.003;
+        if (this.chestGroup) {
+          this.chestGroup.position.y = 1.22 + breath;
+        }
+        if (this.headGroup) {
+          this.headGroup.position.y = 1.54 + breath * 0.6;
+        }
+
+        // 3. Natural Periodic Eyelid Blinking
+        this.blinkTimer += delta;
+        if (this.blinkTimer > this.nextBlinkTime) {
+          this.isBlinking = true;
+          this.blinkProgress += delta * 12; // Quick blink motion
+          if (this.blinkProgress >= Math.PI) {
+            this.isBlinking = false;
+            this.blinkProgress = 0;
+            this.blinkTimer = 0;
+            this.nextBlinkTime = 2.8 + Math.random() * 2.6; // Random interval
+          }
+        }
+
+        if (this.eyelids && this.eyelids.length > 0) {
+          const lidScaleY = this.isBlinking ? Math.sin(this.blinkProgress) * 0.72 : 0.02;
+          this.eyelids.forEach(lid => {
+            lid.scale.y = Math.max(0.02, lidScaleY);
+          });
+        }
       }
 
       // 4. Smooth Camera Transitions
@@ -2037,6 +2105,9 @@
       }
       if (this.vanityModel) {
         this.vanityModel.dispose(this.scene);
+      }
+      if (this.avatarModel) {
+        this.avatarModel.dispose(this.scene);
       }
       if (this.renderer) {
         this.renderer.dispose();

@@ -1,6 +1,21 @@
 import { StageModel, STAGE_CONFIG, StageMaterials, createStage } from './stage/index.js';
 import { WardrobeModel, WARDROBE_CONFIG, WardrobeMaterials, WardrobeAnimations, WardrobeAssets, createWardrobe } from './wardrobe/index.js';
 import { VanityModel, VANITY_CONFIG, VanityMaterials, VanityAssets, MirrorReflection, VanityLighting, createVanity } from './mirror-vanity/index.js';
+import {
+  AvatarModel,
+  AvatarMaterials,
+  AvatarRig,
+  AvatarAssets,
+  AvatarMorphs,
+  AvatarAnimations,
+  AvatarController,
+  AVATAR_CONFIG,
+  AVATAR_PALETTE,
+  AVATAR_ASSET_PATHS,
+  PROPORTION_PRESETS,
+  createAvatar,
+  AvatarContract
+} from './avatar/index.js';
 
 export {
   StageModel,
@@ -19,7 +34,20 @@ export {
   VanityAssets,
   MirrorReflection,
   VanityLighting,
-  createVanity
+  createVanity,
+  AvatarModel,
+  AvatarMaterials,
+  AvatarRig,
+  AvatarAssets,
+  AvatarMorphs,
+  AvatarAnimations,
+  AvatarController,
+  AVATAR_CONFIG,
+  AVATAR_PALETTE,
+  AVATAR_ASSET_PATHS,
+  PROPORTION_PRESETS,
+  createAvatar,
+  AvatarContract
 };
 
 export const StudioContract = {
@@ -57,9 +85,12 @@ export const StudioContract = {
   },
   
   avatar: {
-    setGender: (gender) => {}, // 'female' | 'male'
-    getStandingElevation: () => 0.080, // Y = 0.080m grounded on dais
-    triggerPose: (poseName) => {}
+    createAvatar: (scene, textures, THREE) => createAvatar(scene, textures, THREE),
+    createController: (avatarModel) => new AvatarController(avatarModel),
+    setGender: (controller, gender) => controller && controller.setGenderPresentation(gender),
+    getStandingElevation: () => AVATAR_CONFIG.daisElevation, // Y = 0.080m grounded on dais
+    triggerPose: (poseName) => {},
+    getConfig: () => ({ ...AVATAR_CONFIG })
   },
   
   lighting: {
