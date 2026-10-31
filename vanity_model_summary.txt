@@ -1,0 +1,117 @@
+============================================================
+SÉRÉN STUDIO — 3D LUXURY VANITY & MIRROR MODEL SUMMARY (STEP 2)
+============================================================
+
+Asset Name: Seren Luxury Vanity & Arched Illuminated Mirror
+Origin: Floor-Level Center (0, 0, 0) | Forward: -Y | Up: +Z
+Total Mesh Objects: 65
+Total Vertices: 1,778
+Total Polygons/Faces: 1,019
+
+COLLECTION HIERARCHY & OBJECT BREAKDOWN:
+
+[Vanity_Table] (15 objects):
+  • Vanity_Cosmetic_Tray_Base [MESH] (6 polys, 8 verts)
+  • Vanity_Drawer_Seam [MESH] (6 polys, 8 verts)
+  • Vanity_Leg_Left_Back [MESH] (6 polys, 8 verts)
+  • Vanity_Leg_Left_Bottom [MESH] (6 polys, 8 verts)
+  • Vanity_Leg_Left_Front [MESH] (6 polys, 8 verts)
+  • Vanity_Leg_Right_Back [MESH] (6 polys, 8 verts)
+  • Vanity_Leg_Right_Bottom [MESH] (6 polys, 8 verts)
+  • Vanity_Leg_Right_Front [MESH] (6 polys, 8 verts)
+  • Vanity_Marble_Top [MESH] (6 polys, 8 verts)
+  • Vanity_Top_Rail_Back [MESH] (6 polys, 8 verts)
+  • Vanity_Top_Rail_Front [MESH] (6 polys, 8 verts)
+  • Vanity_Tray_Rim_Back [MESH] (6 polys, 8 verts)
+  • Vanity_Tray_Rim_Front [MESH] (6 polys, 8 verts)
+  • Vanity_Tray_Rim_Left [MESH] (6 polys, 8 verts)
+  • Vanity_Tray_Rim_Right [MESH] (6 polys, 8 verts)
+
+[Mirror_Frame] (1 objects):
+  • Mirror_Frame [MESH] (53 polys, 102 verts)
+
+[Mirror_Surface] (1 objects):
+  • Mirror_Surface [MESH] (53 polys, 102 verts)
+
+[Mirror_LED] (1 objects):
+  • Mirror_LED_Strip [MESH] (53 polys, 102 verts)
+
+[Perfume_Bottles] (9 objects):
+  • Perfume_1_Glass_Body [MESH] (6 polys, 8 verts)
+  • Perfume_1_Gold_Cap [MESH] (6 polys, 8 verts)
+  • Perfume_1_Gold_Neck [MESH] (18 polys, 32 verts)
+  • Perfume_1_Liquid_Amber [MESH] (6 polys, 8 verts)
+  • Perfume_2_Glass_Body [MESH] (26 polys, 48 verts)
+  • Perfume_2_Gold_Cap [MESH] (26 polys, 48 verts)
+  • Perfume_2_Liquid_Rose [MESH] (22 polys, 40 verts)
+  • Perfume_3_Cap [MESH] (18 polys, 32 verts)
+  • Perfume_3_Glass_Body [MESH] (6 polys, 8 verts)
+
+[Skincare] (12 objects):
+  • Cosmetic_Cream_Gold_Lid [MESH] (26 polys, 48 verts)
+  • Cosmetic_Cream_Jar_Base [MESH] (26 polys, 48 verts)
+  • Diffuser_Brass_Collar [MESH] (18 polys, 32 verts)
+  • Diffuser_Glass_Vessel [MESH] (22 polys, 40 verts)
+  • Diffuser_Reed_1 [MESH] (10 polys, 16 verts)
+  • Diffuser_Reed_2 [MESH] (10 polys, 16 verts)
+  • Diffuser_Reed_3 [MESH] (10 polys, 16 verts)
+  • Diffuser_Reed_4 [MESH] (10 polys, 16 verts)
+  • Diffuser_Reed_5 [MESH] (10 polys, 16 verts)
+  • Skincare_1_Dropper_Bulb [MESH] (18 polys, 32 verts)
+  • Skincare_1_Dropper_Ring [MESH] (22 polys, 40 verts)
+  • Skincare_1_Frosted_Bottle [MESH] (26 polys, 48 verts)
+
+[Makeup_Accessories] (11 objects):
+  • Brush_Bristles_1 [MESH] (14 polys, 24 verts)
+  • Brush_Bristles_2 [MESH] (14 polys, 24 verts)
+  • Brush_Bristles_3 [MESH] (14 polys, 24 verts)
+  • Brush_Bristles_4 [MESH] (14 polys, 24 verts)
+  • Brush_Bristles_5 [MESH] (14 polys, 24 verts)
+  • Brush_Handle_1 [MESH] (10 polys, 16 verts)
+  • Brush_Handle_2 [MESH] (10 polys, 16 verts)
+  • Brush_Handle_3 [MESH] (10 polys, 16 verts)
+  • Brush_Handle_4 [MESH] (10 polys, 16 verts)
+  • Brush_Handle_5 [MESH] (10 polys, 16 verts)
+  • Makeup_Brush_Cup [MESH] (26 polys, 48 verts)
+
+[Flower_Vase] (12 objects):
+  • Blossom_Bud_1 [MESH] (14 polys, 24 verts)
+  • Blossom_Bud_2 [MESH] (14 polys, 24 verts)
+  • Blossom_Bud_3 [MESH] (14 polys, 24 verts)
+  • Blossom_Bud_4 [MESH] (14 polys, 24 verts)
+  • Blossom_Bud_5 [MESH] (14 polys, 24 verts)
+  • Flower_Stem_1 [MESH] (10 polys, 16 verts)
+  • Flower_Stem_2 [MESH] (10 polys, 16 verts)
+  • Flower_Stem_3 [MESH] (10 polys, 16 verts)
+  • Flower_Stem_4 [MESH] (10 polys, 16 verts)
+  • Flower_Stem_5 [MESH] (10 polys, 16 verts)
+  • Vase_Glass_Body [MESH] (26 polys, 48 verts)
+  • Vase_Water_Level [MESH] (22 polys, 40 verts)
+
+[Vanity_Stool] (3 objects):
+  • Stool_Brass_Base_Ring [MESH] (38 polys, 72 verts)
+  • Stool_Top_Padded_Cushion [MESH] (38 polys, 72 verts)
+  • Stool_Upholstered_Body [MESH] (38 polys, 72 verts)
+
+PBR MATERIALS INCLUDED:
+  • M_Ceramic_Ivory
+  • M_Champagne_Brass
+  • M_Flower_Petal_White
+  • M_Foliage_Green
+  • M_Glass_Clear
+  • M_Glass_Frosted
+  • M_Mirror_Chrome
+  • M_Mirror_LED_3000K
+  • M_Natural_Wood_Reed
+  • M_Perfume_Liquid_Amber
+  • M_Perfume_Liquid_Rose
+  • M_Stool_Cream_Boucle
+  • M_Studio_Floor_Travertine
+  • M_Studio_Wall_Cream
+  • M_White_Marble_Calacatta
+
+THREE.JS INTEGRATION GUIDANCE:
+  • Mirror_Surface mesh is isolated with a flat normal facing -Y for easy replacement with
+    MeshReflectorMaterial or WebGLRenderTarget planar reflection.
+  • Mirror_LED_Strip has emissive 3000K material for blooming or spot/rect-light pairing.
+  • Exported GLB is self-contained with embedded geometry and PBR materials at origin (0, 0, 0).
