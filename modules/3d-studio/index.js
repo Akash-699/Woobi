@@ -16,6 +16,23 @@ import {
   createAvatar,
   AvatarContract
 } from './avatar/index.js';
+import {
+  StudioLighting,
+  LIGHTING_PRESETS,
+  DEFAULT_LIGHTING_PRESET,
+  LightingController,
+  createStudioLighting,
+  LightingContract
+} from './lighting/index.js';
+import {
+  StudioTheme,
+  ThemeMaterials,
+  THEME_PRESETS,
+  DEFAULT_THEME_PRESET,
+  COLOR_PALETTE,
+  createStudioTheme,
+  ThemeContract
+} from './theme/index.js';
 
 export {
   StageModel,
@@ -47,7 +64,20 @@ export {
   AVATAR_ASSET_PATHS,
   PROPORTION_PRESETS,
   createAvatar,
-  AvatarContract
+  AvatarContract,
+  StudioLighting,
+  LIGHTING_PRESETS,
+  DEFAULT_LIGHTING_PRESET,
+  LightingController,
+  createStudioLighting,
+  LightingContract,
+  StudioTheme,
+  ThemeMaterials,
+  THEME_PRESETS,
+  DEFAULT_THEME_PRESET,
+  COLOR_PALETTE,
+  createStudioTheme,
+  ThemeContract
 };
 
 export const StudioContract = {
@@ -89,12 +119,25 @@ export const StudioContract = {
     createController: (avatarModel) => new AvatarController(avatarModel),
     setGender: (controller, gender) => controller && controller.setGenderPresentation(gender),
     getStandingElevation: () => AVATAR_CONFIG.daisElevation, // Y = 0.080m grounded on dais
-    triggerPose: (poseName) => {},
+    triggerPose: (poseName) => {
+      console.warn('Avatar: Posing system is reserved for Studio Features module (Phase 5). Currently unsupported.');
+      return false;
+    },
     getConfig: () => ({ ...AVATAR_CONFIG })
   },
   
   lighting: {
-    setThemePreset: (preset) => {} // 'luxury-warm' | 'editorial-neutral' | 'soft-evening'
+    createLighting: (scene, presetName, THREE) => createStudioLighting(scene, presetName, THREE),
+    createController: (lightingInstance) => new LightingController(lightingInstance),
+    getPresets: () => ({ ...LIGHTING_PRESETS }),
+    setThemePreset: (controller, preset) => controller && controller.applyPreset(preset)
+  },
+
+  theme: {
+    createTheme: (scene, textures, presetName, THREE) => createStudioTheme(scene, textures, presetName, THREE),
+    getPresets: () => ({ ...THEME_PRESETS }),
+    getPalette: () => ({ ...COLOR_PALETTE }),
+    applyTheme: (themeInstance, presetName, scene) => themeInstance && themeInstance.applyTheme(presetName, scene)
   }
 };
 

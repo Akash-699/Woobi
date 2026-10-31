@@ -400,6 +400,13 @@
      * delicate rim lighting, and soft ground contact shadows
      */
     setupLighting() {
+      // Delegate to modular 3D Studio Lighting submodule if available
+      if (typeof window !== 'undefined' && window.WoobiLighting && typeof window.WoobiLighting.createStudioLighting === 'function') {
+        this.lightingModel = window.WoobiLighting.createStudioLighting(this.scene, 'luxury-warm', THREE);
+        this.lightingController = new window.WoobiLighting.LightingController(this.lightingModel);
+        return;
+      }
+
       // Warm, serene ambient illumination
       const ambientLight = new THREE.AmbientLight(0xFFF6EC, 0.68);
       this.scene.add(ambientLight);
@@ -449,6 +456,12 @@
      * Overhead Studio Softbox, Window Mullion Shadows, and Foreground Framing Foliage
      */
     buildRoomArchitecture() {
+      // Delegate to modular 3D Studio Theme & Environment submodule if available
+      if (typeof window !== 'undefined' && window.WoobiTheme && typeof window.WoobiTheme.createStudioTheme === 'function') {
+        this.themeModel = window.WoobiTheme.createStudioTheme(this.scene, this.textures, 'luxury-cream', THREE);
+        return;
+      }
+
       // 1. Polished Cream Marble Tile Flooring
       const floorGeo = new THREE.PlaneGeometry(16, 16);
       const floorMat = new THREE.MeshStandardMaterial({
@@ -2108,6 +2121,12 @@
       }
       if (this.avatarModel) {
         this.avatarModel.dispose(this.scene);
+      }
+      if (this.lightingModel) {
+        this.lightingModel.dispose(this.scene);
+      }
+      if (this.themeModel) {
+        this.themeModel.dispose(this.scene);
       }
       if (this.renderer) {
         this.renderer.dispose();
