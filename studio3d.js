@@ -962,7 +962,21 @@
      * glass perfume bottles, makeup brushes, skincare containers,
      * baby's breath floral arrangement, and round cream bouclé stool with brass rim
      */
+    /**
+     * DRESSING VANITY & ILLUMINATED GROOMING MIRROR
+     * Powered by extracted Mirror & Vanity module: modules/3d-studio/mirror-vanity/VanityModel.js
+     */
     buildDressingVanity() {
+      if (typeof window !== 'undefined' && window.WoobiVanity && typeof window.WoobiVanity.createVanity === 'function') {
+        this.vanityModel = window.WoobiVanity.createVanity(this.scene, this.textures, THREE);
+        this.vanityGroup = this.vanityModel.group;
+        this.mirrorGlassMesh = this.vanityModel.mirrorGlassMesh;
+        if (Array.isArray(this.vanityModel.interactiveObjects)) {
+          this.vanityModel.interactiveObjects.forEach(obj => this.interactiveObjects.push(obj));
+        }
+        return;
+      }
+
       const vanityGroup = new THREE.Group();
       vanityGroup.position.set(0.92, 0, -0.05);
       vanityGroup.rotation.y = -0.32; // Angled gracefully towards stage
@@ -1608,6 +1622,12 @@
      */
     setupMirrorRenderPipeline() {
       try {
+        if (this.vanityModel && this.vanityModel.reflection && this.vanityModel.reflection.renderTarget) {
+          this.mirrorRenderTarget = this.vanityModel.reflection.renderTarget;
+          this.mirrorCamera = this.vanityModel.reflection.mirrorCamera;
+          return;
+        }
+
         this.mirrorRenderTarget = new THREE.WebGLRenderTarget(512, 512, {
           format: THREE.RGBFormat,
           generateMipmaps: false,
@@ -2014,6 +2034,9 @@
       }
       if (this.wardrobeModel) {
         this.wardrobeModel.dispose(this.scene);
+      }
+      if (this.vanityModel) {
+        this.vanityModel.dispose(this.scene);
       }
       if (this.renderer) {
         this.renderer.dispose();

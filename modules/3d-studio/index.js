@@ -1,5 +1,6 @@
 import { StageModel, STAGE_CONFIG, StageMaterials, createStage } from './stage/index.js';
 import { WardrobeModel, WARDROBE_CONFIG, WardrobeMaterials, WardrobeAnimations, WardrobeAssets, createWardrobe } from './wardrobe/index.js';
+import { VanityModel, VANITY_CONFIG, VanityMaterials, VanityAssets, MirrorReflection, VanityLighting, createVanity } from './mirror-vanity/index.js';
 
 export {
   StageModel,
@@ -11,7 +12,14 @@ export {
   WardrobeMaterials,
   WardrobeAnimations,
   WardrobeAssets,
-  createWardrobe
+  createWardrobe,
+  VanityModel,
+  VANITY_CONFIG,
+  VanityMaterials,
+  VanityAssets,
+  MirrorReflection,
+  VanityLighting,
+  createVanity
 };
 
 export const StudioContract = {
@@ -41,8 +49,11 @@ export const StudioContract = {
   },
   
   vanity: {
+    createVanity: (scene, textures, THREE) => createVanity(scene, textures, THREE),
     focusMirror: () => {},
-    resetFocus: () => {}
+    resetFocus: () => {},
+    setLightsEnabled: (enabled) => {},
+    getConfig: () => VANITY_CONFIG
   },
   
   avatar: {
