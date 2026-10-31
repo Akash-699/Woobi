@@ -1,0 +1,48 @@
+/* ==========================================================================
+   WOOBI CORE — DESIGN SYSTEM TOKENS
+   Warm Organic Minimalist & Luxury Editorial Aesthetic
+   Palette: Olive Green #52634B | Warm White Cream #FAF9F6 | Serif Display
+   ========================================================================== */
+
+:root {
+  color-scheme: only light !important;
+  --font-serif: 'DM Serif Display', 'Playfair Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Exact warm white-cream palette matching reference mockups */
+  --bg-board: #F8F7F4;
+  --bg-phone: #FAF9F6;
+  --bg-card: #FFFFFF;
+  --bg-subtle: #F3EFE8;
+  --bg-border: #E8E3D8;
+  --bg-border-light: #EFECE6;
+
+  --text-main: #1D201C;
+  --text-sub: #4A5147;
+  --text-muted: #7A8174;
+  --text-dim: #9FA499;
+
+  --olive-primary: #52634B;
+  --olive-dark: #3F4C39;
+  --olive-light: #64775B;
+  --olive-soft: rgba(82, 99, 75, 0.12);
+  --olive-border: rgba(82, 99, 75, 0.28);
+
+  --color-danger: #D94F4F;
+  --color-warning: #E09F3E;
+  --color-success: #4E8752;
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 30px;
+  --radius-phone: 48px;
+
+  --shadow-phone: 0 30px 80px -15px rgba(26, 31, 25, 0.22), 0 0 0 1px #D6D0C5;
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  --transition-fast: 0.15s ease;
+  --transition-smooth: 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
