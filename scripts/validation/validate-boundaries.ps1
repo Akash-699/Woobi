@@ -63,7 +63,7 @@ function Test-ModuleBoundaries([string]$targetDir, [bool]$isTestRun) {
   # 3. Enforce Browser-to-Backend REST API Boundary
   Write-Host "`n[Check 3] Enforcing Browser-to-Backend REST API Boundary..." -ForegroundColor Yellow
   $clientFiles = Get-ChildItem -Path $targetDir -Include *.js, *.html, *.css -Recurse |
-                 Where-Object { $_.FullName -notmatch '\\modules\\backend\\' }
+                 Where-Object { $_.FullName -notmatch '[\\/]modules[\\/]backend[\\/]' }
 
   foreach ($file in $clientFiles) {
     $content = Get-Content $file.FullName -Raw
