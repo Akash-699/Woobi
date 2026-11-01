@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "test": "node scripts/testing/run-all-tests.js"
+    "test": "node scripts/testing/run-all-tests.js",
+    "test:e2e": "node scripts/testing/test-backend-e2e.js",
+    "validate:boundaries": "powershell -ExecutionPolicy Bypass -File scripts/validation/validate-boundaries.ps1"
   },
   "keywords": [
     "fashion",

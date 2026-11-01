@@ -62,25 +62,32 @@ export class NavigationRouter {
   }
 
   goToScreen(screenId) {
-    if (typeof document === 'undefined') return;
-
     const prevScreen = this.currentScreen;
     this.currentScreen = screenId;
     this.history.push(screenId);
 
-    // Synchronize debug screen selector dropdown if present
-    const select = document.getElementById('screenSelect');
-    if (select && select.value !== screenId) {
-      select.value = screenId;
-    }
+    if (typeof document !== 'undefined') {
+      // Synchronize debug screen selector dropdown if present
+      const select = document.getElementById('screenSelect');
+      if (select && select.value !== screenId) {
+        select.value = screenId;
+      }
 
-    // Hide all phone screens
-    document.querySelectorAll('.phone-screen').forEach(el => el.classList.remove('active'));
+      // Hide all phone screens
+      document.querySelectorAll('.phone-screen').forEach(el => el.classList.remove('active'));
 
-    // Show target screen
-    const target = document.getElementById(`screen-${screenId}`);
-    if (target) {
-      target.classList.add('active');
+      // Show target screen
+      const target = document.getElementById(`screen-${screenId}`);
+      if (target) {
+        target.classList.add('active');
+      }
+
+      // Update Bottom Nav active tab indicator
+      this.updateBottomNav(screenId);
+
+      // Scroll phone screen container to top
+      const container = document.getElementById('phoneScreenContainer');
+      if (container) container.scrollTop = 0;
     }
 
     // Execute registered screen entry hooks
@@ -88,13 +95,6 @@ export class NavigationRouter {
     if (hooks) {
       hooks.forEach(fn => fn(screenId, prevScreen));
     }
-
-    // Update Bottom Nav active tab indicator
-    this.updateBottomNav(screenId);
-
-    // Scroll phone screen container to top
-    const container = document.getElementById('phoneScreenContainer');
-    if (container) container.scrollTop = 0;
 
     // Notify listeners
     this.listeners.forEach(fn => fn(screenId, prevScreen));

@@ -126,6 +126,7 @@ export class Store {
 }
 
 export const store = new Store();
+export const createStore = (initialState) => new Store(initialState);
 
 // Backward compatibility bridge for window.app.state
 if (typeof window !== 'undefined') {
