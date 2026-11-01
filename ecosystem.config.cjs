@@ -1,6 +1,17 @@
 /**
  * Woobi - PM2 Production Process Management Configuration
  * Troyz Solutions - Monorepo Runtime Architecture
+ *
+ * CRITICAL ARCHITECTURAL CONSTRAINTS:
+ * 1. Single-Instance Writer Architecture (instances: 1, exec_mode: 'fork'):
+ *    The Woobi backend utilizes a local-first JSON file storage engine (DatabaseService)
+ *    with OS directory locks (.oslock) and temporary-file atomic swaps.
+ *    PM2 multi-worker cluster mode (instances: 'max') is strictly PROHIBITED for this
+ *    storage engine, as concurrent worker processes will race on in-memory caches and
+ *    file replacements.
+ * 2. To horizontally scale across multi-worker clusters or multiple nodes, the storage
+ *    layer must first be migrated to a true client-server transactional database
+ *    (e.g., PostgreSQL or SQLite with WAL mode).
  */
 
 module.exports = {
@@ -8,8 +19,8 @@ module.exports = {
     {
       name: 'woobi-backend',
       script: './server.js',
-      instances: 'max',
-      exec_mode: 'cluster',
+      instances: 1,
+      exec_mode: 'fork',
       autorestart: true,
       watch: false,
       max_memory_restart: '512M',

@@ -51,7 +51,10 @@ const testSuites = [
   { name: 'Branding & Compatibility Verification (6 Tests)', path: 'modules/core/BrandingCompatibility.test.js', isNodeTest: true },
 
   // 6. Production User Journeys & End-to-End Flows (7 Tests)
-  { name: 'Application User Journeys (7 Tests)', path: 'scripts/testing/test-user-journeys.js', isNodeTest: true }
+  { name: 'Application User Journeys (7 Tests)', path: 'scripts/testing/test-user-journeys.js', isNodeTest: true },
+
+  // 7. Multi-Process Durability & OS Locking (4 Tests)
+  { name: 'Multi-Process Concurrency & Crash Durability (4 Tests)', path: 'scripts/testing/test-multiprocess-concurrency.js', isNodeTest: true }
 ];
 
 console.log('======================================================');
@@ -85,7 +88,7 @@ for (const suite of testSuites) {
 
 console.log('\n======================================================');
 console.log(`TOTAL SUITES: ${totalSuites} | PASSED: ${passedSuites} | FAILED: ${failedSuites}`);
-console.log('TOTAL VERIFIED TESTS: 638');
+console.log('TOTAL VERIFIED TESTS: 642');
 console.log('======================================================');
 
 if (failedSuites > 0) {

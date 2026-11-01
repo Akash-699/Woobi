@@ -100,22 +100,32 @@ server {
 
 ---
 
-## 4. PM2 Process Management
+## 4. PM2 Process Management & Concurrency Architecture
 
-Start and monitor the application cluster:
+### Mandatory Single-Instance Architecture (`instances: 1`, `exec_mode: 'fork'`)
+> [!IMPORTANT]
+> The Woobi production backend uses a local-first JSON file storage engine (`DatabaseService.js`) with atomic file writes, `.bak` snapshot rotation, and OS directory locking (`.oslock`). 
+> **Running in PM2 multi-worker cluster mode (`instances: 'max'`) is strictly PROHIBITED.** 
+> In a multi-worker cluster, separate Node processes hold distinct in-memory cache states and race on disk file updates, which can lead to cache desynchronization and clobbered updates.
+> 
+> The application is configured for single-process execution (`instances: 1`, `exec_mode: 'fork'`) with automatic crash recovery (`autorestart: true`).
+> 
+> **Horizontal Scaling Roadmap**: For high-concurrency multi-worker horizontal scaling, `DatabaseService.js` must be migrated to a client-server transactional database (such as PostgreSQL or SQLite configured in WAL mode).
+
+Start and monitor the application:
 
 ```bash
-# 1. Start application in cluster mode using ecosystem file
+# 1. Start application in verified single-writer mode using ecosystem file
 pm2 start ecosystem.config.cjs --env production
 
 # 2. Persist PM2 across server restarts
 pm2 save
 pm2 startup
 
-# 3. View live cluster status
+# 3. View live process status
 pm2 status
 
-# 4. View cluster logs
+# 4. View process logs
 pm2 logs woobi-backend --lines 100
 ```
 
@@ -217,3 +227,4 @@ The mobile application is a high-performance Android WebView wrapper (`android-a
 4. Output Artifacts:
    - APK: `android-app/app/build/outputs/apk/release/app-release.apk`
    - AAB (Play Store): `android-app/app/build/outputs/bundle/release/app-release.aab`
+

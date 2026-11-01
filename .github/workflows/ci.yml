@@ -27,7 +27,7 @@ jobs:
           ./scripts/validation/validate-boundaries.ps1
 
   test-3d-studio:
-    name: 3D Studio, Features, Settings, Backend & Production Hardening Suite (638 Tests)
+    name: 3D Studio, Features, Settings, Backend & Multi-Process Hardening Suite (642 Tests)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code

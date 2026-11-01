@@ -25,7 +25,6 @@ class BaseRepository {
   }
 
   async create(data) {
-    const list = this.getAll();
     const id = data.id || `${this.idPrefix}_${crypto.randomBytes(6).toString('hex')}`;
     const record = {
       ...data,
@@ -33,38 +32,47 @@ class BaseRepository {
       createdAt: data.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-    list.push(record);
-    await this.db.writeCollection(this.collectionName, list);
+    await this.db.mutateCollection(this.collectionName, (list) => {
+      list.push(record);
+    });
     this.db.emit(DB_EVENTS.ENTITY_CREATED, { collection: this.collectionName, entity: record });
     return record;
   }
 
   async update(id, updates) {
-    const list = this.getAll();
-    const idx = list.findIndex(item => item.id === id);
-    if (idx === -1) return null;
+    let updated = null;
+    await this.db.mutateCollection(this.collectionName, (list) => {
+      const idx = list.findIndex(item => item.id === id);
+      if (idx === -1) return;
 
-    const updated = {
-      ...list[idx],
-      ...updates,
-      id, // Immutable ID
-      updatedAt: new Date().toISOString()
-    };
-    list[idx] = updated;
-    await this.db.writeCollection(this.collectionName, list);
-    this.db.emit(DB_EVENTS.ENTITY_UPDATED, { collection: this.collectionName, entity: updated });
+      updated = {
+        ...list[idx],
+        ...updates,
+        id, // Immutable ID
+        updatedAt: new Date().toISOString()
+      };
+      list[idx] = updated;
+    });
+
+    if (updated) {
+      this.db.emit(DB_EVENTS.ENTITY_UPDATED, { collection: this.collectionName, entity: updated });
+    }
     return updated;
   }
 
   async delete(id) {
-    const list = this.getAll();
-    const idx = list.findIndex(item => item.id === id);
-    if (idx === -1) return false;
+    let deleted = null;
+    await this.db.mutateCollection(this.collectionName, (list) => {
+      const idx = list.findIndex(item => item.id === id);
+      if (idx === -1) return;
+      [deleted] = list.splice(idx, 1);
+    });
 
-    const [deleted] = list.splice(idx, 1);
-    await this.db.writeCollection(this.collectionName, list);
-    this.db.emit(DB_EVENTS.ENTITY_DELETED, { collection: this.collectionName, id, entity: deleted });
-    return true;
+    if (deleted) {
+      this.db.emit(DB_EVENTS.ENTITY_DELETED, { collection: this.collectionName, id, entity: deleted });
+      return true;
+    }
+    return false;
   }
 }
 
@@ -132,14 +140,19 @@ class AvatarRepository extends BaseRepository {
 
   async saveForUser(userId, prefs) {
     if (!userId) return null;
-    const list = this.getAll();
-    const idx = list.findIndex(a => a.userId === userId);
-    if (idx !== -1) {
-      list[idx] = { ...list[idx], ...prefs, userId, updatedAt: new Date().toISOString() };
-      await this.db.writeCollection(this.collectionName, list);
-      return list[idx];
-    }
-    return this.create({ ...prefs, userId });
+    let saved = null;
+    await this.db.mutateCollection(this.collectionName, (list) => {
+      const idx = list.findIndex(a => a.userId === userId);
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...prefs, userId, updatedAt: new Date().toISOString() };
+        saved = list[idx];
+      } else {
+        const id = `${this.idPrefix}_${crypto.randomBytes(6).toString('hex')}`;
+        saved = { ...prefs, id, userId, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+        list.push(saved);
+      }
+    });
+    return saved;
   }
 }
 
@@ -156,14 +169,19 @@ class SettingsRepository extends BaseRepository {
 
   async saveForUser(userId, settings) {
     if (!userId) return null;
-    const list = this.getAll();
-    const idx = list.findIndex(s => s.userId === userId);
-    if (idx !== -1) {
-      list[idx] = { ...list[idx], ...settings, userId, updatedAt: new Date().toISOString() };
-      await this.db.writeCollection(this.collectionName, list);
-      return list[idx];
-    }
-    return this.create({ ...settings, userId });
+    let saved = null;
+    await this.db.mutateCollection(this.collectionName, (list) => {
+      const idx = list.findIndex(s => s.userId === userId);
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...settings, userId, updatedAt: new Date().toISOString() };
+        saved = list[idx];
+      } else {
+        const id = `${this.idPrefix}_${crypto.randomBytes(6).toString('hex')}`;
+        saved = { ...settings, id, userId, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+        list.push(saved);
+      }
+    });
+    return saved;
   }
 }
 
@@ -180,23 +198,30 @@ class StreakRepository extends BaseRepository {
 
   async recordStreak(userId, uploadDate = new Date().toISOString().slice(0, 10)) {
     if (!userId) return null;
-    const list = this.getAll();
-    const idx = list.findIndex(s => s.userId === userId);
-    if (idx !== -1) {
-      const record = list[idx];
-      record.currentStreak += 1;
-      record.bestStreak = Math.max(record.bestStreak, record.currentStreak);
-      record.lastUploadDate = uploadDate;
-      record.updatedAt = new Date().toISOString();
-      await this.db.writeCollection(this.collectionName, list);
-      return record;
-    }
-    return this.create({
-      userId,
-      currentStreak: 1,
-      bestStreak: 1,
-      lastUploadDate: uploadDate
+    let record = null;
+    await this.db.mutateCollection(this.collectionName, (list) => {
+      const idx = list.findIndex(s => s.userId === userId);
+      if (idx !== -1) {
+        record = list[idx];
+        record.currentStreak += 1;
+        record.bestStreak = Math.max(record.bestStreak, record.currentStreak);
+        record.lastUploadDate = uploadDate;
+        record.updatedAt = new Date().toISOString();
+      } else {
+        const id = `${this.idPrefix}_${crypto.randomBytes(6).toString('hex')}`;
+        record = {
+          id,
+          userId,
+          currentStreak: 1,
+          bestStreak: 1,
+          lastUploadDate: uploadDate,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        list.push(record);
+      }
     });
+    return record;
   }
 }
 
@@ -213,24 +238,29 @@ class SubscriptionRepository extends BaseRepository {
 
   async setEntitlement(userId, { plan = 'free', isPremium = false, status = 'active', expiresAt = null }) {
     if (!userId) return null;
-    const list = this.getAll();
-    const idx = list.findIndex(s => s.userId === userId);
-    const entitlement = {
-      userId,
-      plan,
-      isPremium,
-      status,
-      expiresAt,
-      verifiedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    let entitlement = null;
+    await this.db.mutateCollection(this.collectionName, (list) => {
+      const idx = list.findIndex(s => s.userId === userId);
+      const record = {
+        userId,
+        plan,
+        isPremium,
+        status,
+        expiresAt,
+        verifiedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
-    if (idx !== -1) {
-      list[idx] = { ...list[idx], ...entitlement };
-      await this.db.writeCollection(this.collectionName, list);
-      return list[idx];
-    }
-    return this.create(entitlement);
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...record };
+        entitlement = list[idx];
+      } else {
+        const id = `${this.idPrefix}_${crypto.randomBytes(6).toString('hex')}`;
+        entitlement = { id, ...record, createdAt: new Date().toISOString() };
+        list.push(entitlement);
+      }
+    });
+    return entitlement;
   }
 }
 
@@ -247,12 +277,15 @@ class RevokedTokenRepository extends BaseRepository {
 
   async revoke(token, expiresAt = null) {
     if (!token) return false;
-    const list = this.getAll();
-    if (list.some(r => r.token === token)) return true;
-    await this.create({
-      token,
-      revokedAt: new Date().toISOString(),
-      expiresAt: expiresAt || new Date(Date.now() + 24 * 3600 * 1000).toISOString()
+    await this.db.mutateCollection(this.collectionName, (list) => {
+      if (list.some(r => r.token === token)) return;
+      const id = `${this.idPrefix}_${crypto.randomBytes(6).toString('hex')}`;
+      list.push({
+        id,
+        token,
+        revokedAt: new Date().toISOString(),
+        expiresAt: expiresAt || new Date(Date.now() + 24 * 3600 * 1000).toISOString()
+      });
     });
     return true;
   }
@@ -276,6 +309,7 @@ export class DatabaseService {
     };
 
     this.cache = new Map();
+    this.cacheMtime = new Map();
     this.listeners = new Map();
     this.writeLocks = new Map(); // collectionName -> Promise chain
 
@@ -330,11 +364,10 @@ export class DatabaseService {
   }
 
   readCollection(collectionName) {
-    if (this.cache.has(collectionName)) {
-      return this.cache.get(collectionName);
-    }
-
     if (this.options.inMemoryOnly) {
+      if (this.cache.has(collectionName)) {
+        return this.cache.get(collectionName);
+      }
       const initial = [];
       this.cache.set(collectionName, initial);
       return initial;
@@ -349,11 +382,25 @@ export class DatabaseService {
       return initial;
     }
 
+    // Verify cache freshness against disk mtime
+    try {
+      const stat = fs.statSync(filePath);
+      const cachedMtime = this.cacheMtime?.get(collectionName);
+      if (cachedMtime && stat.mtimeMs === cachedMtime && this.cache.has(collectionName)) {
+        return this.cache.get(collectionName);
+      }
+    } catch {}
+
     try {
       const content = fs.readFileSync(filePath, 'utf8');
       const data = JSON.parse(content);
       const list = Array.isArray(data) ? data : [];
       this.cache.set(collectionName, list);
+      try {
+        const stat = fs.statSync(filePath);
+        if (!this.cacheMtime) this.cacheMtime = new Map();
+        this.cacheMtime.set(collectionName, stat.mtimeMs);
+      } catch {}
       return list;
     } catch (err) {
       this.emit(DB_EVENTS.CORRUPTION_DETECTED, { collection: collectionName, error: err.message });
@@ -381,18 +428,78 @@ export class DatabaseService {
   }
 
   /**
-   * Thread-safe / asynchronous mutex write to serialize disk updates per collection
+   * Acquire cross-process OS directory lock
    */
-  async writeCollection(collectionName, data) {
-    this.cache.set(collectionName, data);
+  async _acquireFileLock(collectionName, timeoutMs = 8000) {
+    if (this.options.inMemoryOnly) return () => {};
+    const lockDir = path.join(this.options.dataDir, `${collectionName}.oslock`);
+    const startTime = Date.now();
+    while (Date.now() - startTime < timeoutMs) {
+      try {
+        fs.mkdirSync(lockDir);
+        return () => {
+          try { fs.rmdirSync(lockDir); } catch {}
+        };
+      } catch (err) {
+        if (err.code !== 'EEXIST') throw err;
+        try {
+          const stat = fs.statSync(lockDir);
+          // Break stale locks older than 10s
+          if (Date.now() - stat.mtimeMs > 10000) {
+            try { fs.rmdirSync(lockDir); } catch {}
+          }
+        } catch {}
+        await new Promise(r => setTimeout(r, 20));
+      }
+    }
+    throw new Error(`Timeout acquiring OS file lock for [${collectionName}] after ${timeoutMs}ms`);
+  }
 
-    if (this.options.inMemoryOnly) return;
+  /**
+   * Safely read, mutate, and persist a collection under in-process + cross-process locks
+   */
+  async mutateCollection(collectionName, mutateFn) {
+    if (this.options.inMemoryOnly) {
+      const list = this.readCollection(collectionName);
+      const result = await mutateFn(list);
+      return result;
+    }
 
-    // Mutex write serialization
     const currentLock = this.writeLocks.get(collectionName) || Promise.resolve();
-    const nextLock = currentLock.then(() => this._performAtomicWrite(collectionName, data));
+    const nextLock = currentLock.then(async () => {
+      const releaseFileLock = await this._acquireFileLock(collectionName);
+      try {
+        // Force fresh disk read under lock
+        this.cache.delete(collectionName);
+        if (this.cacheMtime) this.cacheMtime.delete(collectionName);
+
+        const list = this.readCollection(collectionName);
+        const result = await mutateFn(list);
+        this._performAtomicWrite(collectionName, list);
+        this.cache.set(collectionName, list);
+        return result;
+      } finally {
+        releaseFileLock();
+      }
+    });
+
     this.writeLocks.set(collectionName, nextLock);
     return nextLock;
+  }
+
+  /**
+   * Write collection data with atomic mutation and disk sync
+   */
+  async writeCollection(collectionName, data) {
+    if (this.options.inMemoryOnly) {
+      this.cache.set(collectionName, data);
+      return;
+    }
+
+    return this.mutateCollection(collectionName, (list) => {
+      list.length = 0;
+      list.push(...data);
+    });
   }
 
   _performAtomicWrite(collectionName, data) {
@@ -415,6 +522,13 @@ export class DatabaseService {
 
       // 3. Atomically replace target file
       fs.renameSync(tmpPath, filePath);
+
+      // Update mtime cache
+      try {
+        const stat = fs.statSync(filePath);
+        if (!this.cacheMtime) this.cacheMtime = new Map();
+        this.cacheMtime.set(collectionName, stat.mtimeMs);
+      } catch {}
     } catch (err) {
       if (fs.existsSync(tmpPath)) {
         try { fs.unlinkSync(tmpPath); } catch {}
@@ -452,16 +566,21 @@ export class DatabaseService {
 
   resetAll() {
     this.cache.clear();
+    if (this.cacheMtime) this.cacheMtime.clear();
     this.writeLocks.clear();
     if (!this.options.inMemoryOnly && fs.existsSync(this.options.dataDir)) {
       for (const ent of Object.values(DB_ENTITIES)) {
         const fp = this.getFilePath(ent);
         const bak = this.getBackupFilePath(ent);
+        const lock = path.join(this.options.dataDir, `${ent}.oslock`);
         if (fs.existsSync(fp)) {
           try { fs.unlinkSync(fp); } catch {}
         }
         if (fs.existsSync(bak)) {
           try { fs.unlinkSync(bak); } catch {}
+        }
+        if (fs.existsSync(lock)) {
+          try { fs.rmdirSync(lock); } catch {}
         }
       }
     }
