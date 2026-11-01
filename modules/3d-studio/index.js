@@ -33,6 +33,18 @@ import {
   createStudioTheme,
   ThemeContract
 } from './theme/index.js';
+import {
+  CAMERA_PRESETS,
+  DEFAULT_CAMERA_PRESET,
+  getCameraPreset,
+  getFovForAspect,
+  StudioCamera,
+  CameraTransitions,
+  CameraInteractions,
+  CameraController,
+  CameraContract,
+  createStudioCamera
+} from './camera/index.js';
 
 export {
   StageModel,
@@ -77,7 +89,17 @@ export {
   DEFAULT_THEME_PRESET,
   COLOR_PALETTE,
   createStudioTheme,
-  ThemeContract
+  ThemeContract,
+  CAMERA_PRESETS,
+  DEFAULT_CAMERA_PRESET,
+  getCameraPreset,
+  getFovForAspect,
+  StudioCamera,
+  CameraTransitions,
+  CameraInteractions,
+  CameraController,
+  CameraContract,
+  createStudioCamera
 };
 
 export const StudioContract = {
@@ -86,7 +108,7 @@ export const StudioContract = {
   destroyScene: () => {},
   
   // Camera controls
-  setCameraPreset: (presetName) => {}, // 'STUDIO_OVERVIEW' | 'AVATAR_FULL_BODY' | 'AVATAR_DETAIL'
+  setCameraPreset: (presetName) => {}, // 'STUDIO_OVERVIEW' | 'WARDROBE_CLOSEUP' | 'AVATAR_FULL_BODY' | 'AVATAR_DETAIL' | 'VANITY_VIEW' | 'MIRROR_VIEW'
   getCameraState: () => {},
   
   // 3D Objects & Managers
@@ -138,6 +160,14 @@ export const StudioContract = {
     getPresets: () => ({ ...THEME_PRESETS }),
     getPalette: () => ({ ...COLOR_PALETTE }),
     applyTheme: (themeInstance, presetName, scene) => themeInstance && themeInstance.applyTheme(presetName, scene)
+  },
+
+  camera: {
+    createCamera: (canvas, options, THREE) => createStudioCamera(canvas, options, THREE),
+    getPresets: () => ({ ...CAMERA_PRESETS }),
+    setPreset: (cameraController, presetName) => cameraController && cameraController.setCameraPreset(presetName),
+    resetCamera: (cameraController) => cameraController && cameraController.resetCamera(),
+    getState: (cameraController) => cameraController && cameraController.getState()
   }
 };
 

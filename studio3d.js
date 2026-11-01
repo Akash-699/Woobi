@@ -77,6 +77,7 @@
       this.canvas = null;
       this.scene = null;
       this.camera = null;
+      this.cameraController = null;
       this.renderer = null;
 
       // Real-time Mirror Render Pipeline
@@ -203,12 +204,33 @@
 
       // 2. Camera with Portrait/Landscape Optimized Field of View
       const aspect = width / height;
-      const isPortrait = aspect < 0.75;
-      const initialFov = isPortrait ? CAMERA_STATES.STUDIO_OVERVIEW.fovPortrait : CAMERA_STATES.STUDIO_OVERVIEW.fovLandscape;
-      this.camera = new THREE.PerspectiveCamera(initialFov, aspect, 0.1, 40);
-      this.camera.position.copy(CAMERA_STATES.STUDIO_OVERVIEW.position);
-      this.currentCameraLookAt.copy(CAMERA_STATES.STUDIO_OVERVIEW.target);
-      this.camera.lookAt(this.currentCameraLookAt);
+      if (typeof window !== 'undefined' && window.WoobiCamera && typeof window.WoobiCamera.createStudioCamera === 'function') {
+        this.cameraController = window.WoobiCamera.createStudioCamera(this.canvas, {
+          width,
+          height,
+          initialPreset: 'STUDIO_OVERVIEW',
+          onRotate: (delta) => {
+            this.targetRotationY += delta;
+          },
+          onClick: (clientX, clientY) => {
+            this.handleCanvasClick(clientX, clientY);
+          },
+          onResize: () => {
+            this.onResize();
+          }
+        }, THREE);
+        this.camera = this.cameraController.camera;
+        this.targetCameraPos = this.cameraController.transitions.targetCameraPos;
+        this.targetCameraLookAt = this.cameraController.transitions.targetCameraLookAt;
+        this.currentCameraLookAt = this.cameraController.transitions.currentCameraLookAt;
+      } else {
+        const isPortrait = aspect < 0.75;
+        const initialFov = isPortrait ? CAMERA_STATES.STUDIO_OVERVIEW.fovPortrait : CAMERA_STATES.STUDIO_OVERVIEW.fovLandscape;
+        this.camera = new THREE.PerspectiveCamera(initialFov, aspect, 0.1, 40);
+        this.camera.position.copy(CAMERA_STATES.STUDIO_OVERVIEW.position);
+        this.currentCameraLookAt.copy(CAMERA_STATES.STUDIO_OVERVIEW.target);
+        this.camera.lookAt(this.currentCameraLookAt);
+      }
 
       // 3. WebGL Renderer with Tone Mapping and Soft Shadows
       this.renderer = new THREE.WebGLRenderer({
@@ -1696,6 +1718,11 @@
       const el = this.canvas;
       if (!el) return;
 
+      if (this.cameraController) {
+        // Interactions are managed cleanly by CameraController and detached upon destroy()
+        return;
+      }
+
       // Mouse Drag
       el.addEventListener('mousedown', (e) => {
         this.isPointerDown = true;
@@ -1794,6 +1821,16 @@
      */
     handleCanvasClick(clientX, clientY) {
       if (!this.canvas || !this.camera || !this.scene) return;
+      if (this.cameraController && typeof this.cameraController.raycastClick === 'function') {
+        this.cameraController.raycastClick(clientX, clientY, this.canvas, this.interactiveObjects, (type, userData) => {
+          if (typeof this.onObjectClick === 'function') {
+            this.onObjectClick(type, userData);
+          } else if (window.app && typeof window.app.serenInteract === 'function') {
+            window.app.serenInteract(type);
+          }
+        });
+        return;
+      }
       const rect = this.canvas.getBoundingClientRect();
       this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
       this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
@@ -1821,6 +1858,13 @@
      * Sets Camera Viewpoint Preset with smooth interpolation
      */
     setCameraState(stateName) {
+      if (this.cameraController && typeof this.cameraController.setCameraPreset === 'function') {
+        const ok = this.cameraController.setCameraPreset(stateName);
+        if (ok) {
+          this.currentCameraState = stateName;
+          return;
+        }
+      }
       if (CAMERA_STATES[stateName]) {
         this.currentCameraState = stateName;
         this.targetCameraPos.copy(CAMERA_STATES[stateName].position);
@@ -2003,15 +2047,19 @@
       const width = rect.width || this.container.clientWidth || 390;
       const height = rect.height || this.container.clientHeight || 750;
 
-      const aspect = width / height;
-      this.camera.aspect = aspect;
-      const isPortrait = aspect < 0.75;
-      const baseFov = isPortrait ?
-        CAMERA_STATES[this.currentCameraState].fovPortrait :
-        CAMERA_STATES[this.currentCameraState].fovLandscape;
+      if (this.cameraController && typeof this.cameraController.resize === 'function') {
+        this.cameraController.resize(width, height);
+      } else {
+        const aspect = width / height;
+        this.camera.aspect = aspect;
+        const isPortrait = aspect < 0.75;
+        const baseFov = isPortrait ?
+          CAMERA_STATES[this.currentCameraState].fovPortrait :
+          CAMERA_STATES[this.currentCameraState].fovLandscape;
 
-      this.camera.fov = Math.max(this.minFov, Math.min(this.maxFov, baseFov * this.cameraZoomFactor));
-      this.camera.updateProjectionMatrix();
+        this.camera.fov = Math.max(this.minFov, Math.min(this.maxFov, baseFov * this.cameraZoomFactor));
+        this.camera.updateProjectionMatrix();
+      }
 
       this.renderer.setSize(width, height);
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -2071,20 +2119,25 @@
         }
       }
 
-      // 4. Smooth Camera Transitions
-      this.camera.position.lerp(this.targetCameraPos, 0.075);
-      this.currentCameraLookAt.lerp(this.targetCameraLookAt, 0.075);
-      this.camera.lookAt(this.currentCameraLookAt);
+      // 4. Smooth Camera Transitions & FOV Damping
+      if (this.cameraController && typeof this.cameraController.update === 'function') {
+        this.cameraController.update(delta);
+        this.cameraZoomFactor = this.cameraController.zoomFactor;
+      } else {
+        this.camera.position.lerp(this.targetCameraPos, 0.075);
+        this.currentCameraLookAt.lerp(this.targetCameraLookAt, 0.075);
+        this.camera.lookAt(this.currentCameraLookAt);
 
-      // 5. Update FOV with zoom damping
-      const aspect = this.camera.aspect;
-      const isPortrait = aspect < 0.75;
-      const baseFov = isPortrait ?
-        CAMERA_STATES[this.currentCameraState].fovPortrait :
-        CAMERA_STATES[this.currentCameraState].fovLandscape;
-      const targetFov = Math.max(this.minFov, Math.min(this.maxFov, baseFov * this.cameraZoomFactor));
-      this.camera.fov += (targetFov - this.camera.fov) * 0.1;
-      this.camera.updateProjectionMatrix();
+        // 5. Update FOV with zoom damping
+        const aspect = this.camera.aspect;
+        const isPortrait = aspect < 0.75;
+        const baseFov = isPortrait ?
+          CAMERA_STATES[this.currentCameraState].fovPortrait :
+          CAMERA_STATES[this.currentCameraState].fovLandscape;
+        const targetFov = Math.max(this.minFov, Math.min(this.maxFov, baseFov * this.cameraZoomFactor));
+        this.camera.fov += (targetFov - this.camera.fov) * 0.1;
+        this.camera.updateProjectionMatrix();
+      }
 
       // 6. Real-time Mirror Rendering (Render from mirror perspective)
       if (this.mirrorRenderTarget && this.mirrorCamera && this.mirrorGlassMesh) {
@@ -2127,6 +2180,9 @@
       }
       if (this.themeModel) {
         this.themeModel.dispose(this.scene);
+      }
+      if (this.cameraController) {
+        this.cameraController.dispose();
       }
       if (this.renderer) {
         this.renderer.dispose();
