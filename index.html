@@ -1605,6 +1605,18 @@
                 <span class="menu-chevron">›</span>
               </div>
 
+              <div class="menu-item-row" onclick="app.goToScreen('appearance-settings')">
+                <span class="menu-icon">🎨</span>
+                <span class="menu-text">Appearance & 3D themes</span>
+                <span class="menu-chevron">›</span>
+              </div>
+
+              <div class="menu-item-row" onclick="app.goToScreen('performance-settings')">
+                <span class="menu-icon">⚡</span>
+                <span class="menu-text">Performance & graphics</span>
+                <span class="menu-chevron">›</span>
+              </div>
+
               <div class="menu-item-row" onclick="app.goToScreen('account-privacy')">
                 <span class="menu-icon">⚙️</span>
                 <span class="menu-text">Account and privacy</span>
@@ -1856,22 +1868,58 @@
           <div class="screen-body-padded">
             <h1 class="screen-headline-serif">Account and privacy</h1>
 
+            <!-- Profile Info Card & Editor -->
+            <div style="background: var(--surface-card, #FFFFFF); border-radius: 12px; padding: 16px; margin-top: 14px; border: 1px solid var(--border-subtle, #EBE6DF);">
+              <span class="control-sublabel" style="margin-bottom: 8px;">Edit Profile</span>
+              <div style="margin-bottom: 10px;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Display Name</label>
+                <input type="text" id="inputProfileName" value="Suriya" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle, #DDD); font-size: 0.85rem;">
+              </div>
+              <div style="margin-bottom: 12px;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Email Address</label>
+                <input type="email" id="inputProfileEmail" value="suriya@example.com" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle, #DDD); font-size: 0.85rem;">
+              </div>
+              <button class="btn-olive-primary" onclick="app.saveProfile()" style="padding: 8px 16px; font-size: 0.82rem;">
+                Save Profile
+              </button>
+            </div>
+
+            <!-- Privacy & Consent Controls -->
+            <div style="background: var(--surface-card, #FFFFFF); border-radius: 12px; padding: 16px; margin-top: 14px; border: 1px solid var(--border-subtle, #EBE6DF);">
+              <span class="control-sublabel" style="margin-bottom: 8px;">Privacy & Analytics Consent</span>
+              <div class="reminder-row" style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle, #F0ECE6);">
+                <span style="font-size: 0.82rem;">Anonymous Usage Telemetry</span>
+                <label class="switch-toggle">
+                  <input type="checkbox" id="toggleAnalyticsConsent" onchange="app.updatePrivacyConsent()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="reminder-row" style="padding: 8px 0;">
+                <span style="font-size: 0.82rem;">Crash Diagnostics</span>
+                <label class="switch-toggle">
+                  <input type="checkbox" checked id="toggleCrashReporting" onchange="app.updatePrivacyConsent()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Data Export & Cache Purging -->
             <div class="profile-menu-list" style="margin-top: 16px;">
-              <div class="menu-item-row">
-                <span class="menu-icon">👤</span>
-                <span class="menu-text">suriya@example.com</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.exportWardrobe()">
+              <div class="menu-item-row" onclick="app.exportUserData()">
                 <span class="menu-icon">📥</span>
-                <span class="menu-text">Export my wardrobe</span>
+                <span class="menu-text">Export all user data (JSON)</span>
                 <span class="menu-chevron">›</span>
               </div>
 
-              <div class="menu-item-row" onclick="alert('Privacy policy: Zero photo selling. Local-first encryption.');">
-                <span class="menu-icon">🛡️</span>
-                <span class="menu-text">Privacy policy</span>
+              <div class="menu-item-row" onclick="app.clearSavedLooksCache()">
+                <span class="menu-icon">🧹</span>
+                <span class="menu-text">Clear saved looks cache</span>
+                <span class="menu-chevron">›</span>
+              </div>
+
+              <div class="menu-item-row" onclick="app.clearAvatarPreferencesCache()">
+                <span class="menu-icon">👤</span>
+                <span class="menu-text">Reset 3D avatar preferences</span>
                 <span class="menu-chevron">›</span>
               </div>
 
@@ -1881,7 +1929,7 @@
                 <span class="menu-chevron">›</span>
               </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('welcome')">
+              <div class="menu-item-row" onclick="app.signOut()">
                 <span class="menu-icon">🚪</span>
                 <span class="menu-text">Sign out</span>
                 <span class="menu-chevron">›</span>
@@ -1895,6 +1943,156 @@
                 <span class="danger-chevron">›</span>
               </div>
             </div>
+          </div>
+          <div class="phone-home-indicator"></div>
+        </section>
+
+        <!-- ===================================================================
+             SCREEN: APPEARANCE & 3D STUDIO THEMES (PHASE 6)
+             =================================================================== -->
+        <section class="phone-screen" id="screen-appearance-settings">
+          <div class="screen-sub-header">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <div style="width: 20px;"></div>
+          </div>
+
+          <div class="screen-body-padded">
+            <h1 class="screen-headline-serif">Appearance</h1>
+            <p class="screen-caption-sub">Customize app theme, 3D architectural textures, and studio lighting.</p>
+
+            <!-- App Theme Segment -->
+            <span class="control-sublabel">App Interface Theme</span>
+            <div class="category-pill-group" style="margin-bottom: 16px;">
+              <button class="cat-pill active" id="btnThemeLight" onclick="app.setAppTheme('light')">Light</button>
+              <button class="cat-pill" id="btnThemeDark" onclick="app.setAppTheme('dark')">Dark</button>
+              <button class="cat-pill" id="btnThemeSystem" onclick="app.setAppTheme('system')">System</button>
+            </div>
+
+            <!-- 3D Studio Themes -->
+            <span class="control-sublabel">3D Studio Environment</span>
+            <div class="profile-menu-list" style="margin-bottom: 16px;">
+              <div class="menu-item-row" onclick="app.setStudioTheme('luxury-cream')">
+                <span class="menu-icon">🏛️</span>
+                <div class="menu-text">
+                  <strong>Luxury Cream (Default)</strong>
+                  <p style="font-size: 0.74rem; color: var(--text-muted);">Warm cream plaster & gold-veined marble</p>
+                </div>
+                <span class="menu-chevron" id="checkThemeLuxury">✓</span>
+              </div>
+              <div class="menu-item-row" onclick="app.setStudioTheme('nordic-minimal')">
+                <span class="menu-icon">❄️</span>
+                <div class="menu-text">
+                  <strong>Nordic Minimal</strong>
+                  <p style="font-size: 0.74rem; color: var(--text-muted);">Cool scandinavian daylight & light ash</p>
+                </div>
+                <span class="menu-chevron" id="checkThemeNordic" style="display:none;">✓</span>
+              </div>
+              <div class="menu-item-row" onclick="app.setStudioTheme('warm-terracotta')">
+                <span class="menu-icon">🏺</span>
+                <div class="menu-text">
+                  <strong>Warm Terracotta</strong>
+                  <p style="font-size: 0.74rem; color: var(--text-muted);">Tuscan earthen clay & warm afternoon sun</p>
+                </div>
+                <span class="menu-chevron" id="checkThemeTerracotta" style="display:none;">✓</span>
+              </div>
+            </div>
+
+            <!-- 3D Lighting Presets -->
+            <span class="control-sublabel">Studio Lighting Setup</span>
+            <div class="category-pill-group" style="margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+              <button class="cat-pill active" id="btnLightSoft" onclick="app.setStudioLighting('editorial_soft')">Editorial Soft</button>
+              <button class="cat-pill" id="btnLightAtelier" onclick="app.setStudioLighting('warm_atelier')">Warm Atelier</button>
+              <button class="cat-pill" id="btnLightGolden" onclick="app.setStudioLighting('golden_hour')">Golden Hour</button>
+              <button class="cat-pill" id="btnLightDramatic" onclick="app.setStudioLighting('dramatic_chiaroscuro')">Dramatic</button>
+              <button class="cat-pill" id="btnLightClean" onclick="app.setStudioLighting('high_key_clean')">High Key</button>
+            </div>
+
+            <!-- Accessibility & Scaling -->
+            <span class="control-sublabel">Accessibility</span>
+            <div style="background: var(--surface-card, #FFFFFF); border-radius: 12px; padding: 14px; border: 1px solid var(--border-subtle, #EBE6DF); margin-bottom: 16px;">
+              <div class="reminder-row">
+                <span style="font-size: 0.82rem;">High Contrast Mode</span>
+                <label class="switch-toggle">
+                  <input type="checkbox" id="toggleHighContrast" onchange="app.toggleHighContrast(this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <button class="btn-olive-secondary" onclick="app.resetAppearance()" style="width: 100%; padding: 10px; border-radius: 8px;">
+              Reset Appearance to Default
+            </button>
+          </div>
+          <div class="phone-home-indicator"></div>
+        </section>
+
+        <!-- ===================================================================
+             SCREEN: PERFORMANCE & GRAPHICS (PHASE 6)
+             =================================================================== -->
+        <section class="phone-screen" id="screen-performance-settings">
+          <div class="screen-sub-header">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <div style="width: 20px;"></div>
+          </div>
+
+          <div class="screen-body-padded">
+            <h1 class="screen-headline-serif">Performance</h1>
+            <p class="screen-caption-sub">Optimize 3D graphics fidelity, shadow maps, and device battery life.</p>
+
+            <!-- Quality Presets -->
+            <span class="control-sublabel">Graphics Fidelity Preset</span>
+            <div class="category-pill-group" style="margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+              <button class="cat-pill active" id="btnPerfHigh" onclick="app.setPerformancePreset('high')">High (60 FPS)</button>
+              <button class="cat-pill" id="btnPerfMedium" onclick="app.setPerformancePreset('medium')">Medium</button>
+              <button class="cat-pill" id="btnPerfLow" onclick="app.setPerformancePreset('low')">Low</button>
+              <button class="cat-pill" id="btnPerfBattery" onclick="app.setPerformancePreset('battery_saver')">Battery Saver</button>
+              <button class="cat-pill" id="btnPerfAuto" onclick="app.setPerformancePreset('auto')">Auto Detect</button>
+            </div>
+
+            <!-- Granular Toggles -->
+            <span class="control-sublabel">Advanced Render Options</span>
+            <div style="background: var(--surface-card, #FFFFFF); border-radius: 12px; padding: 14px; border: 1px solid var(--border-subtle, #EBE6DF); margin-bottom: 16px;">
+              <div class="reminder-row" style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle, #F0ECE6);">
+                <div>
+                  <strong style="font-size: 0.82rem; display: block;">Real-Time Soft Shadows</strong>
+                  <span style="font-size: 0.72rem; color: var(--text-muted);">Dynamic contact shadows under wardrobe & avatar</span>
+                </div>
+                <label class="switch-toggle">
+                  <input type="checkbox" checked id="toggleShadows" onchange="app.toggleShadowQuality(this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="reminder-row" style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle, #F0ECE6);">
+                <div>
+                  <strong style="font-size: 0.82rem; display: block;">Vanity Mirror Reflections</strong>
+                  <span style="font-size: 0.72rem; color: var(--text-muted);">Real-time WebGL render pass on arched vanity mirror</span>
+                </div>
+                <label class="switch-toggle">
+                  <input type="checkbox" checked id="toggleReflections" onchange="app.toggleReflectionQuality(this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="reminder-row" style="padding: 8px 0;">
+                <div>
+                  <strong style="font-size: 0.82rem; display: block;">Avatar Secondary Breathing Motion</strong>
+                  <span style="font-size: 0.72rem; color: var(--text-muted);">Subtle organic idle chest and posture kinetics</span>
+                </div>
+                <label class="switch-toggle">
+                  <input type="checkbox" checked id="toggleIdleMotion" onchange="app.toggleIdleAnimations(this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <button class="btn-olive-secondary" onclick="app.resetPerformance()" style="width: 100%; padding: 10px; border-radius: 8px;">
+              Reset Graphics to Default High
+            </button>
           </div>
           <div class="phone-home-indicator"></div>
         </section>
@@ -3161,6 +3359,7 @@
   <script type="module" src="modules/3d-studio/theme/index.js"></script>
   <script type="module" src="modules/3d-studio/camera/index.js"></script>
   <script type="module" src="modules/3d-studio-features/index.js"></script>
+  <script type="module" src="modules/settings/index.js"></script>
   <script src="wardrobe-astra-material.js?v=20261031_9"></script>
   <script src="wardrobe3d.js?v=20261031_9"></script>
   <script src="studio3d.js?v=20261031_9"></script>

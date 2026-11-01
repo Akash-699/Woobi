@@ -40,6 +40,8 @@ export class NavigationRouter {
       'premium': 'profile',
       'manage-subscription': 'profile',
       'reminders': 'profile',
+      'appearance-settings': 'profile',
+      'performance-settings': 'profile',
       'account-privacy': 'profile',
       'help-support': 'profile',
       'delete-account': 'profile',

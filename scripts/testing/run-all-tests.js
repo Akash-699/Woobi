@@ -1,6 +1,6 @@
 /**
  * Woobi - Monorepo Master Test Runner
- * Executes all 182 3D Studio Tests + 159 Phase 5 3D Studio Features Tests
+ * Executes all 182 3D Studio Tests + 159 3D Studio Features Tests + 134 Settings Tests = 475 Tests
  */
 
 import { spawnSync } from 'node:child_process';
@@ -11,7 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');
 
 const testSuites = [
-  // Physical 3D Studio Modules (182 Tests)
+  // 1. Physical 3D Studio Modules (182 Tests)
   { name: 'Stage Module (17 Tests)', path: 'modules/3d-studio/stage/StageModel.test.js' },
   { name: 'Wardrobe Module (25 Tests)', path: 'modules/3d-studio/wardrobe/WardrobeModel.test.js' },
   { name: 'Mirror & Vanity Module (25 Tests)', path: 'modules/3d-studio/mirror-vanity/VanityModel.test.js' },
@@ -20,14 +20,22 @@ const testSuites = [
   { name: 'Theme Module (25 Tests)', path: 'modules/3d-studio/theme/StudioTheme.test.js' },
   { name: 'Camera Module (30 Tests)', path: 'modules/3d-studio/camera/StudioCamera.test.js' },
 
-  // 3D Studio Features Submodules (159 Tests)
+  // 2. 3D Studio Features Submodules (159 Tests)
   { name: 'Virtual Try-On (26 Tests)', path: 'modules/3d-studio-features/virtual-try-on/VirtualTryOn.test.js', isNodeTest: true },
   { name: 'Garment Interactions (25 Tests)', path: 'modules/3d-studio-features/garment-interactions/GarmentInteractions.test.js', isNodeTest: true },
   { name: 'Outfit Recommendations (25 Tests)', path: 'modules/3d-studio-features/outfit-recommendations/RecommendationEngine.test.js', isNodeTest: true },
   { name: 'Avatar Customization (26 Tests)', path: 'modules/3d-studio-features/avatar-customization/AvatarCustomizer.test.js', isNodeTest: true },
   { name: 'Studio Animations & Poses (25 Tests)', path: 'modules/3d-studio-features/animations/PoseController.test.js', isNodeTest: true },
   { name: 'Saved Looks & Lookbook (26 Tests)', path: 'modules/3d-studio-features/saved-looks/SavedLooksManager.test.js', isNodeTest: true },
-  { name: 'Studio Features Root Orchestrator (6 Tests)', path: 'modules/3d-studio-features/index.test.js', isNodeTest: true }
+  { name: 'Studio Features Root Orchestrator (6 Tests)', path: 'modules/3d-studio-features/index.test.js', isNodeTest: true },
+
+  // 3. Settings Submodules (134 Tests)
+  { name: 'Account Settings (25 Tests)', path: 'modules/settings/account/AccountManager.test.js', isNodeTest: true },
+  { name: 'Appearance Settings (25 Tests)', path: 'modules/settings/appearance/AppearanceManager.test.js', isNodeTest: true },
+  { name: 'Privacy Settings (25 Tests)', path: 'modules/settings/privacy/PrivacyManager.test.js', isNodeTest: true },
+  { name: 'Notifications Settings (25 Tests)', path: 'modules/settings/notifications/NotificationsManager.test.js', isNodeTest: true },
+  { name: 'Performance Settings (26 Tests)', path: 'modules/settings/performance/PerformanceManager.test.js', isNodeTest: true },
+  { name: 'Settings Root Orchestrator (8 Tests)', path: 'modules/settings/index.test.js', isNodeTest: true }
 ];
 
 console.log('======================================================');
@@ -61,7 +69,7 @@ for (const suite of testSuites) {
 
 console.log('\n======================================================');
 console.log(`TOTAL SUITES: ${totalSuites} | PASSED: ${passedSuites} | FAILED: ${failedSuites}`);
-console.log('TOTAL VERIFIED TESTS: 341');
+console.log('TOTAL VERIFIED TESTS: 475');
 console.log('======================================================');
 
 if (failedSuites > 0) {
