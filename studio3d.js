@@ -268,6 +268,9 @@
       // Apply initial saved preferences
       this.applyAvatarConfig(this.avatarConfig);
 
+      // 5.5 Initialize 3D Studio Features (Try-On, Interactions, Recommendations, Customizer, Animations, Saved Looks)
+      this.initStudioFeatures();
+
       // 6. Start Render Loop
       this.isInitialized = true;
       this.animate = this.animate.bind(this);
@@ -2032,10 +2035,35 @@
     }
 
     /**
+     * Initializes 3D Studio Features Module
+     */
+    initStudioFeatures() {
+      if (typeof window !== 'undefined' && window.WoobiStudioFeatures && typeof window.WoobiStudioFeatures.createStudioFeatures === 'function') {
+        this.features = window.WoobiStudioFeatures.createStudioFeatures(this);
+        if (this.features && this.avatarModel) {
+          this.features.setAvatarModel(this.avatarModel);
+        }
+      }
+    }
+
+    /**
      * Equips Garments on Avatar
      */
     equipGarment(category, id) {
+      if (this.features && this.features.tryOn && typeof this.features.tryOn.equipGarment === 'function') {
+        return this.features.tryOn.equipGarment(category, id);
+      }
       console.log(`Studio3D: Equipped [${category}] -> [${id}]`);
+    }
+
+    /**
+     * Triggers High Fashion Pose on Avatar
+     */
+    triggerPose(poseName, durationMs = 600) {
+      if (this.features && this.features.animations && typeof this.features.animations.triggerPose === 'function') {
+        return this.features.animations.triggerPose(poseName, durationMs);
+      }
+      console.log(`Studio3D: Triggered pose [${poseName}]`);
     }
 
     /**
@@ -2080,6 +2108,9 @@
           this.avatarController.setTargetRotation(this.targetRotationY);
         }
         this.avatarModel.update(delta, time);
+        if (this.features && typeof this.features.update === 'function') {
+          this.features.update(delta, time);
+        }
         if (this.avatarModel.animations) {
           this.avatarRotationY = this.avatarModel.animations.avatarRotationY;
         }
@@ -2183,6 +2214,10 @@
       }
       if (this.cameraController) {
         this.cameraController.dispose();
+      }
+      if (this.features && typeof this.features.dispose === 'function') {
+        this.features.dispose();
+        this.features = null;
       }
       if (this.renderer) {
         this.renderer.dispose();

@@ -1,5 +1,5 @@
 /**
- * AURA Wardrobe — Exact Replica Prototype Application Logic
+ * Woobi — 3D Virtual Fashion Studio & Monorepo Application by Troyz Solutions
  * Full Production System with:
  * - 01 Setup & First Outfit: Welcome, Style preferences, Add your wardrobe, Review item
  * - 02 Daily Outfit Studio: Today, Outfit details, Swap an item, Outfit ready
@@ -1103,31 +1103,299 @@
   }
 
   // =========================================================================
-  // 9. PROFILE, SETTINGS & UTILITIES
+  // 9. PROFILE, SETTINGS & UTILITIES (PHASE 6 MODULAR SETTINGS SUITE)
   // =========================================================================
+  let _settingsManagerInstance = null;
+  function getSettingsManager() {
+    if (_settingsManagerInstance) return _settingsManagerInstance;
+    if (typeof window !== 'undefined' && window.WoobiSettings && typeof window.WoobiSettings.createSettings === 'function') {
+      const store = (typeof window !== 'undefined' && window.woobiStore) ? window.woobiStore : null;
+      const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+      _settingsManagerInstance = window.WoobiSettings.createSettings(store, studio);
+      window.woobiSettings = _settingsManagerInstance;
+      return _settingsManagerInstance;
+    }
+    return null;
+  }
+
   function selectPlan(planType) {
     state.currentPlan = planType;
     document.querySelectorAll('.pricing-option-card').forEach(card => card.classList.remove('selected'));
     const target = planType === 'annual' ? document.getElementById('planAnnual') : document.getElementById('planMonthly');
     if (target) target.classList.add('selected');
+    const sm = getSettingsManager();
+    if (sm && sm.account) {
+      sm.account.updateSubscription(planType, state.isPremium);
+    }
   }
 
   function activatePremium() {
     state.isPremium = true;
-    showToast('🎉 Welcome to AURA Premium! All features unlocked.');
+    showToast('🎉 Welcome to Woobi Premium! All features unlocked.');
+    const sm = getSettingsManager();
+    if (sm && sm.account) {
+      sm.account.updateSubscription(state.currentPlan, true);
+    }
     setTimeout(() => goToScreen('today'), 800);
   }
 
+  function saveProfile() {
+    const nameInput = document.getElementById('inputProfileName');
+    const emailInput = document.getElementById('inputProfileEmail');
+    const name = nameInput ? nameInput.value.trim() : '';
+    const email = emailInput ? emailInput.value.trim() : '';
+    const sm = getSettingsManager();
+    if (sm && sm.account) {
+      const result = sm.account.updateProfile({ displayName: name, email: email });
+      if (result.success) {
+        showToast('✓ Profile successfully updated');
+        const nameHeader = document.querySelector('.profile-user-name');
+        if (nameHeader) nameHeader.textContent = name;
+      } else {
+        showToast(`✕ ${result.error || 'Failed to update profile'}`);
+      }
+    } else {
+      showToast('✓ Profile saved');
+    }
+  }
+
+  function updatePrivacyConsent() {
+    const sm = getSettingsManager();
+    const analytics = document.getElementById('toggleAnalyticsConsent');
+    const crash = document.getElementById('toggleCrashReporting');
+    if (sm && sm.privacy) {
+      sm.privacy.updateConsent({
+        analyticsConsent: analytics ? analytics.checked : false,
+        crashReporting: crash ? crash.checked : true
+      });
+      showToast('✓ Privacy preferences saved');
+    }
+  }
+
+  function exportUserData() {
+    const sm = getSettingsManager();
+    showToast('📦 Preparing data export package...');
+    setTimeout(() => {
+      let exportPayload = null;
+      if (sm && sm.privacy) {
+        const result = sm.privacy.exportUserData();
+        if (result.success) exportPayload = result.data;
+      }
+      if (!exportPayload) {
+        exportPayload = {
+          exportedAt: new Date().toISOString(),
+          profile: { displayName: 'Suriya', email: 'suriya@example.com' },
+          storageMode: 'client_local_only'
+        };
+      }
+      try {
+        const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `woobi-user-data-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        console.warn('Could not trigger browser download', e);
+      }
+      showToast('✓ User data package exported');
+    }, 600);
+  }
+
+  function clearSavedLooksCache() {
+    const sm = getSettingsManager();
+    if (sm && sm.privacy) {
+      sm.privacy.clearSavedLooksCache();
+    }
+    showToast('✓ Saved looks cache cleared');
+  }
+
+  function clearAvatarPreferencesCache() {
+    const sm = getSettingsManager();
+    if (sm && sm.privacy) {
+      sm.privacy.clearAvatarPreferencesCache();
+    }
+    showToast('✓ Avatar preferences reset to default');
+  }
+
+  function signOut() {
+    const sm = getSettingsManager();
+    if (sm && sm.account) {
+      sm.account.signOut();
+    }
+    showToast('Signed out of session');
+    goToScreen('welcome');
+  }
+
+  function setAppTheme(theme) {
+    const sm = getSettingsManager();
+    if (sm && sm.appearance) {
+      sm.appearance.setAppTheme(theme);
+    }
+    ['btnThemeLight', 'btnThemeDark', 'btnThemeSystem'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.remove('active');
+    });
+    const activeBtn = document.getElementById(theme === 'light' ? 'btnThemeLight' : theme === 'dark' ? 'btnThemeDark' : 'btnThemeSystem');
+    if (activeBtn) activeBtn.classList.add('active');
+    showToast(`Theme switched to ${theme}`);
+  }
+
+  function setStudioTheme(theme) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.appearance) {
+      sm.appearance.setStudioTheme(theme, studio);
+    }
+    ['theme-check-luxury', 'theme-check-nordic', 'theme-check-terracotta'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '';
+    });
+    const checkId = theme === 'luxury-cream' ? 'theme-check-luxury' : theme === 'nordic-minimal' ? 'theme-check-nordic' : 'theme-check-terracotta';
+    const target = document.getElementById(checkId);
+    if (target) target.textContent = '✓';
+    showToast(`3D Studio atmosphere set to ${theme}`);
+  }
+
+  function setStudioLighting(preset) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.appearance) {
+      sm.appearance.setStudioLighting(preset, studio);
+    }
+    ['btnLightSoft', 'btnLightAtelier', 'btnLightGolden', 'btnLightDramatic', 'btnLightClean'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.remove('active');
+    });
+    const map = {
+      'editorial_soft': 'btnLightSoft',
+      'warm_atelier': 'btnLightAtelier',
+      'golden_hour': 'btnLightGolden',
+      'dramatic_chiaroscuro': 'btnLightDramatic',
+      'high_key_clean': 'btnLightClean'
+    };
+    const target = document.getElementById(map[preset]);
+    if (target) target.classList.add('active');
+    showToast(`Studio lighting: ${preset.replace(/_/g, ' ')}`);
+  }
+
+  function toggleHighContrast(enabled) {
+    const sm = getSettingsManager();
+    if (sm && sm.appearance) {
+      sm.appearance.toggleHighContrast(enabled);
+    }
+    showToast(enabled ? 'High contrast enabled' : 'High contrast disabled');
+  }
+
+  function resetAppearance() {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.appearance) {
+      sm.appearance.resetAppearance(studio);
+    }
+    setAppTheme('light');
+    setStudioTheme('luxury-cream');
+    setStudioLighting('editorial_soft');
+    const toggle = document.getElementById('toggleHighContrast');
+    if (toggle) toggle.checked = false;
+    showToast('Appearance reset to default');
+  }
+
+  function setPerformancePreset(preset) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    let applied = preset;
+    if (sm && sm.performance) {
+      applied = sm.performance.setPreset(preset, studio);
+    }
+    ['btnPerfHigh', 'btnPerfMedium', 'btnPerfLow', 'btnPerfBattery', 'btnPerfAuto'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.remove('active');
+    });
+    const map = {
+      'high': 'btnPerfHigh',
+      'medium': 'btnPerfMedium',
+      'low': 'btnPerfLow',
+      'battery_saver': 'btnPerfBattery',
+      'auto': 'btnPerfAuto'
+    };
+    const target = document.getElementById(map[preset]);
+    if (target) target.classList.add('active');
+
+    if (sm && sm.performance) {
+      const current = sm.performance.getSettings();
+      const shadowEl = document.getElementById('toggleShadows');
+      if (shadowEl) shadowEl.checked = current.shadows !== 'off';
+      const reflEl = document.getElementById('toggleReflections');
+      if (reflEl) reflEl.checked = current.reflections !== 'off';
+      const idleEl = document.getElementById('toggleIdleMotion');
+      if (idleEl) idleEl.checked = current.idleAnimations !== false;
+    }
+    showToast(`Graphics profile: ${applied}`);
+  }
+
+  function toggleShadowQuality(enabled) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.performance) {
+      sm.performance.setShadowQuality(enabled ? 'soft' : 'off', studio);
+    }
+    showToast(enabled ? 'Real-time soft shadows on' : 'Shadows turned off');
+  }
+
+  function toggleReflectionQuality(enabled) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.performance) {
+      sm.performance.setReflectionQuality(enabled ? 'full' : 'off', studio);
+    }
+    showToast(enabled ? 'Mirror reflections on' : 'Reflections off');
+  }
+
+  function toggleIdleAnimations(enabled) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.performance) {
+      sm.performance.toggleIdleAnimations(enabled, studio);
+    }
+    showToast(enabled ? 'Breathing animations on' : 'Idle animations paused');
+  }
+
+  function resetPerformance() {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.performance) {
+      sm.performance.resetPerformance(studio);
+    }
+    setPerformancePreset('high');
+    showToast('Graphics settings restored to High');
+  }
+
+  async function requestNotificationPermission() {
+    const sm = getSettingsManager();
+    if (sm && sm.notifications) {
+      const res = await sm.notifications.requestBrowserPermission();
+      showToast(`Notifications permission: ${res.status}`);
+      return res;
+    }
+    return { granted: false, status: 'unsupported' };
+  }
+
   function saveReminderPreferences() {
+    const sm = getSettingsManager();
+    const reminderToggle = document.getElementById('toggleReminder');
+    if (sm && sm.notifications) {
+      sm.notifications.setCategoryEnabled('morningOutfits', reminderToggle ? reminderToggle.checked : true);
+    }
     showToast('✓ Reminder preferences updated.');
     goToScreen('profile');
   }
 
   function exportWardrobe() {
-    showToast('📦 Preparing wardrobe data package...');
-    setTimeout(() => {
-      showToast('✓ Export ready! 16 garments packaged.');
-    }, 1000);
+    exportUserData();
   }
 
   function deleteAccount() {
@@ -1194,7 +1462,7 @@
   }
 
   function tryReconnect() {
-    showToast('📶 Reconnecting to AURA Cloud...');
+    showToast('📶 Reconnecting to Woobi Cloud...');
     setTimeout(() => {
       showToast('Online! Synchronizing latest suggestions.');
       goToScreen('today');
@@ -1202,6 +1470,11 @@
   }
 
   function confirmDeleteAccount() {
+    const sm = getSettingsManager();
+    if (sm) {
+      if (sm.privacy) sm.privacy.clearAllLocalData('CONFIRM_DELETE_ALL');
+      if (sm.account) sm.account.deleteAccountData('CONFIRM_DELETE');
+    }
     showToast('Account data deleted. Resetting to setup...');
     setTimeout(() => {
       goToScreen('welcome');
@@ -1567,7 +1840,7 @@
   function serenSaveCurrentLook() {
     const currentOutfit = {
       id: 'look_' + Date.now(),
-      name: 'Sérén Studio Look',
+      name: 'Woobi Studio Look',
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       occasion: 'Everyday Luxury',
       items: [
@@ -2370,6 +2643,24 @@
     activatePremium,
     saveReminderPreferences,
     exportWardrobe,
+    exportUserData,
+    saveProfile,
+    updatePrivacyConsent,
+    clearSavedLooksCache,
+    clearAvatarPreferencesCache,
+    signOut,
+    setAppTheme,
+    setStudioTheme,
+    setStudioLighting,
+    toggleHighContrast,
+    resetAppearance,
+    setPerformancePreset,
+    toggleShadowQuality,
+    toggleReflectionQuality,
+    toggleIdleAnimations,
+    resetPerformance,
+    requestNotificationPermission,
+    getSettingsManager,
     deleteAccount,
     showHelpSupport,
     rotateCropImage,
