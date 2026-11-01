@@ -122,7 +122,7 @@ function tryListen(portIndex) {
 
   server.listen(port, '0.0.0.0', () => {
     console.log(`\n======================================================`);
-    console.log(`  AURA Wardrobe is running live:`);
+    console.log(`  Woobi Fashion Studio is running live:`);
     console.log(`  > Local:   http://localhost:${port}/`);
     console.log(`  > Network: http://127.0.0.1:${port}/`);
     console.log(`======================================================\n`);

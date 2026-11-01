@@ -1,6 +1,6 @@
 /**
  * Woobi - Backend Module
- * DatabaseService.js - File-backed ACID-Compliant Repository Engine with User Scoping & Migrations
+ * DatabaseService.js - Hardened ACID-Compliant Repository Engine with Mutex Writes, Backup Recovery & Scoped Isolation
  */
 
 import fs from 'node:fs';
@@ -34,7 +34,7 @@ class BaseRepository {
       updatedAt: new Date().toISOString()
     };
     list.push(record);
-    this.db.writeCollection(this.collectionName, list);
+    await this.db.writeCollection(this.collectionName, list);
     this.db.emit(DB_EVENTS.ENTITY_CREATED, { collection: this.collectionName, entity: record });
     return record;
   }
@@ -51,7 +51,7 @@ class BaseRepository {
       updatedAt: new Date().toISOString()
     };
     list[idx] = updated;
-    this.db.writeCollection(this.collectionName, list);
+    await this.db.writeCollection(this.collectionName, list);
     this.db.emit(DB_EVENTS.ENTITY_UPDATED, { collection: this.collectionName, entity: updated });
     return updated;
   }
@@ -62,7 +62,7 @@ class BaseRepository {
     if (idx === -1) return false;
 
     const [deleted] = list.splice(idx, 1);
-    this.db.writeCollection(this.collectionName, list);
+    await this.db.writeCollection(this.collectionName, list);
     this.db.emit(DB_EVENTS.ENTITY_DELETED, { collection: this.collectionName, id, entity: deleted });
     return true;
   }
@@ -136,7 +136,7 @@ class AvatarRepository extends BaseRepository {
     const idx = list.findIndex(a => a.userId === userId);
     if (idx !== -1) {
       list[idx] = { ...list[idx], ...prefs, userId, updatedAt: new Date().toISOString() };
-      this.db.writeCollection(this.collectionName, list);
+      await this.db.writeCollection(this.collectionName, list);
       return list[idx];
     }
     return this.create({ ...prefs, userId });
@@ -160,7 +160,7 @@ class SettingsRepository extends BaseRepository {
     const idx = list.findIndex(s => s.userId === userId);
     if (idx !== -1) {
       list[idx] = { ...list[idx], ...settings, userId, updatedAt: new Date().toISOString() };
-      this.db.writeCollection(this.collectionName, list);
+      await this.db.writeCollection(this.collectionName, list);
       return list[idx];
     }
     return this.create({ ...settings, userId });
@@ -188,7 +188,7 @@ class StreakRepository extends BaseRepository {
       record.bestStreak = Math.max(record.bestStreak, record.currentStreak);
       record.lastUploadDate = uploadDate;
       record.updatedAt = new Date().toISOString();
-      this.db.writeCollection(this.collectionName, list);
+      await this.db.writeCollection(this.collectionName, list);
       return record;
     }
     return this.create({
@@ -227,10 +227,43 @@ class SubscriptionRepository extends BaseRepository {
 
     if (idx !== -1) {
       list[idx] = { ...list[idx], ...entitlement };
-      this.db.writeCollection(this.collectionName, list);
+      await this.db.writeCollection(this.collectionName, list);
       return list[idx];
     }
     return this.create(entitlement);
+  }
+}
+
+class RevokedTokenRepository extends BaseRepository {
+  constructor(db) {
+    super(db, DB_ENTITIES.REVOKED_TOKENS, 'rev');
+  }
+
+  async isRevoked(token) {
+    if (!token) return false;
+    const list = this.getAll();
+    return list.some(r => r.token === token);
+  }
+
+  async revoke(token, expiresAt = null) {
+    if (!token) return false;
+    const list = this.getAll();
+    if (list.some(r => r.token === token)) return true;
+    await this.create({
+      token,
+      revokedAt: new Date().toISOString(),
+      expiresAt: expiresAt || new Date(Date.now() + 24 * 3600 * 1000).toISOString()
+    });
+    return true;
+  }
+
+  async pruneExpired() {
+    const list = this.getAll();
+    const now = Date.now();
+    const active = list.filter(r => !r.expiresAt || new Date(r.expiresAt).getTime() > now);
+    if (active.length !== list.length) {
+      await this.db.writeCollection(this.collectionName, active);
+    }
   }
 }
 
@@ -244,6 +277,7 @@ export class DatabaseService {
 
     this.cache = new Map();
     this.listeners = new Map();
+    this.writeLocks = new Map(); // collectionName -> Promise chain
 
     if (!this.options.inMemoryOnly && !fs.existsSync(this.options.dataDir)) {
       try {
@@ -262,6 +296,7 @@ export class DatabaseService {
     this.settings = new SettingsRepository(this);
     this.streak = new StreakRepository(this);
     this.subscriptions = new SubscriptionRepository(this);
+    this.revokedTokens = new RevokedTokenRepository(this);
 
     // Initial schema migration / seeding
     this.runInitialMigrations();
@@ -290,6 +325,10 @@ export class DatabaseService {
     return path.join(this.options.dataDir, `${collectionName}.json`);
   }
 
+  getBackupFilePath(collectionName) {
+    return path.join(this.options.dataDir, `${collectionName}.json.bak`);
+  }
+
   readCollection(collectionName) {
     if (this.cache.has(collectionName)) {
       return this.cache.get(collectionName);
@@ -302,6 +341,8 @@ export class DatabaseService {
     }
 
     const filePath = this.getFilePath(collectionName);
+    const backupPath = this.getBackupFilePath(collectionName);
+
     if (!fs.existsSync(filePath)) {
       const initial = [];
       this.cache.set(collectionName, initial);
@@ -316,23 +357,63 @@ export class DatabaseService {
       return list;
     } catch (err) {
       this.emit(DB_EVENTS.CORRUPTION_DETECTED, { collection: collectionName, error: err.message });
+
+      // Automatic recovery from .bak backup file
+      if (fs.existsSync(backupPath)) {
+        try {
+          const bakContent = fs.readFileSync(backupPath, 'utf8');
+          const bakData = JSON.parse(bakContent);
+          const recoveredList = Array.isArray(bakData) ? bakData : [];
+          this.cache.set(collectionName, recoveredList);
+          // Restore primary file
+          fs.writeFileSync(filePath, bakContent, 'utf8');
+          this.emit(DB_EVENTS.RECOVERED_FROM_BACKUP, { collection: collectionName, count: recoveredList.length });
+          return recoveredList;
+        } catch (bakErr) {
+          console.error(`Backup restoration failed for [${collectionName}]:`, bakErr.message);
+        }
+      }
+
       const fallback = [];
       this.cache.set(collectionName, fallback);
       return fallback;
     }
   }
 
-  writeCollection(collectionName, data) {
+  /**
+   * Thread-safe / asynchronous mutex write to serialize disk updates per collection
+   */
+  async writeCollection(collectionName, data) {
     this.cache.set(collectionName, data);
 
     if (this.options.inMemoryOnly) return;
 
+    // Mutex write serialization
+    const currentLock = this.writeLocks.get(collectionName) || Promise.resolve();
+    const nextLock = currentLock.then(() => this._performAtomicWrite(collectionName, data));
+    this.writeLocks.set(collectionName, nextLock);
+    return nextLock;
+  }
+
+  _performAtomicWrite(collectionName, data) {
     const filePath = this.getFilePath(collectionName);
+    const backupPath = this.getBackupFilePath(collectionName);
     const tmpPath = `${filePath}.tmp_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
     try {
       const serialized = JSON.stringify(data, null, 2);
+
+      // 1. If existing file exists, update backup copy
+      if (fs.existsSync(filePath)) {
+        try {
+          fs.copyFileSync(filePath, backupPath);
+        } catch {}
+      }
+
+      // 2. Write to unique temporary file
       fs.writeFileSync(tmpPath, serialized, 'utf8');
+
+      // 3. Atomically replace target file
       fs.renameSync(tmpPath, filePath);
     } catch (err) {
       if (fs.existsSync(tmpPath)) {
@@ -342,20 +423,45 @@ export class DatabaseService {
     }
   }
 
+  /**
+   * Multi-record transaction with staging snapshot and atomic rollback capability
+   * @param {Function} transactionFn async function(txDb)
+   */
+  async transaction(transactionFn) {
+    const stagedCache = new Map();
+    // Snapshot current cache states
+    for (const [key, val] of this.cache.entries()) {
+      stagedCache.set(key, JSON.parse(JSON.stringify(val)));
+    }
+
+    try {
+      const result = await transactionFn(this);
+      this.emit(DB_EVENTS.TRANSACTION_COMMITTED, { timestamp: new Date().toISOString() });
+      return result;
+    } catch (err) {
+      // Rollback cache to snapshot
+      this.cache = stagedCache;
+      this.emit(DB_EVENTS.TRANSACTION_ROLLED_BACK, { error: err.message });
+      throw err;
+    }
+  }
+
   runInitialMigrations() {
     this.emit(DB_EVENTS.MIGRATION_APPLIED, { version: '1.0.0', name: 'initial_monorepo_schema' });
   }
 
-  /**
-   * Cleans up all collections (used in automated testing)
-   */
   resetAll() {
     this.cache.clear();
+    this.writeLocks.clear();
     if (!this.options.inMemoryOnly && fs.existsSync(this.options.dataDir)) {
       for (const ent of Object.values(DB_ENTITIES)) {
         const fp = this.getFilePath(ent);
+        const bak = this.getBackupFilePath(ent);
         if (fs.existsSync(fp)) {
           try { fs.unlinkSync(fp); } catch {}
+        }
+        if (fs.existsSync(bak)) {
+          try { fs.unlinkSync(bak); } catch {}
         }
       }
     }

@@ -27,7 +27,7 @@ jobs:
           ./scripts/validation/validate-boundaries.ps1
 
   test-3d-studio:
-    name: 3D Studio, Features, Settings & Backend Regression Suite (615 Tests)
+    name: 3D Studio, Features, Settings & Hardened Backend Regression Suite (631 Tests)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -38,9 +38,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Execute Master Test Suite (3D Studio, Features, Settings & Backend)
+      - name: Execute Master Test Suite (3D Studio, Features, Settings & Hardened Backend)
         run: |
           node scripts/testing/run-all-tests.js
+
+      - name: Execute Real Backend HTTP E2E Integration Suite (14 Scenarios)
+        run: |
+          node scripts/testing/test-backend-e2e.js
 
   verify-assets:
     name: Git LFS & Asset Integrity

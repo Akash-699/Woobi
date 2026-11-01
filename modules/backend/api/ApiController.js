@@ -157,11 +157,16 @@ export class ApiController {
       const { requestedPlan, devVerificationKey } = body;
 
       // Anti-tampering check: clients cannot self-grant premium without server verification
-      const isAllowedDevKey = devVerificationKey === 'WOOBI_DEV_VERIFIED_UPGRADE';
       const isFree = requestedPlan === 'free';
+      const isDevMode = process.env.NODE_ENV !== 'production';
+      const isAllowedDevKey = isDevMode && (devVerificationKey === 'WOOBI_DEV_VERIFIED_UPGRADE' || process.env.ALLOW_DEV_ENTITLEMENT_UPGRADE === 'true');
 
       if (!isFree && !isAllowedDevKey) {
-        return this.router.sendJson(res, HTTP_STATUS.FORBIDDEN, ApiContract.createErrorEnvelope('Unauthorized entitlement upgrade. Valid payment verification required.'));
+        return this.router.sendJson(
+          res,
+          HTTP_STATUS.FORBIDDEN,
+          ApiContract.createErrorEnvelope('Unauthorized entitlement upgrade. Self-granting premium access is strictly prohibited. Production upgrades require a verified payment gateway.')
+        );
       }
 
       const isPremium = requestedPlan === 'monthly' || requestedPlan === 'annual';

@@ -10,7 +10,8 @@ export const DB_ENTITIES = {
   AVATAR_PREFERENCES: 'avatar_preferences',
   USER_SETTINGS: 'user_settings',
   STREAK_RECORDS: 'streak_records',
-  SUBSCRIPTIONS: 'subscriptions'
+  SUBSCRIPTIONS: 'subscriptions',
+  REVOKED_TOKENS: 'revoked_tokens'
 };
 
 export const DB_EVENTS = {
@@ -18,7 +19,10 @@ export const DB_EVENTS = {
   ENTITY_UPDATED: 'db:entity_updated',
   ENTITY_DELETED: 'db:entity_deleted',
   MIGRATION_APPLIED: 'db:migration_applied',
-  CORRUPTION_DETECTED: 'db:corruption_detected'
+  CORRUPTION_DETECTED: 'db:corruption_detected',
+  RECOVERED_FROM_BACKUP: 'db:recovered_from_backup',
+  TRANSACTION_COMMITTED: 'db:transaction_committed',
+  TRANSACTION_ROLLED_BACK: 'db:transaction_rolled_back'
 };
 
 export const DatabaseContract = {

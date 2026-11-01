@@ -1,5 +1,5 @@
 /**
- * AURA Wardrobe — Exact Replica Prototype Application Logic
+ * Woobi — 3D Virtual Fashion Studio & Monorepo Application by Troyz Solutions
  * Full Production System with:
  * - 01 Setup & First Outfit: Welcome, Style preferences, Add your wardrobe, Review item
  * - 02 Daily Outfit Studio: Today, Outfit details, Swap an item, Outfit ready
@@ -1131,7 +1131,7 @@
 
   function activatePremium() {
     state.isPremium = true;
-    showToast('🎉 Welcome to AURA Premium! All features unlocked.');
+    showToast('🎉 Welcome to Woobi Premium! All features unlocked.');
     const sm = getSettingsManager();
     if (sm && sm.account) {
       sm.account.updateSubscription(state.currentPlan, true);
@@ -1462,7 +1462,7 @@
   }
 
   function tryReconnect() {
-    showToast('📶 Reconnecting to AURA Cloud...');
+    showToast('📶 Reconnecting to Woobi Cloud...');
     setTimeout(() => {
       showToast('Online! Synchronizing latest suggestions.');
       goToScreen('today');
@@ -1840,7 +1840,7 @@
   function serenSaveCurrentLook() {
     const currentOutfit = {
       id: 'look_' + Date.now(),
-      name: 'Sérén Studio Look',
+      name: 'Woobi Studio Look',
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       occasion: 'Everyday Luxury',
       items: [

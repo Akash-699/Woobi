@@ -13,6 +13,16 @@ export class AuthService {
     this.signingSecret = process.env.WOOBI_AUTH_SECRET || this.options.DEFAULT_SIGNING_SECRET;
     this.revokedTokens = new Set();
     this.listeners = new Map();
+
+    // Warm up revocation cache from persistent DB if available
+    if (this.db && this.db.revokedTokens && typeof this.db.revokedTokens.getAll === 'function') {
+      try {
+        const persisted = this.db.revokedTokens.getAll();
+        for (const item of persisted) {
+          if (item && item.token) this.revokedTokens.add(item.token);
+        }
+      } catch {}
+    }
   }
 
   // Event Subscription
@@ -121,6 +131,14 @@ export class AuthService {
       return { valid: false, payload: null, error: 'Token has been revoked' };
     }
 
+    if (this.db && this.db.revokedTokens && typeof this.db.revokedTokens.getAll === 'function') {
+      const persisted = this.db.revokedTokens.getAll();
+      if (persisted.some(r => r && r.token === token)) {
+        this.revokedTokens.add(token);
+        return { valid: false, payload: null, error: 'Token has been revoked' };
+      }
+    }
+
     const parts = token.split('.');
     if (parts.length !== 3) {
       return { valid: false, payload: null, error: 'Malformed token structure' };
@@ -154,6 +172,11 @@ export class AuthService {
   revokeToken(token) {
     if (token) {
       this.revokedTokens.add(token);
+      if (this.db && this.db.revokedTokens && typeof this.db.revokedTokens.revoke === 'function') {
+        try {
+          this.db.revokedTokens.revoke(token);
+        } catch {}
+      }
       this.emit(AUTH_EVENTS.TOKEN_REVOKED, { token });
     }
   }

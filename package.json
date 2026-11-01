@@ -1,17 +1,20 @@
 {
-  "name": "fashion-app",
+  "name": "woobi",
   "version": "1.0.0",
-  "description": "AURA Wardrobe - Editorial Minimalist Fashion Showcase",
+  "description": "Woobi - 3D Virtual Fashion Studio & Monorepo by Troyz Solutions",
   "main": "server.js",
   "scripts": {
     "dev": "node server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node scripts/testing/run-all-tests.js"
   },
   "keywords": [
     "fashion",
     "wardrobe",
-    "showcase"
+    "woobi",
+    "3d-studio",
+    "troyz-solutions"
   ],
-  "author": "",
+  "author": "Troyz Solutions",
   "license": "ISC"
 }
