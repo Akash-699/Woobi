@@ -1,132 +1,269 @@
-# Woobi
+# Woobi — Your wardrobe, reimagined
 
-[![Woobi CI & Release Gate](https://github.com/Troyz-Solutions/Woobi/actions/workflows/ci.yml/badge.svg)](https://github.com/Troyz-Solutions/Woobi/actions/workflows/ci.yml)
+**A virtual fashion wardrobe and interactive 3D styling studio by [Troyz Solutions](https://www.troyzsolutions.com/).**
 
-**Woobi** is an editorial 3D virtual styling dressing room and fashion technology monorepo application engineered and owned by **Troyz Solutions**.
+[![Woobi CI](https://github.com/Troyz-Solutions/Woobi/actions/workflows/ci.yml/badge.svg)](https://github.com/Troyz-Solutions/Woobi/actions/workflows/ci.yml)
+[![Repository](https://img.shields.io/badge/GitHub-Troyz--Solutions%2FWoobi-24292f)](https://github.com/Troyz-Solutions/Woobi)
+![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Android-blue)
+![Architecture](https://img.shields.io/badge/Architecture-Modular%20Monorepo-167d6c)
 
----
+> **Project status:** The modularization work is implemented on development/integration branches and is under review. The default `main` branch may not yet include everything documented here. This README belongs to the Phase 9 development lineage, **not a statement that the app has launched to production**.
 
-## 1. System Architecture
+## What is Woobi?
 
-Woobi follows a strict 5-domain monorepo architecture with clean architectural boundaries and zero circular dependencies:
+Woobi is a fashion technology project built to make the clothes people already own more useful. Users can organize their wardrobe, explore outfit combinations, customize a digital avatar, interact with a 3D dressing room, and save looks for later.
+
+The central idea is simple: **good outfits, already yours.** Instead of suggesting that users buy more clothes, Woobi is designed to help them discover new ways to wear their existing wardrobe.
+
+**Product capabilities implemented or represented in the Phase 9 codebase:**
+
+- **Digital wardrobe:** organize garments and associated photos/metadata.
+- **Interactive 3D studio:** explore a virtual wardrobe, stage, mirror and vanity with responsive cameras and lighting.
+- **Avatar customization:** change supported presentation, proportions, skin/hair options and accessories.
+- **Virtual try-on:** apply supported garment representations to the avatar; this is **not** a claim of photorealistic cloth fitting for arbitrary uploads.
+- **Outfit recommendations:** rule/preset-based matching, color harmony and occasion-related scoring; no independently verified production ML model is implied.
+- **Saved looks:** save, recall and manage outfit combinations.
+- **Personal settings:** appearance, privacy, notifications, performance and account preferences.
+- **Backend APIs:** authentication, wardrobe records, saved looks, settings, uploads and user-scoped data access.
+
+Some capabilities depend on the configured server, assets, operating system and user permissions. Tests and modules existing in the repository do not themselves guarantee production availability.
+
+## Technology at a glance
+
+| Layer | Implementation |
+| --- | --- |
+| Web application | JavaScript, HTML, CSS |
+| 3D rendering | Three.js / WebGL; GLB assets |
+| Server | Node.js HTTP server and modular REST handlers |
+| Authentication | Server-signed bearer tokens and password hashing |
+| Development data | Local, file-backed JSON collections; user-scoped uploads |
+| Android | Android application wrapping web content via WebView |
+| Collaboration | GitHub feature branches, pull requests, CODEOWNERS and GitHub Actions |
+| Testing | Node-based module suites, HTTP integration tests and architectural boundary validation |
+
+The current JSON persistence layer is designed for a **single server process**. It is not a substitute for a production-grade multi-writer database without further validation. Production deployment and real-device acceptance remain separate release gates.
+
+## Repository architecture
+
+Woobi uses **one repository with five primary module domains**. A module owns a specific responsibility and exposes a public interface to the rest of the application.
 
 ```text
-modules/
-├── 3d-studio/            # Physical WebGL 3D Studio Engine
-│   ├── stage/            # 8.0cm Dais stage platform and woven rug
-│   ├── wardrobe/         # Oak/brass wardrobe closet with kinematics
-│   ├── mirror-vanity/    # Arched vanity table with WebGL mirror reflections
-│   ├── avatar/           # Sculpted humanoid avatar rig with bone hierarchy
-│   ├── lighting/         # 3-point editorial lighting system & presets
-│   ├── theme/            # Atmosphere palettes (luxury-cream, nordic, terracotta)
-│   └── camera/           # Cinematic camera presets and orbit controls
-│
-├── 3d-studio-features/   # Interactive Fashion Capabilities
-│   ├── virtual-try-on/   # Garment attachment and cloth layering
-│   ├── garment-interactions/ # Wardrobe door kinematics and garment selection
-│   ├── outfit-recommendations/ # AI styling rules & color harmony algorithms
-│   ├── avatar-customization/ # Skin tones, hairstyles, proportions, accessories
-│   ├── animations/       # Organic idle breathing and mannequin pose controller
-│   └── saved-looks/      # Wardrobe lookbook and bookmarking manager
-│
-├── settings/             # User & Application Configuration
-│   ├── account/          # Profile editing, plan subscriptions, session management
-│   ├── appearance/       # App themes, studio atmospheres, lighting presets
-│   ├── privacy/          # Local-first governance, data export, cache purging
-│   ├── notifications/    # 24-hr reminder schedules, permission management
-│   └── performance/      # Graphics fidelity, shadow maps, battery saver mode
-│
-├── backend/              # Server-Side Services & REST API
-│   ├── api/              # HTTP REST router & controllers (/api/*, /health)
-│   ├── auth/             # Scrypt password hashing, HMAC-SHA256 Bearer tokens
-│   ├── database/         # ACID-resilient JSON repository with mutex writes & recovery
-│   ├── storage/          # Magic-byte file validation (JPEG, PNG, WebP) & user isolation
-│   └── security/         # Security headers, CORS preflights, sliding rate limiting
-│
-└── core/                 # Shared Monorepo Utilities & State
-    ├── state/            # Authoritative central Store (window.woobiStore)
-    ├── navigation/       # NavigationRouter with screen state mapping
-    └── api/              # Browser-safe HTTP fetch client
+Woobi/
+├── modules/
+│   ├── core/                    # App bootstrap, navigation, shared UI, state, errors
+│   ├── 3d-studio/               # Physical 3D scene and rendering
+│   │   ├── stage/
+│   │   ├── wardrobe/
+│   │   ├── mirror-vanity/
+│   │   ├── avatar/
+│   │   ├── lighting/
+│   │   ├── theme/
+│   │   └── camera/
+│   ├── 3d-studio-features/      # User-facing interactions and styling logic
+│   │   ├── virtual-try-on/
+│   │   ├── garment-interactions/
+│   │   ├── outfit-recommendations/
+│   │   ├── avatar-customization/
+│   │   ├── animations/
+│   │   └── saved-looks/
+│   ├── settings/
+│   │   ├── account/
+│   │   ├── appearance/
+│   │   ├── privacy/
+│   │   ├── notifications/
+│   │   └── performance/
+│   └── backend/
+│       ├── api/
+│       ├── auth/
+│       ├── database/
+│       ├── storage/
+│       └── security/
+├── android-app/                # Existing Android Gradle project
+├── apps/                       # Application organization / integration scaffolding
+├── assets/                     # Shared assets where present
+├── scripts/
+│   ├── testing/
+│   └── validation/
+├── docs/                       # Architecture and operations references
+├── .github/
+│   ├── workflows/
+│   └── CODEOWNERS
+├── index.html                  # Current web entry point
+├── app.js                      # Existing UI orchestration bridge
+├── studio3d.js                 # Existing 3D orchestration bridge
+├── server.js                   # Web and API server entry point
+└── package.json
 ```
 
----
+**Why keep a monorepo?** Developers can work on individual components while sharing one integration baseline, central contracts, regression tests and release process. The modules are not necessarily standalone deployable applications.
 
-## 2. Quickstart & Local Development
+### What each domain owns
 
-### Prerequisites
-- **Node.js**: v20 or v24+ (native standard library; zero external npm runtime dependencies required)
-- **PowerShell** (for boundary validation)
-- **Android Studio / JDK 17** (optional, for Android APK builds)
+| Module | Owns | Does not own |
+| --- | --- | --- |
+| `core` | Navigation, app state, bootstrap, reusable UI, errors | Garment rendering or user database records |
+| `3d-studio` | Physical models, materials, camera, lighting, scene lifecycle | Outfit recommendation decisions |
+| `3d-studio-features` | Try-on workflow, picking, suggestions, poses, saved looks | Low-level scene geometry ownership |
+| `settings` | User controls for themes, privacy, notifications, account and performance | Server authentication authority |
+| `backend` | HTTP API, authentication, user data and upload protection | Client-side rendering and DOM |
 
-### Running the Application & Backend Server
+### Example: selecting and saving an outfit
+
+1. The user selects an item in the web or Android interface.
+2. `garment-interactions` handles the interaction; `virtual-try-on` coordinates supported avatar changes.
+3. `3d-studio/avatar`, the wardrobe and renderer visualize the result.
+4. `saved-looks` stores the selected combination locally and can communicate with available authenticated API functionality.
+5. `core` coordinates the application state; the backend enforces server-side ownership where it is used.
+
+Public contracts are the intended integration boundary. Avoid importing a sibling module's private implementation files or creating competing stores and render loops.
+
+## 3D Studio: seven components
+
+| Component | Responsibility |
+| --- | --- |
+| Stage | Circular dais, grounding rules and contact shadows |
+| Wardrobe | Cabinet model, door motion, materials and interaction target |
+| Mirror & Vanity | Vanity furniture, cosmetics, mirror render target and accent lighting |
+| Avatar | Character geometry/GLB, rig, appearance and proportions |
+| Lighting | Shared illumination, shadows and atmospheric lighting presets |
+| Theme | Room materials, floor, wall and studio atmosphere |
+| Camera | Six viewpoint presets, transitions, mouse and touch controls |
+
+The interactive **feature** modules orchestrate user actions on this physical scene. They should consume its documented interfaces rather than duplicate its objects or animation loops.
+
+## Get started locally
+
+### Requirements
+
+- **Git** and **Git LFS** for repository and large 3D assets.
+- **Node.js 20+** (use the version supported by the current project and CI).
+- A modern browser with WebGL support.
+- For Android development: **JDK 17**, Android SDK / Android Studio and the existing Gradle wrapper.
+- **PowerShell / pwsh** for the architectural boundary checker.
+
+### Clone the correct branch
+
+The full modular implementation currently resides on the published Phase 9 feature branch while stacked integration PRs are under review:
+
 ```bash
-# Start the unified Woobi application server (serves web UI and REST API on port 8080)
-node server.js
+git clone https://github.com/Troyz-Solutions/Woobi.git
+cd Woobi
+git switch feature/phase-9-production-readiness
+git lfs pull
 ```
-Open `http://localhost:8080/` in any modern web browser.
 
----
+After the reviewed integration PRs have merged, developers should use the updated `main` branch instead.
 
-## 3. Automated Quality Gates & Testing
-
-Woobi enforces a comprehensive 631-test automated regression suite covering all 5 architectural domains:
+### Start the app and backend
 
 ```bash
-# Execute full master monorepo test suite (29 suites, 631 verified tests)
-node scripts/testing/run-all-tests.js
-
-# Execute real HTTP End-to-End backend integration suite (14 scenarios)
-node scripts/testing/test-backend-e2e.js
-
-# Validate module boundaries and circular dependency isolation
-powershell -ExecutionPolicy Bypass -File scripts/validation/validate-boundaries.ps1
+npm start
+# equivalent: node server.js
 ```
 
----
+Open **http://localhost:8080/**. The Node server serves the current web entry point and the supported `/api/*` endpoints. A basic server health endpoint is available at `/health`.
 
-## 4. Android Native Application Build
+For any server configuration beyond local development, consult `.env.example` and `docs/PRODUCTION_RUNBOOK.md`. Supply secrets through the appropriate environment mechanism; **never commit `.env` or credentials**. A template file is documentation, not proof that secrets are loaded automatically.
 
-Woobi includes a native Android shell with WebView integration for cross-platform deployment:
+### Run the tests
 
 ```bash
-cd android-app
+# Master regression suite (reported latest baseline: 642 tests)
+npm test
+
+# Live local HTTP API scenarios (reported: 14)
+npm run test:e2e
+
+# Architecture boundary validation
+npm run validate:boundaries
+```
+
+The 642-test count is the latest **coding-agent-reported development-branch baseline**; always trust the results of the current branch's actual CI run rather than a fixed badge or number in this document. Some scene tests run with simulated/headless rendering and do not replace real hardware verification.
+
+### Build Android
+
+From the `android-app/` directory:
+
+```bash
+# macOS / Linux
 ./gradlew assembleDebug
+
+# Windows PowerShell
+.\gradlew.bat assembleDebug
 ```
-The compiled debug APK is generated at `android-app/app/build/outputs/apk/debug/app-debug.apk`.
 
----
+The debug APK is generated under `android-app/app/build/outputs/apk/debug/`. An APK building successfully does **not** mean it has passed device, WebView or release-signing acceptance.
 
-## 5. Environment Configuration
+## Security, privacy and data boundaries
 
-Copy `.env.example` to `.env` to customize local development settings:
+- **Authentication:** API operations use server-validated credentials/tokens; never treat the client's displayed account state as proof of authorization.
+- **User isolation:** API handlers are intended to enforce per-user access to wardrobe records, looks and files.
+- **Subscriptions:** Client-side premium flags do not establish paid entitlement. Production payment/verification integration must be separately configured and verified.
+- **Uploads:** The storage layer checks supported image signatures and user-scoped paths. Do not use it as a general-purpose untrusted-file processing service without additional review.
+- **Local-first behavior:** Some user settings and looks are stored in browser storage; server sync depends on actual API and account configuration.
+- **Database:** Local JSON persistence is configured for a single Node server process; lock expiry and recovery under failure need operational scrutiny. Keep backups and test restoration.
+- **Environment:** HTTPS/TLS, secure secrets, persistence volumes, monitoring and real-device testing are required before production use.
+
+**Do not expose production user information in issues, PRs, screenshots or test data.**
+
+## Contributing to Woobi
+
+Woobi is developed through a reviewed workflow operated by Troyz Solutions and its contributors.
+
+1. Pick up an assigned Work Deck task and identify its owning module.
+2. Fork the repository (or use an authorized feature branch).
+3. Create a descriptive branch, for example `feature/WD-123-wardrobe-lighting`.
+4. Make focused changes within the relevant module; use public interfaces for cross-module calls.
+5. Run the affected tests, `npm test`, and boundary validation.
+6. Provide screenshots or screen recordings for visual changes.
+7. Open a pull request against the **correct integration base**; link the Work Deck task and summarize testing.
+8. Wait for designated reviewers and required CI checks. Do not push directly to protected `main`.
 
 ```bash
-cp .env.example .env
+git switch -c feature/WD-123-wardrobe-lighting
+node modules/3d-studio/wardrobe/WardrobeModel.test.js
+npm test
+git add .
+git commit -m "feat(wardrobe): improve interior lighting"
+git push origin feature/WD-123-wardrobe-lighting
 ```
 
-| Variable | Description | Default |
-| :--- | :--- | :--- |
-| `PORT` | Local server port | `8080` |
-| `WOOBI_AUTH_SECRET` | HMAC-SHA256 session token signing key | `dev-secret-key-32bytes-min-len!!` |
-| `WOOBI_DATA_DIR` | Database file directory | `./data` |
-| `WOOBI_STORAGE_DIR` | Uploaded images directory | `./uploads` |
-| `NODE_ENV` | Environment mode (`development` / `production`) | `development` |
+See [CONTRIBUTING.md](CONTRIBUTING.md), `.github/CODEOWNERS`, and the pull request template for details. CODEOWNERS is a review routing aid; GitHub branch protection/rulesets determine what is enforced.
 
----
+## Development and release status
 
-## 6. Monorepo Architectural Boundary Rules
+The transformation was delivered as a series of architecture and implementation phases. It is **not yet equivalent to a completed public production release**.
 
-1. **Zero Browser-to-Backend Imports**: Browser code (`index.html`, `app.js`, `modules/3d-studio*`, `modules/settings`) must **NEVER** import backend implementation files directly. Communication occurs exclusively over HTTP REST (`fetch('/api/...')`).
-2. **Public Index Target**: Cross-module imports must target the public module entry point (`modules/<module>/index.js`), never deep internal files.
-3. **Authoritative State**: State synchronization flows through `modules/core/state/Store.js`. No competing shadow stores are permitted.
+| Stage | Status |
+| --- | --- |
+| Five-domain monorepo and seven physical studio modules | Implemented on migration branches |
+| Six feature, five settings and five backend submodules | Implemented on Phase 5–9 development lineage |
+| Local automated regression and HTTP tests | Reported passing by coding agent |
+| PR #6 — foundation and 3D Studio | Review and merge required |
+| PR #7 — features, settings, backend and release work | Stacked on PR #6; review and merge required |
+| Real-device Android testing, browser performance and staging | Separate acceptance still required |
+| Production deployment | Not authorized |
 
----
+- [PR #6 — foundation and studio migration](https://github.com/Troyz-Solutions/Woobi/pull/6)
+- [PR #7 — feature and release migration](https://github.com/Troyz-Solutions/Woobi/pull/7)
 
-## 7. Contribution Workflow
+After PR #6 merges, PR #7's base and checks must be revalidated before an authorized merge.
 
-- Interns and contributors must work in a fork or dedicated feature branch (`feature/WD-123-short-description`), never directly on `main`.
-- Open a Pull Request against `main` and link the assigned Work Deck task.
-- Ensure all 631 regression tests, boundary validations, and Android builds pass before requesting review.
-- An authorized Troyz Solutions administrator reviews and merges accepted pull requests.
+## Documentation
 
-&copy; 2026 **Troyz Solutions**. All rights reserved.
+- [Contributor guide](CONTRIBUTING.md)
+- [Production operations runbook](docs/PRODUCTION_RUNBOOK.md)
+- [GitHub Actions CI](.github/workflows/ci.yml)
+- [Architecture and module ownership](modules/)
+- [Environment template](.env.example)
+
+## Project ownership
+
+**Woobi** is developed and maintained by **Troyz Solutions** with contributions from the engineering team and participating interns.
+
+Website: **https://www.troyzsolutions.com/**  
+Repository: **https://github.com/Troyz-Solutions/Woobi**
+
+For contribution rules and rights relating to repository content, consult the applicable repository license and organization policies.
+
+© 2026 Troyz Solutions.
