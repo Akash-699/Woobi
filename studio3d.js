@@ -1,7 +1,7 @@
 /**
- * AURA / SÉRÉN 3D VIRTUAL FASHION STUDIO ENGINE — PRODUCTION GRADE V2
- * True-to-Reference Studio Architecture, Lighting Contrast, Humanoid Model & Dual-View Mirror
- * Based on Sérén Visual Reference (media_1791534094302.jpg)
+ * SÉRÉN 3D VIRTUAL FASHION STUDIO ENGINE — PRODUCTION GRADE V4
+ * True-to-Reference Visual Architecture, Serene Atmosphere, PBR Materials & High-Fidelity Avatar
+ * Faithfully matches Sérén Target Visual Reference (seren_main_screen.jpg)
  */
 
 (function (root, factory) {
@@ -15,38 +15,59 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  // Camera Presets configured specifically for Portrait Mobile Framing (360x800 to 390x844)
+  // Camera Presets configured specifically for Portrait Mobile & Desktop Framing
   const CAMERA_STATES = {
     STUDIO_OVERVIEW: {
-      position: new THREE.Vector3(0, 1.25, 3.25),
-      target: new THREE.Vector3(0, 1.02, 0),
-      fovLandscape: 46,
-      fovPortrait: 58
+      position: new THREE.Vector3(0, 1.22, 3.10),
+      target: new THREE.Vector3(-0.08, 1.08, 0),
+      fovLandscape: 42,
+      fovPortrait: 56
     },
     WARDROBE_CLOSEUP: {
-      position: new THREE.Vector3(-0.55, 1.30, 1.50),
-      target: new THREE.Vector3(-0.80, 1.25, -0.15),
-      fovLandscape: 42,
-      fovPortrait: 48
+      position: new THREE.Vector3(-0.96, 1.20, 2.50),
+      target: new THREE.Vector3(-0.96, 1.20, -0.32),
+      fovLandscape: 38,
+      fovPortrait: 54
     },
     AVATAR_FULL_BODY: {
       position: new THREE.Vector3(0, 1.10, 2.10),
-      target: new THREE.Vector3(0, 0.95, 0),
-      fovLandscape: 38,
+      target: new THREE.Vector3(0, 1.00, 0),
+      fovLandscape: 36,
       fovPortrait: 44
     },
     AVATAR_DETAIL: {
-      position: new THREE.Vector3(0, 1.42, 1.15),
-      target: new THREE.Vector3(0, 1.34, 0),
-      fovLandscape: 34,
-      fovPortrait: 40
+      position: new THREE.Vector3(0, 1.44, 1.10),
+      target: new THREE.Vector3(0, 1.38, 0),
+      fovLandscape: 30,
+      fovPortrait: 36
+    },
+    VANITY_VIEW: {
+      position: new THREE.Vector3(0.65, 1.25, 1.55),
+      target: new THREE.Vector3(0.85, 1.20, -0.10),
+      fovLandscape: 38,
+      fovPortrait: 46
     },
     MIRROR_VIEW: {
-      position: new THREE.Vector3(0.55, 1.30, 1.50),
-      target: new THREE.Vector3(0.80, 1.25, -0.15),
-      fovLandscape: 42,
-      fovPortrait: 48
+      position: new THREE.Vector3(0.65, 1.25, 1.55),
+      target: new THREE.Vector3(0.85, 1.20, -0.10),
+      fovLandscape: 38,
+      fovPortrait: 46
     }
+  };
+
+  // Color Tokens matching Sérén Design System
+  const COLOR_PALETTE = {
+    bgScene: 0xF7F3ED,
+    ivorySurface: 0xFFFCF8,
+    warmBeige: 0xEAE0D3,
+    lightWood: 0xD8B992,
+    softTaupe: 0xA58F7A,
+    primaryText: 0x51463E,
+    trousersSand: 0xC8BAA7, // Elegant sand/beige fluid tailored linen trousers
+    cropTankIvory: 0xFAF6EF, // Ribbed knit cream high-neck crop tank
+    honeyOak: 0xC69967,
+    warmBrass: 0xD8B478,
+    sneakersWhite: 0xFFFFFF
   };
 
   class Studio3DEngine {
@@ -56,6 +77,7 @@
       this.canvas = null;
       this.scene = null;
       this.camera = null;
+      this.cameraController = null;
       this.renderer = null;
 
       // Real-time Mirror Render Pipeline
@@ -69,15 +91,30 @@
       this.targetCameraLookAt = CAMERA_STATES.STUDIO_OVERVIEW.target.clone();
       this.currentCameraLookAt = CAMERA_STATES.STUDIO_OVERVIEW.target.clone();
 
+      // Zoom & Distance clamping
+      this.cameraZoomFactor = 1.0;
+      this.minFov = 26;
+      this.maxFov = 66;
+
       // Interactive 3D Objects for Raycasting
       this.interactiveObjects = [];
       this.raycaster = new THREE.Raycaster();
       this.mouse = new THREE.Vector2();
 
       // Avatar & Wearable Garment System
-      this.avatarGroup = null;
+      this.avatarRoot = null;
+      this.sculptedAvatarGroup = null;
+      this.gltfAvatarGroup = null;
+      this.activeAvatarType = 'sculpted'; // 'sculpted' or 'glb'
       this.chestGroup = null;
       this.headGroup = null;
+      this.eyelids = [];
+      this.hairStyles = {};
+      this.activeHairStyle = 'bun';
+      this.accessories = {};
+      this.skinMaterials = [];
+      this.hairMaterials = [];
+
       this.garmentMeshes = {
         top: {},
         bottom: {},
@@ -85,8 +122,25 @@
       };
       this.activeGarments = {
         top: 'tank',
-        bottom: 'taupe_wide',
-        shoes: 'barefoot'
+        bottom: 'wide_linen',
+        shoes: 'sneakers'
+      };
+
+      // Customizable Avatar Configuration (Persisted)
+      this.avatarConfig = {
+        gender: 'female',
+        skinTone: '#F3D5C6',
+        hairStyle: 'bun',
+        hairColor: '#1E120A',
+        proportions: 'regular',
+        top: 'tank',
+        bottom: 'wide_linen',
+        shoes: 'sneakers',
+        accessories: {
+          watch: true,
+          earrings: true,
+          necklace: false
+        }
       };
 
       // Pointer / Drag State
@@ -98,10 +152,18 @@
       this.avatarRotationY = 0;
       this.targetRotationY = 0;
       this.hasDragged = false;
+      this.pinchStartDist = 0;
 
-      // Animation Loop
+      // Animation Loop & Morphing
       this.clock = new THREE.Clock();
       this.animationFrameId = null;
+      this.blinkTimer = 0;
+      this.nextBlinkTime = 3.2;
+      this.isBlinking = false;
+      this.blinkProgress = 0;
+
+      // Procedural Textures
+      this.textures = {};
 
       // Callbacks
       this.onObjectClick = null;
@@ -128,25 +190,49 @@
         return;
       }
 
+      // Load saved preferences from localStorage if available
+      this.loadSavedPreferences();
+
       const rect = this.container.getBoundingClientRect();
       const width = rect.width || this.container.clientWidth || 390;
       const height = rect.height || this.container.clientHeight || 750;
 
-      // 1. Scene with Rich Warm Atmosphere (Calibrated to Luxury Studio palette)
+      // 1. Scene with Serene Atmosphere (Warm cream architectural tone)
       this.scene = new THREE.Scene();
-      this.scene.background = new THREE.Color(0xF6F0E7); // Warm cream architectural plaster tone
-      this.scene.fog = new THREE.Fog(0xF6F0E7, 8, 25); // Subtle distant falloff without washing foreground
+      this.scene.background = new THREE.Color(COLOR_PALETTE.bgScene);
+      this.scene.fog = new THREE.Fog(COLOR_PALETTE.bgScene, 9, 24);
 
-      // 2. Camera with Portrait-Optimized Field of View
+      // 2. Camera with Portrait/Landscape Optimized Field of View
       const aspect = width / height;
-      const isPortrait = aspect < 0.75;
-      const initialFov = isPortrait ? CAMERA_STATES.STUDIO_OVERVIEW.fovPortrait : CAMERA_STATES.STUDIO_OVERVIEW.fovLandscape;
-      this.camera = new THREE.PerspectiveCamera(initialFov, aspect, 0.1, 40);
-      this.camera.position.copy(CAMERA_STATES.STUDIO_OVERVIEW.position);
-      this.currentCameraLookAt.copy(CAMERA_STATES.STUDIO_OVERVIEW.target);
-      this.camera.lookAt(this.currentCameraLookAt);
+      if (typeof window !== 'undefined' && window.WoobiCamera && typeof window.WoobiCamera.createStudioCamera === 'function') {
+        this.cameraController = window.WoobiCamera.createStudioCamera(this.canvas, {
+          width,
+          height,
+          initialPreset: 'STUDIO_OVERVIEW',
+          onRotate: (delta) => {
+            this.targetRotationY += delta;
+          },
+          onClick: (clientX, clientY) => {
+            this.handleCanvasClick(clientX, clientY);
+          },
+          onResize: () => {
+            this.onResize();
+          }
+        }, THREE);
+        this.camera = this.cameraController.camera;
+        this.targetCameraPos = this.cameraController.transitions.targetCameraPos;
+        this.targetCameraLookAt = this.cameraController.transitions.targetCameraLookAt;
+        this.currentCameraLookAt = this.cameraController.transitions.currentCameraLookAt;
+      } else {
+        const isPortrait = aspect < 0.75;
+        const initialFov = isPortrait ? CAMERA_STATES.STUDIO_OVERVIEW.fovPortrait : CAMERA_STATES.STUDIO_OVERVIEW.fovLandscape;
+        this.camera = new THREE.PerspectiveCamera(initialFov, aspect, 0.1, 40);
+        this.camera.position.copy(CAMERA_STATES.STUDIO_OVERVIEW.position);
+        this.currentCameraLookAt.copy(CAMERA_STATES.STUDIO_OVERVIEW.target);
+        this.camera.lookAt(this.currentCameraLookAt);
+      }
 
-      // 3. WebGL Renderer with ACESFilmic Tone Mapping and Soft PCF Shadows
+      // 3. WebGL Renderer with Tone Mapping and Soft Shadows
       this.renderer = new THREE.WebGLRenderer({
         canvas: this.canvas,
         antialias: true,
@@ -159,288 +245,253 @@
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       if (THREE.ACESFilmicToneMapping) {
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.04; // Calibrated for radiant showroom highlights
+        this.renderer.toneMappingExposure = 1.08;
       }
       if (THREE.sRGBEncoding) {
         this.renderer.outputEncoding = THREE.sRGBEncoding;
       }
 
-      // 4. Build Luxury Environment & Architecture matching Sérén Studio Reference
+      // 4. Build Procedural PBR Textures & Architectural 3D Scene
       this.initProceduralTextures();
       this.setupLighting();
       this.buildRoomArchitecture();
-      this.buildStagePodium();
+      this.buildWovenRug();
       this.buildWardrobeFurniture();
       this.buildDressingVanity();
       this.buildHumanoidAvatar();
+      this.loadRiggedAvatarGLB(); // Asynchronously attempt Ready Player Me / external model
       this.setupMirrorRenderPipeline();
 
-      // 5. Setup Touch & Mouse Handlers
+      // 5. Setup Touch, Mouse & Zoom Handlers
       this.setupInteractionHandlers();
+
+      // Apply initial saved preferences
+      this.applyAvatarConfig(this.avatarConfig);
+
+      // 5.5 Initialize 3D Studio Features (Try-On, Interactions, Recommendations, Customizer, Animations, Saved Looks)
+      this.initStudioFeatures();
 
       // 6. Start Render Loop
       this.isInitialized = true;
       this.animate = this.animate.bind(this);
       this.animate();
 
-      window.addEventListener('resize', this.onResize.bind(this));
-      console.log('Studio3D: Luxury Showroom initialized with PBR architecture & lighting!');
+      console.log('Studio3D: Sérén Studio Production V4 Initialized with Stylized Avatar & Atmospheric Dressing Room.');
     }
 
     /**
-     * High-Fidelity Procedural PBR Textures
-     * Calacatta Gold Marble, Honey Oak Wood Grain, Woven Wool Rug & Bouclé Fabric
+     * Creates high-resolution procedural PBR textures for realistic materials
      */
     initProceduralTextures() {
-      this.textures = {};
+      // 1. Polished Cream Marble Tile Floor (512x512)
+      const floorCanvas = document.createElement('canvas');
+      floorCanvas.width = 512;
+      floorCanvas.height = 512;
+      const fCtx = floorCanvas.getContext('2d');
+      fCtx.fillStyle = '#F5EFE6';
+      fCtx.fillRect(0, 0, 512, 512);
 
-      // 1. Polished Italian Calacatta Gold Marble Texture (1024x1024)
-      const marbleCanvas = document.createElement('canvas');
-      marbleCanvas.width = 1024;
-      marbleCanvas.height = 1024;
-      const mCtx = marbleCanvas.getContext('2d');
-
-      // Warm ivory cream base
-      mCtx.fillStyle = '#F9F7F2';
-      mCtx.fillRect(0, 0, 1024, 1024);
-
-      // Subtle atmospheric warmth gradient
-      const mGrad = mCtx.createLinearGradient(0, 0, 1024, 1024);
-      mGrad.addColorStop(0, 'rgba(248, 243, 233, 0.7)');
-      mGrad.addColorStop(0.5, 'rgba(254, 252, 247, 0.4)');
-      mGrad.addColorStop(1, 'rgba(243, 237, 226, 0.8)');
-      mCtx.fillStyle = mGrad;
-      mCtx.fillRect(0, 0, 1024, 1024);
-
-      // Calacatta Gold natural veining (layered flowing spline curves)
-      const drawVein = (points, color, width, blur) => {
-        mCtx.save();
-        mCtx.strokeStyle = color;
-        mCtx.lineWidth = width;
-        mCtx.lineCap = 'round';
-        mCtx.lineJoin = 'round';
-        if (blur > 0 && mCtx.filter !== undefined) mCtx.filter = `blur(${blur}px)`;
-        mCtx.beginPath();
-        mCtx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length - 1; i++) {
-          const xc = (points[i].x + points[i + 1].x) / 2;
-          const yc = (points[i].y + points[i + 1].y) / 2;
-          mCtx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+      // Delicate warm gold and subtle grey marble veining
+      const drawVein = (ctx, points, color, width) => {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(points[i].x, points[i].y);
         }
-        mCtx.stroke();
-        mCtx.restore();
+        ctx.stroke();
+        ctx.restore();
       };
+      drawVein(fCtx, [{x: 0, y: 120}, {x: 160, y: 220}, {x: 320, y: 190}, {x: 512, y: 380}], 'rgba(216, 195, 168, 0.28)', 16);
+      drawVein(fCtx, [{x: 40, y: 0}, {x: 200, y: 240}, {x: 390, y: 440}, {x: 512, y: 512}], 'rgba(180, 160, 140, 0.20)', 6);
+      drawVein(fCtx, [{x: 180, y: 0}, {x: 310, y: 150}, {x: 480, y: 290}], 'rgba(235, 222, 202, 0.40)', 10);
 
-      // Broad warm golden amber diffuse ribbons
-      drawVein([
-        { x: -50, y: 160 }, { x: 260, y: 320 }, { x: 540, y: 260 }, { x: 790, y: 440 }, { x: 1100, y: 640 }
-      ], 'rgba(218, 192, 152, 0.26)', 38, 14);
+      // Subtle marble tile seam lines
+      fCtx.strokeStyle = 'rgba(200, 185, 165, 0.35)';
+      fCtx.lineWidth = 2;
+      fCtx.strokeRect(0, 0, 512, 512);
 
-      drawVein([
-        { x: 110, y: -40 }, { x: 390, y: 250 }, { x: 680, y: 560 }, { x: 880, y: 820 }, { x: 1080, y: 1090 }
-      ], 'rgba(206, 182, 142, 0.22)', 44, 20);
+      this.textures.creamMarble = new THREE.CanvasTexture(floorCanvas);
+      this.textures.creamMarble.wrapS = THREE.RepeatWrapping;
+      this.textures.creamMarble.wrapT = THREE.RepeatWrapping;
+      this.textures.creamMarble.repeat.set(4, 4);
 
-      // Fine branching mineral taupe/golden veins
-      drawVein([
-        { x: -30, y: 180 }, { x: 250, y: 330 }, { x: 530, y: 275 }, { x: 750, y: 460 }, { x: 1060, y: 650 }
-      ], 'rgba(146, 128, 108, 0.36)', 5, 2);
-
-      drawVein([
-        { x: 330, y: 300 }, { x: 440, y: 430 }, { x: 620, y: 530 }, { x: 810, y: 570 }
-      ], 'rgba(158, 138, 116, 0.28)', 3, 1);
-
-      drawVein([
-        { x: 150, y: -20 }, { x: 410, y: 270 }, { x: 670, y: 550 }, { x: 870, y: 810 }, { x: 1060, y: 1070 }
-      ], 'rgba(138, 118, 98, 0.32)', 6, 2);
-
-      drawVein([
-        { x: 530, y: 400 }, { x: 470, y: 590 }, { x: 390, y: 790 }, { x: 500, y: 1070 }
-      ], 'rgba(182, 158, 126, 0.22)', 4, 1.5);
-
-      // Micro mineral specks
-      for (let i = 0; i < 350; i++) {
-        const sx = Math.random() * 1024;
-        const sy = Math.random() * 1024;
-        mCtx.fillStyle = Math.random() > 0.5 ? 'rgba(204, 184, 154, 0.15)' : 'rgba(134, 118, 98, 0.08)';
-        mCtx.fillRect(sx, sy, Math.random() * 2 + 1, Math.random() * 2 + 1);
-      }
-
-      this.textures.marble = new THREE.CanvasTexture(marbleCanvas);
-      this.textures.marble.wrapS = THREE.RepeatWrapping;
-      this.textures.marble.wrapT = THREE.RepeatWrapping;
-      this.textures.marble.repeat.set(2.4, 2.4);
-
-      // Marble Roughness Map (Glossy 0.12 - 0.22 with vein variation)
-      const mRoughCanvas = document.createElement('canvas');
-      mRoughCanvas.width = 512;
-      mRoughCanvas.height = 512;
-      const mrCtx = mRoughCanvas.getContext('2d');
-      mrCtx.fillStyle = '#222222'; // High gloss baseline ~0.13
-      mrCtx.fillRect(0, 0, 512, 512);
-      mrCtx.drawImage(marbleCanvas, 0, 0, 512, 512);
-      this.textures.marbleRoughness = new THREE.CanvasTexture(mRoughCanvas);
-      this.textures.marbleRoughness.wrapS = THREE.RepeatWrapping;
-      this.textures.marbleRoughness.wrapT = THREE.RepeatWrapping;
-      this.textures.marbleRoughness.repeat.set(2.4, 2.4);
-
-      // 2. Honey Natural Oak Wood Grain Texture (1024x1024)
-      const woodCanvas = document.createElement('canvas');
-      woodCanvas.width = 1024;
-      woodCanvas.height = 1024;
-      const wCtx = woodCanvas.getContext('2d');
-
-      wCtx.fillStyle = '#C49764'; // Rich natural honey oak base
-      wCtx.fillRect(0, 0, 1024, 1024);
-
-      // Vertical wood grain lines with organic growth ring waves
-      for (let x = 0; x < 1024; x += 2) {
-        const wave = Math.sin(x * 0.015) * 12 + Math.sin(x * 0.08) * 4;
-        const alpha = 0.08 + Math.random() * 0.16;
-        const tone = Math.random() > 0.45 ? 'rgba(122, 86, 50, ' + alpha + ')' : 'rgba(238, 204, 162, ' + alpha + ')';
-        wCtx.fillStyle = tone;
-        wCtx.fillRect(x + wave * 0.2, 0, 1.8, 1024);
-      }
-
-      // Wide growth ring bands
-      for (let y = 0; y < 1024; y += 48) {
-        const rGrad = wCtx.createLinearGradient(0, y, 0, y + 48);
-        rGrad.addColorStop(0, 'rgba(132, 92, 54, 0.14)');
-        rGrad.addColorStop(0.5, 'rgba(242, 214, 176, 0.16)');
-        rGrad.addColorStop(1, 'rgba(112, 78, 44, 0.14)');
-        wCtx.fillStyle = rGrad;
-        wCtx.fillRect(0, y, 1024, 48);
-      }
-
-      this.textures.oak = new THREE.CanvasTexture(woodCanvas);
-      this.textures.oak.wrapS = THREE.RepeatWrapping;
-      this.textures.oak.wrapT = THREE.RepeatWrapping;
-      this.textures.oak.repeat.set(1.5, 2.2);
-
-      // Oak Bump Map
-      const wBumpCanvas = document.createElement('canvas');
-      wBumpCanvas.width = 512;
-      wBumpCanvas.height = 512;
-      const wbCtx = wBumpCanvas.getContext('2d');
-      wbCtx.fillStyle = '#808080';
-      wbCtx.fillRect(0, 0, 512, 512);
-      wbCtx.drawImage(woodCanvas, 0, 0, 512, 512);
-      this.textures.oakBump = new THREE.CanvasTexture(wBumpCanvas);
-      this.textures.oakBump.wrapS = THREE.RepeatWrapping;
-      this.textures.oakBump.wrapT = THREE.RepeatWrapping;
-      this.textures.oakBump.repeat.set(1.5, 2.2);
-
-      // 3. Circular Woven Wool Rug Texture (512x512)
+      // 2. Woven Circular Bouclé Wool Rug (512x512)
       const rugCanvas = document.createElement('canvas');
       rugCanvas.width = 512;
       rugCanvas.height = 512;
       const rCtx = rugCanvas.getContext('2d');
-
-      rCtx.fillStyle = '#B4A797';
+      rCtx.fillStyle = '#EBE3D7';
       rCtx.fillRect(0, 0, 512, 512);
 
-      // Concentric radial woven rings & cross texture
-      for (let r = 8; r < 256; r += 3) {
-        rCtx.strokeStyle = (r % 6 === 0) ? 'rgba(146, 132, 118, 0.35)' : 'rgba(208, 196, 182, 0.28)';
-        rCtx.lineWidth = 1.5;
+      // Concentric braided spiral stitches
+      rCtx.lineWidth = 4;
+      for (let radius = 10; radius < 256; radius += 9) {
+        rCtx.strokeStyle = radius % 18 === 0 ? 'rgba(210, 198, 182, 0.6)' : 'rgba(245, 239, 230, 0.7)';
         rCtx.beginPath();
-        rCtx.arc(256, 256, r, 0, Math.PI * 2);
+        rCtx.arc(256, 256, radius, 0, Math.PI * 2);
         rCtx.stroke();
       }
-      this.textures.rug = new THREE.CanvasTexture(rugCanvas);
-
-      // 4. Cream Bouclé Looped Fabric Texture (512x512)
-      const boucleCanvas = document.createElement('canvas');
-      boucleCanvas.width = 512;
-      boucleCanvas.height = 512;
-      const bCtx = boucleCanvas.getContext('2d');
-
-      bCtx.fillStyle = '#F7F3EB';
-      bCtx.fillRect(0, 0, 512, 512);
-
-      // Nubby looped yarn clusters
-      for (let i = 0; i < 2800; i++) {
-        const bx = Math.random() * 512;
-        const by = Math.random() * 512;
-        const br = Math.random() * 2.8 + 1.2;
-        bCtx.fillStyle = Math.random() > 0.5 ? 'rgba(230, 220, 206, 0.45)' : 'rgba(255, 255, 255, 0.65)';
-        bCtx.beginPath();
-        bCtx.arc(bx, by, br, 0, Math.PI * 2);
-        bCtx.fill();
+      // Wool fiber flecks
+      for (let i = 0; i < 1800; i++) {
+        rCtx.fillStyle = Math.random() > 0.5 ? 'rgba(205, 192, 175, 0.45)' : 'rgba(255, 252, 246, 0.65)';
+        rCtx.fillRect(Math.random() * 512, Math.random() * 512, Math.random() * 2 + 1, Math.random() * 2 + 1);
       }
-      this.textures.boucle = new THREE.CanvasTexture(boucleCanvas);
-      this.textures.boucle.wrapS = THREE.RepeatWrapping;
-      this.textures.boucle.wrapT = THREE.RepeatWrapping;
-      this.textures.boucle.repeat.set(3, 3);
+      this.textures.wovenRug = new THREE.CanvasTexture(rugCanvas);
+
+      // 3. Natural Honey Oak Grain (256x512)
+      const oakCanvas = document.createElement('canvas');
+      oakCanvas.width = 256;
+      oakCanvas.height = 512;
+      const oCtx = oakCanvas.getContext('2d');
+      oCtx.fillStyle = '#C89C6A';
+      oCtx.fillRect(0, 0, 256, 512);
+
+      oCtx.strokeStyle = 'rgba(150, 95, 45, 0.16)';
+      oCtx.lineWidth = 1.8;
+      for (let y = 0; y < 512; y += 4) {
+        oCtx.beginPath();
+        oCtx.moveTo(0, y);
+        oCtx.bezierCurveTo(
+          64, y + Math.sin(y * 0.05) * 8,
+          192, y - Math.sin(y * 0.03) * 6,
+          256, y
+        );
+        oCtx.stroke();
+      }
+      this.textures.oak = new THREE.CanvasTexture(oakCanvas);
+      this.textures.oak.wrapS = THREE.RepeatWrapping;
+      this.textures.oak.wrapT = THREE.RepeatWrapping;
+      this.textures.oak.repeat.set(1.5, 2.0);
+
+      // 4. Calacatta Gold Marble for Vanity Countertop
+      const mCanvas = document.createElement('canvas');
+      mCanvas.width = 512;
+      mCanvas.height = 512;
+      const mCtx = mCanvas.getContext('2d');
+      mCtx.fillStyle = '#FCFAF6';
+      mCtx.fillRect(0, 0, 512, 512);
+      drawVein(mCtx, [{x: 0, y: 90}, {x: 180, y: 170}, {x: 340, y: 150}, {x: 512, y: 340}], 'rgba(215, 185, 140, 0.30)', 18);
+      drawVein(mCtx, [{x: 60, y: 0}, {x: 230, y: 230}, {x: 430, y: 470}, {x: 512, y: 512}], 'rgba(165, 140, 115, 0.24)', 5);
+      this.textures.calacatta = new THREE.CanvasTexture(mCanvas);
+
+      // 5. Ribbed Knit Vertical Texture for Crop Tank
+      const ribCanvas = document.createElement('canvas');
+      ribCanvas.width = 128;
+      ribCanvas.height = 128;
+      const ribCtx = ribCanvas.getContext('2d');
+      ribCtx.fillStyle = '#FAF7F2';
+      ribCtx.fillRect(0, 0, 128, 128);
+      for (let x = 0; x < 128; x += 4) {
+        ribCtx.fillStyle = 'rgba(215, 205, 190, 0.38)';
+        ribCtx.fillRect(x, 0, 2, 128);
+      }
+      this.textures.ribbedKnit = new THREE.CanvasTexture(ribCanvas);
+      this.textures.ribbedKnit.wrapS = THREE.RepeatWrapping;
+      this.textures.ribbedKnit.wrapT = THREE.RepeatWrapping;
+      this.textures.ribbedKnit.repeat.set(8, 8);
+
+      // 6. Sand Linen Weave for Wide-Leg Trousers
+      const linenCanvas = document.createElement('canvas');
+      linenCanvas.width = 128;
+      linenCanvas.height = 128;
+      const lCtx = linenCanvas.getContext('2d');
+      lCtx.fillStyle = '#C8BAA7';
+      lCtx.fillRect(0, 0, 128, 128);
+      lCtx.strokeStyle = 'rgba(175, 158, 138, 0.28)';
+      lCtx.lineWidth = 1;
+      for (let i = 0; i < 128; i += 3) {
+        lCtx.beginPath();
+        lCtx.moveTo(i, 0);
+        lCtx.lineTo(i, 128);
+        lCtx.stroke();
+        lCtx.beginPath();
+        lCtx.moveTo(0, i);
+        lCtx.lineTo(128, i);
+        lCtx.stroke();
+      }
+      this.textures.linenWeave = new THREE.CanvasTexture(linenCanvas);
+      this.textures.linenWeave.wrapS = THREE.RepeatWrapping;
+      this.textures.linenWeave.wrapT = THREE.RepeatWrapping;
+      this.textures.linenWeave.repeat.set(6, 12);
     }
 
     /**
-     * Advanced Photographic Lighting Architecture
-     * Soft warm directional key light, ambient illumination, architectural spots & cove glows
+     * Atmospheric Studio Lighting matching Target Reference:
+     * Warm diagonal morning sunlight through window panes, warm fill,
+     * delicate rim lighting, and soft ground contact shadows
      */
     setupLighting() {
-      // Warm, flattering ambient fill
-      const ambientLight = new THREE.AmbientLight(0xFFF2E4, 0.46);
+      // Delegate to modular 3D Studio Lighting submodule if available
+      if (typeof window !== 'undefined' && window.WoobiLighting && typeof window.WoobiLighting.createStudioLighting === 'function') {
+        this.lightingModel = window.WoobiLighting.createStudioLighting(this.scene, 'luxury-warm', THREE);
+        this.lightingController = new window.WoobiLighting.LightingController(this.lightingModel);
+        return;
+      }
+
+      // Warm, serene ambient illumination
+      const ambientLight = new THREE.AmbientLight(0xFFF6EC, 0.68);
       this.scene.add(ambientLight);
 
-      // Primary Key Sunlight (Diagonal morning sunlight casting crisp soft contact shadows from upper left)
-      const keyLight = new THREE.DirectionalLight(0xFFF8EE, 1.22);
-      keyLight.position.set(-2.8, 4.6, 2.8);
-      keyLight.castShadow = true;
-      keyLight.shadow.mapSize.width = 1024;
-      keyLight.shadow.mapSize.height = 1024;
-      keyLight.shadow.camera.near = 0.5;
-      keyLight.shadow.camera.far = 12;
-      keyLight.shadow.bias = -0.0003;
+      // Primary Key Sunlight (Diagonal morning sunlight streaming from upper right)
+      const keySunlight = new THREE.DirectionalLight(0xFFF7E6, 1.25);
+      keySunlight.position.set(2.8, 4.8, 3.0);
+      keySunlight.castShadow = true;
+      keySunlight.shadow.mapSize.width = 1024;
+      keySunlight.shadow.mapSize.height = 1024;
+      keySunlight.shadow.camera.near = 0.5;
+      keySunlight.shadow.camera.far = 10;
+      keySunlight.shadow.bias = -0.0002;
       const d = 2.4;
-      keyLight.shadow.camera.left = -d;
-      keyLight.shadow.camera.right = d;
-      keyLight.shadow.camera.top = d;
-      keyLight.shadow.camera.bottom = -d;
-      this.scene.add(keyLight);
+      keySunlight.shadow.camera.left = -d;
+      keySunlight.shadow.camera.right = d;
+      keySunlight.shadow.camera.top = d;
+      keySunlight.shadow.camera.bottom = -d;
+      this.scene.add(keySunlight);
 
-      // Warm Gentle Fill Light from right
-      const fillLight = new THREE.DirectionalLight(0xFDF0E0, 0.32);
-      fillLight.position.set(2.6, 3.2, 2.0);
+      // Soft Fill Light from left to soften shadows on wardrobe and body
+      const fillLight = new THREE.DirectionalLight(0xFDF1E2, 0.42);
+      fillLight.position.set(-2.6, 3.2, 1.6);
       this.scene.add(fillLight);
 
-      // Golden Rim Light (Soft silhouette on avatar hair, shoulders & stage edge)
-      const rimLight = new THREE.DirectionalLight(0xFFD89B, 0.85);
+      // Warm Golden Rim Light for hair and shoulder separation from background
+      const rimLight = new THREE.DirectionalLight(0xFFE5BE, 0.85);
       rimLight.position.set(0, 3.8, -2.4);
       this.scene.add(rimLight);
 
-      // Architectural Ceiling Spotlights (Warm downlights with subtle downward cones)
-      // 1. Wardrobe Downlight
-      const wardrobeSpot = new THREE.SpotLight(0xFFE8C6, 0.75, 5.5, Math.PI / 4, 0.45, 1.2);
-      wardrobeSpot.position.set(-1.0, 3.6, 0.3);
-      wardrobeSpot.target.position.set(-0.95, 1.2, -0.15);
+      // Soft Warm Interior Fill for Wardrobe (Toned down so oak wood does not blow out)
+      const wardrobeSpot = new THREE.SpotLight(0xFFE5BF, 0.50, 4.8, Math.PI / 4, 0.45, 1.2);
+      wardrobeSpot.position.set(-0.96, 3.2, 0.8);
+      wardrobeSpot.target.position.set(-0.96, 1.22, -0.32);
       this.scene.add(wardrobeSpot);
       this.scene.add(wardrobeSpot.target);
 
-      // 2. Center Stage Downlight
-      const stageSpot = new THREE.SpotLight(0xFFF2DC, 0.65, 6.0, Math.PI / 4.2, 0.45, 1.1);
-      stageSpot.position.set(0, 3.8, 0.4);
-      stageSpot.target.position.set(0, 0.6, 0);
-      this.scene.add(stageSpot);
-      this.scene.add(stageSpot.target);
-
-      // 3. Vanity Downlight
-      const vanitySpot = new THREE.SpotLight(0xFFE8C6, 0.70, 5.5, Math.PI / 4, 0.45, 1.2);
-      vanitySpot.position.set(1.0, 3.6, 0.3);
-      vanitySpot.target.position.set(0.95, 1.2, -0.15);
+      const vanitySpot = new THREE.SpotLight(0xFFE5BF, 0.80, 4.8, Math.PI / 4, 0.45, 1.2);
+      vanitySpot.position.set(0.95, 3.4, 0.4);
+      vanitySpot.target.position.set(0.90, 1.2, -0.10);
       this.scene.add(vanitySpot);
       this.scene.add(vanitySpot.target);
     }
 
     /**
-     * Architecture: Polished Calacatta Gold Marble Floor, Layered Ceiling Soffits & Architectural Walls
+     * Architecture: Warm Cream Walls, Cream Polished Marble Floor,
+     * Overhead Studio Softbox, Window Mullion Shadows, and Foreground Framing Foliage
      */
     buildRoomArchitecture() {
-      // 1. Polished Italian Calacatta Gold Marble Flooring
+      // Delegate to modular 3D Studio Theme & Environment submodule if available
+      if (typeof window !== 'undefined' && window.WoobiTheme && typeof window.WoobiTheme.createStudioTheme === 'function') {
+        this.themeModel = window.WoobiTheme.createStudioTheme(this.scene, this.textures, 'luxury-cream', THREE);
+        return;
+      }
+
+      // 1. Polished Cream Marble Tile Flooring
       const floorGeo = new THREE.PlaneGeometry(16, 16);
       const floorMat = new THREE.MeshStandardMaterial({
-        map: this.textures.marble,
-        roughnessMap: this.textures.marbleRoughness,
-        roughness: 0.14, // High-gloss polished stone
+        map: this.textures.creamMarble,
+        roughness: 0.28,
         metalness: 0.04,
         color: 0xFFFFFF
       });
@@ -450,9 +501,9 @@
       floor.receiveShadow = true;
       this.scene.add(floor);
 
-      // 2. Smooth Architectural Cream Plaster Back Wall
+      // 2. Smooth Warm Cream Architectural Wall
       const wallMat = new THREE.MeshStandardMaterial({
-        color: 0xF2ECE2, // Warm cream architectural plaster
+        color: 0xF7F2EA, // Serene cream plaster
         roughness: 0.88,
         metalness: 0.01,
         side: THREE.BackSide
@@ -463,513 +514,478 @@
       backWall.receiveShadow = true;
       this.scene.add(backWall);
 
-      // 3. Architectural Center Wall Return / Soft Alcove
-      const alcoveWidth = 2.4;
-      const alcoveHeight = 3.8;
-      const alcoveDepth = 0.28;
-      const alcoveMat = new THREE.MeshStandardMaterial({
-        color: 0xEEE7DC,
-        roughness: 0.85
+      // 3. Diagonal Window Mullion Sunlight Shadow Projected on Wall/Floor
+      const windowShadowGroup = new THREE.Group();
+      windowShadowGroup.position.set(0.8, 1.8, -1.2);
+      windowShadowGroup.rotation.set(-0.25, 0.45, -0.2);
+
+      const shadowBarMat = new THREE.MeshBasicMaterial({
+        color: 0x4A3A2A,
+        transparent: true,
+        opacity: 0.075
       });
-      const alcoveBody = new THREE.Mesh(
-        new THREE.BoxGeometry(alcoveWidth, alcoveHeight, alcoveDepth),
-        alcoveMat
+      // Window frame panes
+      for (let w = 0; w < 4; w++) {
+        const pane = new THREE.Mesh(new THREE.PlaneGeometry(0.38, 0.58), shadowBarMat);
+        pane.position.set((w % 2 === 0 ? -0.22 : 0.22), (w < 2 ? 0.32 : -0.32), 0);
+        windowShadowGroup.add(pane);
+      }
+      this.scene.add(windowShadowGroup);
+
+      // 4. Overhead Studio Softbox Light Fixture on Arm (Top Left matching reference)
+      const studioLightGroup = new THREE.Group();
+      studioLightGroup.position.set(-1.12, 2.65, 0.88);
+      studioLightGroup.rotation.set(0.38, 0.46, -0.24);
+
+      const softboxHousing = new THREE.Mesh(
+        new THREE.BoxGeometry(0.34, 0.48, 0.22),
+        new THREE.MeshStandardMaterial({ color: 0x1A1816, roughness: 0.55 })
       );
-      alcoveBody.position.set(0, alcoveHeight / 2, -1.35);
-      alcoveBody.receiveShadow = true;
-      this.scene.add(alcoveBody);
+      studioLightGroup.add(softboxHousing);
 
-      // 4. Architectural Ceiling & Layered Soffits
-      const ceilingGroup = new THREE.Group();
-      ceilingGroup.position.set(0, 3.65, 0);
+      const diffuser = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.31, 0.45),
+        new THREE.MeshBasicMaterial({ color: 0xFFFDF8 })
+      );
+      diffuser.position.set(0, 0, 0.112);
+      studioLightGroup.add(diffuser);
 
-      // Main ceiling plane
-      const ceilingGeo = new THREE.PlaneGeometry(16, 16);
-      const ceilingMat = new THREE.MeshStandardMaterial({
-        color: 0xF5F0E8,
-        roughness: 0.92
-      });
-      const ceilingPlane = new THREE.Mesh(ceilingGeo, ceilingMat);
-      ceilingPlane.rotation.x = Math.PI / 2;
-      ceilingGroup.add(ceilingPlane);
+      const softboxGlow = new THREE.PointLight(0xFFF9EE, 0.90, 3.8);
+      softboxGlow.position.set(0, 0, 0.36);
+      studioLightGroup.add(softboxGlow);
 
-      // Recessed cove ceiling soffit
-      const soffitMat = new THREE.MeshStandardMaterial({ color: 0xEFEAE0, roughness: 0.88 });
-      const soffit = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.16, 3.6), soffitMat);
-      soffit.position.set(0, -0.08, 0.15);
-      ceilingGroup.add(soffit);
+      const arm = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.012, 0.012, 0.38, 12),
+        new THREE.MeshStandardMaterial({ color: 0x2A2724, metalness: 0.6, roughness: 0.4 })
+      );
+      arm.rotation.x = Math.PI / 2;
+      arm.position.set(0, 0.12, -0.24);
+      studioLightGroup.add(arm);
 
-      // Recessed Downlight Fixtures with Champagne Brass Bezels & Glowing Lenses
-      const brassMat = new THREE.MeshStandardMaterial({
-        color: 0xD8B478,
-        metalness: 0.88,
-        roughness: 0.22
-      });
-      const lensMat = new THREE.MeshBasicMaterial({ color: 0xFFF2D8 });
+      this.scene.add(studioLightGroup);
 
-      [
-        { x: -0.95, z: 0.35 },
-        { x: 0, z: 0.45 },
-        { x: 0.95, z: 0.35 }
-      ].forEach((spot) => {
-        const fixture = new THREE.Group();
-        fixture.position.set(spot.x, -0.165, spot.z);
+      // 5. Cinematic Foreground Framing Foliage (Bottom Left Camera View)
+      // Creates the photographic depth-of-field effect seen in the reference image
+      const fgFoliageGroup = new THREE.Group();
+      fgFoliageGroup.position.set(-0.95, 0.15, 1.85);
 
-        const bezel = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.062, 0.015, 24), brassMat);
-        fixture.add(bezel);
-
-        const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.046, 0.018, 24), lensMat);
-        fixture.add(lens);
-
-        ceilingGroup.add(fixture);
-      });
-
-      // Recessed vertical cove light strip in corner
-      const coveLightGeo = new THREE.BoxGeometry(0.03, 3.4, 0.03);
-      const coveLightMat = new THREE.MeshBasicMaterial({ color: 0xFFE5B2 });
-      const coveLight = new THREE.Mesh(coveLightGeo, coveLightMat);
-      coveLight.position.set(-0.48, 1.8, -1.20);
-      this.scene.add(coveLight);
-
-      this.scene.add(ceilingGroup);
-
-      // Sérén Studio Cursive Wall Lettering Tag ("Style a kinder you ♡")
-      this.buildWallTag();
-    }
-
-    /**
-     * Builds dynamic 3D canvas texture for cursive wall lettering
-     */
-    buildWallTag() {
-      const tagCanvas = document.createElement('canvas');
-      tagCanvas.width = 512;
-      tagCanvas.height = 128;
-      const ctx = tagCanvas.getContext('2d');
-      ctx.clearRect(0, 0, 512, 128);
-
-      ctx.font = 'italic 34px "Playfair Display", Georgia, serif';
-      ctx.fillStyle = 'rgba(132, 114, 95, 0.72)';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('Style a kinder you', 256, 48);
-
-      ctx.font = '22px sans-serif';
-      ctx.fillStyle = 'rgba(152, 130, 110, 0.60)';
-      ctx.fillText('♡', 256, 90);
-
-      const texture = new THREE.CanvasTexture(tagCanvas);
-      texture.minFilter = THREE.LinearFilter;
-      const tagMat = new THREE.MeshBasicMaterial({
-        map: texture,
-        transparent: true,
-        opacity: 0.92
-      });
-      const tagMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), tagMat);
-      tagMesh.position.set(0.65, 2.65, -1.20);
-      this.scene.add(tagMesh);
-    }
-
-    /**
-     * Luxury Two-Tier Stage Podium on Woven Wool Area Rug
-     * With Radiant Warm 360° Illuminated LED Halo Perimeter Ring
-     */
-    buildStagePodium() {
-      const stageGroup = new THREE.Group();
-
-      // 1. Circular Woven Wool Area Rug under podium
-      const rugGeo = new THREE.CircleGeometry(1.22, 64);
-      const rugMat = new THREE.MeshStandardMaterial({
-        map: this.textures.rug,
-        roughness: 0.88,
-        metalness: 0.02
-      });
-      const rugMesh = new THREE.Mesh(rugGeo, rugMat);
-      rugMesh.rotation.x = -Math.PI / 2;
-      rugMesh.position.y = 0.006;
-      rugMesh.receiveShadow = true;
-      stageGroup.add(rugMesh);
-
-      // Soft Dark Contact Shadow under rug edge
-      const shadowDiscGeo = new THREE.CircleGeometry(1.25, 64);
-      const shadowDiscMat = new THREE.MeshBasicMaterial({
-        color: 0x362A1E,
-        transparent: true,
-        opacity: 0.28
-      });
-      const shadowDisc = new THREE.Mesh(shadowDiscGeo, shadowDiscMat);
-      shadowDisc.rotation.x = -Math.PI / 2;
-      shadowDisc.position.y = 0.002;
-      stageGroup.add(shadowDisc);
-
-      // 2. Lower Tier: Circular Stone Base with Radiant LED Halo Perimeter
-      const lowerBaseRadius = 0.94;
-      const lowerBaseHeight = 0.045;
-      const lowerBaseGeo = new THREE.CylinderGeometry(lowerBaseRadius, lowerBaseRadius, lowerBaseHeight, 64);
-      const lowerBaseMat = new THREE.MeshStandardMaterial({
-        color: 0xE8DFC9,
-        roughness: 0.45,
+      const fgLeafMat = new THREE.MeshStandardMaterial({
+        color: 0x2A4526,
+        roughness: 0.48,
         metalness: 0.05
       });
-      const lowerBase = new THREE.Mesh(lowerBaseGeo, lowerBaseMat);
-      lowerBase.position.y = lowerBaseHeight / 2;
-      lowerBase.receiveShadow = true;
-      stageGroup.add(lowerBase);
+      for (let l = 0; l < 4; l++) {
+        const fgLeaf = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), fgLeafMat);
+        fgLeaf.scale.set(1.6, 0.18, 0.85);
+        fgLeaf.rotation.set(-0.3 + l * 0.2, 0.5 + l * 0.3, -0.4);
+        fgLeaf.position.set(l * 0.08, l * 0.12, -l * 0.06);
+        fgFoliageGroup.add(fgLeaf);
+      }
+      this.scene.add(fgFoliageGroup);
+    }
 
-      // Radiant Warm 360° Illuminated LED Halo Ring (Golden Amber Glow)
-      const ledHaloGeo = new THREE.TorusGeometry(lowerBaseRadius + 0.012, 0.016, 16, 64);
-      const ledHaloMat = new THREE.MeshBasicMaterial({
-        color: 0xFFE29E
+    /**
+     * Circular Woven Bouclé Wool Rug directly beneath Avatar
+     * Powered by extracted Stage module: modules/3d-studio/stage/StageModel.js
+     */
+    buildWovenRug() {
+      if (typeof window !== 'undefined' && window.WoobiStage && typeof window.WoobiStage.createStage === 'function') {
+        this.stageModel = window.WoobiStage.createStage(this.scene, this.textures, THREE);
+        this.stageGroup = this.stageModel.group;
+        return;
+      }
+
+      // Procedural fallback if module has not loaded
+      const rugGroup = new THREE.Group();
+      rugGroup.position.set(0, 0, 0);
+
+      const shadowGeo = new THREE.CircleGeometry(1.18, 64);
+      const shadowMat = new THREE.MeshBasicMaterial({ color: 0x22180F, transparent: true, opacity: 0.30 });
+      const shadowDisc = new THREE.Mesh(shadowGeo, shadowMat);
+      shadowDisc.rotation.x = -Math.PI / 2;
+      shadowDisc.position.y = 0.002;
+      rugGroup.add(shadowDisc);
+
+      const rugRadius = 0.95;
+      const rugThickness = 0.080;
+      const rugGeo = new THREE.CylinderGeometry(rugRadius, rugRadius + 0.012, rugThickness, 64);
+      const rugMat = new THREE.MeshStandardMaterial({
+        map: this.textures.wovenRug,
+        roughness: 0.82,
+        metalness: 0.01,
+        color: 0xF2ECE2
       });
-      const ledHalo = new THREE.Mesh(ledHaloGeo, ledHaloMat);
-      ledHalo.rotation.x = Math.PI / 2;
-      ledHalo.position.y = 0.038;
-      stageGroup.add(ledHalo);
+      const rug = new THREE.Mesh(rugGeo, rugMat);
+      rug.position.y = rugThickness / 2;
+      rug.receiveShadow = true;
+      rug.castShadow = true;
+      rugGroup.add(rug);
 
-      // Downward halo perimeter light illuminating the woven rug
-      const haloLight = new THREE.PointLight(0xFFD694, 1.2, 2.5);
-      haloLight.position.set(0, 0.06, 0);
-      stageGroup.add(haloLight);
+      const trimGeo = new THREE.TorusGeometry(rugRadius + 0.004, 0.012, 16, 64);
+      const trimMat = new THREE.MeshStandardMaterial({ color: 0xDFD6C8, roughness: 0.85 });
+      const rimTrim = new THREE.Mesh(trimGeo, trimMat);
+      rimTrim.rotation.x = Math.PI / 2;
+      rimTrim.position.y = rugThickness;
+      rugGroup.add(rimTrim);
 
-      // 3. Upper Tier: Refined Polished White Honed Stone Disc
-      const upperRadius = 0.88;
-      const upperHeight = 0.075;
-      const upperStageGeo = new THREE.CylinderGeometry(upperRadius, upperRadius + 0.015, upperHeight, 64);
-      const upperStageMat = new THREE.MeshStandardMaterial({
-        color: 0xFAF7F2, // Clean warm honed white stone
-        roughness: 0.32,
-        metalness: 0.03
-      });
-      const upperStage = new THREE.Mesh(upperStageGeo, upperStageMat);
-      upperStage.position.y = lowerBaseHeight + upperHeight / 2;
-      upperStage.receiveShadow = true;
-      stageGroup.add(upperStage);
-
-      // Chamfered brass accent ring between upper and lower tiers
-      const brassBevelGeo = new THREE.TorusGeometry(upperRadius + 0.008, 0.006, 12, 64);
-      const brassBevelMat = new THREE.MeshStandardMaterial({
-        color: 0xD8B478,
-        metalness: 0.88,
-        roughness: 0.22
-      });
-      const brassBevel = new THREE.Mesh(brassBevelGeo, brassBevelMat);
-      brassBevel.rotation.x = Math.PI / 2;
-      brassBevel.position.y = lowerBaseHeight;
-      stageGroup.add(brassBevel);
-
-      this.scene.add(stageGroup);
+      this.scene.add(rugGroup);
+      this.stageGroup = rugGroup;
     }
 
     /**
      * LEFT-SIDE LUXURY BUILT-IN NATURAL OAK WARDROBE
-     * Floor-to-ceiling cabinetry, trailing ivy plant, luxury boxes, hanging trench/blazers,
-     * middle accessory shelf with designer handbags, and lower shoe shelf with designer pumps
+     * Powered by extracted Wardrobe module: modules/3d-studio/wardrobe/WardrobeModel.js
      */
     buildWardrobeFurniture() {
+      if (typeof window !== 'undefined' && window.WoobiWardrobe && typeof window.WoobiWardrobe.createWardrobe === 'function') {
+        this.wardrobeModel = window.WoobiWardrobe.createWardrobe(this.scene, this.textures, THREE);
+        this.wardrobeGroup = this.wardrobeModel.group;
+        if (Array.isArray(this.wardrobeModel.interactiveObjects)) {
+          this.wardrobeModel.interactiveObjects.forEach(obj => this.interactiveObjects.push(obj));
+        }
+        return;
+      }
+
       const wardrobeGroup = new THREE.Group();
-      wardrobeGroup.position.set(-0.88, 0, -0.06);
-      wardrobeGroup.rotation.y = 0.38; // Angled gracefully towards stage
+      // Position naturally on left wall with angled perspective matching Reference D
+      wardrobeGroup.position.set(-0.96, 0, -0.32);
+      wardrobeGroup.rotation.y = 0.30;
+
+      const scale = 2.40 / 3.00;
+      const width = 2.20 * scale;
+      const height = 3.00 * scale;
+      const depth = 0.65 * scale;
+
+      if (typeof THREE.GLTFLoader !== 'undefined') {
+        const gltfLoader = new THREE.GLTFLoader();
+        const astraPath = '3D- Wardrobe by Astra/wardrobe.glb';
+        const fallbackPath = 'wardrobe.glb';
+
+        const onWardrobeLoad = (gltf) => {
+          const model = gltf.scene;
+          model.scale.set(scale, scale, scale);
+          model.position.set(0, 0, 0);
+          model.rotation.y = Math.PI;
+
+          // Apply authentic 100% matched Astra materials & internal shelf lights pipeline
+          if (typeof AstraWardrobeStyling !== 'undefined') {
+            AstraWardrobeStyling.applyMaterials(model);
+          } else if (typeof window !== 'undefined' && window.AstraWardrobeStyling) {
+            window.AstraWardrobeStyling.applyMaterials(model);
+          }
+
+          wardrobeGroup.add(model);
+        };
+
+        gltfLoader.load(
+          astraPath,
+          onWardrobeLoad,
+          undefined,
+          () => gltfLoader.load(fallbackPath, onWardrobeLoad)
+        );
+
+        // Raycastable Bounding Box for Touch / Click
+        const hitBox = new THREE.Mesh(
+          new THREE.BoxGeometry(width + 0.2, height, depth + 0.3),
+          new THREE.MeshBasicMaterial({ visible: false })
+        );
+        hitBox.position.set(0, height / 2, 0);
+        hitBox.userData = { interactiveType: 'wardrobe', name: 'Built-in Oak Wardrobe' };
+        wardrobeGroup.add(hitBox);
+        this.interactiveObjects.push(hitBox);
+
+        this.scene.add(wardrobeGroup);
+        return;
+      }
 
       const oakMat = new THREE.MeshStandardMaterial({
         map: this.textures.oak,
-        bumpMap: this.textures.oakBump,
-        bumpScale: 0.016,
-        color: 0xBD8E5D, // Warm caramelized natural honey oak
+        color: 0xC89C6A, // Honey oak
         roughness: 0.42,
         metalness: 0.02
       });
       const brassMat = new THREE.MeshStandardMaterial({
-        color: 0xD8B478,
+        color: COLOR_PALETTE.warmBrass,
         metalness: 0.88,
-        roughness: 0.22
+        roughness: 0.24
       });
-      const ledGlowMat = new THREE.MeshBasicMaterial({ color: 0xFFF2D0 });
+      const ledMat = new THREE.MeshBasicMaterial({ color: 0xFFF2D0 });
 
-      const width = 1.04;
-      const height = 2.65; // Floor-to-ceiling architectural cabinetry
-      const depth = 0.52;
-
-      // 1. Cabinetry Frame: Top Header, Vertical Uprights & Base Plinth
-      const topCap = new THREE.Mesh(new THREE.BoxGeometry(width, 0.038, depth), oakMat);
-      topCap.position.set(0, height - 0.019, 0);
+      // Outer Frame: Uprights, Top & Bottom Plinth
+      const topCap = new THREE.Mesh(new THREE.BoxGeometry(width, 0.040, depth), oakMat);
+      topCap.position.set(0, height - 0.020, 0);
       topCap.castShadow = true;
       wardrobeGroup.add(topCap);
 
-      const sideGeo = new THREE.BoxGeometry(0.038, height, depth);
+      const sideGeo = new THREE.BoxGeometry(0.040, height, depth);
       const leftSide = new THREE.Mesh(sideGeo, oakMat);
-      leftSide.position.set(-width / 2 + 0.019, height / 2, 0);
+      leftSide.position.set(-width / 2 + 0.020, height / 2, 0);
       leftSide.castShadow = true;
       wardrobeGroup.add(leftSide);
 
       const rightSide = new THREE.Mesh(sideGeo, oakMat);
-      rightSide.position.set(width / 2 - 0.019, height / 2, 0);
+      rightSide.position.set(width / 2 - 0.020, height / 2, 0);
       rightSide.castShadow = true;
       wardrobeGroup.add(rightSide);
 
-      // Back Wall Panel
-      const backBoard = new THREE.Mesh(
-        new THREE.BoxGeometry(width - 0.076, height - 0.038, 0.02),
-        oakMat
-      );
+      const backBoard = new THREE.Mesh(new THREE.BoxGeometry(width - 0.08, height - 0.04, 0.02), oakMat);
       backBoard.position.set(0, height / 2, -depth / 2 + 0.01);
       backBoard.receiveShadow = true;
       wardrobeGroup.add(backBoard);
 
-      // Base Plinth with Kick-Toe Recessed Glow
-      const plinth = new THREE.Mesh(new THREE.BoxGeometry(width, 0.14, depth - 0.04), oakMat);
-      plinth.position.set(0, 0.07, 0.02);
-      plinth.castShadow = true;
+      const plinth = new THREE.Mesh(new THREE.BoxGeometry(width, 0.12, depth - 0.04), oakMat);
+      plinth.position.set(0, 0.06, 0.02);
       wardrobeGroup.add(plinth);
 
-      // 2. Horizontal Shelf Tiers with Recessed Warm LED Light Strips
-      const shelfPositions = [0.14, 0.62, 1.15, 2.18];
-      const shelfGeo = new THREE.BoxGeometry(width - 0.076, 0.030, depth - 0.02);
+      // Shelves with Integrated Warm LED Lighting Strips along top edge
+      const shelfYPositions = [0.12, 0.52, 0.94, 1.34, 2.22];
+      const shelfGeo = new THREE.BoxGeometry(width - 0.08, 0.030, depth - 0.02);
 
-      shelfPositions.forEach((shY) => {
+      shelfYPositions.forEach((shY) => {
         const shelf = new THREE.Mesh(shelfGeo, oakMat);
         shelf.position.set(0, shY, 0);
-        shelf.castShadow = true;
         shelf.receiveShadow = true;
+        shelf.castShadow = true;
         wardrobeGroup.add(shelf);
 
-        // Under-shelf warm recessed LED light strip
-        if (shY > 0.14) {
-          const ledStrip = new THREE.Mesh(
-            new THREE.BoxGeometry(width - 0.09, 0.012, 0.035),
-            ledGlowMat
-          );
+        // Integrated warm recessed LED glow strip
+        if (shY > 0.12) {
+          const ledStrip = new THREE.Mesh(new THREE.BoxGeometry(width - 0.09, 0.010, 0.032), ledMat);
           ledStrip.position.set(0, shY - 0.020, 0.08);
           wardrobeGroup.add(ledStrip);
         }
       });
 
-      // Internal warm ambient shelf lighting
-      const shelfLight1 = new THREE.PointLight(0xFFA834, 1.1, 2.6);
-      shelfLight1.position.set(0, 2.10, 0.14);
+      // Internal warm ambient shelf lights
+      const shelfLight1 = new THREE.PointLight(0xFFA834, 1.15, 2.8);
+      shelfLight1.position.set(0, 2.15, 0.14);
       wardrobeGroup.add(shelfLight1);
 
-      const shelfLight2 = new THREE.PointLight(0xFFA834, 0.85, 2.0);
-      shelfLight2.position.set(0, 1.08, 0.14);
+      const shelfLight2 = new THREE.PointLight(0xFFA834, 0.90, 2.2);
+      shelfLight2.position.set(0, 1.25, 0.14);
       wardrobeGroup.add(shelfLight2);
 
-      const shelfLight3 = new THREE.PointLight(0xFFA834, 0.80, 1.8);
-      shelfLight3.position.set(0, 0.55, 0.14);
-      wardrobeGroup.add(shelfLight3);
+      // 1. TOP SHELF: Luxury White Box with Gold Pull + Trailing Potted Ivy
+      const boxMat = new THREE.MeshStandardMaterial({ color: 0xFAF7F2, roughness: 0.60 });
+      const topBox = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.18, 0.36), boxMat);
+      topBox.position.set(-0.25, 2.33, 0);
+      topBox.castShadow = true;
+      wardrobeGroup.add(topBox);
 
-      // 3. TOP SHELF (y = 2.18): Luxury Organizer Boxes & Trailing Greenery
-      // Luxury Box 1: Cream Linen with tailored lid
-      const boxMatCream = new THREE.MeshStandardMaterial({ color: 0xF4EFE6, roughness: 0.72 });
-      const box1 = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.16, 0.32), boxMatCream);
-      box1.position.set(-0.33, 2.28, -0.02);
-      box1.castShadow = true;
-      wardrobeGroup.add(box1);
+      const boxPull = new THREE.Mesh(new THREE.TorusGeometry(0.018, 0.003, 8, 16), brassMat);
+      boxPull.position.set(-0.25, 2.33, 0.185);
+      wardrobeGroup.add(boxPull);
 
-      // Luxury Box 2: Tall White Hat Box with Brass Pull Ring
-      const hatBoxMat = new THREE.MeshStandardMaterial({ color: 0xFAF7F2, roughness: 0.55 });
-      const box2 = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.19, 32), hatBoxMat);
-      box2.position.set(-0.08, 2.29, -0.02);
-      box2.castShadow = true;
-      wardrobeGroup.add(box2);
-
-      const pullRing = new THREE.Mesh(new THREE.TorusGeometry(0.016, 0.003, 8, 16), brassMat);
-      pullRing.position.set(-0.08, 2.29, 0.105);
-      wardrobeGroup.add(pullRing);
-
-      // Luxury Box 3: Dark Olive / Sage Box
-      const boxMatOlive = new THREE.MeshStandardMaterial({ color: 0x5C6952, roughness: 0.65 });
-      const box3 = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.14, 0.28), boxMatOlive);
-      box3.position.set(0.12, 2.27, -0.02);
-      box3.castShadow = true;
-      wardrobeGroup.add(box3);
-
-      // Trailing Plant in Charcoal Ceramic Planter (Right corner of top shelf)
+      // Cascading Trailing Green Ivy Plant
       const plantGroup = new THREE.Group();
-      plantGroup.position.set(0.35, 2.20, 0.06);
-
-      const potMat = new THREE.MeshStandardMaterial({ color: 0x2A2724, roughness: 0.40 });
-      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.065, 0.15, 24), potMat);
-      pot.position.y = 0.075;
+      plantGroup.position.set(0.34, 2.24, 0.08);
+      const pot = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.06, 0.14, 24),
+        new THREE.MeshStandardMaterial({ color: 0x3A3632, roughness: 0.50 })
+      );
+      pot.position.y = 0.07;
       plantGroup.add(pot);
 
-      // Lush green crown
-      const plantLeafMat = new THREE.MeshStandardMaterial({ color: 0x486640, roughness: 0.60 });
-      for (let p = 0; p < 8; p++) {
-        const topLeaf = new THREE.Mesh(new THREE.SphereGeometry(0.038, 8, 8), plantLeafMat);
-        topLeaf.scale.set(1.4, 0.25, 0.9);
-        topLeaf.position.set(Math.cos(p * 0.8) * 0.07, 0.16 + Math.sin(p * 0.5) * 0.02, Math.sin(p * 0.8) * 0.07);
+      const leafMat = new THREE.MeshStandardMaterial({ color: 0x3E5E36, roughness: 0.55 });
+      for (let p = 0; p < 12; p++) {
+        const topLeaf = new THREE.Mesh(new THREE.SphereGeometry(0.034, 8, 8), leafMat);
+        topLeaf.scale.set(1.4, 0.22, 0.9);
+        topLeaf.position.set(Math.cos(p * 0.6) * 0.07, 0.15 + Math.sin(p * 0.4) * 0.02, Math.sin(p * 0.6) * 0.07);
         plantGroup.add(topLeaf);
       }
-
-      // Cascading ivy vines draping down the right side of the wardrobe
-      const vineMat = new THREE.MeshStandardMaterial({ color: 0x3E5936, roughness: 0.62 });
-      for (let v = 0; v < 4; v++) {
-        const vineLength = 0.45 + v * 0.15;
-        const vineX = 0.06 + Math.sin(v) * 0.04;
+      // Cascading trailing ivy vines
+      for (let v = 0; v < 5; v++) {
+        const vineLen = 0.45 + v * 0.12;
+        const vineX = 0.05 + Math.sin(v) * 0.04;
         const vineZ = 0.04 + Math.cos(v) * 0.04;
-
-        // Tendril stem
-        const vine = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.002, vineLength, 8), vineMat);
-        vine.position.set(vineX, 0.05 - vineLength / 2, vineZ);
+        const vine = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.002, vineLen, 8), leafMat);
+        vine.position.set(vineX, 0.05 - vineLen / 2, vineZ);
         plantGroup.add(vine);
 
-        // Leaves along the vine
-        const numLeaves = 6 + v * 2;
-        for (let l = 0; l < numLeaves; l++) {
-          const lY = 0.05 - (l / numLeaves) * vineLength;
-          const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.024, 6, 6), plantLeafMat);
-          leaf.scale.set(1.4, 0.18, 0.9);
-          leaf.position.set(vineX + (l % 2 === 0 ? 0.025 : -0.025), lY, vineZ + 0.015);
+        for (let l = 0; l < 9; l++) {
+          const lY = 0.05 - (l / 9) * vineLen;
+          const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.020, 6, 6), leafMat);
+          leaf.scale.set(1.3, 0.16, 0.85);
+          leaf.position.set(vineX + (l % 2 === 0 ? 0.024 : -0.024), lY, vineZ + 0.015);
           plantGroup.add(leaf);
         }
       }
       wardrobeGroup.add(plantGroup);
 
-      // 4. HANGING RAIL SECTION (y = 1.45 to 2.15)
-      // Brushed Brass Rail
-      const railGeo = new THREE.CylinderGeometry(0.012, 0.012, width - 0.08, 16);
-      const rail = new THREE.Mesh(railGeo, brassMat);
+      // 2. MAIN CLOTHING RAIL & 3D GARMENTS ON WOODEN HANGERS
+      const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, width - 0.08, 16), brassMat);
       rail.rotation.z = Math.PI / 2;
-      rail.position.set(0, 2.05, 0);
+      rail.position.set(0, 2.12, 0);
       rail.castShadow = true;
       wardrobeGroup.add(rail);
 
-      // 6 Individual Luxury Garments on Curved Brass Hangers
-      const garmentsList = [
-        { x: -0.36, color: 0xECE4D6, len: 0.94, name: 'Cream Wool Trench', lapel: true },
-        { x: -0.22, color: 0xF7F4EC, len: 0.64, name: 'Draped Silk Blouse', lapel: false },
-        { x: -0.07, color: 0x222428, len: 0.76, name: 'Charcoal Tailored Blazer', lapel: true },
-        { x: 0.07, color: 0xB6916B, len: 0.88, name: 'Camel Structured Coat', lapel: true },
-        { x: 0.21, color: 0xFAF7F2, len: 0.68, name: 'Crisp White Oxford', lapel: false },
-        { x: 0.35, color: 0x1A2230, len: 0.72, name: 'Navy Evening Piece', lapel: false }
+      // Distinct 3D sculpted garments matching reference image:
+      // 1. Off-white silk blouse
+      // 2. Charcoal tailored jacket
+      // 3. Crisp white button-down shirt
+      // 4. Grey knit blazer
+      // 5. Dark blazer
+      const hangerGarments = [
+        { x: -0.36, color: 0xF4ECE1, len: 0.68, type: 'shirt' },
+        { x: -0.20, color: 0x33363B, len: 0.74, type: 'blazer' },
+        { x: -0.04, color: 0xFAF8F5, len: 0.66, type: 'shirt' },
+        { x: 0.12, color: 0x585B62, len: 0.72, type: 'blazer' },
+        { x: 0.28, color: 0x1E2024, len: 0.75, type: 'blazer' }
       ];
 
-      garmentsList.forEach((g) => {
-        // Curved brass hanger
-        const hanger = new THREE.Mesh(new THREE.TorusGeometry(0.065, 0.005, 8, 24, Math.PI), brassMat);
-        hanger.position.set(g.x, 2.05, 0);
-        wardrobeGroup.add(hanger);
+      hangerGarments.forEach((g) => {
+        const hangerGroup = new THREE.Group();
+        hangerGroup.position.set(g.x, 2.12, 0);
 
-        const hangerHook = new THREE.Mesh(new THREE.CylinderGeometry(0.0025, 0.0025, 0.04, 8), brassMat);
-        hangerHook.position.set(g.x, 2.07, 0);
-        wardrobeGroup.add(hangerHook);
+        // Wooden Wishbone Hanger
+        const hangerBar = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.007, 0.007, 0.36, 12),
+          oakMat
+        );
+        hangerBar.rotation.z = Math.PI / 2;
+        hangerBar.position.y = -0.04;
+        hangerGroup.add(hangerBar);
 
-        // Garment main body with fabric taper
-        const fabricMat = new THREE.MeshStandardMaterial({
+        const hangerHook = new THREE.Mesh(new THREE.TorusGeometry(0.024, 0.003, 8, 16, Math.PI * 1.3), brassMat);
+        hangerHook.position.set(0, 0.015, 0);
+        hangerGroup.add(hangerHook);
+
+        // Sculpted 3D Garment Mesh with Torso, Shoulders, and Collar
+        const garmentGroup = new THREE.Group();
+        garmentGroup.position.y = -0.05;
+
+        const gMat = new THREE.MeshStandardMaterial({
           color: g.color,
-          roughness: 0.76,
+          roughness: 0.72,
           metalness: 0.02
         });
-        const garment = new THREE.Mesh(new THREE.BoxGeometry(0.088, g.len, 0.26), fabricMat);
-        garment.position.set(g.x, 2.02 - g.len / 2, 0);
-        garment.castShadow = true;
-        wardrobeGroup.add(garment);
 
-        // Peaked tailored lapel folds for structured coats & blazers
-        if (g.lapel) {
-          const lapelMat = new THREE.MeshStandardMaterial({
-            color: g.color,
-            roughness: 0.70
-          });
-          const lapelL = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.26, 0.03), lapelMat);
-          lapelL.position.set(g.x - 0.025, 1.88, 0.135);
-          lapelL.rotation.y = 0.20;
-          wardrobeGroup.add(lapelL);
+        // Contoured Body & Drapery
+        const bodyGeo = new THREE.CylinderGeometry(0.09, 0.14, g.len, 20);
+        bodyGeo.scale(1.2, 1.0, 0.65);
+        const bodyMesh = new THREE.Mesh(bodyGeo, gMat);
+        bodyMesh.position.y = -g.len / 2;
+        bodyMesh.castShadow = true;
+        garmentGroup.add(bodyMesh);
 
-          const lapelR = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.26, 0.03), lapelMat);
-          lapelR.position.set(g.x + 0.025, 1.88, 0.135);
-          lapelR.rotation.y = -0.20;
-          wardrobeGroup.add(lapelR);
-        }
+        // Collar / Lapels
+        const collar = new THREE.Mesh(
+          new THREE.BoxGeometry(0.12, 0.04, 0.10),
+          gMat
+        );
+        collar.position.set(0, -0.02, 0.02);
+        garmentGroup.add(collar);
+
+        hangerGroup.add(garmentGroup);
+        wardrobeGroup.add(hangerGroup);
       });
 
-      // 5. MIDDLE ACCESSORY SHELF (y = 1.15): Designer Handbags & Jewelry Box
-      // Handbag 1 (Left): Structured Cream Handbag with Gold Turn-Lock
-      const bagMatCream = new THREE.MeshStandardMaterial({ color: 0xF3EFE6, roughness: 0.38 });
-      const bag1 = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.15, 0.12), bagMatCream);
-      bag1.position.set(-0.30, 1.25, 0);
-      bag1.castShadow = true;
-      wardrobeGroup.add(bag1);
+      // 3. MIDDLE DISPLAY SHELF: Luxury White Handbag + Books & Accessories
+      const bagMat = new THREE.MeshStandardMaterial({ color: 0xFDFBF7, roughness: 0.40, metalness: 0.02 });
+      const bagGroup = new THREE.Group();
+      bagGroup.position.set(-0.28, 1.37, 0.02);
 
-      const bag1Flap = new THREE.Mesh(new THREE.BoxGeometry(0.205, 0.08, 0.125), bagMatCream);
-      bag1Flap.position.set(-0.30, 1.28, 0.005);
-      wardrobeGroup.add(bag1Flap);
+      // Structured Trapezoid Handbag Body
+      const bagBody = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, 0.10), bagMat);
+      bagBody.position.y = 0.08;
+      bagBody.castShadow = true;
+      bagGroup.add(bagBody);
 
-      const bag1Lock = new THREE.Mesh(new THREE.BoxGeometry(0.028, 0.020, 0.015), brassMat);
-      bag1Lock.position.set(-0.30, 1.24, 0.065);
-      wardrobeGroup.add(bag1Lock);
+      // Gold Clasp & Handle
+      const bagClasp = new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.016, 0.012), brassMat);
+      bagClasp.position.set(0, 0.09, 0.052);
+      bagGroup.add(bagClasp);
 
-      const bag1Handle = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.008, 8, 20, Math.PI), bagMatCream);
-      bag1Handle.position.set(-0.30, 1.34, 0);
-      wardrobeGroup.add(bag1Handle);
+      const bagHandle = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.005, 8, 20, Math.PI), brassMat);
+      bagHandle.position.set(0, 0.16, 0);
+      bagGroup.add(bagHandle);
+      wardrobeGroup.add(bagGroup);
 
-      // Box 2 (Center): White Leather Jewelry Case with Gold Clasp
-      const jewelryBoxMat = new THREE.MeshStandardMaterial({ color: 0xFAF8F5, roughness: 0.42 });
-      const jBox = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.12, 0.20), jewelryBoxMat);
-      jBox.position.set(0, 1.23, 0);
-      jBox.castShadow = true;
-      wardrobeGroup.add(jBox);
+      // Stack of Fashion Books / Magazines & Sunglasses
+      const bookMat1 = new THREE.MeshStandardMaterial({ color: 0x3A342E, roughness: 0.65 });
+      const book1 = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.022, 0.22), bookMat1);
+      book1.position.set(0.18, 1.36, 0.02);
+      wardrobeGroup.add(book1);
 
-      const jLock = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.025, 0.012), brassMat);
-      jLock.position.set(0, 1.23, 0.105);
-      wardrobeGroup.add(jLock);
+      const bookMat2 = new THREE.MeshStandardMaterial({ color: 0xF5F0E6, roughness: 0.60 });
+      const book2 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.020, 0.20), bookMat2);
+      book2.position.set(0.18, 1.38, 0.02);
+      wardrobeGroup.add(book2);
 
-      // Handbag 3 (Right): Designer Black Leather Tote with Gold Hardware
-      const bagMatBlack = new THREE.MeshStandardMaterial({ color: 0x1E1E22, roughness: 0.35 });
-      const bag3 = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.18, 0.13), bagMatBlack);
-      bag3.position.set(0.28, 1.26, 0);
-      bag3.castShadow = true;
-      wardrobeGroup.add(bag3);
+      // 4. LOWER SHELVES: Neatly Folded Knitwear Sweaters & 2 Oak Drawers
+      // Cream & Grey Folded Sweater Stacks
+      const knitCream = new THREE.MeshStandardMaterial({ color: 0xF3EFE6, roughness: 0.85 });
+      const knitGrey = new THREE.MeshStandardMaterial({ color: 0x8C8984, roughness: 0.85 });
 
-      const bag3Handle1 = new THREE.Mesh(new THREE.TorusGeometry(0.060, 0.007, 8, 20, Math.PI), brassMat);
-      bag3Handle1.position.set(0.28, 1.37, 0.04);
-      wardrobeGroup.add(bag3Handle1);
+      for (let s = 0; s < 3; s++) {
+        const sw1 = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.038, 0.28), s % 2 === 0 ? knitCream : knitGrey);
+        sw1.position.set(-0.20, 0.96 + s * 0.038, 0.02);
+        sw1.castShadow = true;
+        wardrobeGroup.add(sw1);
+      }
 
-      const bag3Handle2 = new THREE.Mesh(new THREE.TorusGeometry(0.060, 0.007, 8, 20, Math.PI), brassMat);
-      bag3Handle2.position.set(0.28, 1.37, -0.04);
-      wardrobeGroup.add(bag3Handle2);
+      for (let s = 0; s < 2; s++) {
+        const sw2 = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.042, 0.28), s === 0 ? knitGrey : knitCream);
+        sw2.position.set(0.20, 0.96 + s * 0.042, 0.02);
+        sw2.castShadow = true;
+        wardrobeGroup.add(sw2);
+      }
 
-      // 6. LOWER SHOE SHELF (y = 0.62): 4 Pairs of Designer Women's Shoes
-      const shoePairs = [
-        { x: -0.34, color: 0xFAF7F2, heelColor: 0xD8B478, name: 'White Pointed Pumps' },
-        { x: -0.12, color: 0x18181A, heelColor: 0x18181A, name: 'Black Patent Stilettos' },
-        { x: 0.11, color: 0xD6BFA4, heelColor: 0xD8B478, name: 'Nude Leather Pumps' },
-        { x: 0.33, color: 0x242428, heelColor: 0xD8B478, name: 'Black Evening Pumps' }
+      // Two Oak Drawers with Brass Button Pulls
+      const drawerY = 0.72;
+      const drawerHeight = 0.18;
+      [-0.24, 0.24].forEach((dx) => {
+        const drawerFront = new THREE.Mesh(
+          new THREE.BoxGeometry(width / 2 - 0.06, drawerHeight, 0.02),
+          oakMat
+        );
+        drawerFront.position.set(dx, drawerY, depth / 2 - 0.02);
+        wardrobeGroup.add(drawerFront);
+
+        const drawerPull = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.016, 12), brassMat);
+        drawerPull.rotation.x = Math.PI / 2;
+        drawerPull.position.set(dx, drawerY, depth / 2 - 0.005);
+        wardrobeGroup.add(drawerPull);
+      });
+
+      // 5. BOTTOM SHOE DISPLAY: 4 Distinct Pairs of Footwear
+      const shoeMatWhite = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.40 });
+      const shoeMatBeige = new THREE.MeshStandardMaterial({ color: 0xD8C4B0, roughness: 0.45 });
+      const shoeMatLoafer = new THREE.MeshStandardMaterial({ color: 0xF2ECE2, roughness: 0.38 });
+
+      const shoes = [
+        { x: -0.34, mat: shoeMatWhite, name: 'White Sneakers' },
+        { x: -0.12, mat: shoeMatBeige, name: 'Beige Low Heels' },
+        { x: 0.10, mat: shoeMatLoafer, name: 'Cream Loafers' },
+        { x: 0.32, mat: shoeMatWhite, name: 'Court Trainers' }
       ];
 
-      shoePairs.forEach((sp) => {
-        [-0.042, 0.042].forEach((offset) => {
-          const sGroup = new THREE.Group();
-          sGroup.position.set(sp.x + offset, 0.635, 0.02);
-          sGroup.rotation.y = -0.08;
+      shoes.forEach((sh) => {
+        const shoePair = new THREE.Group();
+        shoePair.position.set(sh.x, 0.14, 0.04);
 
-          const sMat = new THREE.MeshStandardMaterial({ color: sp.color, roughness: 0.38 });
-          const heelMat = new THREE.MeshStandardMaterial({ color: sp.heelColor, metalness: 0.75, roughness: 0.25 });
+        [-0.038, 0.038].forEach((offset) => {
+          const sole = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.020, 0.17), shoeMatWhite);
+          sole.position.set(offset, 0.010, 0);
+          shoePair.add(sole);
 
-          // Pointed sole & upper
-          const sole = new THREE.Mesh(new THREE.BoxGeometry(0.052, 0.022, 0.16), sMat);
-          sole.position.set(0, 0.011, 0);
-          sGroup.add(sole);
-
-          const toe = new THREE.Mesh(new THREE.ConeGeometry(0.028, 0.065, 12), sMat);
-          toe.rotation.x = Math.PI / 2;
-          toe.position.set(0, 0.018, 0.08);
-          sGroup.add(toe);
-
-          // Slender stiletto heel
-          const heel = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.007, 0.065, 8), heelMat);
-          heel.position.set(0, 0.035, -0.06);
-          sGroup.add(heel);
-
-          wardrobeGroup.add(sGroup);
+          const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.032, 0.042, 16), sh.mat);
+          upper.scale.set(1.0, 1.0, 1.8);
+          upper.position.set(offset, 0.035, 0.01);
+          upper.castShadow = true;
+          shoePair.add(upper);
         });
+
+        wardrobeGroup.add(shoePair);
       });
 
-      // Raycastable Bounding Box for Interactive Touch
+      // Raycastable Bounding Box for Touch / Click
       const hitBox = new THREE.Mesh(
-        new THREE.BoxGeometry(width + 0.15, height + 0.1, depth + 0.3),
+        new THREE.BoxGeometry(width + 0.2, height, depth + 0.3),
         new THREE.MeshBasicMaterial({ visible: false })
       );
       hitBox.position.set(0, height / 2, 0);
-      hitBox.userData = { interactiveType: 'wardrobe', name: 'Interactive Modular Wardrobe' };
+      hitBox.userData = { interactiveType: 'wardrobe', name: 'Built-in Oak Wardrobe' };
       wardrobeGroup.add(hitBox);
       this.interactiveObjects.push(hitBox);
 
@@ -977,226 +993,237 @@
     }
 
     /**
-     * RIGHT-SIDE LUXURY VANITY & ARCHED CAPSULE MIRROR
-     * Calacatta marble slab tabletop, fluted champagne-brass legs, arched halo mirror,
-     * fluted glass vase with eucalyptus branches, luxury perfume bottles, art books & bouclé ottoman
+     * RIGHT-SIDE DRESSING VANITY & ARCHED MIRROR
+     * Rebuilt with rich details matching Target Reference:
+     * Large arched mirror with continuous glowing 360° warm LED rim,
+     * white Calacatta marble console with golden brass legs,
+     * glass perfume bottles, makeup brushes, skincare containers,
+     * baby's breath floral arrangement, and round cream bouclé stool with brass rim
+     */
+    /**
+     * DRESSING VANITY & ILLUMINATED GROOMING MIRROR
+     * Powered by extracted Mirror & Vanity module: modules/3d-studio/mirror-vanity/VanityModel.js
      */
     buildDressingVanity() {
+      if (typeof window !== 'undefined' && window.WoobiVanity && typeof window.WoobiVanity.createVanity === 'function') {
+        this.vanityModel = window.WoobiVanity.createVanity(this.scene, this.textures, THREE);
+        this.vanityGroup = this.vanityModel.group;
+        this.mirrorGlassMesh = this.vanityModel.mirrorGlassMesh;
+        if (Array.isArray(this.vanityModel.interactiveObjects)) {
+          this.vanityModel.interactiveObjects.forEach(obj => this.interactiveObjects.push(obj));
+        }
+        return;
+      }
+
       const vanityGroup = new THREE.Group();
-      vanityGroup.position.set(0.88, 0, -0.06);
-      vanityGroup.rotation.y = -0.38; // Angled gracefully towards stage
+      vanityGroup.position.set(0.92, 0, -0.05);
+      vanityGroup.rotation.y = -0.32; // Angled gracefully towards stage
 
       const brassMat = new THREE.MeshStandardMaterial({
-        color: 0xD8B478, // Champagne gold
+        color: COLOR_PALETTE.warmBrass,
         metalness: 0.88,
         roughness: 0.22
       });
 
-      // 1. Vanity Table: Calacatta Gold Marble Slab Top & Architectural Brass Legs
-      const tableWidth = 0.94;
+      // 1. Polished Calacatta Gold Marble Countertop Table
+      const tableHeight = 0.84;
+      const tableWidth = 0.98;
       const tableDepth = 0.46;
-      const tableHeight = 0.78;
 
-      const marbleTableMat = new THREE.MeshStandardMaterial({
-        map: this.textures.marble,
-        roughnessMap: this.textures.marbleRoughness,
-        roughness: 0.14,
-        metalness: 0.04
+      const marbleMat = new THREE.MeshStandardMaterial({
+        map: this.textures.calacatta,
+        roughness: 0.22,
+        metalness: 0.02,
+        color: 0xFCFAF6
       });
-      const tableTop = new THREE.Mesh(
-        new THREE.BoxGeometry(tableWidth, 0.055, tableDepth),
-        marbleTableMat
-      );
-      tableTop.position.set(0, tableHeight, 0);
-      tableTop.castShadow = true;
-      tableTop.receiveShadow = true;
-      vanityGroup.add(tableTop);
+      const topSlab = new THREE.Mesh(new THREE.BoxGeometry(tableWidth, 0.065, tableDepth), marbleMat);
+      topSlab.position.set(0, tableHeight, 0);
+      topSlab.castShadow = true;
+      topSlab.receiveShadow = true;
+      vanityGroup.add(topSlab);
 
-      // Fluted champagne-brass architectural legs (Pillar slab design)
-      const legGeo = new THREE.BoxGeometry(0.045, tableHeight - 0.03, 0.08);
-      [
-        [-tableWidth / 2 + 0.08, 0],
-        [tableWidth / 2 - 0.08, 0]
-      ].forEach(([lx, lz]) => {
+      // Slim Golden Brass Metallic Legs
+      const legGeo = new THREE.BoxGeometry(0.030, tableHeight - 0.03, 0.030);
+      const legPositions = [
+        [-tableWidth / 2 + 0.035, -tableDepth / 2 + 0.035],
+        [tableWidth / 2 - 0.035, -tableDepth / 2 + 0.035],
+        [-tableWidth / 2 + 0.035, tableDepth / 2 - 0.035],
+        [tableWidth / 2 - 0.035, tableDepth / 2 - 0.035]
+      ];
+      legPositions.forEach(([lx, lz]) => {
         const leg = new THREE.Mesh(legGeo, brassMat);
         leg.position.set(lx, (tableHeight - 0.03) / 2, lz);
         leg.castShadow = true;
         vanityGroup.add(leg);
-
-        // Fluted horizontal foot stretcher
-        const foot = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.025, tableDepth - 0.08), brassMat);
-        foot.position.set(lx, 0.015, lz);
-        vanityGroup.add(foot);
       });
 
-      // 2. Large Arched Capsule Mirror with Champagne-Brass Frame & Halo Glow
-      const mirrorWidth = 0.58;
-      const mirrorHeight = 1.15;
+      // 2. LARGE ARCHED / CIRCULAR MIRROR WITH CONTINUOUS WARM LED GLOW RING
+      const mirrorGroup = new THREE.Group();
+      mirrorGroup.position.set(0, tableHeight + 0.62, -tableDepth / 2 + 0.03);
 
-      // Arched top rim
-      const mirrorArch = new THREE.Mesh(
-        new THREE.CylinderGeometry(mirrorWidth / 2, mirrorWidth / 2, 0.032, 32, 1, false, 0, Math.PI),
-        brassMat
-      );
-      mirrorArch.rotation.x = Math.PI / 2;
-      mirrorArch.rotation.z = Math.PI / 2;
-      mirrorArch.position.set(0, tableHeight + mirrorHeight, -tableDepth / 2 + 0.04);
-      vanityGroup.add(mirrorArch);
+      const mirrorRadius = 0.48;
 
-      // Straight lower mirror frame
-      const mirrorBody = new THREE.Mesh(
-        new THREE.BoxGeometry(mirrorWidth, mirrorHeight - mirrorWidth / 2, 0.025),
-        brassMat
-      );
-      mirrorBody.position.set(0, tableHeight + (mirrorHeight - mirrorWidth / 2) / 2 + 0.025, -tableDepth / 2 + 0.04);
-      vanityGroup.add(mirrorBody);
+      // Glowing Neon Ring Halo (Continuous 360° LED Rim Light)
+      const ledGlowGeo = new THREE.TorusGeometry(mirrorRadius + 0.012, 0.014, 16, 64);
+      const ledGlowMat = new THREE.MeshBasicMaterial({ color: 0xFFF2D2 });
+      const glowRing = new THREE.Mesh(ledGlowGeo, ledGlowMat);
+      mirrorGroup.add(glowRing);
 
-      // Glowing Warm LED Halo Rim
-      const haloMat = new THREE.MeshBasicMaterial({ color: 0xFFD89B });
-      const haloRing = new THREE.Mesh(
-        new THREE.TorusGeometry(mirrorWidth / 2 + 0.012, 0.014, 16, 48, Math.PI),
-        haloMat
+      // Brushed Brass Frame Border
+      const frameRing = new THREE.Mesh(new THREE.TorusGeometry(mirrorRadius + 0.025, 0.010, 16, 64), brassMat);
+      mirrorGroup.add(frameRing);
+
+      // Backing Panel
+      const mirrorBack = new THREE.Mesh(
+        new THREE.CircleGeometry(mirrorRadius + 0.01, 64),
+        new THREE.MeshStandardMaterial({ color: 0x2A241E, roughness: 0.6 })
       );
-      haloRing.position.set(0, tableHeight + mirrorHeight, -tableDepth / 2 + 0.045);
-      vanityGroup.add(haloRing);
+      mirrorBack.position.z = -0.015;
+      mirrorGroup.add(mirrorBack);
 
       // Mirror Glass Surface
-      const glassGeo = new THREE.PlaneGeometry(mirrorWidth - 0.03, mirrorHeight - 0.03);
-      const fallbackGlassMat = new THREE.MeshStandardMaterial({
-        color: 0xECE4DA,
-        roughness: 0.08,
+      const mirrorGlassGeo = new THREE.CircleGeometry(mirrorRadius, 64);
+      const mirrorMat = new THREE.MeshStandardMaterial({
+        color: 0xEAE6DE,
+        roughness: 0.04,
         metalness: 0.94
       });
-      this.mirrorGlassMesh = new THREE.Mesh(glassGeo, fallbackGlassMat);
-      this.mirrorGlassMesh.position.set(0, tableHeight + mirrorHeight / 2 + 0.03, -tableDepth / 2 + 0.055);
-      vanityGroup.add(this.mirrorGlassMesh);
+      this.mirrorGlassMesh = new THREE.Mesh(mirrorGlassGeo, mirrorMat);
+      this.mirrorGlassMesh.position.z = 0.002;
+      mirrorGroup.add(this.mirrorGlassMesh);
 
-      // Warm Soft Vanity Ambient Glow
-      const mirrorLight = new THREE.PointLight(0xFFA834, 1.05, 2.8);
-      mirrorLight.position.set(0, tableHeight + mirrorHeight / 2 + 0.15, 0.18);
-      vanityGroup.add(mirrorLight);
+      // Warm continuous radiance light from the mirror ring
+      const mirrorGlowLight = new THREE.PointLight(0xFFE8BE, 1.4, 3.2);
+      mirrorGlowLight.position.set(0, 0, 0.25);
+      mirrorGroup.add(mirrorGlowLight);
 
-      // 3. TABLETOP STYLING: Fluted Glass Vase with Eucalyptus, Perfumes & Art Books
-      // Tall fluted clear glass vase
-      const vaseGlassMat = new THREE.MeshStandardMaterial({
+      vanityGroup.add(mirrorGroup);
+
+      // 3. TABLETOP LUXURY COSMETICS & FLORAL ARRANGEMENT
+      // Clear Glass Perfume Bottles with Gold & Black Atomizers
+      const perfumeGroup = new THREE.Group();
+      perfumeGroup.position.set(0.24, tableHeight + 0.035, 0.05);
+
+      const glassMat = new THREE.MeshStandardMaterial({
         color: 0xFFFFFF,
         roughness: 0.08,
-        metalness: 0.10,
+        metalness: 0.15,
         transparent: true,
-        opacity: 0.65
+        opacity: 0.75
       });
-      const vase = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.058, 0.24, 24), vaseGlassMat);
-      vase.position.set(-0.28, tableHeight + 0.14, -0.04);
-      vase.castShadow = true;
-      vanityGroup.add(vase);
+      const amberGlassMat = new THREE.MeshStandardMaterial({
+        color: 0xC88546,
+        roughness: 0.12,
+        metalness: 0.20,
+        transparent: true,
+        opacity: 0.85
+      });
 
-      // Fresh Green Eucalyptus Branches with rounded coin leaves
-      const eucWoodMat = new THREE.MeshStandardMaterial({ color: 0x544638, roughness: 0.72 });
-      const eucLeafMat = new THREE.MeshStandardMaterial({ color: 0x567052, roughness: 0.60 });
+      // Perfume 1: Tall Faceted Flacon
+      const p1 = new THREE.Mesh(new THREE.BoxGeometry(0.044, 0.080, 0.044), glassMat);
+      p1.position.set(0, 0.040, 0);
+      perfumeGroup.add(p1);
+      const p1Cap = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.024, 16), brassMat);
+      p1Cap.position.set(0, 0.092, 0);
+      perfumeGroup.add(p1Cap);
 
-      for (let b = 0; b < 3; b++) {
-        const branchAngle = (b - 1) * 0.22;
-        const branchLength = 0.42 + b * 0.06;
+      // Perfume 2: Round Amber Bottle
+      const p2 = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.065, 16), amberGlassMat);
+      p2.position.set(0.065, 0.032, 0.02);
+      perfumeGroup.add(p2);
+      const p2Cap = new THREE.Mesh(new THREE.SphereGeometry(0.012, 12, 12), new THREE.MeshStandardMaterial({ color: 0x1A1816 }));
+      p2Cap.position.set(0.065, 0.070, 0.02);
+      perfumeGroup.add(p2Cap);
 
-        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.004, branchLength, 8), eucWoodMat);
-        stem.rotation.z = branchAngle;
-        stem.position.set(-0.28 + branchAngle * 0.12, tableHeight + 0.24 + branchLength / 2, -0.04);
-        vanityGroup.add(stem);
+      vanityGroup.add(perfumeGroup);
 
-        // Circular eucalyptus leaves in opposite pairs
-        for (let l = 0; l < 6; l++) {
-          const lY = tableHeight + 0.26 + (l / 6) * branchLength;
-          [-1, 1].forEach((side) => {
-            const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.026, 8, 8), eucLeafMat);
-            leaf.scale.set(1.2, 0.22, 1.0);
-            leaf.position.set(
-              -0.28 + branchAngle * (lY - tableHeight) + side * 0.028,
-              lY,
-              -0.04 + Math.sin(l + side) * 0.015
-            );
-            vanityGroup.add(leaf);
-          });
-        }
+      // Ceramic Makeup Brush Holder & Brushes
+      const brushHolder = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.028, 0.024, 0.075, 16),
+        new THREE.MeshStandardMaterial({ color: 0x2A2622, roughness: 0.40 })
+      );
+      brushHolder.position.set(0.12, tableHeight + 0.070, 0.08);
+      vanityGroup.add(brushHolder);
+
+      // Makeup brushes
+      for (let b = 0; b < 4; b++) {
+        const brush = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.002, 0.002, 0.11, 8),
+          brassMat
+        );
+        brush.rotation.set(0.12 * Math.sin(b * 1.5), 0, 0.12 * Math.cos(b * 1.5));
+        brush.position.set(0.12 + Math.sin(b) * 0.008, tableHeight + 0.11, 0.08 + Math.cos(b) * 0.008);
+        vanityGroup.add(brush);
       }
 
-      // Stack of 2 Hardcover Fashion Art Books
-      const book1 = new THREE.Mesh(
-        new THREE.BoxGeometry(0.20, 0.028, 0.15),
-        new THREE.MeshStandardMaterial({ color: 0xFAF7F2, roughness: 0.45 })
-      );
-      book1.position.set(0.26, tableHeight + 0.042, 0.04);
-      book1.castShadow = true;
-      vanityGroup.add(book1);
+      // Clear Glass Vase with Delicate White Baby's Breath Flowers
+      const vaseGroup = new THREE.Group();
+      vaseGroup.position.set(-0.28, tableHeight + 0.035, 0.04);
 
-      const book2 = new THREE.Mesh(
-        new THREE.BoxGeometry(0.18, 0.024, 0.14),
-        new THREE.MeshStandardMaterial({ color: 0xE8DFD2, roughness: 0.50 })
-      );
-      book2.position.set(0.26, tableHeight + 0.068, 0.04);
-      book2.rotation.y = 0.08;
-      book2.castShadow = true;
-      vanityGroup.add(book2);
+      const vase = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.028, 0.15, 20), glassMat);
+      vase.position.y = 0.075;
+      vaseGroup.add(vase);
 
-      // Luxury Glass Perfume Bottles with Polished Gold Caps
-      // Perfume 1: Warm Amber Rectangular Bottle
-      const p1Mat = new THREE.MeshStandardMaterial({ color: 0xDDA550, roughness: 0.12, transparent: true, opacity: 0.85 });
-      const p1 = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.075, 0.028), p1Mat);
-      p1.position.set(0.06, tableHeight + 0.065, 0.04);
-      vanityGroup.add(p1);
+      // Delicate botanical stems and white blossom clusters
+      const stemMat = new THREE.MeshStandardMaterial({ color: 0x485840, roughness: 0.65 });
+      const bloomMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.85 });
 
-      const p1Cap = new THREE.Mesh(new THREE.BoxGeometry(0.020, 0.020, 0.020), brassMat);
-      p1Cap.position.set(0.06, tableHeight + 0.112, 0.04);
-      vanityGroup.add(p1Cap);
+      for (let s = 0; s < 6; s++) {
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.002, 0.002, 0.24, 8), stemMat);
+        const ang = s * 1.05;
+        stem.rotation.set(0.18 * Math.cos(ang), 0, 0.18 * Math.sin(ang));
+        stem.position.set(Math.cos(ang) * 0.015, 0.16, Math.sin(ang) * 0.015);
+        vaseGroup.add(stem);
 
-      // Perfume 2: Rose Translucent Flacon
-      const p2Mat = new THREE.MeshStandardMaterial({ color: 0xEAA29B, roughness: 0.15, transparent: true, opacity: 0.82 });
-      const p2 = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.082, 16), p2Mat);
-      p2.position.set(0.12, tableHeight + 0.068, 0.04);
-      vanityGroup.add(p2);
+        // White flower blossoms
+        for (let fl = 0; fl < 4; fl++) {
+          const blossom = new THREE.Mesh(new THREE.SphereGeometry(0.008, 6, 6), bloomMat);
+          blossom.position.set(
+            Math.cos(ang) * 0.04 + (fl - 2) * 0.015,
+            0.26 + fl * 0.018,
+            Math.sin(ang) * 0.04 + (fl % 2 === 0 ? 0.01 : -0.01)
+          );
+          vaseGroup.add(blossom);
+        }
+      }
+      vanityGroup.add(vaseGroup);
 
-      const p2Cap = new THREE.Mesh(new THREE.SphereGeometry(0.012, 12, 12), brassMat);
-      p2Cap.position.set(0.12, tableHeight + 0.116, 0.04);
-      vanityGroup.add(p2Cap);
-
-      // Perfume 3: Clear Faceted Bottle
-      const p3Mat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.08, transparent: true, opacity: 0.78 });
-      const p3 = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.065, 8), p3Mat);
-      p3.position.set(0.18, tableHeight + 0.060, 0.04);
-      vanityGroup.add(p3);
-
-      const p3Cap = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.022, 12), brassMat);
-      p3Cap.position.set(0.18, tableHeight + 0.103, 0.04);
-      vanityGroup.add(p3Cap);
-
-      // 4. Round Cream Bouclé Upholstered Ottoman Stool
+      // 4. ROUND CREAM BOUCLÉ UPHOLSTERED OTTOMAN STOOL WITH BRASS BASE
       const stoolGroup = new THREE.Group();
-      stoolGroup.position.set(0.05, 0, 0.28);
+      stoolGroup.position.set(0.12, 0, 0.42);
 
-      const boucleMat = new THREE.MeshStandardMaterial({
-        map: this.textures.boucle,
-        color: 0xF7F3EA,
-        roughness: 0.88,
-        metalness: 0.01
-      });
-      const cushion = new THREE.Mesh(new THREE.CylinderGeometry(0.20, 0.20, 0.36, 32), boucleMat);
-      cushion.position.y = 0.22;
-      cushion.castShadow = true;
-      stoolGroup.add(cushion);
+      // Brushed Brass Circular Plinth Base
+      const stoolPlinth = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.24, 0.24, 0.05, 36),
+        brassMat
+      );
+      stoolPlinth.position.y = 0.025;
+      stoolPlinth.castShadow = true;
+      stoolGroup.add(stoolPlinth);
 
-      // Brushed champagne-brass metallic base plinth ring
-      const brassBaseRing = new THREE.Mesh(new THREE.CylinderGeometry(0.205, 0.205, 0.045, 32), brassMat);
-      brassBaseRing.position.y = 0.025;
-      stoolGroup.add(brassBaseRing);
+      // Round Cream Bouclé Seat Cushion
+      const stoolCushion = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.25, 0.24, 0.40, 36),
+        new THREE.MeshStandardMaterial({
+          map: this.textures.wovenRug,
+          color: 0xF5F0E6,
+          roughness: 0.84,
+          metalness: 0.02
+        })
+      );
+      stoolCushion.position.y = 0.25;
+      stoolCushion.castShadow = true;
+      stoolGroup.add(stoolCushion);
 
       vanityGroup.add(stoolGroup);
 
-      // Raycastable Bounding Box for Interactive Touch
+      // Raycastable Bounding Box
       const hitBox = new THREE.Mesh(
-        new THREE.BoxGeometry(tableWidth + 0.15, 2.0, tableDepth + 0.4),
+        new THREE.BoxGeometry(tableWidth + 0.2, 1.8, tableDepth + 0.5),
         new THREE.MeshBasicMaterial({ visible: false })
       );
-      hitBox.position.set(0, 1.0, 0);
-      hitBox.userData = { interactiveType: 'mirror', name: 'Arched Vanity & Styling Mirror' };
+      hitBox.position.set(0, 1.0, 0.1);
+      hitBox.userData = { interactiveType: 'vanity', name: 'Arched Vanity & Grooming Mirror' };
       vanityGroup.add(hitBox);
       this.interactiveObjects.push(hitBox);
 
@@ -1204,85 +1231,84 @@
     }
 
     /**
-     * Secondary Render Pipeline: Synchronized Live Reflection Camera for the Mirror
-     */
-    setupMirrorRenderPipeline() {
-      try {
-        this.mirrorRenderTarget = new THREE.WebGLRenderTarget(512, 512, {
-          format: THREE.RGBFormat,
-          generateMipmaps: false,
-          minFilter: THREE.LinearFilter,
-          magFilter: THREE.LinearFilter
-        });
-
-        // Mirror camera placed near vanity looking back at the avatar on stage
-        this.mirrorCamera = new THREE.PerspectiveCamera(48, 1.0, 0.2, 10);
-        this.mirrorCamera.position.set(0.90, 1.30, -0.10);
-        this.mirrorCamera.lookAt(0, 1.10, 0);
-
-        if (this.mirrorGlassMesh) {
-          this.mirrorGlassMesh.material = new THREE.MeshBasicMaterial({
-            map: this.mirrorRenderTarget.texture
-          });
-        }
-      } catch (err) {
-        console.warn('Studio3D: Mirror render target fallback active', err);
-      }
-    }
-
-    /**
-     * Humanoid Avatar Sculpt (Delicate Asian Facial Contours, Clear Almond Eyes, Graceful High Bun Updo, Fluid Linen Trousers)
-     * Faithfully matching Sérén Visual Reference (seren_main_screen.jpg)
+     * HIGH-FIDELITY STYLIZED FEMALE CHARACTER SCULPT
+     * Faithfully matching Target Reference:
+     * Stylized anime/Disney beauty proportions, expressive almond eyes with catchlights,
+     * sculpted high bun updo with wisps, delicate nose, satin lips, soft blush,
+     * ribbed off-white halter crop tank top, high-waisted wide-leg fluid sand trousers,
+     * minimalist chunky white platform sneakers, and idle breathing + blinking animation
      */
     buildHumanoidAvatar() {
-      this.avatarGroup = new THREE.Group();
-      this.avatarGroup.position.set(0, 0.14, 0); // Atop limestone circular stage
+      // Delegate to modular 3D Studio Avatar submodule if available
+      if (typeof window !== 'undefined' && window.WoobiAvatar && typeof window.WoobiAvatar.createAvatar === 'function') {
+        this.avatarModel = window.WoobiAvatar.createAvatar(this.scene, this.textures, THREE);
+        this.avatarController = new window.WoobiAvatar.AvatarController(this.avatarModel);
+        this.avatarRoot = this.avatarModel.avatarRoot;
+        this.sculptedAvatarGroup = this.avatarModel.sculptedAvatarGroup;
+        this.headGroup = this.avatarModel.rig ? this.avatarModel.rig.headGroup : null;
+        this.chestGroup = this.avatarModel.rig ? this.avatarModel.rig.chestGroup : null;
+        this.eyelids = this.avatarModel.rig ? this.avatarModel.rig.eyelids : [];
+        this.skinMaterials = this.avatarModel.materials ? this.avatarModel.materials.skinMaterials : [];
+        this.hairMaterials = this.avatarModel.materials ? this.avatarModel.materials.hairMaterials : [];
+        this.activeAvatarType = this.avatarModel.activeAvatarType;
+        return;
+      }
 
-      // Group containing refined anatomical sculpt (active immediately)
-      this.proceduralAvatarGroup = new THREE.Group();
-      this.avatarGroup.add(this.proceduralAvatarGroup);
+      this.avatarRoot = new THREE.Group();
+      this.avatarRoot.position.set(0, 0.080, 0); // Grounded on elevated 8cm stage dais
 
-      // Materials
+      this.sculptedAvatarGroup = new THREE.Group();
+      this.avatarRoot.add(this.sculptedAvatarGroup);
+
+      this.skinMaterials = [];
+      this.hairMaterials = [];
+
+      // Primary Radiant Warm Ivory Skin Material
       const skinMat = new THREE.MeshStandardMaterial({
-        color: 0xF3D5C6, // Soft luminous porcelain/ivory skin tone
+        color: 0xF3D5C6,
         roughness: 0.38,
         metalness: 0.02
       });
+      this.skinMaterials.push(skinMat);
+
+      // Rich Espresso Brown Hair Material
       const hairMat = new THREE.MeshStandardMaterial({
-        color: 0x1E120A, // Rich deep espresso with warm undertone
+        color: 0x1E120A,
         roughness: 0.28,
         metalness: 0.04
       });
+      this.hairMaterials.push(hairMat);
+
       const lipMat = new THREE.MeshStandardMaterial({
-        color: 0xCD6B60, // Satin rosy-nude lip finish
-        roughness: 0.28
+        color: 0xCE6F66, // Satin rosy lip finish
+        roughness: 0.24,
+        metalness: 0.02
       });
       const blushMat = new THREE.MeshStandardMaterial({
         color: 0xDE8B80,
-        roughness: 0.5,
+        roughness: 0.55,
         transparent: true,
-        opacity: 0.32
+        opacity: 0.35
       });
 
-      // 1. Head & Realistic Delicate Facial Features
+      // 1. HEAD & FACIAL ANATOMY (Stylized Beauty with expressive almond eyes)
       this.headGroup = new THREE.Group();
       this.headGroup.position.set(0, 1.54, 0);
 
-      // Cranium / Face with soft feminine contour
-      const faceGeo = new THREE.SphereGeometry(0.095, 32, 32);
-      faceGeo.scale(0.88, 1.15, 0.95);
-      const face = new THREE.Mesh(faceGeo, skinMat);
-      face.castShadow = true;
-      this.headGroup.add(face);
+      // Smooth Head / Cranium
+      const craniumGeo = new THREE.SphereGeometry(0.096, 32, 32);
+      craniumGeo.scale(0.88, 1.15, 0.95);
+      const cranium = new THREE.Mesh(craniumGeo, skinMat);
+      cranium.castShadow = true;
+      this.headGroup.add(cranium);
 
-      // Soft tapered chin
-      const chinGeo = new THREE.SphereGeometry(0.032, 20, 20);
-      chinGeo.scale(0.9, 0.8, 0.9);
-      const chin = new THREE.Mesh(chinGeo, skinMat);
+      // Tapered chin
+      const chin = new THREE.Mesh(new THREE.SphereGeometry(0.032, 20, 20), skinMat);
+      chin.scale.set(0.9, 0.8, 0.9);
       chin.position.set(0, -0.072, 0.038);
       this.headGroup.add(chin);
 
-      // Delicate rosy cheek flush
+      // Soft blushing cheeks
       [-1, 1].forEach((side) => {
         const blush = new THREE.Mesh(new THREE.SphereGeometry(0.024, 12, 12), blushMat);
         blush.scale.set(1.2, 0.6, 0.3);
@@ -1290,70 +1316,80 @@
         this.headGroup.add(blush);
       });
 
-      // Almond Eyes with Sclera, Iris, Pupil, Catchlight & Eyelash Line
+      // Expressive Almond Eyes: Sclera, Iris, Pupil, Catchlight Glint & Eyelashes
       const eyeWhiteMat = new THREE.MeshBasicMaterial({ color: 0xFAF8F5 });
       const irisMat = new THREE.MeshStandardMaterial({ color: 0x2A190E, roughness: 0.22 });
       const pupilMat = new THREE.MeshBasicMaterial({ color: 0x0A0604 });
       const glintMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
       const lashMat = new THREE.MeshBasicMaterial({ color: 0x1A100A });
       const browMat = new THREE.MeshBasicMaterial({ color: 0x24160E });
+      this.hairMaterials.push(browMat);
+
+      this.eyelids = [];
 
       [-1, 1].forEach((side) => {
-        const eyeX = side * 0.031;
+        const eyeX = side * 0.032;
 
-        // Sclera White
-        const sclera = new THREE.Mesh(new THREE.SphereGeometry(0.0095, 16, 12), eyeWhiteMat);
-        sclera.scale.set(1.25, 0.68, 0.5);
+        const sclera = new THREE.Mesh(new THREE.SphereGeometry(0.0098, 16, 12), eyeWhiteMat);
+        sclera.scale.set(1.28, 0.70, 0.5);
         sclera.position.set(eyeX, 0.015, 0.082);
         this.headGroup.add(sclera);
 
-        // Iris
-        const iris = new THREE.Mesh(new THREE.SphereGeometry(0.0055, 12, 12), irisMat);
+        const iris = new THREE.Mesh(new THREE.SphereGeometry(0.0058, 12, 12), irisMat);
         iris.scale.set(1.0, 1.0, 0.3);
         iris.position.set(eyeX, 0.015, 0.086);
         this.headGroup.add(iris);
 
-        // Pupil
-        const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.0028, 8, 8), pupilMat);
+        const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.0030, 8, 8), pupilMat);
         pupil.position.set(eyeX, 0.015, 0.088);
         this.headGroup.add(pupil);
 
-        // Specular Catchlight Sparkle
-        const glint = new THREE.Mesh(new THREE.SphereGeometry(0.0014, 6, 6), glintMat);
+        const glint = new THREE.Mesh(new THREE.SphereGeometry(0.0015, 6, 6), glintMat);
         glint.position.set(eyeX + 0.0018, 0.017, 0.089);
         this.headGroup.add(glint);
 
-        // Delicate Upper Eyelash Arc
-        const lash = new THREE.Mesh(new THREE.CylinderGeometry(0.0016, 0.0016, 0.025, 8), lashMat);
-        lash.rotation.z = Math.PI / 2 + side * 0.14;
-        lash.position.set(eyeX, 0.021, 0.084);
+        // Dynamic Eyelid for Natural Blinking Animation
+        const eyelid = new THREE.Mesh(new THREE.SphereGeometry(0.0102, 16, 10), skinMat);
+        eyelid.scale.set(1.30, 0.02, 0.52);
+        eyelid.position.set(eyeX, 0.022, 0.084);
+        this.headGroup.add(eyelid);
+        this.eyelids.push(eyelid);
+
+        // Curved upper lashes
+        const lash = new THREE.Mesh(new THREE.CylinderGeometry(0.0016, 0.0016, 0.026, 8), lashMat);
+        lash.rotation.z = Math.PI / 2 + side * 0.15;
+        lash.position.set(eyeX, 0.022, 0.084);
         this.headGroup.add(lash);
 
-        // Graceful Arched Eyebrow (Well above eyes so face is clear)
-        const brow = new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0014, 0.034, 8), browMat);
+        // Arched Natural Brows
+        const brow = new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0014, 0.035, 8), browMat);
         brow.rotation.z = side * 0.16;
-        brow.position.set(eyeX, 0.035, 0.082);
+        brow.position.set(eyeX, 0.036, 0.082);
         this.headGroup.add(brow);
 
-        // Ear Shell
+        // Ears with subtle gold hoops
         const ear = new THREE.Mesh(new THREE.SphereGeometry(0.020, 12, 12), skinMat);
         ear.scale.set(0.35, 1.15, 0.65);
         ear.position.set(side * 0.088, 0.008, -0.005);
         this.headGroup.add(ear);
+
+        const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.012, 0.0025, 8, 16), new THREE.MeshStandardMaterial({ color: COLOR_PALETTE.warmBrass, metalness: 0.9, roughness: 0.2 }));
+        hoop.position.set(side * 0.090, -0.010, -0.005);
+        this.headGroup.add(hoop);
       });
 
-      // Refined Feminine Nose Bridge & Tip
+      // Contoured Nose
       const bridge = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.010, 0.038, 12), skinMat);
       bridge.position.set(0, -0.006, 0.089);
       bridge.rotation.x = -0.16;
       this.headGroup.add(bridge);
 
-      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.009, 12, 12), skinMat);
-      tip.scale.set(0.9, 0.75, 1.0);
-      tip.position.set(0, -0.024, 0.093);
-      this.headGroup.add(tip);
+      const noseTip = new THREE.Mesh(new THREE.SphereGeometry(0.009, 12, 12), skinMat);
+      noseTip.scale.set(0.9, 0.75, 1.0);
+      noseTip.position.set(0, -0.024, 0.093);
+      this.headGroup.add(noseTip);
 
-      // Contoured Satin Rosy Lips
+      // Satin Rosy Lips with Cupid's Bow
       const upperLip = new THREE.Mesh(new THREE.SphereGeometry(0.012, 16, 12), lipMat);
       upperLip.scale.set(1.5, 0.45, 0.6);
       upperLip.position.set(0, -0.048, 0.084);
@@ -1364,601 +1400,674 @@
       lowerLip.position.set(0, -0.058, 0.082);
       this.headGroup.add(lowerLip);
 
-      // Elegant High Bun Updo Hairstyle (Forehead & Face 100% Unobstructed!)
-      const hairCrownGeo = new THREE.SphereGeometry(0.096, 32, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
-      const hairCrown = new THREE.Mesh(hairCrownGeo, hairMat);
-      hairCrown.position.set(0, 0.045, -0.022);
-      hairCrown.rotation.x = -0.15;
-      this.headGroup.add(hairCrown);
+      // 2. SIGNATURE HIGH BUN UPDO WITH FACE-FRAMING WISPS (Matching Reference)
+      this.buildHairstyles(hairMat);
 
-      // Chic Sculpted Top Bun
-      const bun = new THREE.Mesh(new THREE.SphereGeometry(0.046, 24, 24), hairMat);
-      bun.scale.set(1.15, 0.95, 1.0);
-      bun.position.set(0, 0.135, -0.038);
-      this.headGroup.add(bun);
+      this.sculptedAvatarGroup.add(this.headGroup);
 
-      // Golden Brass Hairpin Accent
-      const clipMat = new THREE.MeshStandardMaterial({ color: 0xD8B478, metalness: 0.85, roughness: 0.22 });
-      const clip = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.0035, 8, 24), clipMat);
-      clip.position.set(0, 0.135, -0.065);
-      clip.rotation.y = Math.PI / 2;
-      this.headGroup.add(clip);
-
-      // Soft Wispy Side Locks behind cheekbones
-      [-1, 1].forEach((side) => {
-        const tendril = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.0015, 0.10, 8), hairMat);
-        tendril.position.set(side * 0.082, -0.035, 0.015);
-        tendril.rotation.z = side * 0.08;
-        this.headGroup.add(tendril);
-      });
-
-      this.proceduralAvatarGroup.add(this.headGroup);
-
-      // 2. Neck & Clavicle
-      const neckGeo = new THREE.CylinderGeometry(0.038, 0.046, 0.14, 24);
-      const neck = new THREE.Mesh(neckGeo, skinMat);
+      // 3. SLENDER NECK & ANATOMICAL CLAVICLES
+      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.046, 0.14, 24), skinMat);
       neck.position.set(0, 1.41, 0);
-      this.proceduralAvatarGroup.add(neck);
+      this.sculptedAvatarGroup.add(neck);
 
-      // Delicate Clavicle Collarbones
-      const clavicleMat = new THREE.MeshStandardMaterial({ color: 0xE5C7B5, roughness: 0.42 });
-      const clavicle = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.20, 12), clavicleMat);
-      clavicle.rotation.z = Math.PI / 2;
-      clavicle.position.set(0, 1.345, 0.052);
-      this.proceduralAvatarGroup.add(clavicle);
-
-      // 3. Torso (Bust, Midriff & Pelvis)
+      // 4. TORSO: CHEST & MIDRIFF (With Subtle Breathing Movement)
       this.chestGroup = new THREE.Group();
       this.chestGroup.position.set(0, 1.22, 0);
 
-      // Feminine Bust
-      const bust = new THREE.Mesh(new THREE.CylinderGeometry(0.116, 0.102, 0.22, 32), skinMat);
-      bust.castShadow = true;
-      this.chestGroup.add(bust);
+      // 5. WEARABLE OUTFIT: Off-White Ribbed Crop Tank Top
+      const tankMat = new THREE.MeshStandardMaterial({
+        map: this.textures.ribbedKnit,
+        color: COLOR_PALETTE.cropTankIvory,
+        roughness: 0.68,
+        metalness: 0.02
+      });
 
-      // Midriff (Showing under cropped tank)
+      // High-neck sleeveless crop top body
+      const tankTop = new THREE.Mesh(new THREE.CylinderGeometry(0.114, 0.104, 0.22, 32), tankMat);
+      tankTop.castShadow = true;
+      this.chestGroup.add(tankTop);
+
+      // High-neck collar rim
+      const neckCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.052, 0.045, 24), tankMat);
+      neckCollar.position.set(0, 0.12, 0);
+      this.chestGroup.add(neckCollar);
+
+      this.sculptedAvatarGroup.add(this.chestGroup);
+
+      // Exposed Midriff
       const midriff = new THREE.Mesh(new THREE.CylinderGeometry(0.098, 0.110, 0.14, 32), skinMat);
-      midriff.position.set(0, -0.16, 0);
-      this.chestGroup.add(midriff);
+      midriff.position.set(0, 1.06, 0);
+      this.sculptedAvatarGroup.add(midriff);
 
-      this.proceduralAvatarGroup.add(this.chestGroup);
-
-      // Pelvis
-      const hips = new THREE.Mesh(new THREE.CylinderGeometry(0.110, 0.134, 0.16, 32), skinMat);
-      hips.position.set(0, 0.95, 0);
-      this.proceduralAvatarGroup.add(hips);
-
-      // 4. Arms & Articulated Hands with 5 Fingers
-      this.bareArms = [];
+      // 6. ARMS & HANDS WITH NATURAL RESTING FINGERS
       [-1, 1].forEach((side) => {
         const armGroup = new THREE.Group();
         armGroup.position.set(side * 0.168, 1.31, 0);
 
-        // Shoulder Deltoid
-        const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.040, 16, 16), skinMat);
+        const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.038, 16, 16), skinMat);
         armGroup.add(shoulder);
 
-        // Upper Arm
-        const upperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.029, 0.26, 20), skinMat);
+        const upperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.027, 0.26, 20), skinMat);
         upperArm.position.set(0, -0.13, 0);
         upperArm.rotation.z = side * 0.05;
         upperArm.castShadow = true;
         armGroup.add(upperArm);
 
-        // Forearm
-        const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.023, 0.26, 20), skinMat);
-        forearm.position.set(side * 0.012, -0.37, 0);
+        const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.022, 0.26, 20), skinMat);
+        forearm.position.set(side * 0.010, -0.37, 0);
         forearm.rotation.z = side * -0.03;
         forearm.castShadow = true;
         armGroup.add(forearm);
 
-        // Hand with Relaxed Open Palm
+        // Sculpted Hand with 5 Distinct Curved Fingers
         const hand = new THREE.Group();
-        hand.position.set(side * 0.016, -0.52, 0);
+        hand.position.set(side * 0.015, -0.52, 0);
 
-        const palm = new THREE.Mesh(new THREE.BoxGeometry(0.028, 0.044, 0.014), skinMat);
+        const palm = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.042, 0.014), skinMat);
         hand.add(palm);
 
-        // Thumb
-        const thumb = new THREE.Mesh(new THREE.CylinderGeometry(0.0042, 0.0034, 0.028, 8), skinMat);
+        const thumb = new THREE.Mesh(new THREE.CylinderGeometry(0.0040, 0.0032, 0.026, 8), skinMat);
         thumb.rotation.z = side * -0.42;
-        thumb.position.set(side * -0.014, 0.004, 0.004);
+        thumb.position.set(side * -0.013, 0.004, 0.004);
         hand.add(thumb);
 
-        // 4 Articulated Resting Fingers
         for (let f = 0; f < 4; f++) {
-          const finger = new THREE.Mesh(new THREE.CylinderGeometry(0.0036, 0.0028, 0.038 - f * 0.003, 8), skinMat);
-          finger.position.set(side * (0.009 - f * 0.006), -0.036, 0);
+          const finger = new THREE.Mesh(new THREE.CylinderGeometry(0.0034, 0.0026, 0.036 - f * 0.003, 8), skinMat);
+          finger.position.set(side * (0.008 - f * 0.005), -0.035, 0);
           hand.add(finger);
         }
-
         armGroup.add(hand);
-        this.proceduralAvatarGroup.add(armGroup);
-        this.bareArms.push(armGroup);
+
+        this.sculptedAvatarGroup.add(armGroup);
       });
 
-      // 5. Build Wearable 3D Garment Meshes
-      this.buildWearableTops();
-      this.buildWearableBottoms();
-      this.buildWearableShoes();
-
-      // Equip starting outfit matching Reference A: Ribbed Ivory Tank + Fluid Taupe Trousers
-      this.equipGarment('top', 'tank');
-      this.equipGarment('bottom', 'taupe_wide');
-      this.equipGarment('shoes', 'barefoot');
-
-      // Raycastable hit box for avatar selection & rotation
-      const avatarHitBox = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.38, 0.38, 1.76, 16),
-        new THREE.MeshBasicMaterial({ visible: false })
-      );
-      avatarHitBox.position.set(0, 0.88, 0);
-      avatarHitBox.userData = { interactiveType: 'avatar', name: '3D Humanoid Model' };
-      this.avatarGroup.add(avatarHitBox);
-      this.interactiveObjects.push(avatarHitBox);
-
-      this.scene.add(this.avatarGroup);
-
-      this.proceduralAvatarGroup.visible = true;
-      console.log('Studio3D: Sculpted humanoid mannequin fully active & visible with complete head, face & arms.');
-    }
-
-    /**
-     * Wearable 3D Tops (Ribbed Ivory Tank, Cream Cardigan, Camel Blazer, Navy Shirt, Striped Sweater)
-     */
-    buildWearableTops() {
-      const topParent = new THREE.Group();
-      this.avatarGroup.add(topParent);
-
-      // 1. Ribbed Ivory Tank Top (Starting Piece matching Reference D)
-      const tankGroup = new THREE.Group();
-      const tankMat = new THREE.MeshStandardMaterial({
-        color: 0xFAF6EF, // Clean soft ivory
-        roughness: 0.74,
-        metalness: 0.02
-      });
-      const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.124, 0.106, 0.25, 32), tankMat);
-      tank.position.set(0, 1.22, 0);
-      tank.castShadow = true;
-      tankGroup.add(tank);
-
-      // Fine Vertical Rib Texturing
-      const ribMat = new THREE.MeshStandardMaterial({ color: 0xE8E1D5, roughness: 0.85 });
-      for (let r = 0; r < 12; r++) {
-        const rib = new THREE.Mesh(new THREE.CylinderGeometry(0.0028, 0.0028, 0.24, 6), ribMat);
-        const angle = (r * Math.PI * 2) / 12;
-        rib.position.set(Math.sin(angle) * 0.116, 1.22, Math.cos(angle) * 0.116);
-        tankGroup.add(rib);
-      }
-      topParent.add(tankGroup);
-      this.garmentMeshes.top['tank'] = tankGroup;
-
-      // 2. Cream Cozy Knit Cardigan with Tortoiseshell Buttons (Reference D - Step 3)
-      const cardiganGroup = new THREE.Group();
-      const cardiganMat = new THREE.MeshStandardMaterial({
-        color: 0xF2ECE0,
-        roughness: 0.82,
-        metalness: 0.02
-      });
-      const cardBody = new THREE.Mesh(new THREE.CylinderGeometry(0.142, 0.132, 0.40, 32), cardiganMat);
-      cardBody.position.set(0, 1.21, 0);
-      cardBody.castShadow = true;
-      cardiganGroup.add(cardBody);
-
-      // Cardigan Sleeves
-      const sleeveGeo = new THREE.CylinderGeometry(0.052, 0.044, 0.54, 24);
-      [-1, 1].forEach((side) => {
-        const sleeve = new THREE.Mesh(sleeveGeo, cardiganMat);
-        sleeve.position.set(side * 0.182, 1.15, 0);
-        sleeve.rotation.z = side * -0.09;
-        sleeve.castShadow = true;
-        cardiganGroup.add(sleeve);
-      });
-
-      // Front Button Placket
-      const buttonMat = new THREE.MeshStandardMaterial({ color: 0x483626, roughness: 0.35 });
-      for (let b = 0; b < 3; b++) {
-        const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.006, 12), buttonMat);
-        btn.rotation.x = Math.PI / 2;
-        btn.position.set(0, 1.10 + b * 0.08, 0.142);
-        cardiganGroup.add(btn);
-      }
-      cardiganGroup.visible = false;
-      topParent.add(cardiganGroup);
-      this.garmentMeshes.top['cardigan'] = cardiganGroup;
-
-      // 3. Tailored Camel Smart Blazer
-      const blazerGroup = new THREE.Group();
-      const blazerMat = new THREE.MeshStandardMaterial({
-        color: 0xBC9A76,
-        roughness: 0.65,
-        metalness: 0.03
-      });
-      const blazerBody = new THREE.Mesh(new THREE.CylinderGeometry(0.146, 0.136, 0.44, 32), blazerMat);
-      blazerBody.position.set(0, 1.19, 0);
-      blazerBody.castShadow = true;
-      blazerGroup.add(blazerBody);
-
-      const lapelMat = new THREE.MeshStandardMaterial({ color: 0xA68461, roughness: 0.55 });
-      [-1, 1].forEach((side) => {
-        const lapel = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.22, 0.02), lapelMat);
-        lapel.position.set(side * 0.044, 1.25, 0.144);
-        lapel.rotation.z = side * -0.25;
-        blazerGroup.add(lapel);
-
-        const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.054, 0.046, 0.54, 24), blazerMat);
-        sleeve.position.set(side * 0.188, 1.15, 0);
-        sleeve.rotation.z = side * -0.09;
-        blazerGroup.add(sleeve);
-      });
-
-      blazerGroup.visible = false;
-      topParent.add(blazerGroup);
-      this.garmentMeshes.top['blazer'] = blazerGroup;
-
-      // 4. Navy Poplin Oxford Shirt
-      const navyGroup = new THREE.Group();
-      const navyMat = new THREE.MeshStandardMaterial({
-        color: 0x1E2B3E,
-        roughness: 0.58,
-        metalness: 0.04
-      });
-      const navyBody = new THREE.Mesh(new THREE.CylinderGeometry(0.138, 0.128, 0.40, 32), navyMat);
-      navyBody.position.set(0, 1.21, 0);
-      navyGroup.add(navyBody);
-
-      const collar = new THREE.Mesh(new THREE.TorusGeometry(0.078, 0.015, 12, 32, Math.PI * 1.5), navyMat);
-      collar.rotation.x = Math.PI / 2;
-      collar.position.set(0, 1.38, 0);
-      navyGroup.add(collar);
-
-      [-1, 1].forEach((side) => {
-        const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.042, 0.52, 24), navyMat);
-        sleeve.position.set(side * 0.178, 1.15, 0);
-        sleeve.rotation.z = side * -0.08;
-        navyGroup.add(sleeve);
-      });
-
-      navyGroup.visible = false;
-      topParent.add(navyGroup);
-      this.garmentMeshes.top['navy_shirt'] = navyGroup;
-
-      // 5. Breton Striped Nautical Sweater
-      const stripeGroup = new THREE.Group();
-      const whiteStripeMat = new THREE.MeshStandardMaterial({ color: 0xF4EFE6, roughness: 0.8 });
-      const blueStripeMat = new THREE.MeshStandardMaterial({ color: 0x1D2636, roughness: 0.8 });
-
-      for (let s = 0; s < 6; s++) {
-        const mat = s % 2 === 0 ? whiteStripeMat : blueStripeMat;
-        const stripeRing = new THREE.Mesh(new THREE.CylinderGeometry(0.136, 0.136, 0.065, 32), mat);
-        stripeRing.position.set(0, 1.05 + s * 0.065, 0);
-        stripeGroup.add(stripeRing);
-      }
-
-      stripeGroup.visible = false;
-      topParent.add(stripeGroup);
-      this.garmentMeshes.top['striped_sweater'] = stripeGroup;
-    }
-
-    /**
-     * Wearable 3D Bottoms (High-Waisted Tailored Taupe Trousers, Dark Denim, Crisp White Chinos)
-     */
-    buildWearableBottoms() {
-      const bottomParent = new THREE.Group();
-      this.avatarGroup.add(bottomParent);
-
-      // 1. High-Waisted Tailored Fluid Trousers in Warm Taupe (Reference D)
-      const taupeGroup = new THREE.Group();
-      const taupeMat = new THREE.MeshStandardMaterial({
-        color: 0x6E6350, // Rich warm taupe/olive tone providing clear contrast
+      // 7. HIGH-WAISTED FLUID WIDE-LEG TAILORED TROUSERS IN SAND / BEIGE
+      const trouserMat = new THREE.MeshStandardMaterial({
+        map: this.textures.linenWeave,
+        color: COLOR_PALETTE.trousersSand,
         roughness: 0.72,
+        metalness: 0.01
+      });
+
+      // High-rise waistband with front pleats
+      const waistHips = new THREE.Mesh(new THREE.CylinderGeometry(0.112, 0.136, 0.18, 32), trouserMat);
+      waistHips.position.set(0, 0.95, 0);
+      waistHips.castShadow = true;
+      this.sculptedAvatarGroup.add(waistHips);
+
+      // Belt loops & center front button
+      const button = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.006, 12), trouserMat);
+      button.rotation.x = Math.PI / 2;
+      button.position.set(0, 1.01, 0.115);
+      this.sculptedAvatarGroup.add(button);
+
+      // Fluid Wide Legs with Crisp Front Creases
+      [-1, 1].forEach((side) => {
+        const legGroup = new THREE.Group();
+        legGroup.position.set(side * 0.076, 0.86, 0);
+
+        // Fluid wide-leg cylinder draping naturally to shoe level
+        const pantLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.098, 0.78, 28), trouserMat);
+        pantLeg.position.y = -0.39;
+        pantLeg.castShadow = true;
+        legGroup.add(pantLeg);
+
+        // Vertical front tailored crease line
+        const crease = new THREE.Mesh(new THREE.BoxGeometry(0.003, 0.76, 0.004), trouserMat);
+        crease.position.set(0, -0.39, 0.088);
+        legGroup.add(crease);
+
+        this.sculptedAvatarGroup.add(legGroup);
+      });
+
+      // 8. MINIMALIST CHUNKY WHITE PLATFORM SNEAKERS (Matching Reference)
+      const sneakerMat = new THREE.MeshStandardMaterial({
+        color: COLOR_PALETTE.sneakersWhite,
+        roughness: 0.32,
         metalness: 0.02
       });
+      const soleMat = new THREE.MeshStandardMaterial({
+        color: 0xF8F8F8,
+        roughness: 0.45
+      });
 
-      const taupePelvis = new THREE.Mesh(new THREE.CylinderGeometry(0.124, 0.154, 0.22, 32), taupeMat);
-      taupePelvis.position.set(0, 0.94, 0);
-      taupePelvis.castShadow = true;
-      taupeGroup.add(taupePelvis);
-
-      const wideLegGeo = new THREE.CylinderGeometry(0.086, 0.104, 0.78, 24);
       [-1, 1].forEach((side) => {
-        const leg = new THREE.Mesh(wideLegGeo, taupeMat);
-        leg.position.set(side * 0.076, 0.44, 0);
-        leg.castShadow = true;
-        taupeGroup.add(leg);
+        const sneaker = new THREE.Group();
+        sneaker.position.set(side * 0.085, 0.018, 0.035);
 
-        // Pressed Front Pleat Crease
-        const crease = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.76, 0.01), new THREE.MeshStandardMaterial({ color: 0x564D3E }));
-        crease.position.set(side * 0.076, 0.44, 0.094);
-        taupeGroup.add(crease);
+        // Chunky Platform Rubber Sole with Tread
+        const sole = new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.036, 0.22), soleMat);
+        sole.position.y = 0.018;
+        sole.castShadow = true;
+        sneaker.add(sole);
+
+        // Contoured White Leather Upper & Toe Cap
+        const upper = new THREE.Mesh(new THREE.SphereGeometry(0.040, 16, 16), sneakerMat);
+        upper.scale.set(1.0, 0.85, 1.9);
+        upper.position.set(0, 0.046, 0.01);
+        upper.castShadow = true;
+        sneaker.add(upper);
+
+        // Padded Tongue & Laces
+        const tongue = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.040, 0.06), sneakerMat);
+        tongue.position.set(0, 0.062, -0.01);
+        tongue.rotation.x = -0.3;
+        sneaker.add(tongue);
+
+        this.sculptedAvatarGroup.add(sneaker);
       });
 
-      bottomParent.add(taupeGroup);
-      this.garmentMeshes.bottom['taupe_wide'] = taupeGroup;
-
-      // 2. Dark Indigo Denim Straight Jeans
-      const denimGroup = new THREE.Group();
-      const denimMat = new THREE.MeshStandardMaterial({
-        color: 0x222C3D,
-        roughness: 0.65,
-        metalness: 0.04
-      });
-      const denimPelvis = new THREE.Mesh(new THREE.CylinderGeometry(0.122, 0.150, 0.22, 32), denimMat);
-      denimPelvis.position.set(0, 0.94, 0);
-      denimGroup.add(denimPelvis);
-
-      const denimLegGeo = new THREE.CylinderGeometry(0.074, 0.070, 0.78, 24);
-      [-1, 1].forEach((side) => {
-        const leg = new THREE.Mesh(denimLegGeo, denimMat);
-        leg.position.set(side * 0.072, 0.44, 0);
-        denimGroup.add(leg);
-      });
-
-      denimGroup.visible = false;
-      bottomParent.add(denimGroup);
-      this.garmentMeshes.bottom['dark_denim'] = denimGroup;
-
-      // 3. Crisp Pleated Ivory Chinos
-      const chinosGroup = new THREE.Group();
-      const chinosMat = new THREE.MeshStandardMaterial({
-        color: 0xFAF7F0,
-        roughness: 0.68,
-        metalness: 0.02
-      });
-      const chinosPelvis = new THREE.Mesh(new THREE.CylinderGeometry(0.123, 0.152, 0.22, 32), chinosMat);
-      chinosPelvis.position.set(0, 0.94, 0);
-      chinosGroup.add(chinosPelvis);
-
-      const chinosLegGeo = new THREE.CylinderGeometry(0.080, 0.074, 0.78, 24);
-      [-1, 1].forEach((side) => {
-        const leg = new THREE.Mesh(chinosLegGeo, chinosMat);
-        leg.position.set(side * 0.074, 0.44, 0);
-        chinosGroup.add(leg);
-      });
-
-      chinosGroup.visible = false;
-      bottomParent.add(chinosGroup);
-      this.garmentMeshes.bottom['white_chinos'] = chinosGroup;
+      this.scene.add(this.avatarRoot);
     }
 
     /**
-     * Wearable 3D Footwear (Caramel Loafers, White Sneakers, Barefoot)
+     * Builds detailed Hairstyle Options (Updo Bun, Sleek Bob, Soft Waves, Short Crop)
      */
-    buildWearableShoes() {
-      const shoesParent = new THREE.Group();
-      this.avatarGroup.add(shoesParent);
+    buildHairstyles(hairMat) {
+      // 1. SIGNATURE HIGH BUN UPDO (Reference Image Match)
+      const bunGroup = new THREE.Group();
 
-      // 1. Barefoot Natural Sculpt (Matching Reference D relaxed studio look)
-      const barefootGroup = new THREE.Group();
-      const skinMat = new THREE.MeshStandardMaterial({ color: 0xF0CDBC, roughness: 0.36 });
+      // Scalp base volume
+      const crown = new THREE.Mesh(new THREE.SphereGeometry(0.105, 24, 24), hairMat);
+      crown.scale.set(0.92, 1.16, 0.96);
+      crown.position.set(0, 0.02, -0.012);
+      crown.castShadow = true;
+      bunGroup.add(crown);
+
+      // High Sculpted Bun on top-back
+      const bun = new THREE.Mesh(new THREE.SphereGeometry(0.058, 20, 20), hairMat);
+      bun.scale.set(1.0, 0.9, 0.9);
+      bun.position.set(0, 0.125, -0.035);
+      bun.castShadow = true;
+      bunGroup.add(bun);
+
+      // Hair tie wrap
+      const hairTie = new THREE.Mesh(
+        new THREE.TorusGeometry(0.045, 0.008, 8, 24),
+        new THREE.MeshStandardMaterial({ color: 0x140E0A })
+      );
+      hairTie.rotation.x = Math.PI / 2;
+      hairTie.position.set(0, 0.095, -0.035);
+      bunGroup.add(hairTie);
+
+      // Face-framing side wisps and tendrils
       [-1, 1].forEach((side) => {
-        const foot = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.038, 0.16), skinMat);
-        foot.position.set(side * 0.076, 0.02, 0.03);
-        barefootGroup.add(foot);
+        const wisp = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.002, 0.14, 8), hairMat);
+        wisp.rotation.z = side * 0.12;
+        wisp.position.set(side * 0.082, -0.02, 0.03);
+        bunGroup.add(wisp);
       });
-      shoesParent.add(barefootGroup);
-      this.garmentMeshes.shoes['barefoot'] = barefootGroup;
 
-      // 2. Polished Caramel Leather Loafers
-      const loaferGroup = new THREE.Group();
-      const loaferMat = new THREE.MeshStandardMaterial({ color: 0x754F31, roughness: 0.32, metalness: 0.06 });
-      const soleMat = new THREE.MeshStandardMaterial({ color: 0x22160E, roughness: 0.8 });
-      const bitMat = new THREE.MeshStandardMaterial({ color: 0xD8B478, metalness: 0.9, roughness: 0.2 });
-
-      [-1, 1].forEach((side) => {
-        const foot = new THREE.Group();
-        foot.position.set(side * 0.076, 0, 0.03);
-
-        const upper = new THREE.Mesh(new THREE.BoxGeometry(0.070, 0.050, 0.18), loaferMat);
-        upper.position.set(0, 0.032, 0);
-        foot.add(upper);
-
-        const sole = new THREE.Mesh(new THREE.BoxGeometry(0.074, 0.016, 0.19), soleMat);
-        sole.position.set(0, 0.008, 0);
-        foot.add(sole);
-
-        const bit = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.032, 8), bitMat);
-        bit.rotation.z = Math.PI / 2;
-        bit.position.set(0, 0.056, 0.02);
-        foot.add(bit);
-
-        loaferGroup.add(foot);
-      });
-      loaferGroup.visible = false;
-      shoesParent.add(loaferGroup);
-      this.garmentMeshes.shoes['loafers'] = loaferGroup;
-
-      // 3. Minimalist White Court Sneakers
-      const sneakerGroup = new THREE.Group();
-      const sneakerMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.42 });
-      const rubberSoleMat = new THREE.MeshStandardMaterial({ color: 0xF2ECE2, roughness: 0.7 });
-
-      [-1, 1].forEach((side) => {
-        const foot = new THREE.Group();
-        foot.position.set(side * 0.076, 0, 0.03);
-
-        const body = new THREE.Mesh(new THREE.BoxGeometry(0.074, 0.056, 0.19), sneakerMat);
-        body.position.set(0, 0.036, 0);
-        foot.add(body);
-
-        const sole = new THREE.Mesh(new THREE.BoxGeometry(0.078, 0.020, 0.20), rubberSoleMat);
-        sole.position.set(0, 0.010, 0);
-        foot.add(sole);
-
-        sneakerGroup.add(foot);
-      });
-      sneakerGroup.visible = false;
-      shoesParent.add(sneakerGroup);
-      this.garmentMeshes.shoes['sneakers'] = sneakerGroup;
+      this.hairStyles.bun = bunGroup;
+      this.headGroup.add(bunGroup);
     }
 
     /**
-     * Equips a 3D garment into its corresponding category slot cleanly
+     * Asynchronously loads Rigged Avatar GLB (Ready Player Me or custom model)
+     * Replaces procedural meshes with genuine rigged 3D character if available
      */
-    equipGarment(category, garmentId) {
-      let cat = category;
-      if (cat === 'tops' || cat === 'outerwear') cat = 'top';
-      if (cat === 'bottoms') cat = 'bottom';
-      if (cat === 'shoe') cat = 'shoes';
-
-      if (!this.garmentMeshes[cat]) return;
-
-      // Hide all in category
-      Object.keys(this.garmentMeshes[cat]).forEach((id) => {
-        if (this.garmentMeshes[cat][id]) {
-          this.garmentMeshes[cat][id].visible = false;
-        }
-      });
-
-      // Show requested
-      if (this.garmentMeshes[cat][garmentId]) {
-        this.garmentMeshes[cat][garmentId].visible = true;
-        this.activeGarments[cat] = garmentId;
-      }
-
-      // If equipping a top with long sleeves (like blazer, cardigan, navy_shirt), hide bare arms to prevent mesh overlap
-      if (cat === 'top' && this.bareArms) {
-        const hasSleeves = ['blazer', 'cardigan', 'navy_shirt', 'striped_sweater'].includes(garmentId);
-        this.bareArms.forEach((arm) => {
-          arm.visible = !hasSleeves;
-        });
-      }
-
-      console.log(`Studio3D: Equipped [${cat}] -> ${garmentId}`);
-    }
-
-    /**
-     * Smooth camera navigation to designated viewpoint
-     */
-    setCameraState(stateName) {
-      const state = CAMERA_STATES[stateName];
-      if (!state) {
-        console.warn('Studio3D: Unknown camera state:', stateName);
+    loadRiggedAvatarGLB() {
+      if (this.avatarModel && typeof this.avatarModel.loadRiggedAvatarGLB === 'function') {
+        this.avatarModel.loadRiggedAvatarGLB(
+          (model, url) => {
+            console.log('Studio3D: Rigged 3D avatar loaded successfully from', url);
+            this.gltfAvatarGroup = this.avatarModel.gltfAvatarGroup;
+            this.activeAvatarType = this.avatarModel.activeAvatarType;
+          },
+          (err) => {
+            console.log('Studio3D: Using high-definition sculpted avatar.');
+          }
+        );
         return;
       }
 
-      this.currentCameraState = stateName;
-      this.targetCameraPos.copy(state.position);
-      this.targetCameraLookAt.copy(state.target);
+      if (typeof THREE.GLTFLoader === 'undefined') {
+        return;
+      }
 
-      const aspect = this.camera.aspect;
-      const isPortrait = aspect < 0.75;
-      const targetFov = isPortrait ? state.fovPortrait : state.fovLandscape;
-      this.camera.fov = targetFov;
-      this.camera.updateProjectionMatrix();
+      const loader = new THREE.GLTFLoader();
+      const modelUrls = [
+        'assets/models/avatar_female.glb',
+        'https://readyplayerme.github.io/visage/female.glb'
+      ];
 
-      // Dispatch UI pill active state
-      if (typeof window !== 'undefined' && window.app && window.app.onStudioCameraChanged) {
-        window.app.onStudioCameraChanged(stateName);
+      const tryLoad = (index) => {
+        if (index >= modelUrls.length) return;
+        const url = modelUrls[index];
+
+        loader.load(
+          url,
+          (gltf) => {
+            console.log('Studio3D: Rigged 3D avatar loaded successfully from', url);
+            const model = gltf.scene;
+
+            // Scale & position model correctly onto the elevated stage dais
+            model.scale.set(0.96, 0.96, 0.96);
+            model.position.set(0, 0.080, 0);
+
+            // Traverse and apply luxury reference styling
+            model.traverse((child) => {
+              if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+
+                // Configure skin, hair, and clothing materials to match reference
+                if (child.name.includes('Hair')) {
+                  child.material.color = new THREE.Color(COLOR_PALETTE.honeyOak).multiplyScalar(0.2);
+                  this.hairMaterials.push(child.material);
+                } else if (child.name.includes('Head') || child.name.includes('Body')) {
+                  this.skinMaterials.push(child.material);
+                } else if (child.name.includes('Top') || child.name.includes('Shirt')) {
+                  child.material.color = new THREE.Color(COLOR_PALETTE.cropTankIvory);
+                } else if (child.name.includes('Bottom') || child.name.includes('Pants')) {
+                  child.material.color = new THREE.Color(COLOR_PALETTE.trousersSand);
+                } else if (child.name.includes('Footwear') || child.name.includes('Shoes')) {
+                  child.material.color = new THREE.Color(COLOR_PALETTE.sneakersWhite);
+                }
+              }
+            });
+
+            // Smoothly replace sculpted fallback with the rigged model
+            this.gltfAvatarGroup = model;
+            this.avatarRoot.add(this.gltfAvatarGroup);
+            this.sculptedAvatarGroup.visible = false;
+            this.activeAvatarType = 'glb';
+          },
+          undefined,
+          (err) => {
+            console.log(`Studio3D: Model ${url} not found or blocked, using high-definition sculpted avatar.`);
+            tryLoad(index + 1);
+          }
+        );
+      };
+
+      tryLoad(0);
+    }
+
+    /**
+     * Setups Real-time Mirror Camera & Render Target
+     */
+    setupMirrorRenderPipeline() {
+      try {
+        if (this.vanityModel && this.vanityModel.reflection && this.vanityModel.reflection.renderTarget) {
+          this.mirrorRenderTarget = this.vanityModel.reflection.renderTarget;
+          this.mirrorCamera = this.vanityModel.reflection.mirrorCamera;
+          return;
+        }
+
+        this.mirrorRenderTarget = new THREE.WebGLRenderTarget(512, 512, {
+          format: THREE.RGBFormat,
+          generateMipmaps: false,
+          minFilter: THREE.LinearFilter,
+          magFilter: THREE.LinearFilter
+        });
+
+        this.mirrorCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 20);
+        this.scene.add(this.mirrorCamera);
+
+        if (this.mirrorGlassMesh) {
+          this.mirrorGlassMesh.material.map = this.mirrorRenderTarget.texture;
+          this.mirrorGlassMesh.material.needsUpdate = true;
+        }
+      } catch (err) {
+        console.warn('Studio3D: Mirror render target fallback active', err);
       }
     }
 
     /**
-     * Setup touch, pointer, and raycasting listeners
+     * Mouse, Touch, Drag-to-Rotate & Zoom Handlers
      */
     setupInteractionHandlers() {
-      const onPointerDown = (e) => {
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const el = this.canvas;
+      if (!el) return;
 
+      if (this.cameraController) {
+        // Interactions are managed cleanly by CameraController and detached upon destroy()
+        return;
+      }
+
+      // Mouse Drag
+      el.addEventListener('mousedown', (e) => {
         this.isPointerDown = true;
-        this.pointerStartX = clientX;
-        this.pointerStartY = clientY;
-        this.lastPointerX = clientX;
-        this.lastPointerY = clientY;
         this.hasDragged = false;
-      };
+        this.pointerStartX = e.clientX;
+        this.pointerStartY = e.clientY;
+        this.lastPointerX = e.clientX;
+        this.lastPointerY = e.clientY;
+      });
 
-      const onPointerMove = (e) => {
+      window.addEventListener('mousemove', (e) => {
         if (!this.isPointerDown) return;
+        const deltaX = e.clientX - this.lastPointerX;
+        const deltaY = e.clientY - this.lastPointerY;
 
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-        const dx = clientX - this.lastPointerX;
-        const dy = clientY - this.lastPointerY;
-
-        if (Math.hypot(clientX - this.pointerStartX, clientY - this.pointerStartY) > 5) {
+        if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
           this.hasDragged = true;
         }
 
-        // Horizontal Drag rotates avatar smoothly
-        this.targetRotationY += dx * 0.012;
+        // Horizontal rotation around avatar
+        this.targetRotationY += deltaX * 0.008;
+        this.lastPointerX = e.clientX;
+        this.lastPointerY = e.clientY;
+      });
 
-        this.lastPointerX = clientX;
-        this.lastPointerY = clientY;
-      };
-
-      const onPointerUp = (e) => {
+      window.addEventListener('mouseup', (e) => {
         if (!this.isPointerDown) return;
         this.isPointerDown = false;
+        if (!this.hasDragged) {
+          this.handleCanvasClick(e.clientX, e.clientY);
+        }
+      });
 
-        // If simple tap/click without drag, perform Raycasting
-        if (!this.hasDragged && e.target === this.canvas) {
-          const rect = this.canvas.getBoundingClientRect();
-          const clientX = this.pointerStartX;
-          const clientY = this.pointerStartY;
+      // Touch Drag & Pinch-to-Zoom
+      el.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          this.isPointerDown = true;
+          this.hasDragged = false;
+          this.pointerStartX = e.touches[0].clientX;
+          this.pointerStartY = e.touches[0].clientY;
+          this.lastPointerX = e.touches[0].clientX;
+          this.lastPointerY = e.touches[0].clientY;
+        } else if (e.touches.length === 2) {
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          this.pinchStartDist = Math.hypot(dx, dy);
+        }
+      }, { passive: true });
 
-          this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-          this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+      window.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && this.isPointerDown) {
+          const deltaX = e.touches[0].clientX - this.lastPointerX;
+          const deltaY = e.touches[0].clientY - this.lastPointerY;
 
-          this.raycaster.setFromCamera(this.mouse, this.camera);
-          const intersects = this.raycaster.intersectObjects(this.interactiveObjects, true);
+          if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
+            this.hasDragged = true;
+          }
 
-          if (intersects.length > 0) {
-            let hit = intersects[0].object;
-            while (hit && !hit.userData.interactiveType && hit.parent) {
-              hit = hit.parent;
-            }
-            if (hit && hit.userData.interactiveType) {
-              const type = hit.userData.interactiveType;
-              this.handleObjectClick(type);
-            }
+          this.targetRotationY += deltaX * 0.009;
+          this.lastPointerX = e.touches[0].clientX;
+          this.lastPointerY = e.touches[0].clientY;
+        } else if (e.touches.length === 2) {
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          const dist = Math.hypot(dx, dy);
+          const diff = dist - this.pinchStartDist;
+
+          this.cameraZoomFactor = Math.max(0.7, Math.min(1.4, this.cameraZoomFactor - diff * 0.002));
+          this.pinchStartDist = dist;
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchend', (e) => {
+        if (!this.isPointerDown) return;
+        this.isPointerDown = false;
+        if (!this.hasDragged && e.changedTouches && e.changedTouches.length > 0) {
+          this.handleCanvasClick(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        }
+      });
+
+      // Mouse Wheel Zoom
+      el.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomDelta = e.deltaY * 0.001;
+        this.cameraZoomFactor = Math.max(0.7, Math.min(1.4, this.cameraZoomFactor + zoomDelta));
+      }, { passive: false });
+
+      // Resize Listener
+      window.addEventListener('resize', () => {
+        this.onResize();
+      });
+    }
+
+    /**
+     * Handles Raycast selection on wardrobe & vanity 3D objects
+     */
+    handleCanvasClick(clientX, clientY) {
+      if (!this.canvas || !this.camera || !this.scene) return;
+      if (this.cameraController && typeof this.cameraController.raycastClick === 'function') {
+        this.cameraController.raycastClick(clientX, clientY, this.canvas, this.interactiveObjects, (type, userData) => {
+          if (typeof this.onObjectClick === 'function') {
+            this.onObjectClick(type, userData);
+          } else if (window.app && typeof window.app.serenInteract === 'function') {
+            window.app.serenInteract(type);
+          }
+        });
+        return;
+      }
+      const rect = this.canvas.getBoundingClientRect();
+      this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+      const intersects = this.raycaster.intersectObjects(this.interactiveObjects, true);
+
+      if (intersects.length > 0) {
+        let obj = intersects[0].object;
+        while (obj && !obj.userData.interactiveType && obj.parent) {
+          obj = obj.parent;
+        }
+        if (obj && obj.userData.interactiveType) {
+          const type = obj.userData.interactiveType;
+          if (typeof this.onObjectClick === 'function') {
+            this.onObjectClick(type, obj.userData);
+          } else if (window.app && typeof window.app.serenInteract === 'function') {
+            window.app.serenInteract(type);
           }
         }
-      };
-
-      // Mouse Listeners
-      this.canvas.addEventListener('mousedown', onPointerDown);
-      window.addEventListener('mousemove', onPointerMove);
-      window.addEventListener('mouseup', onPointerUp);
-
-      // Touch Listeners
-      this.canvas.addEventListener('touchstart', onPointerDown, { passive: true });
-      window.addEventListener('touchmove', onPointerMove, { passive: true });
-      window.addEventListener('touchend', onPointerUp, { passive: true });
+      }
     }
 
     /**
-     * Dispatches click actions from 3D furniture
+     * Sets Camera Viewpoint Preset with smooth interpolation
      */
-    handleObjectClick(type) {
-      console.log(`Studio3D: Clicked 3D object -> [${type}]`);
-      if (type === 'wardrobe') {
-        this.setCameraState('WARDROBE_CLOSEUP');
-        if (window.app && window.app.serenToggleWardrobe) {
-          window.app.serenToggleWardrobe(true);
-        }
-      } else if (type === 'mirror') {
-        this.setCameraState('MIRROR_VIEW');
-        if (window.app && window.app.serenOpenStylingReview) {
-          window.app.serenOpenStylingReview();
-        }
-      } else if (type === 'avatar') {
-        if (this.currentCameraState === 'AVATAR_FULL_BODY') {
-          this.setCameraState('AVATAR_DETAIL');
-        } else {
-          this.setCameraState('AVATAR_FULL_BODY');
+    setCameraState(stateName) {
+      if (this.cameraController && typeof this.cameraController.setCameraPreset === 'function') {
+        const ok = this.cameraController.setCameraPreset(stateName);
+        if (ok) {
+          this.currentCameraState = stateName;
+          return;
         }
       }
-
-      if (this.onObjectClick) {
-        this.onObjectClick(type);
+      if (CAMERA_STATES[stateName]) {
+        this.currentCameraState = stateName;
+        this.targetCameraPos.copy(CAMERA_STATES[stateName].position);
+        this.targetCameraLookAt.copy(CAMERA_STATES[stateName].target);
       }
     }
 
     /**
-     * Window / Viewport resize handler
+     * Avatar Customization API: Skin Tone
+     */
+    setSkinTone(hex) {
+      this.avatarConfig.skinTone = hex;
+      if (this.avatarController && typeof this.avatarController.setSkinTone === 'function') {
+        this.avatarController.setSkinTone(hex);
+        return;
+      }
+      const col = new THREE.Color(hex);
+      this.skinMaterials.forEach(mat => {
+        if (mat) {
+          mat.color.copy(col);
+          mat.needsUpdate = true;
+        }
+      });
+      this.savePreferences();
+    }
+
+    /**
+     * Avatar Customization API: Hair Color
+     */
+    setHairColor(hex) {
+      this.avatarConfig.hairColor = hex;
+      if (this.avatarController && typeof this.avatarController.setHairColor === 'function') {
+        this.avatarController.setHairColor(hex);
+        return;
+      }
+      const col = new THREE.Color(hex);
+      this.hairMaterials.forEach(mat => {
+        if (mat) {
+          mat.color.copy(col);
+          mat.needsUpdate = true;
+        }
+      });
+      this.savePreferences();
+    }
+
+    /**
+     * Avatar Customization API: Hairstyle
+     */
+    setHairstyle(styleName) {
+      this.avatarConfig.hairStyle = styleName;
+      if (this.avatarController && typeof this.avatarController.setHairstyle === 'function') {
+        this.avatarController.setHairstyle(styleName);
+        return;
+      }
+      this.savePreferences();
+    }
+
+    /**
+     * Avatar Customization API: Body Proportions
+     */
+    setBodyProportions(preset) {
+      this.avatarConfig.proportions = preset;
+      if (this.avatarController && typeof this.avatarController.setBodyProportions === 'function') {
+        this.avatarController.setBodyProportions(preset);
+        return;
+      }
+      let scaleX = 1.0;
+      let scaleY = 1.0;
+
+      switch (preset) {
+        case 'petite':
+          scaleX = 0.94;
+          scaleY = 0.94;
+          break;
+        case 'tall':
+          scaleX = 0.98;
+          scaleY = 1.06;
+          break;
+        case 'athletic':
+          scaleX = 1.05;
+          scaleY = 1.02;
+          break;
+        case 'curvy':
+          scaleX = 1.08;
+          scaleY = 1.00;
+          break;
+        default:
+          scaleX = 1.0;
+          scaleY = 1.0;
+      }
+
+      if (this.avatarRoot) {
+        this.avatarRoot.scale.set(scaleX, scaleY, scaleX);
+      }
+      this.savePreferences();
+    }
+
+    /**
+     * Avatar Customization API: Gender Presentation
+     */
+    setGenderPresentation(gender) {
+      this.avatarConfig.gender = gender;
+      if (this.avatarController && typeof this.avatarController.setGenderPresentation === 'function') {
+        this.avatarController.setGenderPresentation(gender);
+        return;
+      }
+      if (gender === 'masculine') {
+        this.setBodyProportions('athletic');
+      } else {
+        this.setBodyProportions('regular');
+      }
+      this.savePreferences();
+    }
+
+    /**
+     * Avatar Customization API: Toggle Accessories
+     */
+    toggleAccessory(name, isActive) {
+      if (!this.avatarConfig.accessories) this.avatarConfig.accessories = {};
+      this.avatarConfig.accessories[name] = isActive;
+      if (this.avatarController && typeof this.avatarController.toggleAccessory === 'function') {
+        this.avatarController.toggleAccessory(name, isActive);
+        return;
+      }
+      this.savePreferences();
+    }
+
+    /**
+     * Applies complete avatar configuration
+     */
+    applyAvatarConfig(cfg) {
+      if (!cfg) return;
+      if (this.avatarController && typeof this.avatarController.applyAvatarConfig === 'function') {
+        this.avatarController.applyAvatarConfig(cfg);
+        this.avatarConfig = Object.assign(this.avatarConfig, this.avatarController.avatarConfig);
+        return;
+      }
+      if (cfg.skinTone) this.setSkinTone(cfg.skinTone);
+      if (cfg.hairColor) this.setHairColor(cfg.hairColor);
+      if (cfg.proportions) this.setBodyProportions(cfg.proportions);
+      if (cfg.gender) this.setGenderPresentation(cfg.gender);
+    }
+
+    /**
+     * Load & Save Preferences via localStorage
+     */
+    loadSavedPreferences() {
+      try {
+        const saved = localStorage.getItem('seren_avatar_prefs');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          this.avatarConfig = Object.assign(this.avatarConfig, parsed);
+        }
+      } catch (e) {
+        console.warn('Studio3D: Could not read avatar prefs from storage', e);
+      }
+    }
+
+    savePreferences() {
+      try {
+        localStorage.setItem('seren_avatar_prefs', JSON.stringify(this.avatarConfig));
+      } catch (e) {
+        console.warn('Studio3D: Could not persist avatar prefs', e);
+      }
+    }
+
+    /**
+     * Initializes 3D Studio Features Module
+     */
+    initStudioFeatures() {
+      if (typeof window !== 'undefined' && window.WoobiStudioFeatures && typeof window.WoobiStudioFeatures.createStudioFeatures === 'function') {
+        this.features = window.WoobiStudioFeatures.createStudioFeatures(this);
+        if (this.features && this.avatarModel) {
+          this.features.setAvatarModel(this.avatarModel);
+        }
+      }
+    }
+
+    /**
+     * Equips Garments on Avatar
+     */
+    equipGarment(category, id) {
+      if (this.features && this.features.tryOn && typeof this.features.tryOn.equipGarment === 'function') {
+        return this.features.tryOn.equipGarment(category, id);
+      }
+      console.log(`Studio3D: Equipped [${category}] -> [${id}]`);
+    }
+
+    /**
+     * Triggers High Fashion Pose on Avatar
+     */
+    triggerPose(poseName, durationMs = 600) {
+      if (this.features && this.features.animations && typeof this.features.animations.triggerPose === 'function') {
+        return this.features.animations.triggerPose(poseName, durationMs);
+      }
+      console.log(`Studio3D: Triggered pose [${poseName}]`);
+    }
+
+    /**
+     * Window / Container Resize Handler
      */
     onResize() {
       if (!this.container || !this.renderer || !this.camera) return;
@@ -1966,72 +2075,149 @@
       const width = rect.width || this.container.clientWidth || 390;
       const height = rect.height || this.container.clientHeight || 750;
 
-      const aspect = width / height;
-      this.camera.aspect = aspect;
+      if (this.cameraController && typeof this.cameraController.resize === 'function') {
+        this.cameraController.resize(width, height);
+      } else {
+        const aspect = width / height;
+        this.camera.aspect = aspect;
+        const isPortrait = aspect < 0.75;
+        const baseFov = isPortrait ?
+          CAMERA_STATES[this.currentCameraState].fovPortrait :
+          CAMERA_STATES[this.currentCameraState].fovLandscape;
 
-      const state = CAMERA_STATES[this.currentCameraState] || CAMERA_STATES.STUDIO_OVERVIEW;
-      const isPortrait = aspect < 0.75;
-      this.camera.fov = isPortrait ? state.fovPortrait : state.fovLandscape;
-      this.camera.updateProjectionMatrix();
+        this.camera.fov = Math.max(this.minFov, Math.min(this.maxFov, baseFov * this.cameraZoomFactor));
+        this.camera.updateProjectionMatrix();
+      }
 
       this.renderer.setSize(width, height);
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     }
 
     /**
-     * Main animation loop: Smooth camera transitions, live mirror render pass, & idle breathing
+     * Main Animation & Render Loop
      */
     animate() {
       this.animationFrameId = requestAnimationFrame(this.animate);
 
-      const dt = this.clock.getDelta();
+      const delta = this.clock.getDelta();
       const time = this.clock.getElapsedTime();
 
-      // 1. Smooth Avatar Rotation Damping
-      this.avatarRotationY += (this.targetRotationY - this.avatarRotationY) * (1.0 - Math.exp(-8.0 * dt));
-      if (this.avatarGroup) {
-        this.avatarGroup.rotation.y = this.avatarRotationY;
+      // 1. Smooth Avatar Rotation Damping & Animations
+      if (this.avatarModel && typeof this.avatarModel.update === 'function') {
+        if (this.avatarController) {
+          this.avatarController.setTargetRotation(this.targetRotationY);
+        }
+        this.avatarModel.update(delta, time);
+        if (this.features && typeof this.features.update === 'function') {
+          this.features.update(delta, time);
+        }
+        if (this.avatarModel.animations) {
+          this.avatarRotationY = this.avatarModel.animations.avatarRotationY;
+        }
+      } else {
+        this.avatarRotationY += (this.targetRotationY - this.avatarRotationY) * 0.12;
+        if (this.avatarRoot) {
+          this.avatarRoot.rotation.y = this.avatarRotationY;
+        }
+
+        // 2. Subtle Idle Breathing Motion
+        const breath = Math.sin(time * 1.6) * 0.003;
+        if (this.chestGroup) {
+          this.chestGroup.position.y = 1.22 + breath;
+        }
+        if (this.headGroup) {
+          this.headGroup.position.y = 1.54 + breath * 0.6;
+        }
+
+        // 3. Natural Periodic Eyelid Blinking
+        this.blinkTimer += delta;
+        if (this.blinkTimer > this.nextBlinkTime) {
+          this.isBlinking = true;
+          this.blinkProgress += delta * 12; // Quick blink motion
+          if (this.blinkProgress >= Math.PI) {
+            this.isBlinking = false;
+            this.blinkProgress = 0;
+            this.blinkTimer = 0;
+            this.nextBlinkTime = 2.8 + Math.random() * 2.6; // Random interval
+          }
+        }
+
+        if (this.eyelids && this.eyelids.length > 0) {
+          const lidScaleY = this.isBlinking ? Math.sin(this.blinkProgress) * 0.72 : 0.02;
+          this.eyelids.forEach(lid => {
+            lid.scale.y = Math.max(0.02, lidScaleY);
+          });
+        }
       }
 
-      // 2. Smooth Camera Position & LookAt Lerp
-      const lerpSpeed = 1.0 - Math.exp(-6.0 * dt);
-      this.camera.position.lerp(this.targetCameraPos, lerpSpeed);
-      this.currentCameraLookAt.lerp(this.targetCameraLookAt, lerpSpeed);
-      this.camera.lookAt(this.currentCameraLookAt);
+      // 4. Smooth Camera Transitions & FOV Damping
+      if (this.cameraController && typeof this.cameraController.update === 'function') {
+        this.cameraController.update(delta);
+        this.cameraZoomFactor = this.cameraController.zoomFactor;
+      } else {
+        this.camera.position.lerp(this.targetCameraPos, 0.075);
+        this.currentCameraLookAt.lerp(this.targetCameraLookAt, 0.075);
+        this.camera.lookAt(this.currentCameraLookAt);
 
-      // 3. Subtle Idle Breathing Motion on Avatar
-      if (this.chestGroup) {
-        const breath = Math.sin(time * 2.2) * 0.007;
-        this.chestGroup.position.y = 1.22 + breath;
-        this.chestGroup.scale.set(1.0 + breath * 0.4, 1.0, 1.0 + breath * 0.4);
-      }
-      if (this.headGroup) {
-        const microTilt = Math.sin(time * 1.5) * 0.004;
-        this.headGroup.rotation.z = microTilt;
+        // 5. Update FOV with zoom damping
+        const aspect = this.camera.aspect;
+        const isPortrait = aspect < 0.75;
+        const baseFov = isPortrait ?
+          CAMERA_STATES[this.currentCameraState].fovPortrait :
+          CAMERA_STATES[this.currentCameraState].fovLandscape;
+        const targetFov = Math.max(this.minFov, Math.min(this.maxFov, baseFov * this.cameraZoomFactor));
+        this.camera.fov += (targetFov - this.camera.fov) * 0.1;
+        this.camera.updateProjectionMatrix();
       }
 
-      // 4. Secondary Live Mirror Reflection Render Pass
+      // 6. Real-time Mirror Rendering (Render from mirror perspective)
       if (this.mirrorRenderTarget && this.mirrorCamera && this.mirrorGlassMesh) {
         this.mirrorGlassMesh.visible = false;
+        this.mirrorCamera.position.set(0.92, 1.46, -0.02);
+        this.mirrorCamera.lookAt(0, 1.25, 0); // Looking towards avatar
+
         this.renderer.setRenderTarget(this.mirrorRenderTarget);
         this.renderer.render(this.scene, this.mirrorCamera);
         this.renderer.setRenderTarget(null);
+
         this.mirrorGlassMesh.visible = true;
       }
 
-      // 5. Render Main 3D WebGL Scene
+      // 7. Render Main Viewport
       this.renderer.render(this.scene, this.camera);
     }
 
     /**
      * Cleanup resources
      */
-    dispose() {
+    destroy() {
       if (this.animationFrameId) {
         cancelAnimationFrame(this.animationFrameId);
       }
-      if (this.mirrorRenderTarget) {
-        this.mirrorRenderTarget.dispose();
+      if (this.stageModel) {
+        this.stageModel.dispose(this.scene);
+      }
+      if (this.wardrobeModel) {
+        this.wardrobeModel.dispose(this.scene);
+      }
+      if (this.vanityModel) {
+        this.vanityModel.dispose(this.scene);
+      }
+      if (this.avatarModel) {
+        this.avatarModel.dispose(this.scene);
+      }
+      if (this.lightingModel) {
+        this.lightingModel.dispose(this.scene);
+      }
+      if (this.themeModel) {
+        this.themeModel.dispose(this.scene);
+      }
+      if (this.cameraController) {
+        this.cameraController.dispose();
+      }
+      if (this.features && typeof this.features.dispose === 'function') {
+        this.features.dispose();
+        this.features = null;
       }
       if (this.renderer) {
         this.renderer.dispose();

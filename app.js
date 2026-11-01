@@ -1,5 +1,5 @@
 /**
- * AURA Wardrobe — Exact Replica Prototype Application Logic
+ * Woobi — 3D Virtual Fashion Studio & Monorepo Application by Troyz Solutions
  * Full Production System with:
  * - 01 Setup & First Outfit: Welcome, Style preferences, Add your wardrobe, Review item
  * - 02 Daily Outfit Studio: Today, Outfit details, Swap an item, Outfit ready
@@ -116,7 +116,7 @@
     }
   ];
 
-  const state = {
+  const rawState = {
     currentScreen: 'welcome',
     todayCanvasMode: 'model', // 'model' or 'flat'
     stylistViewMode: 'model', // 'model' or 'flat'
@@ -149,11 +149,24 @@
     wearHistoryCount: 6
   };
 
+  const state = new Proxy(rawState, {
+    set(target, prop, value) {
+      target[prop] = value;
+      if (typeof window !== 'undefined' && window.woobiStore) {
+        window.woobiStore.setState({ [prop]: value });
+      }
+      return true;
+    }
+  });
+
   // =========================================================================
   // 2. SCREEN ROUTER & NAVIGATION
   // =========================================================================
   function goToScreen(screenId) {
     state.currentScreen = screenId;
+    if (typeof window !== 'undefined' && window.navigationRouter) {
+      window.navigationRouter.currentScreen = screenId;
+    }
 
     // Update screen selector dropdown if present
     const select = document.getElementById('screenSelect');
@@ -332,6 +345,38 @@
     if (rBot) rBot.src = look.bottom.photo;
     if (rShoe) rShoe.src = look.footwear.photo;
     if (rAcc) rAcc.src = look.accessory.photo;
+
+    // Daily Drawer Recommendation Card Mount
+    const mount = document.getElementById('todayOutfitCardMount');
+    if (mount) {
+      mount.innerHTML = `
+        <div class="rec-outfit-preview-card">
+          <div class="rec-card-top-row">
+            <span class="rec-look-title">${look.title}</span>
+            <span class="rec-look-tag">Look ${state.currentLookIndex + 1} of ${LOOKS_DATA.length}</span>
+          </div>
+          <p class="rec-look-caption">${look.caption}</p>
+          <div class="outfit-board-card" style="margin-bottom: 12px;">
+            <div class="quad-item top-left"><img src="${look.top.photo}" alt="${look.top.name}"></div>
+            <div class="quad-item top-right"><img src="${look.bottom.photo}" alt="${look.bottom.name}"></div>
+            <div class="quad-item bot-left"><img src="${look.footwear.photo}" alt="${look.footwear.name}"></div>
+            <div class="quad-item bot-right"><img src="${look.accessory.photo}" alt="${look.accessory.name}"></div>
+          </div>
+          <div class="rec-card-actions">
+            <button class="btn-camera-upload" onclick="app.triggerOutfitPhotoUpload()" title="Upload outfit photo to increase streak">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span>Upload Today's Outfit (+1 🔥)</span>
+            </button>
+            <button class="btn-outline-white" onclick="app.goToScreen('outfit-details'); app.serenToggleDailyLooks(false);">
+              View Look Details & Swap Pieces
+            </button>
+          </div>
+        </div>
+      `;
+    }
   }
 
   function setTodayOccasion(occ, btn) {
@@ -1058,31 +1103,299 @@
   }
 
   // =========================================================================
-  // 9. PROFILE, SETTINGS & UTILITIES
+  // 9. PROFILE, SETTINGS & UTILITIES (PHASE 6 MODULAR SETTINGS SUITE)
   // =========================================================================
+  let _settingsManagerInstance = null;
+  function getSettingsManager() {
+    if (_settingsManagerInstance) return _settingsManagerInstance;
+    if (typeof window !== 'undefined' && window.WoobiSettings && typeof window.WoobiSettings.createSettings === 'function') {
+      const store = (typeof window !== 'undefined' && window.woobiStore) ? window.woobiStore : null;
+      const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+      _settingsManagerInstance = window.WoobiSettings.createSettings(store, studio);
+      window.woobiSettings = _settingsManagerInstance;
+      return _settingsManagerInstance;
+    }
+    return null;
+  }
+
   function selectPlan(planType) {
     state.currentPlan = planType;
     document.querySelectorAll('.pricing-option-card').forEach(card => card.classList.remove('selected'));
     const target = planType === 'annual' ? document.getElementById('planAnnual') : document.getElementById('planMonthly');
     if (target) target.classList.add('selected');
+    const sm = getSettingsManager();
+    if (sm && sm.account) {
+      sm.account.updateSubscription(planType, state.isPremium);
+    }
   }
 
   function activatePremium() {
     state.isPremium = true;
-    showToast('🎉 Welcome to AURA Premium! All features unlocked.');
+    showToast('🎉 Welcome to Woobi Premium! All features unlocked.');
+    const sm = getSettingsManager();
+    if (sm && sm.account) {
+      sm.account.updateSubscription(state.currentPlan, true);
+    }
     setTimeout(() => goToScreen('today'), 800);
   }
 
+  function saveProfile() {
+    const nameInput = document.getElementById('inputProfileName');
+    const emailInput = document.getElementById('inputProfileEmail');
+    const name = nameInput ? nameInput.value.trim() : '';
+    const email = emailInput ? emailInput.value.trim() : '';
+    const sm = getSettingsManager();
+    if (sm && sm.account) {
+      const result = sm.account.updateProfile({ displayName: name, email: email });
+      if (result.success) {
+        showToast('✓ Profile successfully updated');
+        const nameHeader = document.querySelector('.profile-user-name');
+        if (nameHeader) nameHeader.textContent = name;
+      } else {
+        showToast(`✕ ${result.error || 'Failed to update profile'}`);
+      }
+    } else {
+      showToast('✓ Profile saved');
+    }
+  }
+
+  function updatePrivacyConsent() {
+    const sm = getSettingsManager();
+    const analytics = document.getElementById('toggleAnalyticsConsent');
+    const crash = document.getElementById('toggleCrashReporting');
+    if (sm && sm.privacy) {
+      sm.privacy.updateConsent({
+        analyticsConsent: analytics ? analytics.checked : false,
+        crashReporting: crash ? crash.checked : true
+      });
+      showToast('✓ Privacy preferences saved');
+    }
+  }
+
+  function exportUserData() {
+    const sm = getSettingsManager();
+    showToast('📦 Preparing data export package...');
+    setTimeout(() => {
+      let exportPayload = null;
+      if (sm && sm.privacy) {
+        const result = sm.privacy.exportUserData();
+        if (result.success) exportPayload = result.data;
+      }
+      if (!exportPayload) {
+        exportPayload = {
+          exportedAt: new Date().toISOString(),
+          profile: { displayName: 'Suriya', email: 'suriya@example.com' },
+          storageMode: 'client_local_only'
+        };
+      }
+      try {
+        const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `woobi-user-data-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        console.warn('Could not trigger browser download', e);
+      }
+      showToast('✓ User data package exported');
+    }, 600);
+  }
+
+  function clearSavedLooksCache() {
+    const sm = getSettingsManager();
+    if (sm && sm.privacy) {
+      sm.privacy.clearSavedLooksCache();
+    }
+    showToast('✓ Saved looks cache cleared');
+  }
+
+  function clearAvatarPreferencesCache() {
+    const sm = getSettingsManager();
+    if (sm && sm.privacy) {
+      sm.privacy.clearAvatarPreferencesCache();
+    }
+    showToast('✓ Avatar preferences reset to default');
+  }
+
+  function signOut() {
+    const sm = getSettingsManager();
+    if (sm && sm.account) {
+      sm.account.signOut();
+    }
+    showToast('Signed out of session');
+    goToScreen('welcome');
+  }
+
+  function setAppTheme(theme) {
+    const sm = getSettingsManager();
+    if (sm && sm.appearance) {
+      sm.appearance.setAppTheme(theme);
+    }
+    ['btnThemeLight', 'btnThemeDark', 'btnThemeSystem'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.remove('active');
+    });
+    const activeBtn = document.getElementById(theme === 'light' ? 'btnThemeLight' : theme === 'dark' ? 'btnThemeDark' : 'btnThemeSystem');
+    if (activeBtn) activeBtn.classList.add('active');
+    showToast(`Theme switched to ${theme}`);
+  }
+
+  function setStudioTheme(theme) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.appearance) {
+      sm.appearance.setStudioTheme(theme, studio);
+    }
+    ['theme-check-luxury', 'theme-check-nordic', 'theme-check-terracotta'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '';
+    });
+    const checkId = theme === 'luxury-cream' ? 'theme-check-luxury' : theme === 'nordic-minimal' ? 'theme-check-nordic' : 'theme-check-terracotta';
+    const target = document.getElementById(checkId);
+    if (target) target.textContent = '✓';
+    showToast(`3D Studio atmosphere set to ${theme}`);
+  }
+
+  function setStudioLighting(preset) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.appearance) {
+      sm.appearance.setStudioLighting(preset, studio);
+    }
+    ['btnLightSoft', 'btnLightAtelier', 'btnLightGolden', 'btnLightDramatic', 'btnLightClean'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.remove('active');
+    });
+    const map = {
+      'editorial_soft': 'btnLightSoft',
+      'warm_atelier': 'btnLightAtelier',
+      'golden_hour': 'btnLightGolden',
+      'dramatic_chiaroscuro': 'btnLightDramatic',
+      'high_key_clean': 'btnLightClean'
+    };
+    const target = document.getElementById(map[preset]);
+    if (target) target.classList.add('active');
+    showToast(`Studio lighting: ${preset.replace(/_/g, ' ')}`);
+  }
+
+  function toggleHighContrast(enabled) {
+    const sm = getSettingsManager();
+    if (sm && sm.appearance) {
+      sm.appearance.toggleHighContrast(enabled);
+    }
+    showToast(enabled ? 'High contrast enabled' : 'High contrast disabled');
+  }
+
+  function resetAppearance() {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.appearance) {
+      sm.appearance.resetAppearance(studio);
+    }
+    setAppTheme('light');
+    setStudioTheme('luxury-cream');
+    setStudioLighting('editorial_soft');
+    const toggle = document.getElementById('toggleHighContrast');
+    if (toggle) toggle.checked = false;
+    showToast('Appearance reset to default');
+  }
+
+  function setPerformancePreset(preset) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    let applied = preset;
+    if (sm && sm.performance) {
+      applied = sm.performance.setPreset(preset, studio);
+    }
+    ['btnPerfHigh', 'btnPerfMedium', 'btnPerfLow', 'btnPerfBattery', 'btnPerfAuto'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.remove('active');
+    });
+    const map = {
+      'high': 'btnPerfHigh',
+      'medium': 'btnPerfMedium',
+      'low': 'btnPerfLow',
+      'battery_saver': 'btnPerfBattery',
+      'auto': 'btnPerfAuto'
+    };
+    const target = document.getElementById(map[preset]);
+    if (target) target.classList.add('active');
+
+    if (sm && sm.performance) {
+      const current = sm.performance.getSettings();
+      const shadowEl = document.getElementById('toggleShadows');
+      if (shadowEl) shadowEl.checked = current.shadows !== 'off';
+      const reflEl = document.getElementById('toggleReflections');
+      if (reflEl) reflEl.checked = current.reflections !== 'off';
+      const idleEl = document.getElementById('toggleIdleMotion');
+      if (idleEl) idleEl.checked = current.idleAnimations !== false;
+    }
+    showToast(`Graphics profile: ${applied}`);
+  }
+
+  function toggleShadowQuality(enabled) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.performance) {
+      sm.performance.setShadowQuality(enabled ? 'soft' : 'off', studio);
+    }
+    showToast(enabled ? 'Real-time soft shadows on' : 'Shadows turned off');
+  }
+
+  function toggleReflectionQuality(enabled) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.performance) {
+      sm.performance.setReflectionQuality(enabled ? 'full' : 'off', studio);
+    }
+    showToast(enabled ? 'Mirror reflections on' : 'Reflections off');
+  }
+
+  function toggleIdleAnimations(enabled) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.performance) {
+      sm.performance.toggleIdleAnimations(enabled, studio);
+    }
+    showToast(enabled ? 'Breathing animations on' : 'Idle animations paused');
+  }
+
+  function resetPerformance() {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.performance) {
+      sm.performance.resetPerformance(studio);
+    }
+    setPerformancePreset('high');
+    showToast('Graphics settings restored to High');
+  }
+
+  async function requestNotificationPermission() {
+    const sm = getSettingsManager();
+    if (sm && sm.notifications) {
+      const res = await sm.notifications.requestBrowserPermission();
+      showToast(`Notifications permission: ${res.status}`);
+      return res;
+    }
+    return { granted: false, status: 'unsupported' };
+  }
+
   function saveReminderPreferences() {
+    const sm = getSettingsManager();
+    const reminderToggle = document.getElementById('toggleReminder');
+    if (sm && sm.notifications) {
+      sm.notifications.setCategoryEnabled('morningOutfits', reminderToggle ? reminderToggle.checked : true);
+    }
     showToast('✓ Reminder preferences updated.');
     goToScreen('profile');
   }
 
   function exportWardrobe() {
-    showToast('📦 Preparing wardrobe data package...');
-    setTimeout(() => {
-      showToast('✓ Export ready! 16 garments packaged.');
-    }, 1000);
+    exportUserData();
   }
 
   function deleteAccount() {
@@ -1149,7 +1462,7 @@
   }
 
   function tryReconnect() {
-    showToast('📶 Reconnecting to AURA Cloud...');
+    showToast('📶 Reconnecting to Woobi Cloud...');
     setTimeout(() => {
       showToast('Online! Synchronizing latest suggestions.');
       goToScreen('today');
@@ -1157,6 +1470,11 @@
   }
 
   function confirmDeleteAccount() {
+    const sm = getSettingsManager();
+    if (sm) {
+      if (sm.privacy) sm.privacy.clearAllLocalData('CONFIRM_DELETE_ALL');
+      if (sm.account) sm.account.deleteAccountData('CONFIRM_DELETE');
+    }
     showToast('Account data deleted. Resetting to setup...');
     setTimeout(() => {
       goToScreen('welcome');
@@ -1164,14 +1482,17 @@
   }
 
   // Toast Notification Helper
-  function showToast(msg) {
+  function showToast(msg, type = 'info', duration = 3200) {
+    if (typeof window !== 'undefined' && window.toastService && typeof window.toastService.show === 'function') {
+      window.toastService.show(msg, type, duration);
+    }
     const toast = document.getElementById('toastPopup');
     if (!toast) return;
     toast.textContent = msg;
     toast.classList.add('visible');
     setTimeout(() => {
       toast.classList.remove('visible');
-    }, 3200);
+    }, duration);
   }
 
   // =========================================================================
@@ -1351,6 +1672,7 @@
       }, 50);
     }
     renderSerenGarments('all');
+    updateSerenGreeting();
   }
 
   function renderSerenGarments(cat) {
@@ -1409,12 +1731,17 @@
 
     if (forceOpen === undefined) {
       sheet.classList.toggle('hidden');
+      if (!sheet.classList.contains('hidden')) {
+        setStudioCamera('WARDROBE_CLOSEUP');
+      } else {
+        setStudioCamera('STUDIO_OVERVIEW');
+      }
     } else if (forceOpen) {
       sheet.classList.remove('hidden');
-      if (window.Studio3D) window.Studio3D.setCameraState('WARDROBE_CLOSEUP');
+      setStudioCamera('WARDROBE_CLOSEUP');
     } else {
       sheet.classList.add('hidden');
-      if (window.Studio3D) window.Studio3D.setCameraState('STUDIO_OVERVIEW');
+      setStudioCamera('STUDIO_OVERVIEW');
     }
   }
 
@@ -1513,7 +1840,7 @@
   function serenSaveCurrentLook() {
     const currentOutfit = {
       id: 'look_' + Date.now(),
-      name: 'Sérén Studio Look',
+      name: 'Woobi Studio Look',
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       occasion: 'Everyday Luxury',
       items: [
@@ -1529,17 +1856,31 @@
   }
 
   function serenCenterAction() {
-    serenToggleWardrobe(true);
+    // Quick action: Toggle wardrobe or cycle through curated looks
+    const wardrobeSheet = document.getElementById('serenWardrobeSheet');
+    if (wardrobeSheet && !wardrobeSheet.classList.contains('hidden')) {
+      serenToggleWardrobe(false);
+    } else {
+      serenToggleWardrobe(true);
+    }
   }
 
   function onStudioCameraChanged(stateName) {
     const backBtn = document.getElementById('serenBackStudioBtn');
-    if (backBtn) {
-      if (stateName === 'STUDIO_OVERVIEW') {
-        backBtn.classList.add('hidden');
-      } else {
-        backBtn.classList.remove('hidden');
-      }
+    const hints = document.querySelectorAll('.spatial-3d-hint');
+    const greeting = document.getElementById('serenFloatingGreeting');
+    const tagline = document.querySelector('.seren-editorial-tagline-wrap');
+
+    if (stateName === 'STUDIO_OVERVIEW') {
+      if (backBtn) backBtn.classList.add('hidden');
+      hints.forEach(h => h.style.display = '');
+      if (greeting) greeting.style.display = '';
+      if (tagline) tagline.style.display = '';
+    } else {
+      if (backBtn) backBtn.classList.remove('hidden');
+      hints.forEach(h => h.style.display = 'none');
+      if (greeting) greeting.style.display = 'none';
+      if (tagline) tagline.style.display = 'none';
     }
   }
 
@@ -1551,12 +1892,721 @@
   }
 
   function serenInteract(type) {
-    if (window.Studio3D) {
-      window.Studio3D.handleObjectClick(type);
+    if (type === 'vanity' || type === 'mirror') {
+      serenOpenVanity(true);
+    } else if (type === 'wardrobe') {
+      if (window.Studio3D && window.Studio3D.currentCameraState === 'WARDROBE_CLOSEUP') {
+        serenToggleWardrobe(true);
+      } else {
+        setStudioCamera('WARDROBE_CLOSEUP');
+      }
+    } else if (window.Studio3D) {
+      if (typeof window.Studio3D.handleCanvasClick === 'function') {
+        window.Studio3D.handleCanvasClick();
+      }
     }
   }
 
-function init() {
+  // =========================================================================
+  // VANITY & PERSONALIZED AVATAR CUSTOMIZATION SYSTEM
+  // =========================================================================
+  function serenOpenVanity(forceOpen) {
+    const sheet = document.getElementById('serenVanitySheet');
+    if (!sheet) return;
+
+    if (forceOpen === undefined) {
+      sheet.classList.toggle('hidden');
+    } else if (forceOpen) {
+      sheet.classList.remove('hidden');
+      if (window.Studio3D) window.Studio3D.setCameraState('VANITY_VIEW');
+    } else {
+      sheet.classList.add('hidden');
+      if (window.Studio3D) window.Studio3D.setCameraState('STUDIO_OVERVIEW');
+    }
+  }
+
+  function serenCloseVanity() {
+    serenOpenVanity(false);
+  }
+
+  function serenSwitchVanityTab(tabName, btn) {
+    document.querySelectorAll('.vanity-seg-tab').forEach(t => t.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    const appView = document.getElementById('vanityAppearanceView');
+    const photoView = document.getElementById('vanityPhotoView');
+
+    if (tabName === 'appearance') {
+      if (appView) appView.style.display = 'block';
+      if (photoView) photoView.style.display = 'none';
+    } else {
+      if (appView) appView.style.display = 'none';
+      if (photoView) photoView.style.display = 'block';
+    }
+  }
+
+  function serenSetGender(gender, btn) {
+    if (btn) {
+      btn.parentElement.querySelectorAll('.vanity-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    if (window.Studio3D) window.Studio3D.setGenderPresentation(gender);
+    showToast(`Gender presentation set to ${gender}.`);
+  }
+
+  function serenSetSkinTone(hex, btn) {
+    if (btn) {
+      document.querySelectorAll('#skinToneSwatches .skin-swatch').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    if (window.Studio3D) window.Studio3D.setSkinTone(hex);
+  }
+
+  function serenSetHairStyle(styleName, btn) {
+    if (btn) {
+      document.querySelectorAll('#hairStyleChips .vanity-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    if (window.Studio3D) window.Studio3D.setHairstyle(styleName);
+  }
+
+  function serenSetHairColor(hex, btn) {
+    if (btn) {
+      document.querySelectorAll('#hairColorSwatches .skin-swatch').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    if (window.Studio3D) window.Studio3D.setHairColor(hex);
+  }
+
+  function serenSetProportions(preset, btn) {
+    if (btn) {
+      document.querySelectorAll('#proportionChips .vanity-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    if (window.Studio3D) window.Studio3D.setBodyProportions(preset);
+    showToast(`Body proportions adjusted to ${preset}.`);
+  }
+
+  function serenToggleAccessory(name, btn) {
+    if (btn) {
+      btn.classList.toggle('active');
+      const isActive = btn.classList.contains('active');
+      if (window.Studio3D) window.Studio3D.toggleAccessory(name, isActive);
+      showToast(`${name.charAt(0).toUpperCase() + name.slice(1)} ${isActive ? 'equipped' : 'removed'}.`);
+    }
+  }
+
+  function serenSaveAvatarCustomization() {
+    if (window.Studio3D) {
+      window.Studio3D.savePreferences();
+    }
+    serenCloseVanity();
+    showToast('Avatar appearance saved to your profile! ✨');
+  }
+
+  // Consent-Based Photo Match Integration
+  let currentDetectedPhotoTone = '#F3D5C6';
+  let currentDetectedHairTone = '#1E120A';
+
+  function serenHandlePhotoUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const dataUrl = e.target.result;
+      const previewImg = document.getElementById('photoPreviewImg');
+      const dropzoneEmpty = document.getElementById('dropzoneEmpty');
+      const dropzonePreview = document.getElementById('dropzonePreview');
+      const analysisBox = document.getElementById('photoAnalysisBox');
+
+      if (previewImg) previewImg.src = dataUrl;
+      if (dropzoneEmpty) dropzoneEmpty.classList.add('hidden');
+      if (dropzonePreview) dropzonePreview.classList.remove('hidden');
+
+      // Local Canvas Tone Analysis (No server upload - 100% consent and privacy maintained)
+      const img = new Image();
+      img.onload = function() {
+        const c = document.createElement('canvas');
+        c.width = 64;
+        c.height = 64;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, 64, 64);
+        const p1 = ctx.getImageData(32, 28, 1, 1).data;
+        const p2 = ctx.getImageData(32, 8, 1, 1).data;
+
+        const toHex = (r, g, b) => '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+        currentDetectedPhotoTone = toHex(p1[0], p1[1], p1[2]);
+        currentDetectedHairTone = toHex(p2[0], p2[1], p2[2]);
+
+        const skinEl = document.getElementById('detectedSkinColor');
+        const hairEl = document.getElementById('detectedHairColor');
+        if (skinEl) skinEl.style.background = currentDetectedPhotoTone;
+        if (hairEl) hairEl.style.background = currentDetectedHairTone;
+
+        if (analysisBox) analysisBox.classList.remove('hidden');
+        showToast('✓ Photo analyzed locally with complete privacy.');
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function serenApplyPhotoMatch() {
+    if (window.Studio3D) {
+      window.Studio3D.setSkinTone(currentDetectedPhotoTone);
+      window.Studio3D.setHairColor(currentDetectedHairTone);
+      window.Studio3D.savePreferences();
+      showToast('Personalized likeness tones applied to 3D avatar! ✨');
+    }
+    serenCloseVanity();
+  }
+
+  function updateSerenGreeting() {
+    const greetingTimeTag = document.getElementById('greetingTimeTag');
+    if (!greetingTimeTag) return;
+    const hour = new Date().getHours();
+    let timeGreeting = 'Good morning';
+    if (hour >= 12 && hour < 17) {
+      timeGreeting = 'Good afternoon';
+    } else if (hour >= 17) {
+      timeGreeting = 'Good evening';
+    }
+    const userName = (state && state.profile && state.profile.name) ? state.profile.name : 'Suriya';
+    greetingTimeTag.textContent = `${timeGreeting}, ${userName}`;
+  }
+
+  // =========================================================================
+  // 9. DAILY OUTFIT-UPLOAD STREAK & COUNTDOWN TIMER SYSTEM
+  // =========================================================================
+  const STREAK_STORAGE_KEY = 'woobi_outfit_streak_v2';
+
+  // Helper: Determine calendar monthly restore cycle key (refreshes on 3rd of every month)
+  function getMonthlyRestoreCycleKey(dateObj) {
+    const d = dateObj || new Date();
+    const year = d.getFullYear();
+    const month = d.getMonth(); // 0-indexed (0 = Jan, 9 = Oct)
+    const day = d.getDate();
+
+    if (day >= 3) {
+      // Current cycle starts on 3rd of this month
+      return `${year}-${String(month + 1).padStart(2, '0')}`;
+    } else {
+      // Prior cycle: belongs to cycle starting on 3rd of previous month
+      const prev = new Date(year, month - 1, 3);
+      return `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+    }
+  }
+
+  // Helper: Format next refresh date string (e.g. "Nov 3, 2026")
+  function getNextRestoreRefreshDateStr(dateObj) {
+    const d = dateObj || new Date();
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const day = d.getDate();
+
+    let targetDate;
+    if (day < 3) {
+      targetDate = new Date(year, month, 3);
+    } else {
+      targetDate = new Date(year, month + 1, 3);
+    }
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${monthNames[targetDate.getMonth()]} 3, ${targetDate.getFullYear()}`;
+  }
+
+  function initStreakState() {
+    let saved = null;
+    try {
+      const raw = localStorage.getItem(STREAK_STORAGE_KEY);
+      if (raw) saved = JSON.parse(raw);
+    } catch (e) {
+      console.warn('Could not read streak from localStorage', e);
+    }
+
+    const now = Date.now();
+    const defaultDeadline = now + (24 * 3600 * 1000); // 24-hour window from outfit recommendation
+
+    if (!saved) {
+      state.streak = {
+        currentStreak: 5, // Default starter streak of 5 days
+        savedPreviousStreak: 5,
+        isStreakBroken: false,
+        deadline: defaultDeadline,
+        lastUploadTimestamp: now - (12 * 3600 * 1000),
+        lastUploadDateStr: new Date(now - 12 * 3600 * 1000).toISOString().split('T')[0],
+        lastRestoredCycleKey: null, // Eligible for restore!
+        uploadedToday: false,
+        morningReminderSent: false,
+        urgentReminderSent: false
+      };
+      saveStreakState();
+    } else {
+      state.streak = saved;
+      const todayStr = new Date().toISOString().split('T')[0];
+      state.streak.uploadedToday = (state.streak.lastUploadDateStr === todayStr);
+    }
+
+    // Check deadline on launch
+    checkStreakDeadline();
+
+    // Start 1-second countdown ticker
+    if (window._streakTicker) clearInterval(window._streakTicker);
+    window._streakTicker = setInterval(tickStreakCountdown, 1000);
+
+    // Initial UI render
+    updateStreakUI();
+
+    // If streak is already broken, surface missed upload modal
+    if (state.streak.isStreakBroken) {
+      setTimeout(() => {
+        showMissedStreakModal();
+      }, 700);
+    }
+  }
+
+  function saveStreakState() {
+    try {
+      localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(state.streak));
+    } catch (e) {
+      console.warn('Could not persist streak to localStorage', e);
+    }
+  }
+
+  function tickStreakCountdown() {
+    if (!state.streak) return;
+    checkStreakDeadline();
+    updateStreakUI();
+  }
+
+  function checkStreakDeadline() {
+    const streak = state.streak;
+    if (!streak) return;
+
+    if (streak.isStreakBroken) return;
+    if (streak.uploadedToday) return;
+
+    const now = Date.now();
+    const msRemaining = streak.deadline - now;
+
+    // 1. Deadline passed: Streak breaks
+    if (msRemaining <= 0) {
+      breakStreak();
+      return;
+    }
+
+    // 2. Last 2 Hours Warning Threshold: msRemaining <= 2 hours
+    const TWO_HOURS_MS = 2 * 3600 * 1000;
+    if (msRemaining <= TWO_HOURS_MS) {
+      if (!streak.urgentReminderSent) {
+        streak.urgentReminderSent = true;
+        saveStreakState();
+        sendDailyNotification(
+          '⚠️ 2 Hours Left on Your Outfit Streak!',
+          `Only 2 hours left to upload today's outfit photo before your 🔥 ${streak.currentStreak}-day streak ends!`,
+          true
+        );
+      }
+    } else {
+      // Normal Reminder: e.g. 8 hours remaining
+      const EIGHT_HOURS_MS = 8 * 3600 * 1000;
+      if (msRemaining <= EIGHT_HOURS_MS && !streak.morningReminderSent) {
+        streak.morningReminderSent = true;
+        saveStreakState();
+        sendDailyNotification(
+          'Woobi Daily Outfit Reminder 🔥',
+          `Don't forget to snap and upload your recommended outfit to maintain your 🔥 ${streak.currentStreak}-day streak!`,
+          false
+        );
+      }
+    }
+  }
+
+  function breakStreak() {
+    const streak = state.streak;
+    if (streak.isStreakBroken) return;
+
+    streak.isStreakBroken = true;
+    if (streak.currentStreak > 0) {
+      streak.savedPreviousStreak = streak.currentStreak;
+    } else if (!streak.savedPreviousStreak) {
+      streak.savedPreviousStreak = 1;
+    }
+    streak.currentStreak = 0;
+    streak.uploadedToday = false;
+    saveStreakState();
+
+    // Trigger visual flame blowout and smoke animation
+    triggerFlameBlowoutAnimation();
+
+    // Show missed upload modal
+    setTimeout(() => {
+      showMissedStreakModal();
+    }, 1200);
+  }
+
+  function triggerFlameBlowoutAnimation() {
+    const flameWrapper = document.getElementById('streakFlameWrapper');
+    if (flameWrapper) {
+      flameWrapper.classList.remove('reignited');
+      flameWrapper.classList.add('blown-out');
+    }
+
+    const pill = document.getElementById('streakHeaderPill');
+    if (pill) {
+      pill.classList.remove('urgent', 'completed');
+    }
+
+    const timer = document.getElementById('streakTimer');
+    if (timer) timer.textContent = '00:00:00';
+  }
+
+  function updateStreakUI() {
+    const streak = state.streak;
+    if (!streak) return;
+
+    const streakCountEl = document.getElementById('streakCount');
+    const streakTimerEl = document.getElementById('streakTimer');
+    const streakPillEl = document.getElementById('streakHeaderPill');
+    const streakDrawerCountEl = document.querySelector('.streak-drawer-count');
+    const readyTimerMini = document.getElementById('streakReadyTimerMini');
+    const flameWrapper = document.getElementById('streakFlameWrapper');
+
+    if (streakCountEl) streakCountEl.textContent = streak.currentStreak;
+    if (streakDrawerCountEl) streakDrawerCountEl.textContent = streak.currentStreak;
+
+    if (streak.isStreakBroken) {
+      if (streakTimerEl) streakTimerEl.textContent = 'Ended';
+      if (streakPillEl) {
+        streakPillEl.classList.remove('urgent', 'completed');
+      }
+      if (flameWrapper && !flameWrapper.classList.contains('blown-out')) {
+        flameWrapper.classList.add('blown-out');
+      }
+      return;
+    }
+
+    // Flame should be active
+    if (flameWrapper && flameWrapper.classList.contains('blown-out')) {
+      flameWrapper.classList.remove('blown-out');
+    }
+
+    if (streak.uploadedToday) {
+      if (streakTimerEl) streakTimerEl.textContent = '✓ Done';
+      if (streakPillEl) {
+        streakPillEl.classList.remove('urgent');
+        streakPillEl.classList.add('completed');
+      }
+      if (readyTimerMini) readyTimerMini.textContent = '✓ Uploaded';
+      return;
+    }
+
+    const now = Date.now();
+    const diff = Math.max(0, streak.deadline - now);
+
+    const hours = Math.floor(diff / (3600 * 1000));
+    const mins = Math.floor((diff % (3600 * 1000)) / (60 * 1000));
+    const secs = Math.floor((diff % (60 * 1000)) / 1000);
+
+    const formattedTime = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    if (streakTimerEl) streakTimerEl.textContent = formattedTime;
+    if (readyTimerMini) readyTimerMini.textContent = `⏳ ${hours}h ${mins}m left`;
+
+    // Last 2 Hours Warning Threshold: <= 2 hours (7200 seconds)
+    const isUrgent = diff <= (2 * 3600 * 1000);
+    if (streakPillEl) {
+      streakPillEl.classList.toggle('urgent', isUrgent);
+      streakPillEl.classList.remove('completed');
+    }
+  }
+
+  // Camera upload triggers
+  function triggerOutfitPhotoUpload() {
+    const input = document.getElementById('outfitPhotoInput');
+    if (input) {
+      input.value = '';
+      input.click();
+    }
+  }
+
+  function handleOutfitPhotoSelected(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      openPhotoConfirmModal(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function openPhotoConfirmModal(imgDataUrl) {
+    const modal = document.getElementById('outfitPhotoConfirmModal');
+    const previewImg = document.getElementById('outfitPhotoPreviewImg');
+    const currVal = document.getElementById('confirmCurrentStreakVal');
+    const newVal = document.getElementById('confirmNewStreakVal');
+
+    if (previewImg) previewImg.src = imgDataUrl || 'assets/welcome_hero.jpg';
+    if (currVal) currVal.textContent = state.streak ? state.streak.currentStreak : 0;
+    if (newVal) newVal.textContent = (state.streak ? state.streak.currentStreak : 0) + 1;
+
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closePhotoConfirmModal() {
+    const modal = document.getElementById('outfitPhotoConfirmModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function confirmOutfitPhotoUpload() {
+    closePhotoConfirmModal();
+
+    const streak = state.streak;
+    streak.currentStreak = (streak.currentStreak || 0) + 1;
+    streak.savedPreviousStreak = streak.currentStreak;
+    streak.isStreakBroken = false;
+    streak.uploadedToday = true;
+    streak.lastUploadTimestamp = Date.now();
+    streak.lastUploadDateStr = new Date().toISOString().split('T')[0];
+    streak.deadline = Date.now() + (24 * 3600 * 1000); // Reset next 24h deadline
+    streak.morningReminderSent = false;
+    streak.urgentReminderSent = false;
+    saveStreakState();
+
+    // Re-ignite flame animation
+    const flameWrapper = document.getElementById('streakFlameWrapper');
+    if (flameWrapper) {
+      flameWrapper.classList.remove('blown-out');
+      flameWrapper.classList.add('reignited');
+      setTimeout(() => flameWrapper.classList.remove('reignited'), 1000);
+    }
+
+    updateStreakUI();
+    dismissReminderBanner();
+
+    showToast(`🔥 Streak increased to ${streak.currentStreak}! Amazing look!`);
+  }
+
+  // Missed Upload Modal and Monthly Restoration Logic
+  function showMissedStreakModal() {
+    const modal = document.getElementById('missedStreakModal');
+    if (!modal) return;
+
+    const streak = state.streak;
+    const lostCountEl = document.getElementById('missedStreakLostCount');
+    const statusCard = document.getElementById('restoreStatusCard');
+    const statusIcon = document.getElementById('restoreStatusIcon');
+    const statusTitle = document.getElementById('restoreStatusTitle');
+    const statusSubtitle = document.getElementById('restoreStatusSubtitle');
+    const btnRestore = document.getElementById('btnRestoreStreak');
+
+    if (lostCountEl) {
+      lostCountEl.textContent = `${streak.savedPreviousStreak || 1} Days`;
+    }
+
+    // Check Monthly Restore Eligibility (Refreshes on 3rd of month)
+    const currentCycleKey = getMonthlyRestoreCycleKey(new Date());
+    const isEligible = streak.lastRestoredCycleKey !== currentCycleKey;
+    const nextRefreshDate = getNextRestoreRefreshDateStr(new Date());
+
+    if (isEligible) {
+      if (statusCard) statusCard.classList.remove('ineligible');
+      if (statusIcon) statusIcon.textContent = '✨';
+      if (statusTitle) statusTitle.textContent = 'Monthly Restoration Available!';
+      if (statusSubtitle) statusSubtitle.textContent = `You have 1 free restore for this monthly cycle. (Refreshes on the 3rd of every month)`;
+      if (btnRestore) {
+        btnRestore.disabled = false;
+        btnRestore.textContent = `Restore Streak (${streak.savedPreviousStreak || 1} Days) 🔥`;
+      }
+    } else {
+      if (statusCard) statusCard.classList.add('ineligible');
+      if (statusIcon) statusIcon.textContent = '🔒';
+      if (statusTitle) statusTitle.textContent = 'Monthly Restore Used for this Cycle';
+      if (statusSubtitle) statusSubtitle.textContent = `Your free restore refreshes on ${nextRefreshDate}.`;
+      if (btnRestore) {
+        btnRestore.disabled = true;
+        btnRestore.textContent = `Restore Used (Refreshes ${nextRefreshDate})`;
+      }
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeMissedStreakModal() {
+    const modal = document.getElementById('missedStreakModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function restoreMonthlyStreak() {
+    const streak = state.streak;
+    const currentCycleKey = getMonthlyRestoreCycleKey(new Date());
+
+    if (streak.lastRestoredCycleKey === currentCycleKey) {
+      showToast('⚠️ Monthly restore already used. Refreshes on the 3rd.');
+      return;
+    }
+
+    streak.currentStreak = streak.savedPreviousStreak || 1;
+    streak.isStreakBroken = false;
+    streak.lastRestoredCycleKey = currentCycleKey;
+    streak.deadline = Date.now() + (24 * 3600 * 1000);
+    saveStreakState();
+
+    closeMissedStreakModal();
+
+    // Re-ignite flame
+    const flameWrapper = document.getElementById('streakFlameWrapper');
+    if (flameWrapper) {
+      flameWrapper.classList.remove('blown-out');
+      flameWrapper.classList.add('reignited');
+      setTimeout(() => flameWrapper.classList.remove('reignited'), 1200);
+    }
+
+    updateStreakUI();
+    showToast(`✨ Streak restored to ${streak.currentStreak}! Your flame is back! 🔥`);
+  }
+
+  function startNewStreak() {
+    const streak = state.streak;
+    streak.currentStreak = 0;
+    streak.savedPreviousStreak = 0;
+    streak.isStreakBroken = false;
+    streak.uploadedToday = false;
+    streak.deadline = Date.now() + (24 * 3600 * 1000);
+    saveStreakState();
+
+    closeMissedStreakModal();
+    updateStreakUI();
+    showToast('Starting a fresh streak! Upload today\'s outfit to light your 🔥 flame.');
+  }
+
+  // Streak Details Modal
+  function openStreakModal() {
+    const modal = document.getElementById('streakDetailsModal');
+    if (!modal) return;
+
+    const streak = state.streak;
+    const heroCount = document.getElementById('modalHeroStreakCount');
+    const heroCountdown = document.getElementById('modalHeroCountdown');
+    const heroRestore = document.getElementById('modalHeroRestoreStatus');
+
+    if (heroCount) heroCount.textContent = streak.currentStreak;
+    if (heroCountdown) {
+      const now = Date.now();
+      const diff = Math.max(0, streak.deadline - now);
+      const hours = Math.floor(diff / (3600 * 1000));
+      const mins = Math.floor((diff % (3600 * 1000)) / (60 * 1000));
+      heroCountdown.textContent = streak.uploadedToday ? 'Completed Today' : `${hours}h ${mins}m`;
+    }
+
+    const currentCycleKey = getMonthlyRestoreCycleKey(new Date());
+    const isEligible = streak.lastRestoredCycleKey !== currentCycleKey;
+    if (heroRestore) {
+      heroRestore.textContent = isEligible ? 'Available (3rd)' : 'Used this month';
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeStreakModal() {
+    const modal = document.getElementById('streakDetailsModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  // Daily Reminder Notifications System
+  function sendDailyNotification(title, body, isUrgent) {
+    // 1. Web Notification API if permitted
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, {
+          body: body,
+          icon: 'assets/welcome_hero.jpg'
+        });
+      } catch (e) {
+        console.warn('System notification error', e);
+      }
+    } else if ('Notification' in window && Notification.permission === 'default') {
+      // Prompt user politely
+      Notification.requestPermission();
+    }
+
+    // 2. In-App Floating Reminder Banner
+    const banner = document.getElementById('inAppReminderBanner');
+    const titleEl = document.getElementById('reminderBannerTitle');
+    const bodyEl = document.getElementById('reminderBannerBody');
+    const iconEl = document.getElementById('reminderBannerIcon');
+
+    if (titleEl) titleEl.textContent = title;
+    if (bodyEl) bodyEl.textContent = body;
+    if (iconEl) iconEl.innerHTML = isUrgent ? '<span>⚠️</span>' : '<span>🔥</span>';
+
+    if (banner) {
+      banner.classList.toggle('urgent', isUrgent);
+      banner.classList.remove('hidden');
+    }
+  }
+
+  function dismissReminderBanner() {
+    const banner = document.getElementById('inAppReminderBanner');
+    if (banner) banner.classList.add('hidden');
+  }
+
+  // QA & Developer Simulation Tools
+  function devSimulateUpload() {
+    openPhotoConfirmModal('assets/navy_shirt.jpg');
+  }
+
+  function devSimulateTwoHoursLeft() {
+    if (!state.streak) return;
+    state.streak.deadline = Date.now() + (1 * 3600 * 1000 + 59 * 60 * 1000); // 1h 59m
+    state.streak.urgentReminderSent = false;
+    state.streak.uploadedToday = false;
+    state.streak.isStreakBroken = false;
+    saveStreakState();
+    checkStreakDeadline();
+    updateStreakUI();
+    showToast('⏱️ Simulated: Exactly 1h 59m remaining (2-hour warning triggered)');
+  }
+
+  function devSimulateStreakBreak() {
+    if (!state.streak) return;
+    if (state.streak.currentStreak > 0) {
+      state.streak.savedPreviousStreak = state.streak.currentStreak;
+    }
+    state.streak.deadline = Date.now() - 1000;
+    saveStreakState();
+    breakStreak();
+    showToast('💥 Simulated deadline expiration: Streak broken!');
+  }
+
+  function devToggleRestoreToken() {
+    if (!state.streak) return;
+    const currentCycleKey = getMonthlyRestoreCycleKey(new Date());
+    if (state.streak.lastRestoredCycleKey === currentCycleKey) {
+      state.streak.lastRestoredCycleKey = null;
+      showToast('🔄 Restored Monthly Token: Now ELIGIBLE for 3rd date cycle!');
+    } else {
+      state.streak.lastRestoredCycleKey = currentCycleKey;
+      showToast('🔒 Marked Monthly Token as USED for current cycle.');
+    }
+    saveStreakState();
+    checkStreakDeadline();
+    updateStreakUI();
+  }
+
+  function devResetStreak() {
+    localStorage.removeItem(STREAK_STORAGE_KEY);
+    initStreakState();
+    showToast('🗑️ Reset streak to default 5-day active streak.');
+  }
+
+  function init() {
+    if (typeof window !== 'undefined' && window.appBootstrap && typeof window.appBootstrap.start === 'function') {
+      window.appBootstrap.start();
+    }
+    initStreakState();
+
     renderCurrentLook();
     renderWardrobeGrid();
     updateWardrobeCounts();
@@ -1593,6 +2643,24 @@ function init() {
     activatePremium,
     saveReminderPreferences,
     exportWardrobe,
+    exportUserData,
+    saveProfile,
+    updatePrivacyConsent,
+    clearSavedLooksCache,
+    clearAvatarPreferencesCache,
+    signOut,
+    setAppTheme,
+    setStudioTheme,
+    setStudioLighting,
+    toggleHighContrast,
+    resetAppearance,
+    setPerformancePreset,
+    toggleShadowQuality,
+    toggleReflectionQuality,
+    toggleIdleAnimations,
+    resetPerformance,
+    requestNotificationPermission,
+    getSettingsManager,
     deleteAccount,
     showHelpSupport,
     rotateCropImage,
@@ -1647,7 +2715,39 @@ function init() {
     serenCycleLooks: () => serenToggleDailyLooks(true),
     setStudioCamera,
     onStudioCameraChanged,
-    serenInteract
+    serenInteract,
+    serenOpenVanity,
+    serenCloseVanity,
+    serenSwitchVanityTab,
+    serenSetGender,
+    serenSetSkinTone,
+    serenSetHairStyle,
+    serenSetHairColor,
+    serenSetProportions,
+    serenToggleAccessory,
+    serenSaveAvatarCustomization,
+    serenHandlePhotoUpload,
+    serenApplyPhotoMatch,
+    updateSerenGreeting,
+
+    // Daily Outfit-Upload Streak & Countdown Timer API
+    openStreakModal,
+    closeStreakModal,
+    triggerOutfitPhotoUpload,
+    handleOutfitPhotoSelected,
+    openPhotoConfirmModal,
+    closePhotoConfirmModal,
+    confirmOutfitPhotoUpload,
+    showMissedStreakModal,
+    closeMissedStreakModal,
+    restoreMonthlyStreak,
+    startNewStreak,
+    dismissReminderBanner,
+    devSimulateUpload,
+    devSimulateTwoHoursLeft,
+    devSimulateStreakBreak,
+    devToggleRestoreToken,
+    devResetStreak
   };
 
   window.app = Object.assign(window.app || {}, appExports);
