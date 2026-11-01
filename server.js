@@ -29,7 +29,35 @@ const MIME_TYPES = {
   '.apk': 'application/vnd.android.package-archive'
 };
 
-const server = http.createServer((req, res) => {
+let backendService = null;
+(async () => {
+  try {
+    const backendModule = await import('./modules/backend/index.js');
+    backendService = backendModule.createBackendService({
+      database: { dataDir: path.join(BASE_DIR, 'data') },
+      storage: { baseDir: path.join(BASE_DIR, 'uploads') }
+    });
+    console.log('✓ Woobi REST API & Security Services mounted.');
+  } catch (err) {
+    console.warn('Backend service initialization warning:', err.message);
+  }
+})();
+
+const server = http.createServer(async (req, res) => {
+  if (backendService && (req.url.startsWith('/api/') || req.url === '/health' || req.url.startsWith('/health?'))) {
+    try {
+      const handled = await backendService.handleRequest(req, res);
+      if (handled !== false) return;
+    } catch (err) {
+      console.error('API Error:', err);
+      if (!res.headersSent) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Internal Server Error' }));
+      }
+      return;
+    }
+  }
+
   let reqUrl = req.url.split('?')[0];
   if (reqUrl === '/' || !reqUrl) reqUrl = '/index.html';
 

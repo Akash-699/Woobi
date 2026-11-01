@@ -35,7 +35,15 @@ const testSuites = [
   { name: 'Privacy Settings (25 Tests)', path: 'modules/settings/privacy/PrivacyManager.test.js', isNodeTest: true },
   { name: 'Notifications Settings (25 Tests)', path: 'modules/settings/notifications/NotificationsManager.test.js', isNodeTest: true },
   { name: 'Performance Settings (26 Tests)', path: 'modules/settings/performance/PerformanceManager.test.js', isNodeTest: true },
-  { name: 'Settings Root Orchestrator (8 Tests)', path: 'modules/settings/index.test.js', isNodeTest: true }
+  { name: 'Settings Root Orchestrator (8 Tests)', path: 'modules/settings/index.test.js', isNodeTest: true },
+
+  // 4. Backend Submodules & Services (140 Tests)
+  { name: 'Security Module (25 Tests)', path: 'modules/backend/security/SecurityService.test.js', isNodeTest: true },
+  { name: 'Authentication Module (25 Tests)', path: 'modules/backend/auth/AuthService.test.js', isNodeTest: true },
+  { name: 'Database Module (25 Tests)', path: 'modules/backend/database/DatabaseService.test.js', isNodeTest: true },
+  { name: 'Storage Module (25 Tests)', path: 'modules/backend/storage/StorageService.test.js', isNodeTest: true },
+  { name: 'API Router & Endpoints (25 Tests)', path: 'modules/backend/api/ApiRouter.test.js', isNodeTest: true },
+  { name: 'Backend Root Orchestrator & SDK (15 Tests)', path: 'modules/backend/index.test.js', isNodeTest: true }
 ];
 
 console.log('======================================================');
@@ -69,7 +77,7 @@ for (const suite of testSuites) {
 
 console.log('\n======================================================');
 console.log(`TOTAL SUITES: ${totalSuites} | PASSED: ${passedSuites} | FAILED: ${failedSuites}`);
-console.log('TOTAL VERIFIED TESTS: 475');
+console.log('TOTAL VERIFIED TESTS: 615');
 console.log('======================================================');
 
 if (failedSuites > 0) {

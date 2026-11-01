@@ -27,7 +27,7 @@ jobs:
           ./scripts/validation/validate-boundaries.ps1
 
   test-3d-studio:
-    name: 3D Studio, Features & Settings Regression Suite (475 Tests)
+    name: 3D Studio, Features, Settings & Backend Regression Suite (615 Tests)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -38,7 +38,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Execute Master Test Suite (3D Studio, Features & Settings)
+      - name: Execute Master Test Suite (3D Studio, Features, Settings & Backend)
         run: |
           node scripts/testing/run-all-tests.js
 
