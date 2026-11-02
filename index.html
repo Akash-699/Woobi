@@ -378,28 +378,28 @@
                 <span class="seren-brand-sub">3D STUDIO</span>
               </div>
             </div>
-            <!-- Daily Outfit Streak & Header Controls: Exactly 3 Icons -->
-            <div class="streak-header-pill" id="streakHeaderPill" onclick="app.openStreakModal()" title="View Streak Calendar">
-              <div class="streak-flame-wrapper" id="streakFlameWrapper">
-                <img src="assets/streak_fire.jpg" class="streak-header-icon-img" id="streakHeaderFireImg" alt="Streak Fire" />
-                <img src="assets/streak_bonfire_smoke.jpg" class="streak-header-icon-img hidden" id="streakHeaderSmokeImg" alt="Streak Smoke" />
-              </div>
-              <span class="streak-count" id="streakCount">0</span>
-              <span class="streak-sep">|</span>
-              <span class="streak-status-text" id="streakStatusText">Snap Look</span>
-            </div>
+            <!-- Three Icons in One Row: Streak, Camera, Gallery -->
+            <div class="streak-trio-row" id="streakTrioRow">
+              <!-- 1. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when broken) -->
+              <button class="streak-trio-btn streak-flame-btn" id="streakHeaderPill" onclick="app.handleStreakIconClick()" title="Daily Outfit Streak">
+                <div class="streak-flame-wrapper" id="streakFlameWrapper">
+                  <img src="assets/streak_fire.jpg" class="streak-header-icon-img" id="streakHeaderFireImg" alt="Streak Fire" />
+                  <img src="assets/streak_bonfire_smoke.jpg" class="streak-header-icon-img hidden" id="streakHeaderSmokeImg" alt="Streak Wood & Smoke" />
+                </div>
+                <span class="streak-count" id="streakCount">0</span>
+              </button>
 
-            <div class="seren-header-right">
-              <!-- Icon 2: Quick Camera Button -->
-              <button class="seren-icon-btn streak-header-btn" onclick="app.openCameraModal()" title="Snap Today's Outfit Memory">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <!-- 2. 📷 Camera Icon: Opens Camera Screen Only -->
+              <button class="streak-trio-btn streak-camera-btn" id="streakCameraBtn" onclick="app.openCameraModal()" title="Take Outfit Photo">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                   <circle cx="12" cy="13" r="4"/>
                 </svg>
               </button>
-              <!-- Icon 3: Quick Memories / Gallery Button -->
-              <button class="seren-icon-btn streak-header-btn" onclick="app.openMemoriesModal()" title="View Outfit Memories Gallery">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+
+              <!-- 3. 🖼️ Gallery Icon: Opens Outfit Memories Gallery -->
+              <button class="streak-trio-btn streak-gallery-btn" id="streakGalleryBtn" onclick="app.openMemoriesModal()" title="View Outfit Memories">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                   <circle cx="8.5" cy="8.5" r="1.5"/>
                   <polyline points="21 15 16 10 5 21"/>
@@ -3225,18 +3225,13 @@
   <!-- Hidden File Input for Native Camera / Gallery Upload -->
   <input type="file" id="outfitPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="app.handleOutfitPhotoSelected(event)">
 
-  <!-- Modal 1: Daily Streak Camera & Photo Capture -->
+  <!-- Modal 1: Daily Streak Camera & Photo Capture (Camera Screen Only) -->
   <div class="streak-modal-backdrop hidden" id="outfitCameraModal">
     <div class="streak-modal-card streak-camera-card">
       <div class="streak-modal-header">
-        <div class="modal-title-with-pill">
-          <span class="modal-sub-brand">☁️ Woobi Camera</span>
-          <h3 class="streak-modal-title">Daily Streak Camera</h3>
-        </div>
-        <button class="streak-modal-close" onclick="app.closeCameraModal()">✕</button>
+        <h3 class="streak-modal-title">Camera</h3>
+        <button class="streak-modal-close" onclick="app.closeCameraModal()" title="Exit Camera">✕</button>
       </div>
-
-      <p class="camera-modal-subtitle">Capture or upload today's outfit to keep your flame burning strong! 🔥</p>
 
       <!-- Live Viewfinder / Capture Section -->
       <div class="camera-viewfinder-container" id="cameraViewfinderContainer">
@@ -3247,59 +3242,34 @@
         <!-- Framing guidelines overlay -->
         <div class="camera-overlay-frame" id="cameraOverlayFrame">
           <div class="camera-guide-oval"></div>
-          <span class="camera-guide-text">Frame your outfit here</span>
         </div>
 
-        <!-- Camera Status / Error Overlay -->
+        <!-- Camera Status / Fallback Card -->
         <div class="camera-fallback-card hidden" id="cameraFallbackCard">
           <span class="camera-fallback-icon">📷</span>
-          <p id="cameraFallbackMsg">Camera access ready. Tap below to capture or select a photo.</p>
+          <p id="cameraFallbackMsg">Camera ready. Tap below to capture outfit photo.</p>
         </div>
       </div>
 
       <!-- Live Camera Controls (before snapshot) -->
       <div class="camera-controls-row" id="cameraLiveControls">
-        <button class="btn-camera-upload" onclick="app.triggerFileInputClick()" title="Upload from Device">
+        <button class="btn-camera-upload-mini" onclick="app.triggerFileInputClick()" title="Upload from Device">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="17 8 12 3 7 8"/>
             <line x1="12" y1="3" x2="12" y2="15"/>
           </svg>
-          <span>Upload</span>
         </button>
-
         <button class="btn-camera-shutter" id="btnCameraShutter" onclick="app.captureCameraSnapshot()" title="Capture Outfit">
           <div class="shutter-inner"></div>
-        </button>
-
-        <button class="btn-camera-sample" onclick="app.loadSampleOutfitLook()" title="Use Curated Outfit Sample">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-          <span>Sample Look</span>
         </button>
       </div>
 
       <!-- Post-Capture Review & Confirm Controls (after photo captured) -->
       <div class="camera-review-container hidden" id="cameraReviewContainer">
-        <!-- Already uploaded warning if duplicate -->
-        <div class="streak-duplicate-warning hidden" id="cameraDuplicateWarning">
-          <span>⚠️ You have already logged an outfit memory for today! Viewing only.</span>
-        </div>
-
-        <div class="camera-streak-advance-badge" id="cameraAdvanceBadge">
-          <span>Current Streak: <strong>🔥 <span id="cameraCurrentStreakVal">0</span> Days</strong></span>
-          <span class="advance-arrow">➔</span>
-          <span class="advance-highlight">New: <strong>🔥 <span id="cameraNewStreakVal">1</span> Days (+1)</strong></span>
-        </div>
-
-        <div class="camera-note-field">
-          <input type="text" id="cameraOutfitNoteInput" class="camera-note-input" placeholder="Give this look a note (e.g. Navy tailored shirt & chinos)..." maxlength="60" />
-        </div>
-
         <div class="camera-review-actions">
           <button class="btn-olive-primary" id="btnConfirmCapturedOutfit" onclick="app.confirmCapturedOutfit()">
-            Confirm & Log Outfit 🔥
+            Confirm & Save Outfit 🔥
           </button>
           <button class="btn-outline-white" onclick="app.retakeCameraPhoto()">
             ↺ Retake Photo
@@ -3309,23 +3279,24 @@
     </div>
   </div>
 
-  <!-- Modal 2: Outfit Memories & Look History Gallery -->
+  <!-- Modal 2: Outfit Memories & Look History Gallery (Gallery Only) -->
   <div class="streak-modal-backdrop hidden" id="outfitMemoriesModal">
     <div class="streak-modal-card outfit-memories-card">
       <div class="streak-modal-header">
-        <div class="modal-title-with-pill">
-          <span class="modal-sub-brand">☁️ Look Memories</span>
-          <h3 class="streak-modal-title">Outfit Memories</h3>
-        </div>
-        <button class="streak-modal-close" onclick="app.closeMemoriesModal()">✕</button>
+        <h3 class="streak-modal-title">Outfit Memories</h3>
+        <button class="streak-modal-close" onclick="app.closeMemoriesModal()" title="Exit Gallery">✕</button>
       </div>
 
       <div class="memories-meta-bar">
-        <span class="memories-count-badge" id="memoriesTotalCountBadge">0 Memories Logged</span>
-        <button class="btn-mini-snap" onclick="app.closeMemoriesModal(); app.openCameraModal();">
-          + Snap Today's Look
-        </button>
+        <span class="memories-count-badge" id="memoriesTotalCountBadge">0 Memories Saved</span>
       </div>
+
+      <!-- Memories Chronological Grid -->
+      <div class="memories-grid" id="memoriesGridContainer">
+        <!-- Rendered dynamically via app.renderOutfitMemories() -->
+      </div>
+    </div>
+  </div>
 
       <!-- Memories Chronological Grid -->
       <div class="memories-grid" id="memoriesGridContainer">
@@ -3400,7 +3371,10 @@
   <div class="streak-modal-backdrop hidden" id="streakDetailsModal">
     <div class="streak-modal-card streak-details-card streak-calendar-modal-card">
       <div class="streak-modal-header">
-        <h3 class="streak-modal-title">Streak Calendar</h3>
+        <div class="streak-cal-title-wrap">
+          <h3 class="streak-modal-title">Streak Calendar</h3>
+          <span class="streak-cal-active-badge" id="calHeaderStreakBadge">🔥 Current Streak: 0 Days</span>
+        </div>
         <button class="streak-modal-close" onclick="app.closeStreakModal()" title="Close">✕</button>
       </div>
 

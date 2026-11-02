@@ -2211,96 +2211,76 @@
       fireImg.classList.remove('hidden');
       fireImg.style.animation = 'none';
       void fireImg.offsetWidth; // Trigger reflow
-      fireImg.style.animation = 'miniFlameWobble 0.6s ease-in-out infinite alternate';
+      fireImg.style.animation = 'realisticFlameFlicker 0.6s ease-in-out infinite alternate';
+      setTimeout(() => {
+        if (fireImg) fireImg.style.animation = 'realisticFlameFlicker 2.2s ease-in-out infinite alternate';
+      }, 1200);
     }
 
-    const heroFire = document.getElementById('modalHeroFireImg');
-    const heroSmoke = document.getElementById('modalHeroSmokeImg');
-    if (heroSmoke) heroSmoke.classList.add('hidden');
-    if (heroFire) heroFire.classList.remove('hidden');
-
-    const flameWrapper = document.getElementById('streakFlameWrapper');
-    if (flameWrapper) {
-      flameWrapper.classList.remove('blown-out');
-      flameWrapper.classList.add('reignited');
-      setTimeout(() => flameWrapper.classList.remove('reignited'), 1200);
-    }
+    const pill = document.getElementById('streakHeaderPill');
+    if (pill) pill.classList.remove('broken-streak');
   }
 
   function updateStreakUI() {
-    const streak = state.streak;
-    if (!streak) return;
+    const engine = getStreakEngine();
+    if (!engine) return;
+
+    const streak = engine.getStreakStatus();
+    state.streak = streak;
 
     const streakCountEl = document.getElementById('streakCount');
-    const streakStatusEl = document.getElementById('streakStatusText');
     const streakPillEl = document.getElementById('streakHeaderPill');
     const fireImg = document.getElementById('streakHeaderFireImg');
     const smokeImg = document.getElementById('streakHeaderSmokeImg');
 
     if (streakCountEl) streakCountEl.textContent = streak.currentStreak;
 
-    // Header Visuals
-    if (streak.isStreakBroken) {
+    // Only show broken streak (wood & rising smoke) if user had previously earned a streak!
+    // A new user who has never earned a streak must NOT be shown a broken streak.
+    const isBroken = streak.isStreakBroken && streak.hasEarnedStreak && streak.savedPreviousStreak > 0;
+
+    if (isBroken) {
       if (fireImg) fireImg.classList.add('hidden');
       if (smokeImg) smokeImg.classList.remove('hidden');
-      if (streakStatusEl) streakStatusEl.innerHTML = '<span style="color:#A33A2B;">Ended</span>';
-      if (streakPillEl) streakPillEl.classList.remove('urgent', 'completed');
-      return;
-    }
-
-    if (fireImg) fireImg.classList.remove('hidden');
-    if (smokeImg) smokeImg.classList.add('hidden');
-
-    if (streak.uploadedToday) {
-      if (streakStatusEl) streakStatusEl.innerHTML = '<span class="check-mark">✓</span> Done';
       if (streakPillEl) {
-        streakPillEl.classList.remove('urgent');
-        streakPillEl.classList.add('completed');
+        streakPillEl.classList.add('broken-streak');
+        streakPillEl.title = 'Streak broken! Click to restore your streak';
       }
-      return;
-    }
-
-    // Countdown calculation
-    const msRemaining = Math.max(0, streak.deadline - Date.now());
-    const hours = Math.floor(msRemaining / (3600 * 1000));
-    const mins = Math.floor((msRemaining % (3600 * 1000)) / (60 * 1000));
-
-    if (streak.currentStreak === 0 && !streak.hasEarnedStreak) {
-      if (streakStatusEl) streakStatusEl.textContent = 'Snap Look';
     } else {
-      if (streakStatusEl) streakStatusEl.textContent = `${hours}h ${mins}m`;
-    }
-
-    const isUrgent = msRemaining <= (2 * 3600 * 1000) && msRemaining > 0;
-    if (streakPillEl) {
-      streakPillEl.classList.toggle('urgent', isUrgent);
-      streakPillEl.classList.remove('completed');
+      if (fireImg) fireImg.classList.remove('hidden');
+      if (smokeImg) smokeImg.classList.add('hidden');
+      if (streakPillEl) {
+        streakPillEl.classList.remove('broken-streak');
+        streakPillEl.title = 'Daily Outfit Streak: Click to view calendar';
+      }
     }
   }
 
   // --------------------------------------------------------------------------
   // WOOBI STREAK CALENDAR & CIRCULAR FIRE/SMOKE ANIMATION
   // --------------------------------------------------------------------------
+  function handleStreakIconClick() {
+    const engine = getStreakEngine();
+    if (!engine) return;
+
+    const status = engine.getStreakStatus();
+    // When streak is broken, clicking the wood and smoke icon opens the Restore option!
+    if (status.isStreakBroken && status.hasEarnedStreak && status.savedPreviousStreak > 0) {
+      showMissedStreakModal();
+    } else {
+      // Active streak opens the calendar
+      openStreakModal();
+    }
+  }
+
   function openStreakModal() {
     const modal = document.getElementById('streakDetailsModal');
     if (!modal) return;
 
     const streak = state.streak || { currentStreak: 0 };
-    const heroCount = document.getElementById('modalHeroStreakCount');
-    const heroFire = document.getElementById('modalHeroFireImg');
-    const heroSmoke = document.getElementById('modalHeroSmokeImg');
-    const heroLabel = document.getElementById('modalHeroStreakLabel');
-
-    if (heroCount) heroCount.textContent = streak.currentStreak;
-
-    if (streak.isStreakBroken && streak.currentStreak === 0) {
-      if (heroFire) heroFire.classList.add('hidden');
-      if (heroSmoke) heroSmoke.classList.remove('hidden');
-      if (heroLabel) heroLabel.textContent = 'STREAK ENDED';
-    } else {
-      if (heroFire) heroFire.classList.remove('hidden');
-      if (heroSmoke) heroSmoke.classList.add('hidden');
-      if (heroLabel) heroLabel.textContent = 'ACTIVE STREAK';
+    const badge = document.getElementById('calHeaderStreakBadge');
+    if (badge) {
+      badge.textContent = `🔥 Current Streak: ${streak.currentStreak} Days`;
     }
 
     renderStreakCalendar();
@@ -2762,16 +2742,28 @@
     const engine = getStreakEngine();
     if (!engine) return;
 
+    if (!engine.isMonthlyRestoreAvailable()) {
+      showToast(`⚠️ Monthly restore unavailable: Already used for this calendar month. Refreshes on ${engine.getNextRestoreRefreshDateStr()}.`);
+      return;
+    }
+
+    const previousStreak = engine.state.savedPreviousStreak || 1;
+    const confirmed = window.confirm(
+      `Restore your previous streak of ${previousStreak} days?\n\nNote: You can only restore your streak once per calendar month.`
+    );
+    if (!confirmed) return;
+
     const res = engine.restoreMonthlyStreak();
     if (!res.success) {
-      showToast(res.error || '⚠️ Monthly restore unavailable.');
+      showToast(`⚠️ ${res.error || 'Monthly restore unavailable.'}`);
       return;
     }
 
     closeMissedStreakModal();
     triggerFlameReigniteAnimation();
     updateStreakUI();
-    showToast(`✨ Streak restored to ${res.streak}! Your flame is back! 🔥`);
+    renderStreakCalendar();
+    showToast(`✨ Streak restored to ${res.streak} days! Your burning flame is back! 🔥`);
   }
 
   function startNewStreak() {
@@ -3039,6 +3031,7 @@
     updateSerenGreeting,
 
     // Daily Outfit-Upload Streak, Camera, Memories & Circular Calendar API
+    handleStreakIconClick,
     openStreakModal,
     closeStreakModal,
     prevCalendarMonth,

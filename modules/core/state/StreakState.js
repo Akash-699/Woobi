@@ -27,6 +27,7 @@ export class StreakState {
     }, options);
 
     this.listeners = new Map();
+    this._memoryStore = new Map();
 
     // Default clean initial state for brand new user
     this.state = {
@@ -91,34 +92,75 @@ export class StreakState {
   }
 
   // ---------------------------------------------------------------------------
-  // Persistence
+  // Persistence & User Scoping
   // ---------------------------------------------------------------------------
-  _loadFromStorage() {
-    if (typeof localStorage === 'undefined') return;
+  setUserId(userId) {
+    if (!userId || typeof userId !== 'string') return;
+    this.userId = userId;
+    this.options.storageKey = `woobi_outfit_streak_${userId}`;
+    this.options.memoriesKey = `woobi_outfit_memories_${userId}`;
 
-    try {
-      const rawState = localStorage.getItem(this.options.storageKey) ||
-                       localStorage.getItem(STREAK_STORAGE_KEYS.LEGACY);
-      if (rawState) {
+    // Reset to clean user baseline
+    this.state = {
+      currentStreak: 0,
+      bestStreak: 0,
+      savedPreviousStreak: 0,
+      isStreakBroken: false,
+      deadline: Date.now() + this.options.deadlineDurationMs,
+      lastUploadTimestamp: null,
+      lastUploadDateStr: null,
+      lastRestoredCycleKey: null,
+      hasEarnedStreak: false,
+      uploadedToday: false,
+      morningReminderSent: false,
+      urgentReminderSent: false
+    };
+    this.memories = [];
+
+    this._loadFromStorage();
+    this._checkDailyStatus();
+  }
+
+  _loadFromStorage() {
+    let rawState = null;
+    let rawMemories = null;
+
+    if (typeof localStorage !== 'undefined') {
+      try {
+        rawState = localStorage.getItem(this.options.storageKey) ||
+                   localStorage.getItem(STREAK_STORAGE_KEYS.LEGACY);
+        rawMemories = localStorage.getItem(this.options.memoriesKey);
+      } catch (e) {
+        console.warn('[StreakState] Could not read localStorage:', e);
+      }
+    } else if (this._memoryStore) {
+      rawState = this._memoryStore.get(this.options.storageKey);
+      rawMemories = this._memoryStore.get(this.options.memoriesKey);
+    }
+
+    if (rawState) {
+      try {
         const parsed = JSON.parse(rawState);
         if (parsed && typeof parsed === 'object') {
-          // If stored state had old dummy starter streak, clean it up
           this.state = Object.assign(this.state, parsed);
         }
+      } catch (e) {
+        console.warn('[StreakState] Could not parse stored state:', e);
       }
+    }
 
-      const rawMemories = localStorage.getItem(this.options.memoriesKey);
-      if (rawMemories) {
+    if (rawMemories) {
+      try {
         const parsed = JSON.parse(rawMemories);
         if (Array.isArray(parsed)) {
           this.memories = parsed;
         }
-      } else {
-        // Seed initial October reference memories matching Ember and Smoke Calendar
-        this._seedReferenceMemories();
+      } catch (e) {
+        console.warn('[StreakState] Could not parse stored memories:', e);
       }
-    } catch (e) {
-      console.warn('[StreakState] Could not load state from localStorage:', e);
+    } else if (!this.userId) {
+      // Seed initial October reference memories matching Ember and Smoke Calendar for guest
+      this._seedReferenceMemories();
     }
   }
 
@@ -151,13 +193,19 @@ export class StreakState {
   }
 
   save() {
-    if (typeof localStorage === 'undefined') return;
+    const serializedState = JSON.stringify(this.state);
+    const serializedMemories = JSON.stringify(this.memories);
 
-    try {
-      localStorage.setItem(this.options.storageKey, JSON.stringify(this.state));
-      localStorage.setItem(this.options.memoriesKey, JSON.stringify(this.memories));
-    } catch (e) {
-      console.warn('[StreakState] Could not save state to localStorage:', e);
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(this.options.storageKey, serializedState);
+        localStorage.setItem(this.options.memoriesKey, serializedMemories);
+      } catch (e) {
+        console.warn('[StreakState] Could not save state to localStorage:', e);
+      }
+    } else if (this._memoryStore) {
+      this._memoryStore.set(this.options.storageKey, serializedState);
+      this._memoryStore.set(this.options.memoriesKey, serializedMemories);
     }
   }
 
@@ -318,17 +366,25 @@ export class StreakState {
   }
 
   restoreMonthlyStreak() {
+    if (!this.state.hasEarnedStreak && this.state.savedPreviousStreak <= 0) {
+      return {
+        success: false,
+        error: 'No previous streak history found to restore.'
+      };
+    }
+
     const currentCycle = this.getMonthlyRestoreCycleKey();
     if (!this.isMonthlyRestoreAvailable()) {
       return {
         success: false,
-        error: `Monthly restore already used for this cycle. Refreshes on ${this.getNextRestoreRefreshDateStr()}.`
+        error: `Monthly restore already used for this calendar month. Refreshes on ${this.getNextRestoreRefreshDateStr()}.`
       };
     }
 
     const restoredStreak = this.state.savedPreviousStreak > 0 ? this.state.savedPreviousStreak : 1;
     this.state.currentStreak = restoredStreak;
     this.state.isStreakBroken = false;
+    this.state.hasEarnedStreak = true;
     this.state.lastRestoredCycleKey = currentCycle;
     this.state.deadline = Date.now() + this.options.deadlineDurationMs;
 

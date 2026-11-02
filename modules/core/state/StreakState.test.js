@@ -228,5 +228,36 @@ describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
     assert.strictEqual(status.currentStreak, 0);
     assert.strictEqual(status.savedPreviousStreak, 4);
   });
+
+  it('16. prevents restoration if user never earned a streak', () => {
+    streakState.state.hasEarnedStreak = false;
+    streakState.state.currentStreak = 0;
+    streakState.state.savedPreviousStreak = 0;
+    streakState.state.lastRestoredCycleKey = null;
+
+    const res = streakState.restoreMonthlyStreak();
+    assert.strictEqual(res.success, false);
+    assert.ok(res.error.includes('No previous streak'));
+  });
+
+  it('17. isolates state and memories between different users via setUserId', () => {
+    streakState.setUserId('user_alice');
+    streakState.state.currentStreak = 10;
+    streakState.save();
+
+    streakState.setUserId('user_bob');
+    assert.strictEqual(streakState.state.currentStreak, 0, 'User Bob starts with clean state');
+  });
+
+  it('18. rolls over monthly restore eligibility across calendar month boundaries', () => {
+    // Used in November 2026
+    const novDate = new Date('2026-11-10');
+    streakState.state.lastRestoredCycleKey = streakState.getMonthlyRestoreCycleKey(novDate);
+    assert.strictEqual(streakState.isMonthlyRestoreAvailable(novDate), false, 'Not available in same cycle');
+
+    // Available in December 2026
+    const decDate = new Date('2026-12-10');
+    assert.strictEqual(streakState.isMonthlyRestoreAvailable(decDate), true, 'Available in next month cycle');
+  });
 });
 
