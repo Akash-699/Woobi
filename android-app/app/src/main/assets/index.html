@@ -1,10 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    window.app = window.app || {};
+    var app = window.app;
+    window.studioErrorLogs = [];
+    window.addEventListener('error', function(e) {
+      console.error('GLOBAL_ERROR:', e.message, e.filename, e.lineno);
+      window.studioErrorLogs.push(e.message + ' at ' + e.filename + ':' + e.lineno);
+      document.title = 'ERR: ' + e.message;
+    });
+  </script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="color-scheme" content="light">
-  <title>AURA Wardrobe | Good outfits. Already yours.</title>
+  <title>Woobi | Good outfits. Already yours.</title>
   <meta name="description" content="Personal digital wardrobe for India. Choose what to wear from your own wardrobe. Built for Chennai & Indian climates. Complete 32-Screen UI Replica.">
   
   <!-- Premium Editorial Serif & Modern Sans Typography -->
@@ -12,14 +23,79 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles.css">
+  <!-- Three.js 3D WebGL Engine, OrbitControls, MeshoptDecoder & GLTFLoader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/meshoptimizer@0.18.1/meshopt_decoder.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  
+  <!-- Woobi Core Shared Design Tokens -->
+  <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
+  <link rel="stylesheet" href="styles.css?v=20261031_2">
 </head>
 <body>
 
   <!-- =========================================================================
        MAIN APPLICATION VIEWPORT
        ========================================================================= -->
-  <main class="app-viewport" id="appViewport">
+    <!-- Desktop Editorial Studio Layout Frame (Matching Reference D) -->
+  <div class="desktop-editorial-frame" id="desktopEditorialFrame">
+    <!-- Left Editorial Banner -->
+    <aside class="desktop-editorial-left">
+      <div class="desktop-brand-header">
+        <h1 class="desktop-brand-title">woobi</h1>
+        <span class="desktop-brand-tagline">VIRTUAL STYLING</span>
+      </div>
+      <div class="desktop-hero-pitch">
+        <h2 class="desktop-pitch-head">Try. Discover.<br>A More You.</h2>
+        <p class="desktop-pitch-sub">Your personal styling studio in a calmer, kinder, more inspired way.</p>
+      </div>
+      <div class="desktop-feature-list">
+        <div class="desktop-feat-item">
+          <span class="feat-icon">👗</span>
+          <div class="feat-text">
+            <strong>EXPLORE</strong>
+            <span>YOUR STYLE</span>
+          </div>
+        </div>
+        <div class="desktop-feat-item">
+          <span class="feat-icon">✦</span>
+          <div class="feat-text">
+            <strong>TRY ON</strong>
+            <span>IN 3D</span>
+          </div>
+        </div>
+        <div class="desktop-feat-item">
+          <span class="feat-icon">💬</span>
+          <div class="feat-text">
+            <strong>GET THOUGHTFUL</strong>
+            <span>FEEDBACK</span>
+          </div>
+        </div>
+        <div class="desktop-feat-item">
+          <span class="feat-icon">🛍️</span>
+          <div class="feat-text">
+            <strong>BUILD</strong>
+            <span>A WARDROBE YOU LOVE</span>
+          </div>
+        </div>
+      </div>
+      <!-- Reference Image Aesthetic: Calmer Closet & Brighter You Stack -->
+      <div class="desktop-editorial-decor">
+        <div class="decor-vase-wrapper">
+          <div class="decor-branches">
+            <span class="decor-branch-stem">🌿</span>
+          </div>
+          <div class="decor-ceramic-vase"></div>
+        </div>
+        <div class="decor-book-stack">
+          <div class="decor-book b-top">A CALMER CLOSET</div>
+          <div class="decor-book b-bottom">A BRIGHTER YOU</div>
+        </div>
+      </div>
+    </aside>
+
+<main class="app-viewport" id="appViewport">
     <!-- Scrollable Screen Container -->
     <div class="phone-screen-container" id="phoneScreenContainer">
 
@@ -290,151 +366,449 @@
         <!-- ===================================================================
              SCREEN 5: TODAY (WHAT WILL YOU WEAR?)
              =================================================================== -->
+                <!-- ===================================================================
+             SCREEN: SÉRÉN 3D VIRTUAL FASHION STUDIO (PRIMARY HOMEPAGE)
+             =================================================================== -->
         <section class="phone-screen active" id="screen-today">
-          <div class="screen-body-padded" style="padding-top: 14px;">
-            <div class="today-greeting-row">
-              <div>
-                <span class="greeting-kicker">Morning, Suriya</span>
-                <h1 class="screen-headline-serif" style="margin-top: 2px;">What will you wear?</h1>
-              </div>
-              <div class="weather-chennai-pill">
-                <span class="weather-sun">☀️</span>
-                <div class="weather-text">
-                  <span class="loc">Chennai</span>
-                  <span class="deg">29 °C</span>
-                </div>
+          <!-- Sérén Studio Minimal Header Overlay -->
+          <header class="seren-header">
+            <div class="seren-header-left">
+              <div class="seren-branding">
+                <span class="seren-brand-name">woobi</span>
+                <span class="seren-brand-sub">3D STUDIO</span>
               </div>
             </div>
-
-            <div class="today-occasion-section">
-              <span class="control-sublabel">Occasion</span>
-              <div class="occasion-chip-group" id="todayOccasionGroup">
-                <button class="pill-chip active" onclick="app.setTodayOccasion('College', this)">College</button>
-                <button class="pill-chip" onclick="app.setTodayOccasion('Office', this)">Office</button>
-                <button class="pill-chip" onclick="app.setTodayOccasion('Casual', this)">Casual</button>
-                <button class="pill-chip" onclick="app.setTodayOccasion('Others', this)">Others</button>
+            <!-- Daily Outfit Streak & Header Controls -->
+            <div class="streak-header-pill" id="streakHeaderPill" onclick="app.openStreakModal()" title="View Daily Outfit Streak & Calendar">
+              <div class="streak-flame-wrapper" id="streakFlameWrapper">
+                <img src="assets/streak_fire.jpg" class="streak-header-icon-img" id="streakHeaderFireImg" alt="Streak Fire" />
+                <img src="assets/streak_bonfire_smoke.jpg" class="streak-header-icon-img hidden" id="streakHeaderSmokeImg" alt="Streak Smoke" />
               </div>
+              <span class="streak-count" id="streakCount">0</span>
+              <span class="streak-sep">|</span>
+              <span class="streak-status-text" id="streakStatusText">Snap Look</span>
             </div>
 
-            <!-- Preview Mode Toggle (Model vs Flat Lay) -->
-            <div class="today-view-mode-bar">
-              <span class="control-sublabel">Preview</span>
-              <div class="view-toggle-pill-wrap">
-                <button class="view-toggle-btn active" id="btnViewModel" onclick="app.setTodayCanvasMode('model')">
-                  <span>👤</span> On model
-                </button>
-                <button class="view-toggle-btn" id="btnViewFlat" onclick="app.setTodayCanvasMode('flat')">
-                  <span>👔</span> Flat lay
-                </button>
-              </div>
-            </div>
-
-            <!-- Big Outfit Carousel Board -->
-            <div class="today-outfit-canvas-card">
-              <button class="carousel-arrow left" onclick="app.cycleLook(-1)">‹</button>
-              
-              <!-- Model View (Styled on Person) -->
-              <div class="outfit-model-view" id="todayModelView">
-                <img id="todayModelImg" src="assets/model_tryon_navy.jpg" alt="Model Look">
-                <div class="model-tryon-badge">
-                  <span>✨</span> Styled on model
-                </div>
-              </div>
-
-              <!-- Flat Lay Quad View -->
-              <div class="outfit-collage-quad hidden" id="todayCollageQuad">
-                <div class="quad-item top-left"><img id="quadImgTop" src="assets/navy_shirt.jpg" alt="Top"></div>
-                <div class="quad-item top-right"><img id="quadImgBot" src="assets/beige_chinos.jpg" alt="Bottom"></div>
-                <div class="quad-item bot-left"><img id="quadImgShoe" src="assets/white_sneakers.jpg" alt="Footwear"></div>
-                <div class="quad-item bot-right"><img id="quadImgAcc" src="assets/leather_watch.jpg" alt="Watch"></div>
-              </div>
-
-              <button class="carousel-arrow right" onclick="app.cycleLook(1)">›</button>
-            </div>
-
-            <div class="carousel-meta-center">
-              <span class="look-index-label" id="lookIndexLabel">Look 1 of 3</span>
-              <div class="carousel-dots-row" id="carouselDots">
-                <span class="dot active"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </div>
-              <h3 class="look-name-serif" id="todayLookName">Easy everyday</h3>
-            </div>
-
-            <div class="screen-footer-action">
-              <button class="btn-olive-primary" onclick="app.goToScreen('outfit-details')">
-                See outfit <span class="arrow-right">→</span>
+            <div class="seren-header-right">
+              <!-- Quick Camera Button -->
+              <button class="seren-icon-btn streak-header-btn" onclick="app.openCameraModal()" title="Snap Today's Outfit Memory">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              </button>
+              <!-- Quick Memories Button -->
+              <button class="seren-icon-btn streak-header-btn" onclick="app.openMemoriesModal()" title="View Outfit Memories by Date">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </button>
+              <button class="seren-icon-btn" onclick="app.serenToggleWardrobe()" title="Wardrobe Closet">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M12 4a3 3 0 0 0-3 3v2h6V7a3 3 0 0 0-3-3z"/>
+                  <path d="M20 21V9a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12"/>
+                  <path d="M12 9v12"/>
+                </svg>
+              </button>
+              <button class="seren-icon-btn" onclick="app.goToScreen('profile')" title="User Profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
               </button>
             </div>
+          </header>
 
-            <!-- Interactive Style Studio Hub: Need an outfit? & Make your own outfit -->
-            <div class="today-action-hub-section">
-              <span class="control-sublabel" style="margin-top: 18px; display: block;">Style Studio</span>
+          <!-- Real 3D WebGL Studio Viewport -->
+          <div class="seren-stage-viewport" id="seren3dContainer">
+            <!-- Real Three.js 3D WebGL Canvas -->
+            <canvas id="seren3dCanvas" class="seren-3d-canvas"></canvas>
 
-              <!-- Card 1: Need an outfit? -->
-              <div class="hub-action-card stylist-theme" onclick="app.goToScreen('ai-stylist')">
-                <div class="hub-card-left">
-                  <div class="hub-kicker"><span class="sparkle-icon">✨</span> AI STYLIST</div>
-                  <h3 class="hub-card-title">Need an outfit?</h3>
-                  <p class="hub-card-text">Answer 3 quick questions. We'll analyse your clean wardrobe and show you styled on a model.</p>
-                  <div class="hub-card-btn">
-                    Find my look <span class="arrow-right">→</span>
+            <!-- Floating Editorial Tagline & Greeting Card (Upper-Right matching Target Reference) -->
+            <div class="seren-editorial-tagline-wrap">
+              <span class="seren-editorial-tagline">Style a kinder you</span>
+              <span class="seren-editorial-heart">♡</span>
+            </div>
+            <div class="seren-floating-greeting" id="serenFloatingGreeting">
+              <div class="greeting-sun-icon">☀️</div>
+              <div class="greeting-content">
+                <span class="greeting-time-tag" id="greetingTimeTag">Good morning!</span>
+                <p class="greeting-headline" id="greetingHeadline">Let's find a look that makes you feel amazing today.</p>
+              </div>
+            </div>
+
+            <!-- 3D Spatial Floating Interactive Hotspots matching Target Reference -->
+            <button class="spatial-3d-hint wardrobe-hint" onclick="app.serenInteract('wardrobe')" title="Explore Wardrobe">
+              <span class="hint-icon">👕</span>
+              <span class="hint-text">Wardrobe</span>
+              <span class="hint-arrow">›</span>
+            </button>
+
+            <button class="spatial-3d-hint mirror-hint" onclick="app.serenInteract('vanity')" title="Vanity & Grooming">
+              <span class="hint-icon">🪞</span>
+              <span class="hint-text">Vanity</span>
+              <span class="hint-arrow">›</span>
+            </button>
+
+            <div class="spatial-3d-hint avatar-hint" id="serenDragHint">
+              <span class="hint-icon">🔄</span>
+              <span class="hint-text">Drag to Rotate</span>
+            </div>
+
+            <!-- Contextual Return to Studio Pill (Appears during close-up views) -->
+            <button class="seren-back-studio-btn hidden" id="serenBackStudioBtn" onclick="app.setStudioCamera('STUDIO_OVERVIEW')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg>
+              <span>Studio View</span>
+            </button>
+
+            <!-- Sparkle Radiance Effect on Outfit Switch -->
+            <div class="seren-sparkles" id="serenSparkles">
+              <span class="sparkle-ray r1">✦</span>
+              <span class="sparkle-ray r2">✧</span>
+              <span class="sparkle-ray r3">✦</span>
+              <span class="sparkle-ray r4">✧</span>
+            </div>
+          </div>
+
+          <!-- Floating Bottom Navigation Bar (Pill) matching Reference D -->
+          <div class="seren-bottom-bar-wrap">
+            <nav class="seren-bottom-bar">
+              <button class="seren-bar-tab" id="serenTabWardrobe" onclick="app.serenToggleWardrobe()">
+                <div class="seren-tab-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 4a3 3 0 0 0-3 3v2h6V7a3 3 0 0 0-3-3z"/>
+                    <path d="M20 21V9a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12"/>
+                    <path d="M12 9v12"/>
+                  </svg>
+                </div>
+                <span class="seren-tab-label">Wardrobe</span>
+                <span class="seren-tab-dot"></span>
+              </button>
+
+              <button class="seren-bar-tab" id="serenTabLooks" onclick="app.serenToggleDailyLooks()">
+                <div class="seren-tab-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+                  </svg>
+                </div>
+                <span class="seren-tab-label">Looks</span>
+                <span class="seren-tab-dot"></span>
+              </button>
+
+              <button class="seren-center-plus" onclick="app.serenCenterAction()" title="Quick Action">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+
+              <button class="seren-bar-tab" id="serenTabSave" onclick="app.serenSaveCurrentLook()">
+                <div class="seren-tab-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </div>
+                <span class="seren-tab-label">Save</span>
+                <span class="seren-tab-dot"></span>
+              </button>
+
+              <button class="seren-bar-tab" id="serenTabHint" onclick="app.serenOpenStylingReview()">
+                <div class="seren-tab-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                  </svg>
+                </div>
+                <span class="seren-tab-label">Style Hint</span>
+                <span class="seren-tab-dot"></span>
+              </button>
+            </nav>
+          </div>
+
+          <!-- Sliding Wardrobe Sheet (Step 2 of Reference D) -->
+          <div class="seren-wardrobe-sheet hidden" id="serenWardrobeSheet">
+            <div class="seren-sheet-backdrop" onclick="app.serenToggleWardrobe(false)"></div>
+            <div class="seren-sheet-card">
+              <div class="seren-sheet-header">
+                <button class="seren-sheet-back" onclick="app.serenToggleWardrobe(false)">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <h3 class="seren-sheet-title">Wardrobe</h3>
+                <div class="seren-sheet-space"></div>
+              </div>
+
+              <!-- Category Filter Tabs -->
+              <div class="seren-cat-tabs" id="serenCatTabs">
+                <button class="seren-cat-tab active" onclick="app.serenFilterCat('all', this)">All</button>
+                <button class="seren-cat-tab" onclick="app.serenFilterCat('tops', this)">Tops</button>
+                <button class="seren-cat-tab" onclick="app.serenFilterCat('bottoms', this)">Bottoms</button>
+                <button class="seren-cat-tab" onclick="app.serenFilterCat('outerwear', this)">Outerwear</button>
+                <button class="seren-cat-tab" onclick="app.serenFilterCat('shoes', this)">Shoes</button>
+              </div>
+
+              <!-- Garment Grid (Dynamic & Database Linked) -->
+              <div class="seren-garment-grid" id="serenGarmentGrid">
+                <!-- Populated dynamically by app.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Sliding Vanity & Avatar Customization Sheet -->
+          <div class="seren-vanity-sheet hidden" id="serenVanitySheet">
+            <div class="seren-sheet-backdrop" onclick="app.serenCloseVanity()"></div>
+            <div class="seren-sheet-card vanity-sheet-card">
+              <div class="seren-sheet-header">
+                <button class="seren-sheet-back" onclick="app.serenCloseVanity()">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <h3 class="seren-sheet-title">Vanity & Avatar Studio</h3>
+                <div class="seren-sheet-space"></div>
+              </div>
+
+              <!-- Vanity Segmented Tabs -->
+              <div class="vanity-seg-tabs">
+                <button class="vanity-seg-tab active" id="tabVanityAppearance" onclick="app.serenSwitchVanityTab('appearance', this)">
+                  Avatar Styling
+                </button>
+                <button class="vanity-seg-tab" id="tabVanityPhoto" onclick="app.serenSwitchVanityTab('photo', this)">
+                  Photo Match
+                </button>
+              </div>
+
+              <!-- Tab 1: Avatar Appearance Controls -->
+              <div class="vanity-tab-content active" id="vanityAppearanceView">
+                <!-- Gender Presentation -->
+                <div class="vanity-section">
+                  <label class="vanity-sec-label">Gender Presentation</label>
+                  <div class="vanity-pill-group">
+                    <button class="vanity-chip active" data-gender="female" onclick="app.serenSetGender('female', this)">Feminine</button>
+                    <button class="vanity-chip" data-gender="male" onclick="app.serenSetGender('male', this)">Masculine</button>
+                    <button class="vanity-chip" data-gender="neutral" onclick="app.serenSetGender('neutral', this)">Neutral</button>
                   </div>
                 </div>
-                <div class="hub-card-visual">
-                  <img src="assets/model_tryon_navy.jpg" alt="AI Stylist Preview">
+
+                <!-- Skin Tone Swatches -->
+                <div class="vanity-section">
+                  <label class="vanity-sec-label">Skin Tone</label>
+                  <div class="vanity-swatches-row" id="skinToneSwatches">
+                    <button class="skin-swatch active" style="background: #F3D5C6;" title="Warm Ivory" onclick="app.serenSetSkinTone('#F3D5C6', this)"></button>
+                    <button class="skin-swatch" style="background: #F8E2D6;" title="Porcelain Fair" onclick="app.serenSetSkinTone('#F8E2D6', this)"></button>
+                    <button class="skin-swatch" style="background: #E8BF9E;" title="Golden Honey" onclick="app.serenSetSkinTone('#E8BF9E', this)"></button>
+                    <button class="skin-swatch" style="background: #CF9E76;" title="Sunlit Tan" onclick="app.serenSetSkinTone('#CF9E76', this)"></button>
+                    <button class="skin-swatch" style="background: #A06B49;" title="Warm Bronze" onclick="app.serenSetSkinTone('#A06B49', this)"></button>
+                    <button class="skin-swatch" style="background: #5A3A26;" title="Rich Espresso" onclick="app.serenSetSkinTone('#5A3A26', this)"></button>
+                  </div>
+                </div>
+
+                <!-- Hairstyle Selection -->
+                <div class="vanity-section">
+                  <label class="vanity-sec-label">Hairstyle</label>
+                  <div class="vanity-pill-group" id="hairStyleChips">
+                    <button class="vanity-chip active" data-style="bun" onclick="app.serenSetHairStyle('bun', this)">High Bun Updo</button>
+                    <button class="vanity-chip" data-style="bob" onclick="app.serenSetHairStyle('bob', this)">Chic Bob</button>
+                    <button class="vanity-chip" data-style="waves" onclick="app.serenSetHairStyle('waves', this)">Soft Waves</button>
+                    <button class="vanity-chip" data-style="crop" onclick="app.serenSetHairStyle('crop', this)">Modern Crop</button>
+                  </div>
+                </div>
+
+                <!-- Hair Color Swatches -->
+                <div class="vanity-section">
+                  <label class="vanity-sec-label">Hair Color</label>
+                  <div class="vanity-swatches-row" id="hairColorSwatches">
+                    <button class="skin-swatch active" style="background: #1E120A;" title="Deep Espresso" onclick="app.serenSetHairColor('#1E120A', this)"></button>
+                    <button class="skin-swatch" style="background: #0A0807;" title="Jet Black" onclick="app.serenSetHairColor('#0A0807', this)"></button>
+                    <button class="skin-swatch" style="background: #54331C;" title="Chestnut Brown" onclick="app.serenSetHairColor('#54331C', this)"></button>
+                    <button class="skin-swatch" style="background: #A67D4A;" title="Honey Caramel" onclick="app.serenSetHairColor('#A67D4A', this)"></button>
+                    <button class="skin-swatch" style="background: #733120;" title="Warm Auburn" onclick="app.serenSetHairColor('#733120', this)"></button>
+                  </div>
+                </div>
+
+                <!-- Body Proportions & Silhouette -->
+                <div class="vanity-section">
+                  <label class="vanity-sec-label">Body Silhouette & Height</label>
+                  <div class="vanity-pill-group" id="proportionChips">
+                    <button class="vanity-chip" data-prop="petite" onclick="app.serenSetProportions('petite', this)">Petite</button>
+                    <button class="vanity-chip active" data-prop="regular" onclick="app.serenSetProportions('regular', this)">Balanced (Regular)</button>
+                    <button class="vanity-chip" data-prop="tall" onclick="app.serenSetProportions('tall', this)">Tall & Slender</button>
+                    <button class="vanity-chip" data-prop="athletic" onclick="app.serenSetProportions('athletic', this)">Athletic</button>
+                    <button class="vanity-chip" data-prop="curvy" onclick="app.serenSetProportions('curvy', this)">Curvy</button>
+                  </div>
+                </div>
+
+                <!-- Accessories -->
+                <div class="vanity-section">
+                  <label class="vanity-sec-label">Accessories & Jewelry</label>
+                  <div class="vanity-pill-group">
+                    <button class="vanity-chip active" id="accWatchBtn" onclick="app.serenToggleAccessory('watch', this)">⌚ Gold Watch</button>
+                    <button class="vanity-chip active" id="accEarringsBtn" onclick="app.serenToggleAccessory('earrings', this)">✨ Pearl Earrings</button>
+                  </div>
+                </div>
+
+                <div class="vanity-action-row">
+                  <button class="btn-olive-primary" onclick="app.serenSaveAvatarCustomization()">
+                    Save & Return to Studio ✨
+                  </button>
                 </div>
               </div>
 
-              <!-- Card 2: Make your own outfit -->
-              <div class="hub-action-card builder-theme" onclick="app.goToScreen('custom-builder')">
-                <div class="hub-card-left">
-                  <div class="hub-kicker"><span class="sparkle-icon">🪡</span> CUSTOM STUDIO</div>
-                  <h3 class="hub-card-title">Make your own outfit</h3>
-                  <p class="hub-card-text">Pick pieces from your wardrobe and see how they look together on a model.</p>
-                  <div class="hub-card-btn secondary">
-                    Create look <span class="arrow-right">→</span>
+              <!-- Tab 2: Consent-Based Photo Match Architecture -->
+              <div class="vanity-tab-content" id="vanityPhotoView" style="display: none;">
+                <div class="photo-consent-banner">
+                  <div class="consent-icon">🔒</div>
+                  <div class="consent-text">
+                    <strong>Consent & Privacy Guaranteed</strong>
+                    <p>Photo analysis runs 100% locally on your device to match tone and undertone. Your photo is never sent to external servers or stored without consent.</p>
                   </div>
                 </div>
-                <div class="hub-card-visual">
-                  <img src="assets/office_ready.jpg" alt="Make Your Own Outfit">
+
+                <!-- Photo Upload Dropzone -->
+                <div class="photo-dropzone" onclick="document.getElementById('avatarPhotoInput').click()">
+                  <input type="file" id="avatarPhotoInput" accept="image/*" style="display: none;" onchange="app.serenHandlePhotoUpload(event)">
+                  <div class="dropzone-content" id="dropzoneEmpty">
+                    <span class="upload-icon">📸</span>
+                    <strong>Upload Photo for Likeness Tuning</strong>
+                    <p>Natural lighting recommended</p>
+                    <span class="btn-pill-subtle">Select Photo</span>
+                  </div>
+                  <div class="dropzone-preview hidden" id="dropzonePreview">
+                    <img id="photoPreviewImg" src="" alt="User Likeness Preview">
+                    <div class="analysis-badge">✓ Analyzed Locally</div>
+                  </div>
+                </div>
+
+                <!-- Detected Tone Palette Box -->
+                <div class="photo-analysis-box hidden" id="photoAnalysisBox">
+                  <span class="analysis-title">Detected Tone Profile:</span>
+                  <div class="detected-palette-row">
+                    <div class="detected-chip">
+                      <span class="chip-color" id="detectedSkinColor" style="background: #F3D5C6;"></span>
+                      <span class="chip-label">Skin Undertone</span>
+                    </div>
+                    <div class="detected-chip">
+                      <span class="chip-color" id="detectedHairColor" style="background: #1E120A;"></span>
+                      <span class="chip-label">Hair Shade</span>
+                    </div>
+                  </div>
+                  <button class="btn-olive-primary" style="margin-top: 14px; width: 100%;" onclick="app.serenApplyPhotoMatch()">
+                    Apply Likeness to Avatar
+                  </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Bottom Navigation Bar -->
-          <nav class="phone-bottom-nav">
-            <button class="nav-tab active" onclick="app.goToScreen('today')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-              <span>Today</span>
-            </button>
-            <button class="nav-tab" onclick="app.goToScreen('wardrobe')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
-              <span>Wardrobe</span>
-            </button>
-            <button class="nav-tab" onclick="app.goToScreen('saved')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              <span>Saved</span>
-            </button>
-            <button class="nav-tab" onclick="app.goToScreen('profile')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <span>Profile</span>
-            </button>
-          </nav>
-          <div class="phone-home-indicator"></div>
-        </section>
+          <!-- Styling Review Modal Sheet (Step 4 of Reference D) -->
+          <div class="seren-review-modal hidden" id="serenReviewModal">
+            <div class="seren-sheet-backdrop" onclick="app.serenCloseReview()"></div>
+            <div class="seren-review-card">
+              <div class="seren-review-header">
+                <h3 class="seren-review-title">Styling Review</h3>
+                <span class="seren-review-counter" id="serenReviewCounter">1/3</span>
+                <button class="seren-review-close" onclick="app.serenCloseReview()">✕</button>
+              </div>
 
-        <!-- ===================================================================
-             SCREEN: AI STYLIST ("NEED AN OUTFIT?")
-             =================================================================== -->
-        <section class="phone-screen" id="screen-ai-stylist">
+              <div class="seren-review-top">
+                <div class="seren-review-model-thumb">
+                  <img src="assets/model_tryon_linen.jpg" alt="Current Outfit Look" id="serenReviewThumb" class="review-thumb-img">
+                </div>
+                <div class="seren-score-box">
+                  <div class="seren-score-ring">
+                    <span class="score-val" id="serenScoreVal">78</span>
+                    <span class="score-max">/100</span>
+                  </div>
+                  <p class="score-summary-text" id="serenScoreSummary">
+                    A soft, effortless look for everyday sophistication.
+                  </p>
+                </div>
+              </div>
+
+              <!-- What Works Section -->
+              <div class="seren-review-section works-sec">
+                <div class="review-sec-title">
+                  <span class="sec-badge green">✓</span>
+                  <h4>What works</h4>
+                </div>
+                <ul class="review-bullet-list" id="serenWorksList">
+                  <li>Soft, cohesive tones that suit your coloring</li>
+                  <li>Relaxed silhouette creates a balanced look</li>
+                  <li>Looks effortless and modern</li>
+                </ul>
+              </div>
+
+              <!-- Could be better Section -->
+              <div class="seren-review-section improve-sec">
+                <div class="review-sec-title">
+                  <span class="sec-badge orange">!</span>
+                  <h4>Could be better</h4>
+                </div>
+                <ul class="review-bullet-list" id="serenImproveList">
+                  <li>Top feels a bit plain</li>
+                  <li>Try adding a belt for more shape</li>
+                  <li>Consider a pop of color or an accessory to elevate the look</li>
+                </ul>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="seren-review-actions">
+                <button class="btn-review-alt" onclick="app.serenApplySuggestion()">Try Alternative</button>
+                <button class="btn-review-save" onclick="app.serenSaveCurrentLook()">Save Look</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daily Recommendations / "What will you wear?" Collapsible Drawer -->
+          <div class="daily-looks-drawer hidden" id="dailyLooksDrawer">
+            <div class="daily-drawer-backdrop" onclick="app.serenToggleDailyLooks(false)"></div>
+            <div class="daily-drawer-card">
+              <div class="daily-drawer-header">
+                <div>
+                  <span class="greeting-kicker">Morning, Suriya</span>
+                  <h3 class="daily-drawer-title">Daily Recommendations</h3>
+                </div>
+                <div class="daily-drawer-header-actions">
+                  <div class="streak-drawer-badge" onclick="app.openStreakModal()" title="View Daily Outfit Streak">
+                    <span class="streak-flame-icon">🔥</span>
+                    <span class="streak-drawer-count">1</span>
+                  </div>
+                  <button class="daily-drawer-close" onclick="app.serenToggleDailyLooks(false)">✕</button>
+                </div>
+              </div>
+              <div class="daily-drawer-content" id="dailyDrawerFeed">
+                <!-- Occasion Filter Pills -->
+                <div class="occasion-pills-row" style="margin-bottom: 14px;">
+                  <button class="pill-chip active" onclick="app.setTodayOccasion('college', this)">College</button>
+                  <button class="pill-chip" onclick="app.setTodayOccasion('office', this)">Office</button>
+                  <button class="pill-chip" onclick="app.setTodayOccasion('casual', this)">Casual</button>
+                </div>
+                <!-- Outfit Card Carousel -->
+                <div id="todayOutfitCardMount" style="margin-bottom: 16px;">
+                  <!-- Rendered by app.js: renderCurrentLook() -->
+                </div>
+                <!-- Style Studio Quick Actions -->
+                <div class="drawer-studio-actions">
+                  <button class="drawer-action-btn" onclick="app.goToScreen('ai-stylist'); app.serenToggleDailyLooks(false);">
+                    <span>✦ AI Stylist Questionnaire</span>
+                    <span class="arrow">→</span>
+                  </button>
+                  <button class="drawer-action-btn" onclick="app.goToScreen('custom-builder'); app.serenToggleDailyLooks(false);">
+                    <span>🎨 Custom Outfit Studio</span>
+                    <span class="arrow">→</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+<section class="phone-screen" id="screen-ai-stylist">
           <div class="screen-sub-header">
             <button class="nav-back-arrow" onclick="app.goToScreen('today')">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
-            <span class="sub-header-title">AURA AI Stylist</span>
+            <span class="sub-header-title">Woobi AI Stylist</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -861,6 +1235,27 @@
               <div class="quad-item bot-right"><img id="readyImgAcc" src="assets/leather_watch.jpg" alt="Watch"></div>
             </div>
 
+            <!-- Streak Camera Upload Action Card -->
+            <div class="streak-ready-card" id="streakReadyCard">
+              <div class="streak-ready-badge-row">
+                <span class="streak-ready-pill">🔥 Daily Streak Feature</span>
+                <span class="streak-ready-timer-mini" id="streakReadyTimerMini">⏳ 24h left</span>
+              </div>
+              <div class="streak-ready-body">
+                <div class="streak-ready-text">
+                  <strong>Snap your actual look today!</strong>
+                  <p>Upload a quick photo of yourself wearing this outfit to advance your streak by <strong>+1 🔥</strong>.</p>
+                </div>
+                <button class="btn-camera-upload" onclick="app.triggerOutfitPhotoUpload()" title="Upload outfit photo">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                  <span>Upload Look (+1 🔥)</span>
+                </button>
+              </div>
+            </div>
+
             <p class="center-hint-text" style="margin-top: 14px; font-weight: 500; color: #2D312E;">Planning to wear this today?</p>
 
             <div class="dual-button-stack">
@@ -1227,6 +1622,18 @@
                 <span class="menu-chevron">›</span>
               </div>
 
+              <div class="menu-item-row" onclick="app.goToScreen('appearance-settings')">
+                <span class="menu-icon">🎨</span>
+                <span class="menu-text">Appearance & 3D themes</span>
+                <span class="menu-chevron">›</span>
+              </div>
+
+              <div class="menu-item-row" onclick="app.goToScreen('performance-settings')">
+                <span class="menu-icon">⚡</span>
+                <span class="menu-text">Performance & graphics</span>
+                <span class="menu-chevron">›</span>
+              </div>
+
               <div class="menu-item-row" onclick="app.goToScreen('account-privacy')">
                 <span class="menu-icon">⚙️</span>
                 <span class="menu-text">Account and privacy</span>
@@ -1478,22 +1885,58 @@
           <div class="screen-body-padded">
             <h1 class="screen-headline-serif">Account and privacy</h1>
 
+            <!-- Profile Info Card & Editor -->
+            <div style="background: var(--surface-card, #FFFFFF); border-radius: 12px; padding: 16px; margin-top: 14px; border: 1px solid var(--border-subtle, #EBE6DF);">
+              <span class="control-sublabel" style="margin-bottom: 8px;">Edit Profile</span>
+              <div style="margin-bottom: 10px;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Display Name</label>
+                <input type="text" id="inputProfileName" value="Suriya" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle, #DDD); font-size: 0.85rem;">
+              </div>
+              <div style="margin-bottom: 12px;">
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Email Address</label>
+                <input type="email" id="inputProfileEmail" value="suriya@example.com" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle, #DDD); font-size: 0.85rem;">
+              </div>
+              <button class="btn-olive-primary" onclick="app.saveProfile()" style="padding: 8px 16px; font-size: 0.82rem;">
+                Save Profile
+              </button>
+            </div>
+
+            <!-- Privacy & Consent Controls -->
+            <div style="background: var(--surface-card, #FFFFFF); border-radius: 12px; padding: 16px; margin-top: 14px; border: 1px solid var(--border-subtle, #EBE6DF);">
+              <span class="control-sublabel" style="margin-bottom: 8px;">Privacy & Analytics Consent</span>
+              <div class="reminder-row" style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle, #F0ECE6);">
+                <span style="font-size: 0.82rem;">Anonymous Usage Telemetry</span>
+                <label class="switch-toggle">
+                  <input type="checkbox" id="toggleAnalyticsConsent" onchange="app.updatePrivacyConsent()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="reminder-row" style="padding: 8px 0;">
+                <span style="font-size: 0.82rem;">Crash Diagnostics</span>
+                <label class="switch-toggle">
+                  <input type="checkbox" checked id="toggleCrashReporting" onchange="app.updatePrivacyConsent()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Data Export & Cache Purging -->
             <div class="profile-menu-list" style="margin-top: 16px;">
-              <div class="menu-item-row">
-                <span class="menu-icon">👤</span>
-                <span class="menu-text">suriya@example.com</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.exportWardrobe()">
+              <div class="menu-item-row" onclick="app.exportUserData()">
                 <span class="menu-icon">📥</span>
-                <span class="menu-text">Export my wardrobe</span>
+                <span class="menu-text">Export all user data (JSON)</span>
                 <span class="menu-chevron">›</span>
               </div>
 
-              <div class="menu-item-row" onclick="alert('Privacy policy: Zero photo selling. Local-first encryption.');">
-                <span class="menu-icon">🛡️</span>
-                <span class="menu-text">Privacy policy</span>
+              <div class="menu-item-row" onclick="app.clearSavedLooksCache()">
+                <span class="menu-icon">🧹</span>
+                <span class="menu-text">Clear saved looks cache</span>
+                <span class="menu-chevron">›</span>
+              </div>
+
+              <div class="menu-item-row" onclick="app.clearAvatarPreferencesCache()">
+                <span class="menu-icon">👤</span>
+                <span class="menu-text">Reset 3D avatar preferences</span>
                 <span class="menu-chevron">›</span>
               </div>
 
@@ -1503,7 +1946,7 @@
                 <span class="menu-chevron">›</span>
               </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('welcome')">
+              <div class="menu-item-row" onclick="app.signOut()">
                 <span class="menu-icon">🚪</span>
                 <span class="menu-text">Sign out</span>
                 <span class="menu-chevron">›</span>
@@ -1517,6 +1960,156 @@
                 <span class="danger-chevron">›</span>
               </div>
             </div>
+          </div>
+          <div class="phone-home-indicator"></div>
+        </section>
+
+        <!-- ===================================================================
+             SCREEN: APPEARANCE & 3D STUDIO THEMES (PHASE 6)
+             =================================================================== -->
+        <section class="phone-screen" id="screen-appearance-settings">
+          <div class="screen-sub-header">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <div style="width: 20px;"></div>
+          </div>
+
+          <div class="screen-body-padded">
+            <h1 class="screen-headline-serif">Appearance</h1>
+            <p class="screen-caption-sub">Customize app theme, 3D architectural textures, and studio lighting.</p>
+
+            <!-- App Theme Segment -->
+            <span class="control-sublabel">App Interface Theme</span>
+            <div class="category-pill-group" style="margin-bottom: 16px;">
+              <button class="cat-pill active" id="btnThemeLight" onclick="app.setAppTheme('light')">Light</button>
+              <button class="cat-pill" id="btnThemeDark" onclick="app.setAppTheme('dark')">Dark</button>
+              <button class="cat-pill" id="btnThemeSystem" onclick="app.setAppTheme('system')">System</button>
+            </div>
+
+            <!-- 3D Studio Themes -->
+            <span class="control-sublabel">3D Studio Environment</span>
+            <div class="profile-menu-list" style="margin-bottom: 16px;">
+              <div class="menu-item-row" onclick="app.setStudioTheme('luxury-cream')">
+                <span class="menu-icon">🏛️</span>
+                <div class="menu-text">
+                  <strong>Luxury Cream (Default)</strong>
+                  <p style="font-size: 0.74rem; color: var(--text-muted);">Warm cream plaster & gold-veined marble</p>
+                </div>
+                <span class="menu-chevron" id="checkThemeLuxury">✓</span>
+              </div>
+              <div class="menu-item-row" onclick="app.setStudioTheme('nordic-minimal')">
+                <span class="menu-icon">❄️</span>
+                <div class="menu-text">
+                  <strong>Nordic Minimal</strong>
+                  <p style="font-size: 0.74rem; color: var(--text-muted);">Cool scandinavian daylight & light ash</p>
+                </div>
+                <span class="menu-chevron" id="checkThemeNordic" style="display:none;">✓</span>
+              </div>
+              <div class="menu-item-row" onclick="app.setStudioTheme('warm-terracotta')">
+                <span class="menu-icon">🏺</span>
+                <div class="menu-text">
+                  <strong>Warm Terracotta</strong>
+                  <p style="font-size: 0.74rem; color: var(--text-muted);">Tuscan earthen clay & warm afternoon sun</p>
+                </div>
+                <span class="menu-chevron" id="checkThemeTerracotta" style="display:none;">✓</span>
+              </div>
+            </div>
+
+            <!-- 3D Lighting Presets -->
+            <span class="control-sublabel">Studio Lighting Setup</span>
+            <div class="category-pill-group" style="margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+              <button class="cat-pill active" id="btnLightSoft" onclick="app.setStudioLighting('editorial_soft')">Editorial Soft</button>
+              <button class="cat-pill" id="btnLightAtelier" onclick="app.setStudioLighting('warm_atelier')">Warm Atelier</button>
+              <button class="cat-pill" id="btnLightGolden" onclick="app.setStudioLighting('golden_hour')">Golden Hour</button>
+              <button class="cat-pill" id="btnLightDramatic" onclick="app.setStudioLighting('dramatic_chiaroscuro')">Dramatic</button>
+              <button class="cat-pill" id="btnLightClean" onclick="app.setStudioLighting('high_key_clean')">High Key</button>
+            </div>
+
+            <!-- Accessibility & Scaling -->
+            <span class="control-sublabel">Accessibility</span>
+            <div style="background: var(--surface-card, #FFFFFF); border-radius: 12px; padding: 14px; border: 1px solid var(--border-subtle, #EBE6DF); margin-bottom: 16px;">
+              <div class="reminder-row">
+                <span style="font-size: 0.82rem;">High Contrast Mode</span>
+                <label class="switch-toggle">
+                  <input type="checkbox" id="toggleHighContrast" onchange="app.toggleHighContrast(this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <button class="btn-olive-secondary" onclick="app.resetAppearance()" style="width: 100%; padding: 10px; border-radius: 8px;">
+              Reset Appearance to Default
+            </button>
+          </div>
+          <div class="phone-home-indicator"></div>
+        </section>
+
+        <!-- ===================================================================
+             SCREEN: PERFORMANCE & GRAPHICS (PHASE 6)
+             =================================================================== -->
+        <section class="phone-screen" id="screen-performance-settings">
+          <div class="screen-sub-header">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <div style="width: 20px;"></div>
+          </div>
+
+          <div class="screen-body-padded">
+            <h1 class="screen-headline-serif">Performance</h1>
+            <p class="screen-caption-sub">Optimize 3D graphics fidelity, shadow maps, and device battery life.</p>
+
+            <!-- Quality Presets -->
+            <span class="control-sublabel">Graphics Fidelity Preset</span>
+            <div class="category-pill-group" style="margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+              <button class="cat-pill active" id="btnPerfHigh" onclick="app.setPerformancePreset('high')">High (60 FPS)</button>
+              <button class="cat-pill" id="btnPerfMedium" onclick="app.setPerformancePreset('medium')">Medium</button>
+              <button class="cat-pill" id="btnPerfLow" onclick="app.setPerformancePreset('low')">Low</button>
+              <button class="cat-pill" id="btnPerfBattery" onclick="app.setPerformancePreset('battery_saver')">Battery Saver</button>
+              <button class="cat-pill" id="btnPerfAuto" onclick="app.setPerformancePreset('auto')">Auto Detect</button>
+            </div>
+
+            <!-- Granular Toggles -->
+            <span class="control-sublabel">Advanced Render Options</span>
+            <div style="background: var(--surface-card, #FFFFFF); border-radius: 12px; padding: 14px; border: 1px solid var(--border-subtle, #EBE6DF); margin-bottom: 16px;">
+              <div class="reminder-row" style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle, #F0ECE6);">
+                <div>
+                  <strong style="font-size: 0.82rem; display: block;">Real-Time Soft Shadows</strong>
+                  <span style="font-size: 0.72rem; color: var(--text-muted);">Dynamic contact shadows under wardrobe & avatar</span>
+                </div>
+                <label class="switch-toggle">
+                  <input type="checkbox" checked id="toggleShadows" onchange="app.toggleShadowQuality(this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="reminder-row" style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle, #F0ECE6);">
+                <div>
+                  <strong style="font-size: 0.82rem; display: block;">Vanity Mirror Reflections</strong>
+                  <span style="font-size: 0.72rem; color: var(--text-muted);">Real-time WebGL render pass on arched vanity mirror</span>
+                </div>
+                <label class="switch-toggle">
+                  <input type="checkbox" checked id="toggleReflections" onchange="app.toggleReflectionQuality(this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="reminder-row" style="padding: 8px 0;">
+                <div>
+                  <strong style="font-size: 0.82rem; display: block;">Avatar Secondary Breathing Motion</strong>
+                  <span style="font-size: 0.72rem; color: var(--text-muted);">Subtle organic idle chest and posture kinetics</span>
+                </div>
+                <label class="switch-toggle">
+                  <input type="checkbox" checked id="toggleIdleMotion" onchange="app.toggleIdleAnimations(this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <button class="btn-olive-secondary" onclick="app.resetPerformance()" style="width: 100%; padding: 10px; border-radius: 8px;">
+              Reset Graphics to Default High
+            </button>
           </div>
           <div class="phone-home-indicator"></div>
         </section>
@@ -2546,7 +3139,9 @@
         </section>
 
       </div><!-- /.phone-screen-container -->
-  </main><!-- /.app-viewport -->
+  </main>
+  </div><!-- /.desktop-editorial-frame -->
+<!-- /.app-viewport -->
 
   <!-- Item Condition & Fit Modal Sheet -->
   <div class="condition-modal-backdrop hidden" id="itemConditionModal">
@@ -2616,10 +3211,311 @@
     </div>
   </div>
 
+        <!-- ===================================================================
+             SCREEN: 3D VIRTUAL FASHION STUDIO
+             =================================================================== -->
+                
+
+  <!-- In-App Daily Reminder Notification Banner -->
+  <div class="in-app-reminder-banner hidden" id="inAppReminderBanner">
+    <div class="reminder-banner-content">
+      <div class="reminder-banner-icon-wrap" id="reminderBannerIcon">
+        <span>🔥</span>
+      </div>
+      <div class="reminder-banner-text">
+        <strong id="reminderBannerTitle">Upload Today's Look</strong>
+        <p id="reminderBannerBody">Snap your recommended outfit before the deadline to keep your streak going!</p>
+      </div>
+      <div class="reminder-banner-actions">
+        <button class="btn-banner-snap" onclick="app.triggerOutfitPhotoUpload()">
+          <span>📷 Snap</span>
+        </button>
+        <button class="btn-banner-close" onclick="app.dismissReminderBanner()">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden File Input for Native Camera / Gallery Upload -->
+  <input type="file" id="outfitPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="app.handleOutfitPhotoSelected(event)">
+
+  <!-- Modal 1: Daily Streak Camera & Photo Capture -->
+  <div class="streak-modal-backdrop hidden" id="outfitCameraModal">
+    <div class="streak-modal-card streak-camera-card">
+      <div class="streak-modal-header">
+        <div class="modal-title-with-pill">
+          <span class="modal-sub-brand">☁️ Woobi Camera</span>
+          <h3 class="streak-modal-title">Daily Streak Camera</h3>
+        </div>
+        <button class="streak-modal-close" onclick="app.closeCameraModal()">✕</button>
+      </div>
+
+      <p class="camera-modal-subtitle">Capture or upload today's outfit to keep your flame burning strong! 🔥</p>
+
+      <!-- Live Viewfinder / Capture Section -->
+      <div class="camera-viewfinder-container" id="cameraViewfinderContainer">
+        <video id="cameraVideo" class="camera-video-stream" autoplay playsinline muted></video>
+        <canvas id="cameraCanvas" class="hidden"></canvas>
+        <img id="cameraCapturedPreview" class="camera-captured-img hidden" alt="Captured Look" />
+
+        <!-- Framing guidelines overlay -->
+        <div class="camera-overlay-frame" id="cameraOverlayFrame">
+          <div class="camera-guide-oval"></div>
+          <span class="camera-guide-text">Frame your outfit here</span>
+        </div>
+
+        <!-- Camera Status / Error Overlay -->
+        <div class="camera-fallback-card hidden" id="cameraFallbackCard">
+          <span class="camera-fallback-icon">📷</span>
+          <p id="cameraFallbackMsg">Camera access ready. Tap below to capture or select a photo.</p>
+        </div>
+      </div>
+
+      <!-- Live Camera Controls (before snapshot) -->
+      <div class="camera-controls-row" id="cameraLiveControls">
+        <button class="btn-camera-upload" onclick="app.triggerFileInputClick()" title="Upload from Device">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <span>Upload</span>
+        </button>
+
+        <button class="btn-camera-shutter" id="btnCameraShutter" onclick="app.captureCameraSnapshot()" title="Capture Outfit">
+          <div class="shutter-inner"></div>
+        </button>
+
+        <button class="btn-camera-sample" onclick="app.loadSampleOutfitLook()" title="Use Curated Outfit Sample">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <span>Sample Look</span>
+        </button>
+      </div>
+
+      <!-- Post-Capture Review & Confirm Controls (after photo captured) -->
+      <div class="camera-review-container hidden" id="cameraReviewContainer">
+        <!-- Already uploaded warning if duplicate -->
+        <div class="streak-duplicate-warning hidden" id="cameraDuplicateWarning">
+          <span>⚠️ You have already logged an outfit memory for today! Viewing only.</span>
+        </div>
+
+        <div class="camera-streak-advance-badge" id="cameraAdvanceBadge">
+          <span>Current Streak: <strong>🔥 <span id="cameraCurrentStreakVal">0</span> Days</strong></span>
+          <span class="advance-arrow">➔</span>
+          <span class="advance-highlight">New: <strong>🔥 <span id="cameraNewStreakVal">1</span> Days (+1)</strong></span>
+        </div>
+
+        <div class="camera-note-field">
+          <input type="text" id="cameraOutfitNoteInput" class="camera-note-input" placeholder="Give this look a note (e.g. Navy tailored shirt & chinos)..." maxlength="60" />
+        </div>
+
+        <div class="camera-review-actions">
+          <button class="btn-olive-primary" id="btnConfirmCapturedOutfit" onclick="app.confirmCapturedOutfit()">
+            Confirm & Log Outfit 🔥
+          </button>
+          <button class="btn-outline-white" onclick="app.retakeCameraPhoto()">
+            ↺ Retake Photo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Outfit Memories & Look History Gallery -->
+  <div class="streak-modal-backdrop hidden" id="outfitMemoriesModal">
+    <div class="streak-modal-card outfit-memories-card">
+      <div class="streak-modal-header">
+        <div class="modal-title-with-pill">
+          <span class="modal-sub-brand">☁️ Look Memories</span>
+          <h3 class="streak-modal-title">Outfit Memories</h3>
+        </div>
+        <button class="streak-modal-close" onclick="app.closeMemoriesModal()">✕</button>
+      </div>
+
+      <div class="memories-meta-bar">
+        <span class="memories-count-badge" id="memoriesTotalCountBadge">0 Memories Logged</span>
+        <button class="btn-mini-snap" onclick="app.closeMemoriesModal(); app.openCameraModal();">
+          + Snap Today's Look
+        </button>
+      </div>
+
+      <!-- Memories Chronological Grid -->
+      <div class="memories-grid" id="memoriesGridContainer">
+        <!-- Rendered dynamically via app.renderOutfitMemories() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Single Memory Detail Lightbox -->
+  <div class="streak-modal-backdrop hidden" id="memoryDetailModal">
+    <div class="streak-modal-card memory-detail-card">
+      <div class="streak-modal-header">
+        <h3 class="streak-modal-title" id="memoryDetailDateTitle">Outfit Memory</h3>
+        <button class="streak-modal-close" onclick="app.closeMemoryDetailModal()">✕</button>
+      </div>
+      <div class="memory-detail-img-wrap">
+        <img id="memoryDetailImg" src="" alt="Outfit Memory" />
+        <span class="memory-detail-streak-tag" id="memoryDetailStreakTag">Day 1 🔥</span>
+      </div>
+      <div class="memory-detail-info">
+        <h4 id="memoryDetailNote" class="memory-detail-note">Outfit Look</h4>
+        <span id="memoryDetailTimestamp" class="memory-detail-time">Logged</span>
+      </div>
+      <button class="btn-outline-white full-width" onclick="app.closeMemoryDetailModal()">Back to Memories</button>
+    </div>
+  </div>
+
+  <!-- Modal 4: Missed Upload Broken Streak & Monthly Restore -->
+  <div class="streak-modal-backdrop hidden" id="missedStreakModal">
+    <div class="streak-modal-card missed-streak-card">
+      <div class="extinguished-flame-wrap">
+        <img src="assets/streak_bonfire_smoke.jpg" class="missed-bonfire-smoke-img" alt="Bonfire Smoke" />
+        <div class="smoke-extinguished-graphic">
+          <span class="smoke-drift d1">💨</span>
+          <span class="smoke-drift d2">💨</span>
+        </div>
+      </div>
+      <h2 class="missed-modal-headline">Oops! Your outfit streak has ended!</h2>
+      <p class="missed-modal-lead">Your streak is waiting to be restored. Keep your fashion flame alive!</p>
+      
+      <div class="lost-streak-stat-box">
+        <span class="stat-lbl">Lost Streak</span>
+        <span class="stat-num" id="missedStreakLostCount">0 Days</span>
+      </div>
+
+      <!-- Monthly Restoration Status Card -->
+      <div class="restore-status-card" id="restoreStatusCard">
+        <div class="restore-status-indicator">
+          <span class="restore-status-icon" id="restoreStatusIcon">✨</span>
+          <div class="restore-status-text">
+            <strong id="restoreStatusTitle">Monthly Restoration Available</strong>
+            <span id="restoreStatusSubtitle">Refreshes on the 3rd of every month</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="missed-modal-actions">
+        <button class="btn-olive-primary btn-restore-action" id="btnRestoreStreak" onclick="app.restoreMonthlyStreak()">
+          Restore Streak 🔥
+        </button>
+        <button class="btn-outline-white" onclick="app.startNewStreak()">
+          Start Fresh Streak
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Woobi Streak Calendar & Monthly Fire Animation -->
+  <div class="streak-modal-backdrop hidden" id="streakDetailsModal">
+    <div class="streak-modal-card streak-details-card streak-calendar-modal-card">
+      <div class="streak-modal-header">
+        <div class="modal-title-with-pill">
+          <span class="modal-sub-brand">☁️ Woobi</span>
+          <h3 class="streak-modal-title">Woobi Streak Calendar</h3>
+          <span class="streak-modal-tagline">Keep the flame going ✨</span>
+        </div>
+        <button class="streak-modal-close" onclick="app.closeStreakModal()">✕</button>
+      </div>
+      
+      <!-- Hero Display: Centered Fire / Smoke Visual & Active Streak -->
+      <div class="streak-hero-display" id="modalHeroContainer">
+        <div class="streak-hero-flame-box" id="modalHeroFlameBox">
+          <img src="assets/streak_fire.jpg" class="streak-hero-fire-visual" id="modalHeroFireImg" alt="Active Burning Flame" />
+          <img src="assets/streak_bonfire_smoke.jpg" class="streak-hero-smoke-visual hidden" id="modalHeroSmokeImg" alt="Extinguished Smoke" />
+        </div>
+        <div class="streak-hero-count" id="modalHeroStreakCount">0</div>
+        <div class="streak-hero-label" id="modalHeroStreakLabel">ACTIVE STREAK</div>
+      </div>
+
+      <!-- Monthly Circular Calendar Card -->
+      <div class="streak-calendar-card">
+        <!-- Month Navigation Bar -->
+        <div class="streak-calendar-nav">
+          <button class="btn-cal-nav" onclick="app.prevCalendarMonth()" title="Previous Month">❮</button>
+          <div class="streak-cal-month-title" id="streakCalMonthTitle">October 2026 ▾</div>
+          <button class="btn-cal-nav" onclick="app.nextCalendarMonth()" title="Next Month">❯</button>
+        </div>
+
+        <!-- Weekdays Header Row -->
+        <div class="streak-cal-weekdays-row">
+          <span>SUN</span>
+          <span>MON</span>
+          <span>TUE</span>
+          <span>WED</span>
+          <span>THU</span>
+          <span>FRI</span>
+          <span>SAT</span>
+        </div>
+
+        <!-- Dynamic Circular Days Grid -->
+        <div class="streak-calendar-grid" id="streakCalendarGrid">
+          <!-- Rendered dynamically by app.renderCalendar() -->
+        </div>
+
+        <!-- Monthly Summary Stats Bar -->
+        <div class="streak-cal-stats-bar">
+          <div class="cal-stat-item">
+            <span class="stat-icon">🔥</span>
+            <span class="stat-val" id="calActiveCount">0</span>
+            <span class="stat-name">Active Days</span>
+          </div>
+          <div class="cal-stat-sep">|</div>
+          <div class="cal-stat-item">
+            <span class="stat-icon">🪵</span>
+            <span class="stat-val" id="calBrokenCount">0</span>
+            <span class="stat-name">Broken Days</span>
+          </div>
+          <div class="cal-stat-sep">|</div>
+          <div class="cal-stat-item">
+            <span class="stat-icon">⚪</span>
+            <span class="stat-val" id="calUpcomingCount">0</span>
+            <span class="stat-name">Upcoming</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div class="streak-calendar-actions">
+        <button class="btn-olive-primary" onclick="app.closeStreakModal(); app.openCameraModal();">
+          📷 Snap Today's Outfit
+        </button>
+        <button class="btn-outline-sand" onclick="app.closeStreakModal(); app.openMemoriesModal();">
+          🖼️ View Outfit Memories
+        </button>
+      </div>
+
+      <!-- Developer / QA Testing Controls -->
+      <details class="streak-dev-details">
+        <summary class="streak-dev-summary">⚙️ QA & Feature Testing Tools</summary>
+        <div class="streak-dev-controls">
+          <button class="dev-btn" onclick="app.devSimulateUpload()">⚡ Instant Upload (+1)</button>
+          <button class="dev-btn" onclick="app.devSimulateTwoHoursLeft()">⏱️ Set 1h 59m (2h Warning)</button>
+          <button class="dev-btn" onclick="app.devSimulateStreakBreak()">💥 Force Streak Break</button>
+          <button class="dev-btn" onclick="app.devToggleRestoreToken()">🔄 Toggle Monthly Restore</button>
+          <button class="dev-btn" onclick="app.devResetStreak()">🗑️ Reset Streak to Default</button>
+        </div>
+      </details>
+    </div>
+  </div>
+
   <!-- Notification Toast -->
   <div class="toast-popup" id="toastPopup"></div>
 
-  <!-- Application Logic -->
-  <script src="app.js"></script>
+  <!-- Application Logic & Woobi Core Modules -->
+  <script type="module" src="modules/core/index.js"></script>
+  <script type="module" src="modules/3d-studio/stage/index.js"></script>
+  <script type="module" src="modules/3d-studio/wardrobe/index.js"></script>
+  <script type="module" src="modules/3d-studio/mirror-vanity/index.js"></script>
+  <script type="module" src="modules/3d-studio/avatar/index.js"></script>
+  <script type="module" src="modules/3d-studio/lighting/index.js"></script>
+  <script type="module" src="modules/3d-studio/theme/index.js"></script>
+  <script type="module" src="modules/3d-studio/camera/index.js"></script>
+  <script type="module" src="modules/3d-studio-features/index.js"></script>
+  <script type="module" src="modules/settings/index.js"></script>
+  <script src="wardrobe-astra-material.js?v=20261031_9"></script>
+  <script src="wardrobe3d.js?v=20261031_9"></script>
+  <script src="studio3d.js?v=20261031_9"></script>
+  <script src="app.js?v=20261031_9"></script>
 </body>
 </html>

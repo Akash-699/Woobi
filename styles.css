@@ -7607,11 +7607,13 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 72px;
-  height: 72px;
-  background: #F4EBE1;
+  width: 96px;
+  height: 96px;
+  background: radial-gradient(circle, #FAF4ED 0%, #EFE5D8 100%);
   border-radius: 50%;
   margin: 0 auto 16px auto;
+  border: 1px solid rgba(220, 210, 195, 0.7);
+  box-shadow: 0 4px 18px rgba(70, 50, 30, 0.08);
 }
 
 .extinguished-ember {
@@ -7765,6 +7767,16 @@ html, body {
   animation: miniFlameWobble 2s ease-in-out infinite alternate;
 }
 
+#streakHeaderSmokeImg.streak-header-icon-img {
+  box-shadow: 0 0 6px rgba(80, 70, 60, 0.5);
+  animation: miniSmokeWobble 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes miniSmokeWobble {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-1.5px); }
+}
+
 @keyframes miniFlameWobble {
   0% { transform: scale(0.96) rotate(-3deg); filter: brightness(1); }
   100% { transform: scale(1.06) rotate(3deg); filter: brightness(1.2); }
@@ -7813,7 +7825,7 @@ html, body {
   width: 80px;
   height: 80px;
   object-fit: contain;
-  filter: grayscale(0.5) contrast(1.1) drop-shadow(0 0 10px rgba(50, 45, 40, 0.4));
+  filter: drop-shadow(0 0 10px rgba(50, 45, 40, 0.25));
   animation: heroSmokeWaft 2.8s ease-in-out infinite alternate;
 }
 
@@ -7994,30 +8006,30 @@ html, body {
 /* MISSED DAY: NATURAL BONFIRE SMOKE BUBBLE */
 .streak-cal-bubble.missed {
   background-image: url('assets/streak_bonfire_smoke.jpg');
-  background-size: 135%;
-  background-position: center bottom;
-  border: 1.5px solid #6E6259;
-  box-shadow: 0 0 8px rgba(50, 45, 40, 0.4), inset 0 0 8px rgba(0, 0, 0, 0.55);
+  background-size: 130%;
+  background-position: center 40%;
+  border: 1.5px solid #7D6F63;
+  box-shadow: 0 0 8px rgba(50, 45, 40, 0.35), inset 0 0 8px rgba(0, 0, 0, 0.4);
   animation: smokeWaftDrift 3s ease-in-out infinite alternate;
 }
 
 .streak-cal-bubble.missed .streak-cal-day-num {
-  color: #F5EFE6;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+  color: #FFFFFF;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 6px rgba(40, 35, 30, 0.9);
 }
 
 @keyframes smokeWaftDrift {
   0% {
     transform: translateY(0);
-    filter: grayscale(0.35) contrast(1.1);
+    filter: drop-shadow(0 0 4px rgba(40, 35, 30, 0.3));
   }
   50% {
-    transform: translateY(-1.5px);
-    filter: grayscale(0.15) contrast(1.2);
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 8px rgba(50, 45, 40, 0.5));
   }
   100% {
     transform: translateY(0);
-    filter: grayscale(0.35) contrast(1.1);
+    filter: drop-shadow(0 0 4px rgba(40, 35, 30, 0.3));
   }
 }
 
@@ -8494,9 +8506,10 @@ html, body {
 
 /* Missed Streak Bonfire Smoke Image */
 .missed-bonfire-smoke-img {
-  width: 72px;
-  height: 72px;
-  object-fit: cover;
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
   border-radius: 50%;
-  box-shadow: 0 0 12px rgba(50, 45, 40, 0.4);
+  filter: drop-shadow(0 2px 8px rgba(50, 45, 40, 0.25));
+  animation: heroSmokeWaft 2.8s ease-in-out infinite alternate;
 }
