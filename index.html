@@ -387,6 +387,7 @@
                   <img src="assets/streak_bonfire_smoke.jpg" class="streak-header-icon-img hidden" id="streakHeaderSmokeImg" alt="Streak Wood & Smoke" />
                 </div>
                 <span class="streak-count" id="streakCount">0</span>
+                <span class="streak-count-label" id="streakCountLabel">Streaks</span>
               </button>
 
               <!-- 2. 📷 Camera Icon: Opens Camera Screen Only -->
@@ -3267,6 +3268,12 @@
 
       <!-- Post-Capture Review & Confirm Controls (after photo captured) -->
       <div class="camera-review-container hidden" id="cameraReviewContainer">
+        <div class="camera-streak-preview" id="cameraStreakPreview">
+          <span class="camera-streak-text">
+            🔥 Current Streak: <strong id="cameraCurrentStreakVal">0</strong> ➔ New: <strong id="cameraNewStreakVal">1</strong> Streaks
+          </span>
+          <div id="cameraDuplicateWarning" class="hidden"></div>
+        </div>
         <div class="camera-review-actions">
           <button class="btn-olive-primary" id="btnConfirmCapturedOutfit" onclick="app.confirmCapturedOutfit()">
             Confirm & Save Outfit 🔥
@@ -3290,13 +3297,6 @@
       <div class="memories-meta-bar">
         <span class="memories-count-badge" id="memoriesTotalCountBadge">0 Memories Saved</span>
       </div>
-
-      <!-- Memories Chronological Grid -->
-      <div class="memories-grid" id="memoriesGridContainer">
-        <!-- Rendered dynamically via app.renderOutfitMemories() -->
-      </div>
-    </div>
-  </div>
 
       <!-- Memories Chronological Grid -->
       <div class="memories-grid" id="memoriesGridContainer">

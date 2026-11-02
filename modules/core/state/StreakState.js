@@ -272,6 +272,10 @@ export class StreakState {
     };
   }
 
+  getStatus() {
+    return this.getStreakStatus();
+  }
+
   // ---------------------------------------------------------------------------
   // Daily Outfit Upload & Streak Increment
   // ---------------------------------------------------------------------------

@@ -50,18 +50,7 @@ export const CoreContract = {
   },
 
   // Daily Outfit Streak & Memories Engine
-  streak: {
-    getStatus: () => streakState.getStreakStatus(),
-    hasUploadedToday: () => streakState.hasUploadedToday(),
-    hasUploadedOnDate: (dateStr) => streakState.hasUploadedOnDate(dateStr),
-    recordDailyOutfitUpload: (opts) => streakState.recordDailyOutfitUpload(opts),
-    getMemoryByDate: (dateStr) => streakState.getMemoryByDate(dateStr),
-    getAllMemories: () => streakState.getAllMemories(),
-    getMonthlyCalendarData: (y, m) => streakState.getMonthlyCalendarData(y, m),
-    restoreMonthlyStreak: () => streakState.restoreMonthlyStreak(),
-    startFreshStreak: () => streakState.startFreshStreak(),
-    on: (evt, cb) => streakState.on(evt, cb)
-  },
+  streak: streakState,
   
   // Shared UI & Design System
   ui: {

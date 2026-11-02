@@ -7788,6 +7788,51 @@ html, body {
   color: #7D6B5C;
 }
 
+.streak-count-label {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #7D6B5C;
+  letter-spacing: -0.01em;
+  margin-left: 2px;
+  line-height: 1;
+}
+
+.streak-flame-btn:hover .streak-count-label {
+  color: #C85A17;
+}
+
+.streak-flame-btn.broken-streak .streak-count-label {
+  color: #9C8979;
+}
+
+.camera-streak-preview {
+  margin-bottom: 12px;
+  text-align: center;
+  background: #FFF8F0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 170, 100, 0.35);
+}
+
+.camera-streak-text {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #C85A17;
+}
+
+.camera-streak-text strong {
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+#cameraDuplicateWarning {
+  font-size: 0.78rem;
+  color: #7D6B5C;
+  margin-top: 4px;
+}
+
 .streak-camera-btn,
 .streak-gallery-btn {
   width: 38px;

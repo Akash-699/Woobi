@@ -2114,26 +2114,35 @@
     return null;
   }
 
+  function getStreakStatusSafe(engine) {
+    if (!engine) return null;
+    if (typeof engine.getStatus === 'function') return engine.getStatus();
+    if (typeof engine.getStreakStatus === 'function') return engine.getStreakStatus();
+    return engine.state || null;
+  }
+
   function initStreakState() {
     const engine = getStreakEngine();
     if (engine) {
-      state.streak = engine.getStatus();
-      engine.on('streak:updated', (data) => {
-        state.streak = engine.getStatus();
-        updateStreakUI();
-      });
-      engine.on('streak:broken', (data) => {
-        state.streak = engine.getStatus();
-        triggerFlameBlowoutAnimation();
-        updateStreakUI();
-        if (state.streak.hasEarnedStreak && state.streak.savedPreviousStreak > 0) {
-          setTimeout(() => showMissedStreakModal(), 1000);
-        }
-      });
-      engine.on('streak:restored', () => {
-        state.streak = engine.getStatus();
-        updateStreakUI();
-      });
+      state.streak = getStreakStatusSafe(engine);
+      if (typeof engine.on === 'function') {
+        engine.on('streak:updated', (data) => {
+          state.streak = getStreakStatusSafe(engine);
+          updateStreakUI();
+        });
+        engine.on('streak:broken', (data) => {
+          state.streak = getStreakStatusSafe(engine);
+          triggerFlameBlowoutAnimation();
+          updateStreakUI();
+          if (state.streak && state.streak.hasEarnedStreak && state.streak.savedPreviousStreak > 0) {
+            setTimeout(() => showMissedStreakModal(), 1000);
+          }
+        });
+        engine.on('streak:restored', () => {
+          state.streak = getStreakStatusSafe(engine);
+          updateStreakUI();
+        });
+      }
     } else {
       // Local fallback state
       if (!state.streak) {
@@ -2165,7 +2174,7 @@
   function tickStreakCountdown() {
     const engine = getStreakEngine();
     if (engine) {
-      state.streak = engine.getStatus();
+      state.streak = getStreakStatusSafe(engine);
     }
     checkStreakUrgency();
     updateStreakUI();
@@ -2223,17 +2232,26 @@
 
   function updateStreakUI() {
     const engine = getStreakEngine();
-    if (!engine) return;
+    let streak = null;
+    if (engine) {
+      streak = getStreakStatusSafe(engine);
+      state.streak = streak;
+    } else {
+      streak = state.streak;
+    }
+    if (!streak) return;
 
-    const streak = engine.getStreakStatus();
-    state.streak = streak;
-
+    const count = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
     const streakCountEl = document.getElementById('streakCount');
+    const streakCountLabelEl = document.getElementById('streakCountLabel');
     const streakPillEl = document.getElementById('streakHeaderPill');
     const fireImg = document.getElementById('streakHeaderFireImg');
     const smokeImg = document.getElementById('streakHeaderSmokeImg');
 
-    if (streakCountEl) streakCountEl.textContent = streak.currentStreak;
+    if (streakCountEl) streakCountEl.textContent = count;
+    if (streakCountLabelEl) {
+      streakCountLabelEl.textContent = count === 1 ? 'Streak' : 'Streaks';
+    }
 
     // Only show broken streak (wood & rising smoke) if user had previously earned a streak!
     // A new user who has never earned a streak must NOT be shown a broken streak.
@@ -2251,7 +2269,7 @@
       if (smokeImg) smokeImg.classList.add('hidden');
       if (streakPillEl) {
         streakPillEl.classList.remove('broken-streak');
-        streakPillEl.title = 'Daily Outfit Streak: Click to view calendar';
+        streakPillEl.title = `Daily Outfit Streak: ${count} ${count === 1 ? 'Streak' : 'Streaks'} (Click to view calendar)`;
       }
     }
   }
@@ -2263,7 +2281,9 @@
     const engine = getStreakEngine();
     if (!engine) return;
 
-    const status = engine.getStreakStatus();
+    const status = getStreakStatusSafe(engine);
+    if (!status) return;
+
     // When streak is broken, clicking the wood and smoke icon opens the Restore option!
     if (status.isStreakBroken && status.hasEarnedStreak && status.savedPreviousStreak > 0) {
       showMissedStreakModal();
@@ -2277,10 +2297,12 @@
     const modal = document.getElementById('streakDetailsModal');
     if (!modal) return;
 
-    const streak = state.streak || { currentStreak: 0 };
+    const engine = getStreakEngine();
+    const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
+    const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
     const badge = document.getElementById('calHeaderStreakBadge');
     if (badge) {
-      badge.textContent = `🔥 Current Streak: ${streak.currentStreak} Days`;
+      badge.textContent = `🔥 Current Streak: ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}`;
     }
 
     renderStreakCalendar();
@@ -2313,6 +2335,13 @@
   function renderStreakCalendar() {
     const engine = getStreakEngine();
     if (!engine) return;
+
+    const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
+    const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
+    const badge = document.getElementById('calHeaderStreakBadge');
+    if (badge) {
+      badge.textContent = `🔥 Current Streak: ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}`;
+    }
 
     const calData = engine.getMonthlyCalendarData(currentCalYear, currentCalMonth);
     const titleEl = document.getElementById('streakCalMonthTitle');
@@ -2392,9 +2421,10 @@
     // Update streak advance numbers in review
     const currVal = document.getElementById('cameraCurrentStreakVal');
     const newVal = document.getElementById('cameraNewStreakVal');
-    const curStreak = state.streak ? state.streak.currentStreak : 0;
     const engine = getStreakEngine();
-    const isAlreadyLogged = engine && engine.hasUploadedToday();
+    const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
+    const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
+    const isAlreadyLogged = engine && typeof engine.hasUploadedToday === 'function' ? engine.hasUploadedToday() : false;
 
     if (currVal) currVal.textContent = curStreak;
     if (newVal) {
@@ -2407,7 +2437,7 @@
     if (dupWarning) {
       dupWarning.classList.toggle('hidden', !isAlreadyLogged);
       if (isAlreadyLogged) {
-        dupWarning.innerHTML = `<span>✨ Streak for today completed (🔥 ${curStreak} Days). Extra photos are saved to your Gallery!</span>`;
+        dupWarning.innerHTML = `<span>✨ Streak for today completed (🔥 ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}). Extra photos are saved to your Gallery!</span>`;
       }
     }
     if (btnConfirm) {
