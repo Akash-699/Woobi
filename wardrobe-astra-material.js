@@ -29,42 +29,42 @@
     canvas.height = 1024;
     const ctx = canvas.getContext('2d');
 
-    // Base warm honey-oak gradient
+    // Base European natural oak gradient (Warm Mediterranean Luxury Honey Oak: #A87B4C)
     const grad = ctx.createLinearGradient(0, 0, 0, 1024);
-    grad.addColorStop(0.00, '#C98B52');
-    grad.addColorStop(0.25, '#BD7F46');
-    grad.addColorStop(0.50, '#D4965C');
-    grad.addColorStop(0.75, '#B87A42');
-    grad.addColorStop(1.00, '#C98B52');
+    grad.addColorStop(0.00, '#A87B4C');
+    grad.addColorStop(0.25, '#9A6D3E');
+    grad.addColorStop(0.50, '#B68854');
+    grad.addColorStop(0.75, '#8C6033');
+    grad.addColorStop(1.00, '#A87B4C');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 1024, 1024);
 
-    // Oak grain vertical growth rings and fiber striations
-    for (let i = 0; i < 450; i++) {
+    // Natural European oak vertical growth rings, grain pores and fiber striations
+    for (let i = 0; i < 520; i++) {
       const x = Math.random() * 1024;
-      const alpha = 0.05 + Math.random() * 0.09;
-      ctx.strokeStyle = Math.random() > 0.45 
-        ? `rgba(145, 90, 42, ${alpha})` 
-        : `rgba(235, 180, 125, ${alpha * 0.85})`;
-      ctx.lineWidth = 0.6 + Math.random() * 2.8;
+      const alpha = 0.08 + Math.random() * 0.14;
+      ctx.strokeStyle = Math.random() > 0.40 
+        ? `rgba(60, 38, 16, ${alpha})` 
+        : `rgba(190, 150, 110, ${alpha * 0.75})`;
+      ctx.lineWidth = 0.6 + Math.random() * 2.4;
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.bezierCurveTo(
-        x + (Math.random() - 0.5) * 22, 340,
-        x + (Math.random() - 0.5) * 22, 680,
-        x + (Math.random() - 0.5) * 12, 1024
+        x + (Math.random() - 0.5) * 18, 340,
+        x + (Math.random() - 0.5) * 18, 680,
+        x + (Math.random() - 0.5) * 10, 1024
       );
       ctx.stroke();
     }
 
-    // Subtle white oak medullary flecks & pores
+    // Realistic medullary ray flecks & oak pores
     const imgData = ctx.getImageData(0, 0, 1024, 1024);
     const d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
-      const noise = (Math.random() - 0.5) * 9;
+      const noise = (Math.random() - 0.5) * 10;
       d[i] = Math.min(255, Math.max(0, d[i] + noise));
-      d[i+1] = Math.min(255, Math.max(0, d[i+1] + noise * 0.88));
-      d[i+2] = Math.min(255, Math.max(0, d[i+2] + noise * 0.70));
+      d[i+1] = Math.min(255, Math.max(0, d[i+1] + noise * 0.82));
+      d[i+2] = Math.min(255, Math.max(0, d[i+2] + noise * 0.62));
     }
     ctx.putImageData(imgData, 0, 0);
 
@@ -132,35 +132,35 @@
       oakFrame: new THREE.MeshStandardMaterial({
         map: woodTex,
         bumpMap: woodBumpTex,
-        bumpScale: 0.002,
-        color: 0xC88B52, // Warm natural honey light oak matching front.png
-        roughness: 0.44,
+        bumpScale: 0.003,
+        color: 0xA87B4C, // Natural European honey oak (#A87B4C)
+        roughness: 0.52,
         metalness: 0.02
       }),
       oakBackboard: new THREE.MeshStandardMaterial({
         map: woodTex,
         bumpMap: woodBumpTex,
-        bumpScale: 0.0015,
-        color: 0xD4965C, // Warm amber oak backboard
-        roughness: 0.48,
+        bumpScale: 0.0025,
+        color: 0x9A6D3E, // Deeper honey oak backboard
+        roughness: 0.58,
         metalness: 0.02
       }),
       oakDrawers: new THREE.MeshStandardMaterial({
         map: woodTex,
         bumpMap: woodBumpTex,
-        bumpScale: 0.002,
-        color: 0xC4864D, // Honey oak drawer faces
-        roughness: 0.42,
+        bumpScale: 0.003,
+        color: 0xA87B4C, // European oak drawer faces
+        roughness: 0.50,
         metalness: 0.02
       }),
       brass: new THREE.MeshStandardMaterial({
-        color: 0xDDB65A, // Satin brushed brass
-        roughness: 0.20,
-        metalness: 0.94
+        color: 0x74583D, // Antique bronze (#74583D)
+        roughness: 0.35,
+        metalness: 0.75
       }),
       hangerWood: new THREE.MeshStandardMaterial({
-        color: 0xB57E4B, // Warm beech wood
-        roughness: 0.40,
+        color: 0xA87B4C, // European honey oak hanger wood
+        roughness: 0.48,
         metalness: 0.02
       }),
       boxLinen: new THREE.MeshStandardMaterial({
@@ -204,10 +204,10 @@
         metalness: 0.02
       }),
       ledGlow: new THREE.MeshStandardMaterial({
-        color: 0xFFE2B0,
-        emissive: 0xFFE2B0,
-        emissiveIntensity: 3.0,
-        roughness: 0.20
+        color: 0xFFF2DE,
+        emissive: 0xFFF2DE,
+        emissiveIntensity: 0.60,
+        roughness: 0.30
       }),
       whitePoplin: new THREE.MeshStandardMaterial({ color: 0xF7F5F0, roughness: 0.65 }),
       creamSilk: new THREE.MeshStandardMaterial({ color: 0xEFE5D0, roughness: 0.38 }),
@@ -326,20 +326,20 @@
     model.userData.hasShelfLights = true;
 
     const lights = [];
-    // Local coordinates inside wardrobe.glb (where front opening is -Z in local space)
-    const shelf1 = new THREE.PointLight(0xFFE2B0, 1.25, 2.5);
+    // Local coordinates inside wardrobe.glb with calibrated warm-white soft illumination
+    const shelf1 = new THREE.PointLight(0xFFF5E6, 0.35, 2.2);
     shelf1.position.set(0, 2.45, -0.15);
     shelf1.castShadow = false;
     model.add(shelf1);
     lights.push(shelf1);
 
-    const shelf2 = new THREE.PointLight(0xFFE2B0, 1.25, 2.5);
+    const shelf2 = new THREE.PointLight(0xFFF5E6, 0.35, 2.2);
     shelf2.position.set(0, 1.42, -0.15);
     shelf2.castShadow = false;
     model.add(shelf2);
     lights.push(shelf2);
 
-    const shelf3 = new THREE.PointLight(0xFFE2B0, 1.05, 2.2);
+    const shelf3 = new THREE.PointLight(0xFFF5E6, 0.30, 2.0);
     shelf3.position.set(0, 0.40, -0.15);
     shelf3.castShadow = false;
     model.add(shelf3);

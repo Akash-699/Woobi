@@ -65,13 +65,14 @@ export class VanityModel {
     const proceduralGroup = new THREE.Group();
     proceduralGroup.name = 'procedural_vanity';
 
-    const marbleMat = VanityMaterials.createMarbleMaterial(THREE, textures.calacatta);
+    const marbleMat = VanityMaterials.createMarbleMaterial(THREE, textures.champagneStone || textures.calacatta, textures.stoneBump);
+    const legsMat = VanityMaterials.createLegsMaterial(THREE);
     const brassMat = VanityMaterials.createBrassMaterial(THREE);
     const ledGlowMat = VanityMaterials.createLedGlowMaterial(THREE);
     const glassMat = VanityMaterials.createGlassMaterial(THREE, false);
     const amberGlassMat = VanityMaterials.createGlassMaterial(THREE, true);
     const boucleMat = VanityMaterials.createBoucleMaterial(THREE, textures.wovenRug);
-    this.disposables.push(marbleMat, brassMat, ledGlowMat, glassMat, amberGlassMat, boucleMat);
+    this.disposables.push(marbleMat, legsMat, brassMat, ledGlowMat, glassMat, amberGlassMat, boucleMat);
 
     // 1. Polished Calacatta Gold Marble Countertop Table
     const topSlabGeo = new THREE.BoxGeometry(tableWidth, 0.065, tableDepth);
@@ -91,7 +92,7 @@ export class VanityModel {
       [tableWidth / 2 - 0.035, tableDepth / 2 - 0.035]
     ];
     legPositions.forEach(([lx, lz]) => {
-      const leg = new THREE.Mesh(legGeo, brassMat);
+      const leg = new THREE.Mesh(legGeo, legsMat);
       leg.position.set(lx, (tableHeight - 0.03) / 2, lz);
       leg.castShadow = true;
       proceduralGroup.add(leg);
@@ -223,7 +224,7 @@ export class VanityModel {
     stoolGroup.position.set(this.config.stoolPosition.x, this.config.stoolPosition.y, this.config.stoolPosition.z);
 
     const stoolPlinthGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.05, 36);
-    const stoolPlinth = new THREE.Mesh(stoolPlinthGeo, brassMat);
+    const stoolPlinth = new THREE.Mesh(stoolPlinthGeo, boucleMat);
     stoolPlinth.position.y = 0.025;
     stoolPlinth.castShadow = true;
     stoolGroup.add(stoolPlinth);
@@ -247,6 +248,56 @@ export class VanityModel {
         this.group.add(model);
         this.isGLBLoaded = true;
         proceduralGroup.visible = false;
+
+        // Traverse GLB and bind mirror reflection & LED glow
+        model.traverse((child) => {
+          if (child.isMesh) {
+            if (child.name === 'Mirror_Surface' || child.name.includes('Mirror_Surface')) {
+              this.mirrorGlassMesh = child;
+              if (this.reflection) {
+                this.reflection.bindMirrorMesh(child, THREE);
+              }
+            } else if (child.name === 'Mirror_LED_Strip') {
+              child.material = VanityMaterials.createLedGlowMaterial(THREE);
+            } else if (child.name === 'Mirror_Frame') {
+              child.material = VanityMaterials.createBrassMaterial(THREE);
+            } else if (child.name === 'Vanity_Marble_Top' || child.name === 'Vanity_Cosmetic_Tray_Base' || child.name.includes('Marble')) {
+              // Generate planar UVs for horizontal tabletop geometry if missing (seren_vanity.glb has no UV attributes)
+              if (child.geometry && !child.geometry.attributes?.uv && child.geometry.attributes?.position && typeof THREE.BufferAttribute !== 'undefined') {
+                const pos = child.geometry.attributes.position;
+                if (typeof child.geometry.computeBoundingBox === 'function') {
+                  child.geometry.computeBoundingBox();
+                }
+                const bb = child.geometry.boundingBox;
+                const minX = bb ? bb.min.x : -0.675;
+                const maxX = bb ? bb.max.x : 0.675;
+                const minZ = bb ? bb.min.z : -0.240;
+                const maxZ = bb ? bb.max.z : 0.240;
+                const spanX = (maxX - minX) || 1.35;
+                const spanZ = (maxZ - minZ) || 0.48;
+
+                const uvs = new Float32Array(pos.count * 2);
+                for (let i = 0; i < pos.count; i++) {
+                  const x = pos.getX(i);
+                  const z = pos.getZ(i);
+                  uvs[i * 2] = (x - minX) / spanX;
+                  uvs[i * 2 + 1] = (z - minZ) / spanZ;
+                }
+                child.geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+              }
+              child.material = VanityMaterials.createMarbleMaterial(THREE, textures.champagneStone || textures.calacatta, textures.stoneBump);
+            } else if (child.name.includes('Vanity_Leg') || child.name.includes('Vanity_Top_Rail') || child.name.includes('Vanity_Tray_Rim') || child.name.includes('Vanity_Drawer_Seam')) {
+              child.material = VanityMaterials.createLegsMaterial(THREE);
+            } else if (child.name === 'Stool_Brass_Base_Ring' || child.name.includes('Stool_Brass') || child.name.includes('Stool_Base')) {
+              const stoolBody = model.getObjectByName('Stool_Upholstered_Body');
+              if (stoolBody && stoolBody.material) {
+                child.material = stoolBody.material;
+              } else {
+                child.material = boucleMat;
+              }
+            }
+          }
+        });
       },
       () => {
         this.isGLBLoaded = false;

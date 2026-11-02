@@ -90,18 +90,22 @@ export class AvatarMaterials {
     });
     this.disposables.push(this.hoopMat);
 
-    // Wearable Crop Tank Top Material
+    // Wearable Crop Tank Top Material with Tactile Ribbed Depth
     this.tankMat = new THREE.MeshStandardMaterial({
       map: this.textures.ribbedKnit || null,
+      bumpMap: this.textures.ribbedKnit || null,
+      bumpScale: 0.0025,
       color: AVATAR_PALETTE.cropTankIvory,
       roughness: 0.68,
       metalness: 0.02
     });
     this.disposables.push(this.tankMat);
 
-    // Fluid Tailored Sand Trousers Material
+    // Fluid Tailored Sand Trousers Material with Tactile Linen Weave Depth
     this.trouserMat = new THREE.MeshStandardMaterial({
       map: this.textures.linenWeave || null,
+      bumpMap: this.textures.linenWeave || null,
+      bumpScale: 0.0020,
       color: AVATAR_PALETTE.trousersSand,
       roughness: 0.72,
       metalness: 0.01

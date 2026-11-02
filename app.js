@@ -195,6 +195,8 @@
       updateBuilderTray();
     } else if (screenId === 'today' || screenId === 'virtual-studio') {
       initVirtualStudio();
+    } else if (screenId === 'weekly-planning') {
+      renderWeeklyCalendar();
     }
 
     // Update Bottom Nav active tab indicator if applicable
@@ -2098,58 +2100,65 @@
     }
   }
 
-  // Helper: Format next refresh date string (e.g. "Nov 3, 2026")
-  function getNextRestoreRefreshDateStr(dateObj) {
-    const d = dateObj || new Date();
-    const year = d.getFullYear();
-    const month = d.getMonth();
-    const day = d.getDate();
+  // ==========================================================================
+  // DAILY OUTFIT STREAK, CAMERA, MEMORIES & CIRCULAR CALENDAR SYSTEM
+  // ==========================================================================
 
-    let targetDate;
-    if (day < 3) {
-      targetDate = new Date(year, month, 3);
-    } else {
-      targetDate = new Date(year, month + 1, 3);
+  let currentCalYear = new Date().getFullYear();
+  let currentCalMonth = new Date().getMonth(); // 0-indexed
+  let cameraStream = null;
+  let capturedPhotoDataUrl = null;
+
+  function getStreakEngine() {
+    if (typeof window !== 'undefined' && window.WoobiCore && window.WoobiCore.streak) {
+      return window.WoobiCore.streak;
     }
+    return null;
+  }
 
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${monthNames[targetDate.getMonth()]} 3, ${targetDate.getFullYear()}`;
+  function getStreakStatusSafe(engine) {
+    if (!engine) return null;
+    if (typeof engine.getStatus === 'function') return engine.getStatus();
+    if (typeof engine.getStreakStatus === 'function') return engine.getStreakStatus();
+    return engine.state || null;
   }
 
   function initStreakState() {
-    let saved = null;
-    try {
-      const raw = localStorage.getItem(STREAK_STORAGE_KEY);
-      if (raw) saved = JSON.parse(raw);
-    } catch (e) {
-      console.warn('Could not read streak from localStorage', e);
-    }
-
-    const now = Date.now();
-    const defaultDeadline = now + (24 * 3600 * 1000); // 24-hour window from outfit recommendation
-
-    if (!saved) {
-      state.streak = {
-        currentStreak: 5, // Default starter streak of 5 days
-        savedPreviousStreak: 5,
-        isStreakBroken: false,
-        deadline: defaultDeadline,
-        lastUploadTimestamp: now - (12 * 3600 * 1000),
-        lastUploadDateStr: new Date(now - 12 * 3600 * 1000).toISOString().split('T')[0],
-        lastRestoredCycleKey: null, // Eligible for restore!
-        uploadedToday: false,
-        morningReminderSent: false,
-        urgentReminderSent: false
-      };
-      saveStreakState();
+    const engine = getStreakEngine();
+    if (engine) {
+      state.streak = getStreakStatusSafe(engine);
+      if (typeof engine.on === 'function') {
+        engine.on('streak:updated', (data) => {
+          state.streak = getStreakStatusSafe(engine);
+          updateStreakUI();
+        });
+        engine.on('streak:broken', (data) => {
+          state.streak = getStreakStatusSafe(engine);
+          triggerFlameBlowoutAnimation();
+          updateStreakUI();
+          if (state.streak && state.streak.hasEarnedStreak && state.streak.savedPreviousStreak > 0) {
+            setTimeout(() => showMissedStreakModal(), 1000);
+          }
+        });
+        engine.on('streak:restored', () => {
+          state.streak = getStreakStatusSafe(engine);
+          updateStreakUI();
+        });
+      }
     } else {
-      state.streak = saved;
-      const todayStr = new Date().toISOString().split('T')[0];
-      state.streak.uploadedToday = (state.streak.lastUploadDateStr === todayStr);
+      // Local fallback state
+      if (!state.streak) {
+        state.streak = {
+          currentStreak: 0,
+          bestStreak: 0,
+          savedPreviousStreak: 0,
+          isStreakBroken: false,
+          hasEarnedStreak: false,
+          uploadedToday: false,
+          deadline: Date.now() + 24 * 3600 * 1000
+        };
+      }
     }
-
-    // Check deadline on launch
-    checkStreakDeadline();
 
     // Start 1-second countdown ticker
     if (window._streakTicker) clearInterval(window._streakTicker);
@@ -2158,175 +2167,401 @@
     // Initial UI render
     updateStreakUI();
 
-    // If streak is already broken, surface missed upload modal
-    if (state.streak.isStreakBroken) {
-      setTimeout(() => {
-        showMissedStreakModal();
-      }, 700);
+    // Wire up header buttons directly for bulletproof responsiveness
+    const streakBtn = document.getElementById('streakHeaderPill');
+    if (streakBtn) {
+      streakBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        handleStreakIconClick();
+      };
     }
-  }
+    const cameraBtn = document.getElementById('streakCameraBtn');
+    if (cameraBtn) {
+      cameraBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        openCameraModal();
+      };
+    }
+    const galleryBtn = document.getElementById('streakGalleryBtn');
+    if (galleryBtn) {
+      galleryBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        openMemoriesModal();
+      };
+    }
 
-  function saveStreakState() {
-    try {
-      localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(state.streak));
-    } catch (e) {
-      console.warn('Could not persist streak to localStorage', e);
+    // Only show missed streak modal if user had earned a streak previously!
+    if (state.streak && state.streak.isStreakBroken && state.streak.savedPreviousStreak > 0) {
+      setTimeout(() => showMissedStreakModal(), 800);
     }
   }
 
   function tickStreakCountdown() {
-    if (!state.streak) return;
-    checkStreakDeadline();
+    const engine = getStreakEngine();
+    if (engine) {
+      state.streak = getStreakStatusSafe(engine);
+    }
+    checkStreakUrgency();
     updateStreakUI();
   }
 
-  function checkStreakDeadline() {
+  function checkStreakUrgency() {
     const streak = state.streak;
-    if (!streak) return;
+    if (!streak || streak.isStreakBroken || streak.uploadedToday) return;
 
-    if (streak.isStreakBroken) return;
-    if (streak.uploadedToday) return;
-
-    const now = Date.now();
-    const msRemaining = streak.deadline - now;
-
-    // 1. Deadline passed: Streak breaks
-    if (msRemaining <= 0) {
-      breakStreak();
-      return;
-    }
-
-    // 2. Last 2 Hours Warning Threshold: msRemaining <= 2 hours
+    const msRemaining = Math.max(0, streak.deadline - Date.now());
     const TWO_HOURS_MS = 2 * 3600 * 1000;
-    if (msRemaining <= TWO_HOURS_MS) {
-      if (!streak.urgentReminderSent) {
-        streak.urgentReminderSent = true;
-        saveStreakState();
-        sendDailyNotification(
-          '⚠️ 2 Hours Left on Your Outfit Streak!',
-          `Only 2 hours left to upload today's outfit photo before your 🔥 ${streak.currentStreak}-day streak ends!`,
-          true
-        );
-      }
-    } else {
-      // Normal Reminder: e.g. 8 hours remaining
-      const EIGHT_HOURS_MS = 8 * 3600 * 1000;
-      if (msRemaining <= EIGHT_HOURS_MS && !streak.morningReminderSent) {
-        streak.morningReminderSent = true;
-        saveStreakState();
-        sendDailyNotification(
-          'Woobi Daily Outfit Reminder 🔥',
-          `Don't forget to snap and upload your recommended outfit to maintain your 🔥 ${streak.currentStreak}-day streak!`,
-          false
-        );
-      }
+
+    if (msRemaining <= TWO_HOURS_MS && msRemaining > 0 && !streak.urgentReminderSent) {
+      streak.urgentReminderSent = true;
+      sendDailyNotification(
+        '⚠️ 2 Hours Left on Your Outfit Streak!',
+        `Only 2 hours left to snap today's outfit before your 🔥 ${streak.currentStreak}-day streak ends!`,
+        true
+      );
     }
-  }
-
-  function breakStreak() {
-    const streak = state.streak;
-    if (streak.isStreakBroken) return;
-
-    streak.isStreakBroken = true;
-    if (streak.currentStreak > 0) {
-      streak.savedPreviousStreak = streak.currentStreak;
-    } else if (!streak.savedPreviousStreak) {
-      streak.savedPreviousStreak = 1;
-    }
-    streak.currentStreak = 0;
-    streak.uploadedToday = false;
-    saveStreakState();
-
-    // Trigger visual flame blowout and smoke animation
-    triggerFlameBlowoutAnimation();
-
-    // Show missed upload modal
-    setTimeout(() => {
-      showMissedStreakModal();
-    }, 1200);
   }
 
   function triggerFlameBlowoutAnimation() {
-    const flameWrapper = document.getElementById('streakFlameWrapper');
-    if (flameWrapper) {
-      flameWrapper.classList.remove('reignited');
-      flameWrapper.classList.add('blown-out');
+    const fireImg = document.getElementById('streakHeaderFireImg');
+    const smokeImg = document.getElementById('streakHeaderSmokeImg');
+    if (fireImg) fireImg.classList.add('hidden');
+    if (smokeImg) smokeImg.classList.remove('hidden');
+
+    const heroFire = document.getElementById('modalHeroFireImg');
+    const heroSmoke = document.getElementById('modalHeroSmokeImg');
+    if (heroFire) heroFire.classList.add('hidden');
+    if (heroSmoke) heroSmoke.classList.remove('hidden');
+
+    const pill = document.getElementById('streakHeaderPill');
+    if (pill) pill.classList.remove('urgent', 'completed');
+  }
+
+  function triggerFlameReigniteAnimation() {
+    const fireImg = document.getElementById('streakHeaderFireImg');
+    const smokeImg = document.getElementById('streakHeaderSmokeImg');
+    if (smokeImg) smokeImg.classList.add('hidden');
+    if (fireImg) {
+      fireImg.classList.remove('hidden');
+      fireImg.style.animation = 'none';
+      void fireImg.offsetWidth; // Trigger reflow
+      fireImg.style.animation = 'realisticFlameFlicker 0.6s ease-in-out infinite alternate';
+      setTimeout(() => {
+        if (fireImg) fireImg.style.animation = 'realisticFlameFlicker 2.2s ease-in-out infinite alternate';
+      }, 1200);
     }
 
     const pill = document.getElementById('streakHeaderPill');
-    if (pill) {
-      pill.classList.remove('urgent', 'completed');
-    }
-
-    const timer = document.getElementById('streakTimer');
-    if (timer) timer.textContent = '00:00:00';
+    if (pill) pill.classList.remove('broken-streak');
   }
 
   function updateStreakUI() {
-    const streak = state.streak;
+    const engine = getStreakEngine();
+    let streak = null;
+    if (engine) {
+      streak = getStreakStatusSafe(engine);
+      state.streak = streak;
+    } else {
+      streak = state.streak;
+    }
     if (!streak) return;
 
+    const count = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
     const streakCountEl = document.getElementById('streakCount');
-    const streakTimerEl = document.getElementById('streakTimer');
+    const streakCountLabelEl = document.getElementById('streakCountLabel');
     const streakPillEl = document.getElementById('streakHeaderPill');
-    const streakDrawerCountEl = document.querySelector('.streak-drawer-count');
-    const readyTimerMini = document.getElementById('streakReadyTimerMini');
-    const flameWrapper = document.getElementById('streakFlameWrapper');
+    const fireImg = document.getElementById('streakHeaderFireImg');
+    const smokeImg = document.getElementById('streakHeaderSmokeImg');
 
-    if (streakCountEl) streakCountEl.textContent = streak.currentStreak;
-    if (streakDrawerCountEl) streakDrawerCountEl.textContent = streak.currentStreak;
+    if (streakCountEl) streakCountEl.textContent = count;
+    if (streakCountLabelEl) {
+      streakCountLabelEl.textContent = count === 1 ? 'Streak' : 'Streaks';
+    }
 
-    if (streak.isStreakBroken) {
-      if (streakTimerEl) streakTimerEl.textContent = 'Ended';
+    // Only show broken streak (wood & rising smoke) if user had previously earned a streak!
+    // A new user who has never earned a streak must NOT be shown a broken streak.
+    const isBroken = streak.isStreakBroken && streak.hasEarnedStreak && streak.savedPreviousStreak > 0;
+
+    if (isBroken) {
+      if (fireImg) fireImg.classList.add('hidden');
+      if (smokeImg) smokeImg.classList.remove('hidden');
       if (streakPillEl) {
-        streakPillEl.classList.remove('urgent', 'completed');
+        streakPillEl.classList.add('broken-streak');
+        streakPillEl.title = 'Streak broken! Click to restore your streak';
       }
-      if (flameWrapper && !flameWrapper.classList.contains('blown-out')) {
-        flameWrapper.classList.add('blown-out');
-      }
-      return;
-    }
-
-    // Flame should be active
-    if (flameWrapper && flameWrapper.classList.contains('blown-out')) {
-      flameWrapper.classList.remove('blown-out');
-    }
-
-    if (streak.uploadedToday) {
-      if (streakTimerEl) streakTimerEl.textContent = '✓ Done';
+    } else {
+      if (fireImg) fireImg.classList.remove('hidden');
+      if (smokeImg) smokeImg.classList.add('hidden');
       if (streakPillEl) {
-        streakPillEl.classList.remove('urgent');
-        streakPillEl.classList.add('completed');
+        streakPillEl.classList.remove('broken-streak');
+        streakPillEl.title = `Daily Outfit Streak: ${count} ${count === 1 ? 'Streak' : 'Streaks'} (Click to view calendar)`;
       }
-      if (readyTimerMini) readyTimerMini.textContent = '✓ Uploaded';
-      return;
-    }
-
-    const now = Date.now();
-    const diff = Math.max(0, streak.deadline - now);
-
-    const hours = Math.floor(diff / (3600 * 1000));
-    const mins = Math.floor((diff % (3600 * 1000)) / (60 * 1000));
-    const secs = Math.floor((diff % (60 * 1000)) / 1000);
-
-    const formattedTime = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    if (streakTimerEl) streakTimerEl.textContent = formattedTime;
-    if (readyTimerMini) readyTimerMini.textContent = `⏳ ${hours}h ${mins}m left`;
-
-    // Last 2 Hours Warning Threshold: <= 2 hours (7200 seconds)
-    const isUrgent = diff <= (2 * 3600 * 1000);
-    if (streakPillEl) {
-      streakPillEl.classList.toggle('urgent', isUrgent);
-      streakPillEl.classList.remove('completed');
     }
   }
 
-  // Camera upload triggers
-  function triggerOutfitPhotoUpload() {
-    const input = document.getElementById('outfitPhotoInput');
-    if (input) {
-      input.value = '';
-      input.click();
+  // --------------------------------------------------------------------------
+  // WOOBI STREAK CALENDAR & CIRCULAR FIRE/SMOKE ANIMATION
+  // --------------------------------------------------------------------------
+  function handleStreakIconClick() {
+    const engine = getStreakEngine();
+    const status = getStreakStatusSafe(engine) || state.streak;
+
+    // When streak is broken, clicking the wood and smoke icon opens the Restore option!
+    if (status && status.isStreakBroken && status.hasEarnedStreak && status.savedPreviousStreak > 0) {
+      showMissedStreakModal();
+    } else {
+      // Active streak opens the calendar
+      openStreakModal();
+    }
+  }
+
+  function openStreakModal() {
+    const modal = document.getElementById('streakDetailsModal');
+    if (!modal) return;
+
+    const engine = getStreakEngine();
+    const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
+    const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
+    const badge = document.getElementById('calHeaderStreakBadge');
+    if (badge) {
+      badge.textContent = `🔥 Current Streak: ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}`;
+    }
+
+    renderStreakCalendar();
+    modal.classList.remove('hidden');
+  }
+
+  function closeStreakModal() {
+    const modal = document.getElementById('streakDetailsModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function prevCalendarMonth() {
+    currentCalMonth -= 1;
+    if (currentCalMonth < 0) {
+      currentCalMonth = 11;
+      currentCalYear -= 1;
+    }
+    renderStreakCalendar();
+  }
+
+  function nextCalendarMonth() {
+    currentCalMonth += 1;
+    if (currentCalMonth > 11) {
+      currentCalMonth = 0;
+      currentCalYear += 1;
+    }
+    renderStreakCalendar();
+  }
+
+  function renderStreakCalendar() {
+    const engine = getStreakEngine();
+    const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
+    const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
+    const badge = document.getElementById('calHeaderStreakBadge');
+    if (badge) {
+      badge.textContent = `🔥 Current Streak: ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}`;
+    }
+
+    let calData = null;
+    if (engine && typeof engine.getMonthlyCalendarData === 'function') {
+      calData = engine.getMonthlyCalendarData(currentCalYear, currentCalMonth);
+    } else {
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const firstDay = new Date(currentCalYear, currentCalMonth, 1).getDay();
+      const totalDays = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
+      const now = new Date();
+      const isCurMonth = now.getFullYear() === currentCalYear && now.getMonth() === currentCalMonth;
+      const todayDate = now.getDate();
+      const days = [];
+      for (let d = 1; d <= totalDays; d++) {
+        let status = 'upcoming';
+        if (isCurMonth && d === todayDate) status = 'today';
+        else if (isCurMonth && d < todayDate) status = 'completed';
+        days.push({ day: d, status });
+      }
+      calData = {
+        year: currentCalYear,
+        month: currentCalMonth,
+        monthName: monthNames[currentCalMonth],
+        totalDays,
+        firstDayOfWeek: firstDay,
+        days,
+        stats: { activeDays: isCurMonth ? todayDate : totalDays, brokenDays: 0, upcomingDays: isCurMonth ? (totalDays - todayDate) : 0 }
+      };
+    }
+    const titleEl = document.getElementById('streakCalMonthTitle');
+    const gridEl = document.getElementById('streakCalendarGrid');
+    const activeEl = document.getElementById('calActiveCount');
+    const brokenEl = document.getElementById('calBrokenCount');
+    const upcomingEl = document.getElementById('calUpcomingCount');
+
+    if (titleEl) {
+      titleEl.textContent = `${calData.monthName} ${calData.year} ▾`;
+    }
+
+    if (activeEl) activeEl.textContent = calData.stats.activeDays;
+    if (brokenEl) brokenEl.textContent = calData.stats.brokenDays;
+    if (upcomingEl) upcomingEl.textContent = calData.stats.upcomingDays;
+
+    if (!gridEl) return;
+    gridEl.innerHTML = '';
+
+    // 1. Render empty offset slots for start of month
+    for (let i = 0; i < calData.firstDayOfWeek; i++) {
+      const emptySlot = document.createElement('div');
+      emptySlot.className = 'streak-cal-slot-empty';
+      gridEl.appendChild(emptySlot);
+    }
+
+    // 2. Render each day bubble
+    calData.days.forEach(dayInfo => {
+      const bubble = document.createElement('div');
+      bubble.className = `streak-cal-bubble ${dayInfo.status}`;
+      bubble.title = `${calData.monthName} ${dayInfo.day}: ${dayInfo.status.toUpperCase()}`;
+
+      // Date number centered
+      const numSpan = document.createElement('span');
+      numSpan.className = 'streak-cal-day-num';
+      numSpan.textContent = dayInfo.day;
+      bubble.appendChild(numSpan);
+
+      // Click behavior
+      bubble.addEventListener('click', () => {
+        if (dayInfo.status === 'completed' && dayInfo.memory) {
+          openMemoryDetail(dayInfo.memory.id);
+        } else if (dayInfo.status === 'today') {
+          closeStreakModal();
+          openCameraModal();
+        } else {
+          showToast(`📅 ${calData.monthName} ${dayInfo.day}: ${dayInfo.status.charAt(0).toUpperCase() + dayInfo.status.slice(1)}`);
+        }
+      });
+
+      gridEl.appendChild(bubble);
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // DAILY STREAK CAMERA & CAPTURE
+  // --------------------------------------------------------------------------
+  async function openCameraModal() {
+    const modal = document.getElementById('outfitCameraModal');
+    if (!modal) return;
+
+    capturedPhotoDataUrl = null;
+
+    // Reset controls visibility
+    const liveControls = document.getElementById('cameraLiveControls');
+    const reviewControls = document.getElementById('cameraReviewContainer');
+    const previewImg = document.getElementById('cameraCapturedPreview');
+    const videoEl = document.getElementById('cameraVideo');
+    const fallbackCard = document.getElementById('cameraFallbackCard');
+    const overlayFrame = document.getElementById('cameraOverlayFrame');
+
+    if (liveControls) liveControls.classList.remove('hidden');
+    if (reviewControls) reviewControls.classList.add('hidden');
+    if (previewImg) previewImg.classList.add('hidden');
+    if (overlayFrame) overlayFrame.classList.remove('hidden');
+
+    // Update streak advance numbers in review
+    const currVal = document.getElementById('cameraCurrentStreakVal');
+    const newVal = document.getElementById('cameraNewStreakVal');
+    const engine = getStreakEngine();
+    const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
+    const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
+    const isAlreadyLogged = engine && typeof engine.hasUploadedToday === 'function' ? engine.hasUploadedToday() : false;
+
+    if (currVal) currVal.textContent = curStreak;
+    if (newVal) {
+      newVal.textContent = isAlreadyLogged ? curStreak : (curStreak + 1);
+    }
+
+    const dupWarning = document.getElementById('cameraDuplicateWarning');
+    const btnConfirm = document.getElementById('btnConfirmCapturedOutfit');
+
+    if (dupWarning) {
+      dupWarning.classList.toggle('hidden', !isAlreadyLogged);
+      if (isAlreadyLogged) {
+        dupWarning.innerHTML = `<span>✨ Streak for today completed (🔥 ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}). Extra photos are saved to your Gallery!</span>`;
+      }
+    }
+    if (btnConfirm) {
+      btnConfirm.disabled = false;
+      btnConfirm.textContent = isAlreadyLogged ? 'Add Photo to Gallery 📸' : 'Confirm & Log Outfit 🔥';
+    }
+
+    modal.classList.remove('hidden');
+
+    // Initialize Camera Stream
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1440 } }
+        });
+        if (videoEl) {
+          videoEl.srcObject = cameraStream;
+          videoEl.classList.remove('hidden');
+          videoEl.play();
+        }
+        if (fallbackCard) fallbackCard.classList.add('hidden');
+      } catch (err) {
+        console.warn('Camera stream inaccessible, activating fallback:', err.message);
+        if (videoEl) videoEl.classList.add('hidden');
+        if (fallbackCard) fallbackCard.classList.remove('hidden');
+      }
+    } else {
+      if (videoEl) videoEl.classList.add('hidden');
+      if (fallbackCard) fallbackCard.classList.remove('hidden');
+    }
+  }
+
+  function closeCameraModal() {
+    const modal = document.getElementById('outfitCameraModal');
+    if (modal) modal.classList.add('hidden');
+
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+  }
+
+  function captureCameraSnapshot() {
+    const videoEl = document.getElementById('cameraVideo');
+    const canvas = document.getElementById('cameraCanvas');
+    const previewImg = document.getElementById('cameraCapturedPreview');
+    const overlayFrame = document.getElementById('cameraOverlayFrame');
+    const liveControls = document.getElementById('cameraLiveControls');
+    const reviewControls = document.getElementById('cameraReviewContainer');
+
+    if (!videoEl || !canvas || videoEl.classList.contains('hidden') || !videoEl.videoWidth) {
+      // Fallback: load curated outfit look
+      loadSampleOutfitLook();
+      return;
+    }
+
+    canvas.width = videoEl.videoWidth;
+    canvas.height = videoEl.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+    capturedPhotoDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    if (previewImg) {
+      previewImg.src = capturedPhotoDataUrl;
+      previewImg.classList.remove('hidden');
+    }
+
+    if (videoEl) videoEl.classList.add('hidden');
+    if (overlayFrame) overlayFrame.classList.add('hidden');
+    if (liveControls) liveControls.classList.add('hidden');
+    if (reviewControls) reviewControls.classList.remove('hidden');
+  }
+
+  function triggerFileInputClick() {
+    const fileInput = document.getElementById('outfitPhotoInput');
+    if (fileInput) {
+      fileInput.value = '';
+      fileInput.click();
     }
   }
 
@@ -2335,65 +2570,207 @@
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = function (e) {
-      openPhotoConfirmModal(e.target.result);
+    reader.onload = function(e) {
+      capturedPhotoDataUrl = e.target.result;
+      const previewImg = document.getElementById('cameraCapturedPreview');
+      const videoEl = document.getElementById('cameraVideo');
+      const overlayFrame = document.getElementById('cameraOverlayFrame');
+      const fallbackCard = document.getElementById('cameraFallbackCard');
+      const liveControls = document.getElementById('cameraLiveControls');
+      const reviewControls = document.getElementById('cameraReviewContainer');
+
+      if (previewImg) {
+        previewImg.src = capturedPhotoDataUrl;
+        previewImg.classList.remove('hidden');
+      }
+      if (videoEl) videoEl.classList.add('hidden');
+      if (fallbackCard) fallbackCard.classList.add('hidden');
+      if (overlayFrame) overlayFrame.classList.add('hidden');
+      if (liveControls) liveControls.classList.add('hidden');
+      if (reviewControls) reviewControls.classList.remove('hidden');
     };
     reader.readAsDataURL(file);
   }
 
-  function openPhotoConfirmModal(imgDataUrl) {
-    const modal = document.getElementById('outfitPhotoConfirmModal');
-    const previewImg = document.getElementById('outfitPhotoPreviewImg');
-    const currVal = document.getElementById('confirmCurrentStreakVal');
-    const newVal = document.getElementById('confirmNewStreakVal');
+  function loadSampleOutfitLook() {
+    const samples = [
+      { img: 'assets/navy_shirt.jpg', note: 'Tailored Navy Oxford & Sand Chinos' },
+      { img: 'assets/white_linen_shirt.jpg', note: 'Relaxed White Linen Classic' },
+      { img: 'assets/smart_blazer.jpg', note: 'Executive Structured Autumn Blazer' },
+      { img: 'assets/terracotta_tee.jpg', note: 'Casual Earth Tone Terracotta Tee' },
+      { img: 'assets/indigo_kurti.jpg', note: 'Festive Indigo Silk Ensemble' }
+    ];
+    const picked = samples[Math.floor(Math.random() * samples.length)];
+    capturedPhotoDataUrl = picked.img;
 
-    if (previewImg) previewImg.src = imgDataUrl || 'assets/welcome_hero.jpg';
-    if (currVal) currVal.textContent = state.streak ? state.streak.currentStreak : 0;
-    if (newVal) newVal.textContent = (state.streak ? state.streak.currentStreak : 0) + 1;
+    const previewImg = document.getElementById('cameraCapturedPreview');
+    const noteInput = document.getElementById('cameraOutfitNoteInput');
+    const videoEl = document.getElementById('cameraVideo');
+    const overlayFrame = document.getElementById('cameraOverlayFrame');
+    const fallbackCard = document.getElementById('cameraFallbackCard');
+    const liveControls = document.getElementById('cameraLiveControls');
+    const reviewControls = document.getElementById('cameraReviewContainer');
+
+    if (previewImg) {
+      previewImg.src = capturedPhotoDataUrl;
+      previewImg.classList.remove('hidden');
+    }
+    if (noteInput) noteInput.value = picked.note;
+
+    if (videoEl) videoEl.classList.add('hidden');
+    if (fallbackCard) fallbackCard.classList.add('hidden');
+    if (overlayFrame) overlayFrame.classList.add('hidden');
+    if (liveControls) liveControls.classList.add('hidden');
+    if (reviewControls) reviewControls.classList.remove('hidden');
+  }
+
+  function retakeCameraPhoto() {
+    capturedPhotoDataUrl = null;
+    const previewImg = document.getElementById('cameraCapturedPreview');
+    const videoEl = document.getElementById('cameraVideo');
+    const overlayFrame = document.getElementById('cameraOverlayFrame');
+    const liveControls = document.getElementById('cameraLiveControls');
+    const reviewControls = document.getElementById('cameraReviewContainer');
+
+    if (previewImg) previewImg.classList.add('hidden');
+    if (videoEl) videoEl.classList.remove('hidden');
+    if (overlayFrame) overlayFrame.classList.remove('hidden');
+    if (liveControls) liveControls.classList.remove('hidden');
+    if (reviewControls) reviewControls.classList.add('hidden');
+  }
+
+  function confirmCapturedOutfit() {
+    const engine = getStreakEngine();
+    const noteInput = document.getElementById('cameraOutfitNoteInput');
+    const note = noteInput ? noteInput.value : '';
+
+    if (!engine) {
+      showToast('⚠️ Streak state engine initializing...');
+      return;
+    }
+
+    const res = engine.recordDailyOutfitUpload({
+      photoUrl: capturedPhotoDataUrl || 'assets/welcome_hero.jpg',
+      note: note.trim()
+    });
+
+    closeCameraModal();
+    triggerFlameReigniteAnimation();
+    updateStreakUI();
+
+    if (!res.success && res.alreadyUploaded) {
+      showToast(`📸 Outfit photo added to Gallery! Streak remains at ${res.streak} (1 per day).`);
+      return;
+    }
+
+    showToast(`🔥 Streak increased to ${res.streak}! Outfit memory saved!`);
+  }
+
+  // --------------------------------------------------------------------------
+  // OUTFIT MEMORIES GALLERY & LIGHTBOX
+  // --------------------------------------------------------------------------
+  function openMemoriesModal() {
+    renderOutfitMemories();
+    const modal = document.getElementById('outfitMemoriesModal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeMemoriesModal() {
+    const modal = document.getElementById('outfitMemoriesModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function renderOutfitMemories() {
+    const engine = getStreakEngine();
+    const memories = (engine && typeof engine.getAllMemories === 'function') ? engine.getAllMemories() : [];
+    const gridEl = document.getElementById('memoriesGridContainer');
+    const countBadge = document.getElementById('memoriesTotalCountBadge');
+
+    if (countBadge) countBadge.textContent = `${memories.length} Memories Logged`;
+    if (!gridEl) return;
+
+    gridEl.innerHTML = '';
+
+    if (memories.length === 0) {
+      gridEl.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px 10px; color: #8C755E;">
+          <span style="font-size: 2.2rem; display: block; margin-bottom: 8px;">📷</span>
+          <p style="font-size: 0.9rem; margin: 0;">No memories logged yet. Snap your first outfit today to start your streak!</p>
+        </div>
+      `;
+      return;
+    }
+
+    memories.forEach(mem => {
+      const card = document.createElement('div');
+      card.className = 'memory-card';
+      card.innerHTML = `
+        <div class="memory-thumb-wrap">
+          <img src="${mem.photoUrl}" class="memory-thumb-img" alt="${mem.note}" />
+          <span class="memory-streak-badge">Day ${mem.streakDay || 1} 🔥</span>
+        </div>
+        <div class="memory-card-meta">
+          <span class="memory-card-date">${formatReadableDate(mem.date)}</span>
+          <span class="memory-card-note">${mem.note || 'Outfit Look'}</span>
+        </div>
+      `;
+      card.addEventListener('click', () => openMemoryDetail(mem.id));
+      gridEl.appendChild(card);
+    });
+  }
+
+  function formatReadableDate(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const d = new Date(parts[0], parseInt(parts[1], 10) - 1, parts[2]);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    }
+    return dateStr;
+  }
+
+  function openMemoryDetail(memoryId) {
+    const engine = getStreakEngine();
+    if (!engine) return;
+
+    const memory = engine.memories.find(m => m.id === memoryId) || engine.memories[0];
+    if (!memory) return;
+
+    const modal = document.getElementById('memoryDetailModal');
+    const imgEl = document.getElementById('memoryDetailImg');
+    const dateTitle = document.getElementById('memoryDetailDateTitle');
+    const streakTag = document.getElementById('memoryDetailStreakTag');
+    const noteEl = document.getElementById('memoryDetailNote');
+    const timeEl = document.getElementById('memoryDetailTimestamp');
+
+    if (imgEl) imgEl.src = memory.photoUrl;
+    if (dateTitle) dateTitle.textContent = formatReadableDate(memory.date);
+    if (streakTag) streakTag.textContent = `Day ${memory.streakDay || 1} 🔥`;
+    if (noteEl) noteEl.textContent = memory.note || 'Daily Outfit Look';
+    if (timeEl) timeEl.textContent = `Logged on ${memory.date}`;
 
     if (modal) modal.classList.remove('hidden');
   }
 
-  function closePhotoConfirmModal() {
-    const modal = document.getElementById('outfitPhotoConfirmModal');
+  function closeMemoryDetailModal() {
+    const modal = document.getElementById('memoryDetailModal');
     if (modal) modal.classList.add('hidden');
   }
 
-  function confirmOutfitPhotoUpload() {
-    closePhotoConfirmModal();
-
+  // --------------------------------------------------------------------------
+  // MISSED STREAK & MONTHLY RESTORATION LOGIC
+  // --------------------------------------------------------------------------
+  function showMissedStreakModal() {
     const streak = state.streak;
-    streak.currentStreak = (streak.currentStreak || 0) + 1;
-    streak.savedPreviousStreak = streak.currentStreak;
-    streak.isStreakBroken = false;
-    streak.uploadedToday = true;
-    streak.lastUploadTimestamp = Date.now();
-    streak.lastUploadDateStr = new Date().toISOString().split('T')[0];
-    streak.deadline = Date.now() + (24 * 3600 * 1000); // Reset next 24h deadline
-    streak.morningReminderSent = false;
-    streak.urgentReminderSent = false;
-    saveStreakState();
-
-    // Re-ignite flame animation
-    const flameWrapper = document.getElementById('streakFlameWrapper');
-    if (flameWrapper) {
-      flameWrapper.classList.remove('blown-out');
-      flameWrapper.classList.add('reignited');
-      setTimeout(() => flameWrapper.classList.remove('reignited'), 1000);
+    // DO NOT show lost streak to new user who has never earned one!
+    if (!streak || !streak.hasEarnedStreak || (streak.currentStreak === 0 && streak.savedPreviousStreak === 0)) {
+      return;
     }
 
-    updateStreakUI();
-    dismissReminderBanner();
-
-    showToast(`🔥 Streak increased to ${streak.currentStreak}! Amazing look!`);
-  }
-
-  // Missed Upload Modal and Monthly Restoration Logic
-  function showMissedStreakModal() {
     const modal = document.getElementById('missedStreakModal');
     if (!modal) return;
 
-    const streak = state.streak;
     const lostCountEl = document.getElementById('missedStreakLostCount');
     const statusCard = document.getElementById('restoreStatusCard');
     const statusIcon = document.getElementById('restoreStatusIcon');
@@ -2401,20 +2778,17 @@
     const statusSubtitle = document.getElementById('restoreStatusSubtitle');
     const btnRestore = document.getElementById('btnRestoreStreak');
 
-    if (lostCountEl) {
-      lostCountEl.textContent = `${streak.savedPreviousStreak || 1} Days`;
-    }
+    if (lostCountEl) lostCountEl.textContent = `${streak.savedPreviousStreak || 1} Days`;
 
-    // Check Monthly Restore Eligibility (Refreshes on 3rd of month)
-    const currentCycleKey = getMonthlyRestoreCycleKey(new Date());
-    const isEligible = streak.lastRestoredCycleKey !== currentCycleKey;
-    const nextRefreshDate = getNextRestoreRefreshDateStr(new Date());
+    const engine = getStreakEngine();
+    const isEligible = engine ? engine.isMonthlyRestoreAvailable() : true;
+    const nextRefresh = engine ? engine.getNextRestoreRefreshDateStr() : 'the 3rd';
 
     if (isEligible) {
       if (statusCard) statusCard.classList.remove('ineligible');
       if (statusIcon) statusIcon.textContent = '✨';
       if (statusTitle) statusTitle.textContent = 'Monthly Restoration Available!';
-      if (statusSubtitle) statusSubtitle.textContent = `You have 1 free restore for this monthly cycle. (Refreshes on the 3rd of every month)`;
+      if (statusSubtitle) statusSubtitle.textContent = 'You have 1 free restore for this monthly cycle. (Refreshes on the 3rd of every month)';
       if (btnRestore) {
         btnRestore.disabled = false;
         btnRestore.textContent = `Restore Streak (${streak.savedPreviousStreak || 1} Days) 🔥`;
@@ -2423,10 +2797,10 @@
       if (statusCard) statusCard.classList.add('ineligible');
       if (statusIcon) statusIcon.textContent = '🔒';
       if (statusTitle) statusTitle.textContent = 'Monthly Restore Used for this Cycle';
-      if (statusSubtitle) statusSubtitle.textContent = `Your free restore refreshes on ${nextRefreshDate}.`;
+      if (statusSubtitle) statusSubtitle.textContent = `Your free restore refreshes on ${nextRefresh}.`;
       if (btnRestore) {
         btnRestore.disabled = true;
-        btnRestore.textContent = `Restore Used (Refreshes ${nextRefreshDate})`;
+        btnRestore.textContent = `Restore Used (Refreshes ${nextRefresh})`;
       }
     }
 
@@ -2439,99 +2813,54 @@
   }
 
   function restoreMonthlyStreak() {
-    const streak = state.streak;
-    const currentCycleKey = getMonthlyRestoreCycleKey(new Date());
+    const engine = getStreakEngine();
+    if (!engine) return;
 
-    if (streak.lastRestoredCycleKey === currentCycleKey) {
-      showToast('⚠️ Monthly restore already used. Refreshes on the 3rd.');
+    if (!engine.isMonthlyRestoreAvailable()) {
+      showToast(`⚠️ Monthly restore unavailable: Already used for this calendar month. Refreshes on ${engine.getNextRestoreRefreshDateStr()}.`);
       return;
     }
 
-    streak.currentStreak = streak.savedPreviousStreak || 1;
-    streak.isStreakBroken = false;
-    streak.lastRestoredCycleKey = currentCycleKey;
-    streak.deadline = Date.now() + (24 * 3600 * 1000);
-    saveStreakState();
+    const previousStreak = engine.state.savedPreviousStreak || 1;
+    const confirmed = window.confirm(
+      `Restore your previous streak of ${previousStreak} days?\n\nNote: You can only restore your streak once per calendar month.`
+    );
+    if (!confirmed) return;
 
-    closeMissedStreakModal();
-
-    // Re-ignite flame
-    const flameWrapper = document.getElementById('streakFlameWrapper');
-    if (flameWrapper) {
-      flameWrapper.classList.remove('blown-out');
-      flameWrapper.classList.add('reignited');
-      setTimeout(() => flameWrapper.classList.remove('reignited'), 1200);
+    const res = engine.restoreMonthlyStreak();
+    if (!res.success) {
+      showToast(`⚠️ ${res.error || 'Monthly restore unavailable.'}`);
+      return;
     }
 
+    closeMissedStreakModal();
+    triggerFlameReigniteAnimation();
     updateStreakUI();
-    showToast(`✨ Streak restored to ${streak.currentStreak}! Your flame is back! 🔥`);
+    renderStreakCalendar();
+    showToast(`✨ Streak restored to ${res.streak} days! Your burning flame is back! 🔥`);
   }
 
   function startNewStreak() {
-    const streak = state.streak;
-    streak.currentStreak = 0;
-    streak.savedPreviousStreak = 0;
-    streak.isStreakBroken = false;
-    streak.uploadedToday = false;
-    streak.deadline = Date.now() + (24 * 3600 * 1000);
-    saveStreakState();
+    const engine = getStreakEngine();
+    if (engine) engine.startFreshStreak();
 
     closeMissedStreakModal();
     updateStreakUI();
     showToast('Starting a fresh streak! Upload today\'s outfit to light your 🔥 flame.');
   }
 
-  // Streak Details Modal
-  function openStreakModal() {
-    const modal = document.getElementById('streakDetailsModal');
-    if (!modal) return;
-
-    const streak = state.streak;
-    const heroCount = document.getElementById('modalHeroStreakCount');
-    const heroCountdown = document.getElementById('modalHeroCountdown');
-    const heroRestore = document.getElementById('modalHeroRestoreStatus');
-
-    if (heroCount) heroCount.textContent = streak.currentStreak;
-    if (heroCountdown) {
-      const now = Date.now();
-      const diff = Math.max(0, streak.deadline - now);
-      const hours = Math.floor(diff / (3600 * 1000));
-      const mins = Math.floor((diff % (3600 * 1000)) / (60 * 1000));
-      heroCountdown.textContent = streak.uploadedToday ? 'Completed Today' : `${hours}h ${mins}m`;
-    }
-
-    const currentCycleKey = getMonthlyRestoreCycleKey(new Date());
-    const isEligible = streak.lastRestoredCycleKey !== currentCycleKey;
-    if (heroRestore) {
-      heroRestore.textContent = isEligible ? 'Available (3rd)' : 'Used this month';
-    }
-
-    modal.classList.remove('hidden');
-  }
-
-  function closeStreakModal() {
-    const modal = document.getElementById('streakDetailsModal');
-    if (modal) modal.classList.add('hidden');
-  }
-
-  // Daily Reminder Notifications System
+  // --------------------------------------------------------------------------
+  // DAILY NOTIFICATIONS & REMINDER SYSTEM
+  // --------------------------------------------------------------------------
   function sendDailyNotification(title, body, isUrgent) {
-    // 1. Web Notification API if permitted
     if ('Notification' in window && Notification.permission === 'granted') {
       try {
-        new Notification(title, {
-          body: body,
-          icon: 'assets/welcome_hero.jpg'
-        });
+        new Notification(title, { body, icon: 'assets/streak_fire.jpg' });
       } catch (e) {
         console.warn('System notification error', e);
       }
-    } else if ('Notification' in window && Notification.permission === 'default') {
-      // Prompt user politely
-      Notification.requestPermission();
     }
 
-    // 2. In-App Floating Reminder Banner
     const banner = document.getElementById('inAppReminderBanner');
     const titleEl = document.getElementById('reminderBannerTitle');
     const bodyEl = document.getElementById('reminderBannerBody');
@@ -2552,53 +2881,582 @@
     if (banner) banner.classList.add('hidden');
   }
 
-  // QA & Developer Simulation Tools
+  // --------------------------------------------------------------------------
+  // QA SIMULATION TOOLS
+  // --------------------------------------------------------------------------
   function devSimulateUpload() {
-    openPhotoConfirmModal('assets/navy_shirt.jpg');
+    openCameraModal();
+    loadSampleOutfitLook();
   }
 
   function devSimulateTwoHoursLeft() {
-    if (!state.streak) return;
-    state.streak.deadline = Date.now() + (1 * 3600 * 1000 + 59 * 60 * 1000); // 1h 59m
-    state.streak.urgentReminderSent = false;
-    state.streak.uploadedToday = false;
-    state.streak.isStreakBroken = false;
-    saveStreakState();
-    checkStreakDeadline();
+    const engine = getStreakEngine();
+    if (!engine) return;
+    engine.state.deadline = Date.now() + (1 * 3600 * 1000 + 59 * 60 * 1000);
+    engine.state.urgentReminderSent = false;
+    engine.state.uploadedToday = false;
+    engine.state.isStreakBroken = false;
+    engine.save();
     updateStreakUI();
     showToast('⏱️ Simulated: Exactly 1h 59m remaining (2-hour warning triggered)');
   }
 
   function devSimulateStreakBreak() {
-    if (!state.streak) return;
-    if (state.streak.currentStreak > 0) {
-      state.streak.savedPreviousStreak = state.streak.currentStreak;
+    const engine = getStreakEngine();
+    if (!engine) return;
+    if (engine.state.currentStreak > 0) {
+      engine.state.savedPreviousStreak = engine.state.currentStreak;
     }
-    state.streak.deadline = Date.now() - 1000;
-    saveStreakState();
-    breakStreak();
+    engine.state.deadline = Date.now() - 1000;
+    engine.state.uploadedToday = false;
+    engine.state.isStreakBroken = true;
+    engine.state.currentStreak = 0;
+    engine.save();
+    triggerFlameBlowoutAnimation();
+    updateStreakUI();
     showToast('💥 Simulated deadline expiration: Streak broken!');
+    setTimeout(() => showMissedStreakModal(), 600);
   }
 
   function devToggleRestoreToken() {
-    if (!state.streak) return;
-    const currentCycleKey = getMonthlyRestoreCycleKey(new Date());
-    if (state.streak.lastRestoredCycleKey === currentCycleKey) {
-      state.streak.lastRestoredCycleKey = null;
+    const engine = getStreakEngine();
+    if (!engine) return;
+    const currentCycle = engine.getMonthlyRestoreCycleKey();
+    if (engine.state.lastRestoredCycleKey === currentCycle) {
+      engine.state.lastRestoredCycleKey = null;
       showToast('🔄 Restored Monthly Token: Now ELIGIBLE for 3rd date cycle!');
     } else {
-      state.streak.lastRestoredCycleKey = currentCycleKey;
+      engine.state.lastRestoredCycleKey = currentCycle;
       showToast('🔒 Marked Monthly Token as USED for current cycle.');
     }
-    saveStreakState();
-    checkStreakDeadline();
+    engine.save();
     updateStreakUI();
   }
 
   function devResetStreak() {
-    localStorage.removeItem(STREAK_STORAGE_KEY);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(STREAK_STORAGE_KEY);
+      localStorage.removeItem('woobi_outfit_streak_v2');
+      localStorage.removeItem('woobi_outfit_memories_v1');
+    }
+    const engine = getStreakEngine();
+    if (engine) {
+      engine.state.currentStreak = 0;
+      engine.state.bestStreak = 0;
+      engine.state.savedPreviousStreak = 0;
+      engine.state.isStreakBroken = false;
+      engine.state.hasEarnedStreak = false;
+      engine.state.uploadedToday = false;
+      engine.state.lastUploadDateStr = null;
+      engine.state.lastRestoredCycleKey = null;
+      engine.memories = [];
+      engine._seedReferenceMemories();
+      engine.save();
+    }
     initStreakState();
-    showToast('🗑️ Reset streak to default 5-day active streak.');
+    showToast('🗑️ Reset streak to fresh starter state (0 days, no lost streak).');
+  }
+
+  // Legacy compatibility helpers
+  function triggerOutfitPhotoUpload() {
+    openCameraModal();
+  }
+
+  function openPhotoConfirmModal(imgUrl) {
+    capturedPhotoDataUrl = imgUrl;
+    openCameraModal();
+  }
+
+  function closePhotoConfirmModal() {
+    closeCameraModal();
+  }
+
+  function confirmOutfitPhotoUpload() {
+    confirmCapturedOutfit();
+  }
+
+  // =========================================================================
+  // 10. INTERACTIVE WEEKLY PLANNER & CALENDAR ENGINE
+  // =========================================================================
+  const PLANNER_STORAGE_KEY = 'woobi_weekly_calendar_v1';
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  const PLANNER_SAMPLE_OUTFITS = [
+    {
+      id: 'look_easy_everyday',
+      title: 'Easy everyday',
+      occasion: 'College',
+      tag: 'Casual',
+      caption: 'A relaxed navy cotton shirt paired with beige chinos and white sneakers.',
+      previewPhoto: 'assets/model_tryon_navy.jpg',
+      items: [
+        { name: 'Navy shirt', photo: 'assets/navy_shirt.jpg' },
+        { name: 'Beige chinos', photo: 'assets/beige_chinos.jpg' },
+        { name: 'White sneakers', photo: 'assets/white_sneakers.jpg' },
+        { name: 'Leather watch', photo: 'assets/leather_watch.jpg' }
+      ]
+    },
+    {
+      id: 'look_office_ready',
+      title: 'Office ready',
+      occasion: 'Office',
+      tag: 'Work',
+      caption: 'Crisp breathable white linen tailored with beige chinos and tan loafers.',
+      previewPhoto: 'assets/model_tryon_linen.jpg',
+      items: [
+        { name: 'White linen shirt', photo: 'assets/white_linen_shirt.jpg' },
+        { name: 'Beige chinos', photo: 'assets/beige_chinos.jpg' },
+        { name: 'Tan loafers', photo: 'assets/tan_loafers.jpg' },
+        { name: 'Leather watch', photo: 'assets/leather_watch.jpg' }
+      ]
+    },
+    {
+      id: 'look_weekend_casual',
+      title: 'Weekend casual',
+      occasion: 'Weekend',
+      tag: 'Weekend',
+      caption: 'Lightweight breathable olive kurta with relaxed cream palazzo.',
+      previewPhoto: 'assets/model_tryon_kurta.jpg',
+      items: [
+        { name: 'Olive kurta', photo: 'assets/olive_kurta.jpg' },
+        { name: 'Cream palazzo', photo: 'assets/cream_palazzo.jpg' },
+        { name: 'Tan loafers', photo: 'assets/tan_loafers.jpg' }
+      ]
+    },
+    {
+      id: 'look_urban_minimal',
+      title: 'Relaxed Urban Minimal',
+      occasion: 'City Casual',
+      tag: 'Casual',
+      caption: 'Deep maroon top paired with dark pleated skirt and white sneakers.',
+      previewPhoto: 'assets/model_tryon_maroon.jpg',
+      items: [
+        { name: 'Maroon top', photo: 'assets/maroon_top.jpg' },
+        { name: 'Dark skirt', photo: 'assets/dark_skirt.jpg' },
+        { name: 'White sneakers', photo: 'assets/white_sneakers.jpg' }
+      ]
+    },
+    {
+      id: 'look_tailored_blazer',
+      title: 'Smart Tailored Blazer',
+      occasion: 'Meeting',
+      tag: 'Work',
+      caption: 'Structured smart blazer with dark denim and black trainers.',
+      previewPhoto: 'assets/smart_blazer.jpg',
+      items: [
+        { name: 'Tailored blazer', photo: 'assets/smart_blazer.jpg' },
+        { name: 'Dark denim', photo: 'assets/dark_denim.jpg' },
+        { name: 'Black trainers', photo: 'assets/black_trainers.jpg' }
+      ]
+    },
+    {
+      id: 'look_heritage_kurti',
+      title: 'Heritage Indigo Kurti',
+      occasion: 'Celebration',
+      tag: 'Ethnic',
+      caption: 'Handcrafted indigo kurti paired with cream palazzo and brown sandals.',
+      previewPhoto: 'assets/indigo_kurti.jpg',
+      items: [
+        { name: 'Indigo kurti', photo: 'assets/indigo_kurti.jpg' },
+        { name: 'Cream palazzo', photo: 'assets/cream_palazzo.jpg' },
+        { name: 'Brown sandals', photo: 'assets/brown_sandals.jpg' }
+      ]
+    },
+    {
+      id: 'look_terracotta_street',
+      title: 'Terracotta City Walk',
+      occasion: 'Everyday',
+      tag: 'Weekend',
+      caption: 'Warm earthy terracotta tee paired with dark denim and white sneakers.',
+      previewPhoto: 'assets/terracotta_tee.jpg',
+      items: [
+        { name: 'Terracotta tee', photo: 'assets/terracotta_tee.jpg' },
+        { name: 'Dark denim', photo: 'assets/dark_denim.jpg' },
+        { name: 'White sneakers', photo: 'assets/white_sneakers.jpg' }
+      ]
+    }
+  ];
+
+  const plannerState = {
+    weekOffset: 0,
+    selectedDateKey: null,
+    assigningForDateKey: null,
+    filterCategory: 'All',
+    plannedOutfits: {}
+  };
+
+  function getPlannerWeekDays(weekOffset = 0) {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 is Sun, 1 is Mon, ... 6 is Sat
+    const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + distanceToMonday + (weekOffset * 7));
+    monday.setHours(0, 0, 0, 0);
+
+    const days = [];
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const dateNum = String(d.getDate()).padStart(2, '0');
+      const dateKey = `${year}-${month}-${dateNum}`;
+      const isToday = d.toDateString() === now.toDateString();
+
+      days.push({
+        dateObj: d,
+        dateKey,
+        dayName: dayNames[i],
+        dayNum: d.getDate(),
+        dateDisplay: `${d.getDate()} ${monthNames[d.getMonth()]}`,
+        fullDisplay: `${dayNames[i]}, ${d.getDate()} ${monthNames[d.getMonth()]}`,
+        isToday
+      });
+    }
+    return days;
+  }
+
+  function initPlannerState() {
+    try {
+      const saved = localStorage.getItem(PLANNER_STORAGE_KEY);
+      if (saved) {
+        plannerState.plannedOutfits = JSON.parse(saved);
+      } else {
+        // Initialize with standard starting looks on Monday and Tuesday of current week
+        const currentDays = getPlannerWeekDays(0);
+        plannerState.plannedOutfits = {
+          [currentDays[0].dateKey]: PLANNER_SAMPLE_OUTFITS[0],
+          [currentDays[1].dateKey]: PLANNER_SAMPLE_OUTFITS[1]
+        };
+        savePlannerState();
+      }
+    } catch (e) {
+      console.warn('Could not read planner state:', e);
+      plannerState.plannedOutfits = {};
+    }
+
+    if (!plannerState.selectedDateKey) {
+      const currentDays = getPlannerWeekDays(0);
+      const todayDay = currentDays.find(d => d.isToday);
+      plannerState.selectedDateKey = todayDay ? todayDay.dateKey : currentDays[0].dateKey;
+    }
+  }
+
+  function savePlannerState() {
+    try {
+      localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(plannerState.plannedOutfits));
+    } catch (e) {
+      console.warn('Could not save planner state:', e);
+    }
+  }
+
+  function renderWeeklyCalendar() {
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const stripEl = document.getElementById('plannerWeekStrip');
+    const streamEl = document.getElementById('weeklyScheduleStream');
+    const titleEl = document.getElementById('plannerWeekTitle');
+    const subEl = document.getElementById('plannerWeekSub');
+    const countEl = document.getElementById('plannerSummaryCount');
+    const badgeEl = document.getElementById('plannerSelectedDateBadge');
+    const fillEl = document.getElementById('plannerProgressFill');
+
+    // Title & Subtitle for Week Range
+    if (titleEl) {
+      const first = days[0];
+      const last = days[6];
+      titleEl.textContent = `${first.dateDisplay} – ${last.dateDisplay}, ${first.dateObj.getFullYear()}`;
+    }
+    if (subEl) {
+      if (plannerState.weekOffset === 0) {
+        subEl.textContent = 'This Week (Current)';
+      } else if (plannerState.weekOffset === 1) {
+        subEl.textContent = 'Next Week';
+      } else if (plannerState.weekOffset === -1) {
+        subEl.textContent = 'Last Week';
+      } else if (plannerState.weekOffset > 1) {
+        subEl.textContent = `In ${plannerState.weekOffset} Weeks`;
+      } else {
+        subEl.textContent = `${Math.abs(plannerState.weekOffset)} Weeks Ago`;
+      }
+    }
+
+    // Ensure selected date is set
+    const hasSelectedInWeek = days.some(d => d.dateKey === plannerState.selectedDateKey);
+    if (!hasSelectedInWeek) {
+      const todayDay = days.find(d => d.isToday);
+      plannerState.selectedDateKey = todayDay ? todayDay.dateKey : days[0].dateKey;
+    }
+
+    const selectedDayObj = days.find(d => d.dateKey === plannerState.selectedDateKey) || days[0];
+    if (badgeEl) {
+      badgeEl.textContent = `Selected: ${selectedDayObj.fullDisplay}`;
+    }
+
+    // Count planned days in this active week
+    let plannedInWeekCount = 0;
+    days.forEach(d => {
+      if (plannerState.plannedOutfits[d.dateKey]) {
+        plannedInWeekCount++;
+      }
+    });
+
+    if (countEl) {
+      countEl.innerHTML = `<strong>${plannedInWeekCount} of 7</strong> days planned`;
+    }
+    if (fillEl) {
+      const percent = Math.round((plannedInWeekCount / 7) * 100);
+      fillEl.style.width = `${percent}%`;
+    }
+
+    // Render Weekly Strip
+    if (stripEl) {
+      stripEl.innerHTML = days.map(day => {
+        const isSelected = day.dateKey === plannerState.selectedDateKey;
+        const hasPlan = !!plannerState.plannedOutfits[day.dateKey];
+        return `
+          <div class="day-col ${isSelected ? 'selected-day-col' : ''} ${day.isToday ? 'is-today' : ''}" 
+               onclick="app.selectPlannerDate('${day.dateKey}', true)"
+               title="${day.fullDisplay}${hasPlan ? ' (Outfit Planned)' : ''}">
+            <span class="d-name">${day.dayName}</span>
+            <span class="d-num ${isSelected ? 'active-bubble' : ''}">${day.dayNum}</span>
+            <span class="d-dot ${hasPlan ? 'has-plan' : ''}"></span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Daily Schedule Cards
+    if (streamEl) {
+      streamEl.innerHTML = days.map(day => {
+        const isSelected = day.dateKey === plannerState.selectedDateKey;
+        const outfit = plannerState.plannedOutfits[day.dateKey];
+
+        if (outfit) {
+          const thumbsHtml = (outfit.items || []).slice(0, 4).map(it => 
+            `<img src="${escapeHtml(it.photo)}" alt="${escapeHtml(it.name)}" title="${escapeHtml(it.name)}">`
+          ).join('');
+
+          return `
+            <div class="day-plan-card has-outfit ${isSelected ? 'selected-day' : ''}" 
+                 id="card-${day.dateKey}" 
+                 onclick="app.selectPlannerDate('${day.dateKey}', false)">
+              <div class="dp-day-info">
+                <strong>${day.dayName}</strong>
+                <span>${day.dateDisplay}</span>
+                ${day.isToday ? '<span class="dp-today-tag">Today</span>' : ''}
+              </div>
+              <div class="dp-outfit-preview">
+                <div class="dp-outfit-meta">
+                  <div class="dp-title-row">
+                    <span class="dp-outfit-title">${escapeHtml(outfit.title)}</span>
+                    <span class="dp-occ-tag">${escapeHtml(outfit.occasion || outfit.tag || 'Casual')}</span>
+                  </div>
+                  <div class="dp-thumbs-row">
+                    ${thumbsHtml}
+                  </div>
+                </div>
+              </div>
+              <div class="dp-actions-row" onclick="event.stopPropagation()">
+                <button class="btn-plan-replace" onclick="app.openPlannerOutfitModal('${day.dateKey}')" title="Replace outfit for ${day.fullDisplay}">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                  <span>Replace</span>
+                </button>
+                <button class="btn-plan-remove" onclick="app.removePlannerOutfit('${day.dateKey}')" title="Remove outfit for ${day.fullDisplay}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="day-plan-card empty-day ${isSelected ? 'selected-day' : ''}" 
+                 id="card-${day.dateKey}" 
+                 onclick="app.selectPlannerDate('${day.dateKey}', false)">
+              <div class="dp-day-info">
+                <strong>${day.dayName}</strong>
+                <span>${day.dateDisplay}</span>
+                ${day.isToday ? '<span class="dp-today-tag">Today</span>' : ''}
+              </div>
+              <span class="dp-empty-text">No outfit planned yet</span>
+              <button class="btn-plan-add" onclick="event.stopPropagation(); app.openPlannerOutfitModal('${day.dateKey}')" title="Plan outfit for ${day.fullDisplay}">
+                <span class="btn-plus-icon">+</span>
+                <span>Plan</span>
+              </button>
+            </div>
+          `;
+        }
+      }).join('');
+    }
+  }
+
+  function selectPlannerDate(dateKey, shouldScroll = true) {
+    plannerState.selectedDateKey = dateKey;
+    renderWeeklyCalendar();
+
+    if (shouldScroll) {
+      const card = document.getElementById(`card-${dateKey}`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }
+
+  function plannerChangeWeek(delta) {
+    plannerState.weekOffset += delta;
+    renderWeeklyCalendar();
+  }
+
+  function plannerJumpToToday() {
+    plannerState.weekOffset = 0;
+    const days = getPlannerWeekDays(0);
+    const todayDay = days.find(d => d.isToday);
+    plannerState.selectedDateKey = todayDay ? todayDay.dateKey : days[0].dateKey;
+    renderWeeklyCalendar();
+    showToast('📅 Jumped to current week.');
+  }
+
+  function weeklyPlannerGoBack() {
+    goToScreen('today');
+  }
+
+  function openPlannerOutfitModal(dateKey) {
+    plannerState.assigningForDateKey = dateKey;
+    plannerState.selectedDateKey = dateKey;
+    plannerState.filterCategory = 'All';
+
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const dayObj = days.find(d => d.dateKey === dateKey) || {
+      fullDisplay: dateKey
+    };
+
+    const modal = document.getElementById('plannerOutfitModal');
+    const titleEl = document.getElementById('plannerModalTitle');
+    const subEl = document.getElementById('plannerModalSub');
+    const existingOutfit = plannerState.plannedOutfits[dateKey];
+
+    if (subEl) {
+      subEl.textContent = existingOutfit ? 'Replace Outfit' : 'Plan Outfit';
+    }
+    if (titleEl) {
+      titleEl.textContent = existingOutfit 
+        ? `Replace look for ${dayObj.fullDisplay}`
+        : `Choose look for ${dayObj.fullDisplay}`;
+    }
+
+    // Reset filter tabs active state
+    document.querySelectorAll('#plannerFilterTabs .planner-filter-tab').forEach((b, idx) => {
+      b.classList.toggle('active', idx === 0);
+    });
+
+    renderPlannerOutfitsList();
+
+    if (modal) {
+      modal.classList.remove('hidden');
+    }
+  }
+
+  function closePlannerOutfitModal() {
+    const modal = document.getElementById('plannerOutfitModal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+    plannerState.assigningForDateKey = null;
+  }
+
+  function filterPlannerOutfits(category, btnEl) {
+    plannerState.filterCategory = category;
+    document.querySelectorAll('#plannerFilterTabs .planner-filter-tab').forEach(b => {
+      b.classList.toggle('active', b === btnEl);
+    });
+    renderPlannerOutfitsList();
+  }
+
+  function renderPlannerOutfitsList() {
+    const gridEl = document.getElementById('plannerOutfitsGrid');
+    if (!gridEl) return;
+
+    const dateKey = plannerState.assigningForDateKey;
+    const currentOutfit = dateKey ? plannerState.plannedOutfits[dateKey] : null;
+
+    let filtered = PLANNER_SAMPLE_OUTFITS;
+    if (plannerState.filterCategory && plannerState.filterCategory !== 'All') {
+      filtered = PLANNER_SAMPLE_OUTFITS.filter(o => 
+        (o.tag && o.tag.toLowerCase() === plannerState.filterCategory.toLowerCase()) ||
+        (o.occasion && o.occasion.toLowerCase() === plannerState.filterCategory.toLowerCase())
+      );
+    }
+
+    gridEl.innerHTML = filtered.map(outfit => {
+      const isCurrentlyAssigned = currentOutfit && currentOutfit.id === outfit.id;
+      const thumbsHtml = (outfit.items || []).slice(0, 4).map(it => 
+        `<img src="${escapeHtml(it.photo)}" alt="${escapeHtml(it.name)}" title="${escapeHtml(it.name)}">`
+      ).join('');
+
+      return `
+        <div class="planner-outfit-pick-card ${isCurrentlyAssigned ? 'currently-assigned' : ''}" 
+             onclick="app.assignPlannerOutfit('${escapeHtml(outfit.id)}')">
+          <img src="${escapeHtml(outfit.previewPhoto)}" class="pick-card-photo" alt="${escapeHtml(outfit.title)}">
+          <div class="pick-card-body">
+            <div class="pick-card-header">
+              <span class="pick-card-title">${escapeHtml(outfit.title)}</span>
+              <span class="dp-occ-tag">${escapeHtml(outfit.occasion || outfit.tag)}</span>
+            </div>
+            <p class="pick-card-caption">${escapeHtml(outfit.caption)}</p>
+            <div class="pick-card-thumbs">
+              ${thumbsHtml}
+            </div>
+          </div>
+          ${isCurrentlyAssigned 
+            ? '<span class="badge-current-assigned">✓ Assigned</span>' 
+            : `<button class="btn-pick-assign" onclick="event.stopPropagation(); app.assignPlannerOutfit('${escapeHtml(outfit.id)}')">${currentOutfit ? 'Select' : 'Assign'}</button>`
+          }
+        </div>
+      `;
+    }).join('');
+  }
+
+  function assignPlannerOutfit(outfitId) {
+    const dateKey = plannerState.assigningForDateKey || plannerState.selectedDateKey;
+    if (!dateKey) return;
+
+    const outfit = PLANNER_SAMPLE_OUTFITS.find(o => o.id === outfitId);
+    if (!outfit) return;
+
+    plannerState.plannedOutfits[dateKey] = outfit;
+    savePlannerState();
+    closePlannerOutfitModal();
+    renderWeeklyCalendar();
+
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const dayObj = days.find(d => d.dateKey === dateKey);
+    const dayName = dayObj ? dayObj.fullDisplay : dateKey;
+    showToast(`✓ "${outfit.title}" assigned to ${dayName}`);
+  }
+
+  function removePlannerOutfit(dateKey) {
+    if (!dateKey || !plannerState.plannedOutfits[dateKey]) return;
+
+    const outfit = plannerState.plannedOutfits[dateKey];
+    delete plannerState.plannedOutfits[dateKey];
+    savePlannerState();
+    renderWeeklyCalendar();
+
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const dayObj = days.find(d => d.dateKey === dateKey);
+    const dayName = dayObj ? dayObj.fullDisplay : dateKey;
+    showToast(`🗑️ Removed "${outfit.title}" from ${dayName}`);
   }
 
   function init() {
@@ -2606,6 +3464,7 @@
       window.appBootstrap.start();
     }
     initStreakState();
+    initPlannerState();
 
     renderCurrentLook();
     renderWardrobeGrid();
@@ -2730,9 +3589,25 @@
     serenApplyPhotoMatch,
     updateSerenGreeting,
 
-    // Daily Outfit-Upload Streak & Countdown Timer API
+    // Daily Outfit-Upload Streak, Camera, Memories & Circular Calendar API
+    handleStreakIconClick,
     openStreakModal,
     closeStreakModal,
+    prevCalendarMonth,
+    nextCalendarMonth,
+    renderStreakCalendar,
+    openCameraModal,
+    closeCameraModal,
+    captureCameraSnapshot,
+    triggerFileInputClick,
+    handleCameraFileSelected: handleOutfitPhotoSelected,
+    loadSampleOutfitLook,
+    confirmCapturedOutfit,
+    retakeCameraPhoto,
+    openMemoriesModal,
+    closeMemoriesModal,
+    openMemoryDetail,
+    closeMemoryDetailModal,
     triggerOutfitPhotoUpload,
     handleOutfitPhotoSelected,
     openPhotoConfirmModal,
@@ -2747,7 +3622,19 @@
     devSimulateTwoHoursLeft,
     devSimulateStreakBreak,
     devToggleRestoreToken,
-    devResetStreak
+    devResetStreak,
+
+    // Interactive Weekly Calendar & Outfit Planner API
+    renderWeeklyCalendar,
+    selectPlannerDate,
+    plannerChangeWeek,
+    plannerJumpToToday,
+    weeklyPlannerGoBack,
+    openPlannerOutfitModal,
+    closePlannerOutfitModal,
+    filterPlannerOutfits,
+    assignPlannerOutfit,
+    removePlannerOutfit
   };
 
   window.app = Object.assign(window.app || {}, appExports);

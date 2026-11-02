@@ -347,6 +347,14 @@ export class AvatarRig {
       this.sculptedAvatarGroup.add(sneaker);
     });
 
+    // Enable complete castShadow and receiveShadow self-shadowing across all anatomical and garment meshes
+    this.root.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+
     return this.root;
   }
 
