@@ -195,6 +195,8 @@
       updateBuilderTray();
     } else if (screenId === 'today' || screenId === 'virtual-studio') {
       initVirtualStudio();
+    } else if (screenId === 'weekly-planning') {
+      renderWeeklyCalendar();
     }
 
     // Update Bottom Nav active tab indicator if applicable
@@ -2601,11 +2603,496 @@
     showToast('🗑️ Reset streak to default 5-day active streak.');
   }
 
+  // =========================================================================
+  // 10. INTERACTIVE WEEKLY PLANNER & CALENDAR ENGINE
+  // =========================================================================
+  const PLANNER_STORAGE_KEY = 'woobi_weekly_calendar_v1';
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  const PLANNER_SAMPLE_OUTFITS = [
+    {
+      id: 'look_easy_everyday',
+      title: 'Easy everyday',
+      occasion: 'College',
+      tag: 'Casual',
+      caption: 'A relaxed navy cotton shirt paired with beige chinos and white sneakers.',
+      previewPhoto: 'assets/model_tryon_navy.jpg',
+      items: [
+        { name: 'Navy shirt', photo: 'assets/navy_shirt.jpg' },
+        { name: 'Beige chinos', photo: 'assets/beige_chinos.jpg' },
+        { name: 'White sneakers', photo: 'assets/white_sneakers.jpg' },
+        { name: 'Leather watch', photo: 'assets/leather_watch.jpg' }
+      ]
+    },
+    {
+      id: 'look_office_ready',
+      title: 'Office ready',
+      occasion: 'Office',
+      tag: 'Work',
+      caption: 'Crisp breathable white linen tailored with beige chinos and tan loafers.',
+      previewPhoto: 'assets/model_tryon_linen.jpg',
+      items: [
+        { name: 'White linen shirt', photo: 'assets/white_linen_shirt.jpg' },
+        { name: 'Beige chinos', photo: 'assets/beige_chinos.jpg' },
+        { name: 'Tan loafers', photo: 'assets/tan_loafers.jpg' },
+        { name: 'Leather watch', photo: 'assets/leather_watch.jpg' }
+      ]
+    },
+    {
+      id: 'look_weekend_casual',
+      title: 'Weekend casual',
+      occasion: 'Weekend',
+      tag: 'Weekend',
+      caption: 'Lightweight breathable olive kurta with relaxed cream palazzo.',
+      previewPhoto: 'assets/model_tryon_kurta.jpg',
+      items: [
+        { name: 'Olive kurta', photo: 'assets/olive_kurta.jpg' },
+        { name: 'Cream palazzo', photo: 'assets/cream_palazzo.jpg' },
+        { name: 'Tan loafers', photo: 'assets/tan_loafers.jpg' }
+      ]
+    },
+    {
+      id: 'look_urban_minimal',
+      title: 'Relaxed Urban Minimal',
+      occasion: 'City Casual',
+      tag: 'Casual',
+      caption: 'Deep maroon top paired with dark pleated skirt and white sneakers.',
+      previewPhoto: 'assets/model_tryon_maroon.jpg',
+      items: [
+        { name: 'Maroon top', photo: 'assets/maroon_top.jpg' },
+        { name: 'Dark skirt', photo: 'assets/dark_skirt.jpg' },
+        { name: 'White sneakers', photo: 'assets/white_sneakers.jpg' }
+      ]
+    },
+    {
+      id: 'look_tailored_blazer',
+      title: 'Smart Tailored Blazer',
+      occasion: 'Meeting',
+      tag: 'Work',
+      caption: 'Structured smart blazer with dark denim and black trainers.',
+      previewPhoto: 'assets/smart_blazer.jpg',
+      items: [
+        { name: 'Tailored blazer', photo: 'assets/smart_blazer.jpg' },
+        { name: 'Dark denim', photo: 'assets/dark_denim.jpg' },
+        { name: 'Black trainers', photo: 'assets/black_trainers.jpg' }
+      ]
+    },
+    {
+      id: 'look_heritage_kurti',
+      title: 'Heritage Indigo Kurti',
+      occasion: 'Celebration',
+      tag: 'Ethnic',
+      caption: 'Handcrafted indigo kurti paired with cream palazzo and brown sandals.',
+      previewPhoto: 'assets/indigo_kurti.jpg',
+      items: [
+        { name: 'Indigo kurti', photo: 'assets/indigo_kurti.jpg' },
+        { name: 'Cream palazzo', photo: 'assets/cream_palazzo.jpg' },
+        { name: 'Brown sandals', photo: 'assets/brown_sandals.jpg' }
+      ]
+    },
+    {
+      id: 'look_terracotta_street',
+      title: 'Terracotta City Walk',
+      occasion: 'Everyday',
+      tag: 'Weekend',
+      caption: 'Warm earthy terracotta tee paired with dark denim and white sneakers.',
+      previewPhoto: 'assets/terracotta_tee.jpg',
+      items: [
+        { name: 'Terracotta tee', photo: 'assets/terracotta_tee.jpg' },
+        { name: 'Dark denim', photo: 'assets/dark_denim.jpg' },
+        { name: 'White sneakers', photo: 'assets/white_sneakers.jpg' }
+      ]
+    }
+  ];
+
+  const plannerState = {
+    weekOffset: 0,
+    selectedDateKey: null,
+    assigningForDateKey: null,
+    filterCategory: 'All',
+    plannedOutfits: {}
+  };
+
+  function getPlannerWeekDays(weekOffset = 0) {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 is Sun, 1 is Mon, ... 6 is Sat
+    const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + distanceToMonday + (weekOffset * 7));
+    monday.setHours(0, 0, 0, 0);
+
+    const days = [];
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const dateNum = String(d.getDate()).padStart(2, '0');
+      const dateKey = `${year}-${month}-${dateNum}`;
+      const isToday = d.toDateString() === now.toDateString();
+
+      days.push({
+        dateObj: d,
+        dateKey,
+        dayName: dayNames[i],
+        dayNum: d.getDate(),
+        dateDisplay: `${d.getDate()} ${monthNames[d.getMonth()]}`,
+        fullDisplay: `${dayNames[i]}, ${d.getDate()} ${monthNames[d.getMonth()]}`,
+        isToday
+      });
+    }
+    return days;
+  }
+
+  function initPlannerState() {
+    try {
+      const saved = localStorage.getItem(PLANNER_STORAGE_KEY);
+      if (saved) {
+        plannerState.plannedOutfits = JSON.parse(saved);
+      } else {
+        // Initialize with standard starting looks on Monday and Tuesday of current week
+        const currentDays = getPlannerWeekDays(0);
+        plannerState.plannedOutfits = {
+          [currentDays[0].dateKey]: PLANNER_SAMPLE_OUTFITS[0],
+          [currentDays[1].dateKey]: PLANNER_SAMPLE_OUTFITS[1]
+        };
+        savePlannerState();
+      }
+    } catch (e) {
+      console.warn('Could not read planner state:', e);
+      plannerState.plannedOutfits = {};
+    }
+
+    if (!plannerState.selectedDateKey) {
+      const currentDays = getPlannerWeekDays(0);
+      const todayDay = currentDays.find(d => d.isToday);
+      plannerState.selectedDateKey = todayDay ? todayDay.dateKey : currentDays[0].dateKey;
+    }
+  }
+
+  function savePlannerState() {
+    try {
+      localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(plannerState.plannedOutfits));
+    } catch (e) {
+      console.warn('Could not save planner state:', e);
+    }
+  }
+
+  function renderWeeklyCalendar() {
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const stripEl = document.getElementById('plannerWeekStrip');
+    const streamEl = document.getElementById('weeklyScheduleStream');
+    const titleEl = document.getElementById('plannerWeekTitle');
+    const subEl = document.getElementById('plannerWeekSub');
+    const countEl = document.getElementById('plannerSummaryCount');
+    const badgeEl = document.getElementById('plannerSelectedDateBadge');
+    const fillEl = document.getElementById('plannerProgressFill');
+
+    // Title & Subtitle for Week Range
+    if (titleEl) {
+      const first = days[0];
+      const last = days[6];
+      titleEl.textContent = `${first.dateDisplay} – ${last.dateDisplay}, ${first.dateObj.getFullYear()}`;
+    }
+    if (subEl) {
+      if (plannerState.weekOffset === 0) {
+        subEl.textContent = 'This Week (Current)';
+      } else if (plannerState.weekOffset === 1) {
+        subEl.textContent = 'Next Week';
+      } else if (plannerState.weekOffset === -1) {
+        subEl.textContent = 'Last Week';
+      } else if (plannerState.weekOffset > 1) {
+        subEl.textContent = `In ${plannerState.weekOffset} Weeks`;
+      } else {
+        subEl.textContent = `${Math.abs(plannerState.weekOffset)} Weeks Ago`;
+      }
+    }
+
+    // Ensure selected date is set
+    const hasSelectedInWeek = days.some(d => d.dateKey === plannerState.selectedDateKey);
+    if (!hasSelectedInWeek) {
+      const todayDay = days.find(d => d.isToday);
+      plannerState.selectedDateKey = todayDay ? todayDay.dateKey : days[0].dateKey;
+    }
+
+    const selectedDayObj = days.find(d => d.dateKey === plannerState.selectedDateKey) || days[0];
+    if (badgeEl) {
+      badgeEl.textContent = `Selected: ${selectedDayObj.fullDisplay}`;
+    }
+
+    // Count planned days in this active week
+    let plannedInWeekCount = 0;
+    days.forEach(d => {
+      if (plannerState.plannedOutfits[d.dateKey]) {
+        plannedInWeekCount++;
+      }
+    });
+
+    if (countEl) {
+      countEl.innerHTML = `<strong>${plannedInWeekCount} of 7</strong> days planned`;
+    }
+    if (fillEl) {
+      const percent = Math.round((plannedInWeekCount / 7) * 100);
+      fillEl.style.width = `${percent}%`;
+    }
+
+    // Render Weekly Strip
+    if (stripEl) {
+      stripEl.innerHTML = days.map(day => {
+        const isSelected = day.dateKey === plannerState.selectedDateKey;
+        const hasPlan = !!plannerState.plannedOutfits[day.dateKey];
+        return `
+          <div class="day-col ${isSelected ? 'selected-day-col' : ''} ${day.isToday ? 'is-today' : ''}" 
+               onclick="app.selectPlannerDate('${day.dateKey}', true)"
+               title="${day.fullDisplay}${hasPlan ? ' (Outfit Planned)' : ''}">
+            <span class="d-name">${day.dayName}</span>
+            <span class="d-num ${isSelected ? 'active-bubble' : ''}">${day.dayNum}</span>
+            <span class="d-dot ${hasPlan ? 'has-plan' : ''}"></span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Daily Schedule Cards
+    if (streamEl) {
+      streamEl.innerHTML = days.map(day => {
+        const isSelected = day.dateKey === plannerState.selectedDateKey;
+        const outfit = plannerState.plannedOutfits[day.dateKey];
+
+        if (outfit) {
+          const thumbsHtml = (outfit.items || []).slice(0, 4).map(it => 
+            `<img src="${escapeHtml(it.photo)}" alt="${escapeHtml(it.name)}" title="${escapeHtml(it.name)}">`
+          ).join('');
+
+          return `
+            <div class="day-plan-card has-outfit ${isSelected ? 'selected-day' : ''}" 
+                 id="card-${day.dateKey}" 
+                 onclick="app.selectPlannerDate('${day.dateKey}', false)">
+              <div class="dp-day-info">
+                <strong>${day.dayName}</strong>
+                <span>${day.dateDisplay}</span>
+                ${day.isToday ? '<span class="dp-today-tag">Today</span>' : ''}
+              </div>
+              <div class="dp-outfit-preview">
+                <div class="dp-outfit-meta">
+                  <div class="dp-title-row">
+                    <span class="dp-outfit-title">${escapeHtml(outfit.title)}</span>
+                    <span class="dp-occ-tag">${escapeHtml(outfit.occasion || outfit.tag || 'Casual')}</span>
+                  </div>
+                  <div class="dp-thumbs-row">
+                    ${thumbsHtml}
+                  </div>
+                </div>
+              </div>
+              <div class="dp-actions-row" onclick="event.stopPropagation()">
+                <button class="btn-plan-replace" onclick="app.openPlannerOutfitModal('${day.dateKey}')" title="Replace outfit for ${day.fullDisplay}">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                  <span>Replace</span>
+                </button>
+                <button class="btn-plan-remove" onclick="app.removePlannerOutfit('${day.dateKey}')" title="Remove outfit for ${day.fullDisplay}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="day-plan-card empty-day ${isSelected ? 'selected-day' : ''}" 
+                 id="card-${day.dateKey}" 
+                 onclick="app.selectPlannerDate('${day.dateKey}', false)">
+              <div class="dp-day-info">
+                <strong>${day.dayName}</strong>
+                <span>${day.dateDisplay}</span>
+                ${day.isToday ? '<span class="dp-today-tag">Today</span>' : ''}
+              </div>
+              <span class="dp-empty-text">No outfit planned yet</span>
+              <button class="btn-plan-add" onclick="event.stopPropagation(); app.openPlannerOutfitModal('${day.dateKey}')" title="Plan outfit for ${day.fullDisplay}">
+                <span class="btn-plus-icon">+</span>
+                <span>Plan</span>
+              </button>
+            </div>
+          `;
+        }
+      }).join('');
+    }
+  }
+
+  function selectPlannerDate(dateKey, shouldScroll = true) {
+    plannerState.selectedDateKey = dateKey;
+    renderWeeklyCalendar();
+
+    if (shouldScroll) {
+      const card = document.getElementById(`card-${dateKey}`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }
+
+  function plannerChangeWeek(delta) {
+    plannerState.weekOffset += delta;
+    renderWeeklyCalendar();
+  }
+
+  function plannerJumpToToday() {
+    plannerState.weekOffset = 0;
+    const days = getPlannerWeekDays(0);
+    const todayDay = days.find(d => d.isToday);
+    plannerState.selectedDateKey = todayDay ? todayDay.dateKey : days[0].dateKey;
+    renderWeeklyCalendar();
+    showToast('📅 Jumped to current week.');
+  }
+
+  function weeklyPlannerGoBack() {
+    goToScreen('today');
+  }
+
+  function openPlannerOutfitModal(dateKey) {
+    plannerState.assigningForDateKey = dateKey;
+    plannerState.selectedDateKey = dateKey;
+    plannerState.filterCategory = 'All';
+
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const dayObj = days.find(d => d.dateKey === dateKey) || {
+      fullDisplay: dateKey
+    };
+
+    const modal = document.getElementById('plannerOutfitModal');
+    const titleEl = document.getElementById('plannerModalTitle');
+    const subEl = document.getElementById('plannerModalSub');
+    const existingOutfit = plannerState.plannedOutfits[dateKey];
+
+    if (subEl) {
+      subEl.textContent = existingOutfit ? 'Replace Outfit' : 'Plan Outfit';
+    }
+    if (titleEl) {
+      titleEl.textContent = existingOutfit 
+        ? `Replace look for ${dayObj.fullDisplay}`
+        : `Choose look for ${dayObj.fullDisplay}`;
+    }
+
+    // Reset filter tabs active state
+    document.querySelectorAll('#plannerFilterTabs .planner-filter-tab').forEach((b, idx) => {
+      b.classList.toggle('active', idx === 0);
+    });
+
+    renderPlannerOutfitsList();
+
+    if (modal) {
+      modal.classList.remove('hidden');
+    }
+  }
+
+  function closePlannerOutfitModal() {
+    const modal = document.getElementById('plannerOutfitModal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+    plannerState.assigningForDateKey = null;
+  }
+
+  function filterPlannerOutfits(category, btnEl) {
+    plannerState.filterCategory = category;
+    document.querySelectorAll('#plannerFilterTabs .planner-filter-tab').forEach(b => {
+      b.classList.toggle('active', b === btnEl);
+    });
+    renderPlannerOutfitsList();
+  }
+
+  function renderPlannerOutfitsList() {
+    const gridEl = document.getElementById('plannerOutfitsGrid');
+    if (!gridEl) return;
+
+    const dateKey = plannerState.assigningForDateKey;
+    const currentOutfit = dateKey ? plannerState.plannedOutfits[dateKey] : null;
+
+    let filtered = PLANNER_SAMPLE_OUTFITS;
+    if (plannerState.filterCategory && plannerState.filterCategory !== 'All') {
+      filtered = PLANNER_SAMPLE_OUTFITS.filter(o => 
+        (o.tag && o.tag.toLowerCase() === plannerState.filterCategory.toLowerCase()) ||
+        (o.occasion && o.occasion.toLowerCase() === plannerState.filterCategory.toLowerCase())
+      );
+    }
+
+    gridEl.innerHTML = filtered.map(outfit => {
+      const isCurrentlyAssigned = currentOutfit && currentOutfit.id === outfit.id;
+      const thumbsHtml = (outfit.items || []).slice(0, 4).map(it => 
+        `<img src="${escapeHtml(it.photo)}" alt="${escapeHtml(it.name)}" title="${escapeHtml(it.name)}">`
+      ).join('');
+
+      return `
+        <div class="planner-outfit-pick-card ${isCurrentlyAssigned ? 'currently-assigned' : ''}" 
+             onclick="app.assignPlannerOutfit('${escapeHtml(outfit.id)}')">
+          <img src="${escapeHtml(outfit.previewPhoto)}" class="pick-card-photo" alt="${escapeHtml(outfit.title)}">
+          <div class="pick-card-body">
+            <div class="pick-card-header">
+              <span class="pick-card-title">${escapeHtml(outfit.title)}</span>
+              <span class="dp-occ-tag">${escapeHtml(outfit.occasion || outfit.tag)}</span>
+            </div>
+            <p class="pick-card-caption">${escapeHtml(outfit.caption)}</p>
+            <div class="pick-card-thumbs">
+              ${thumbsHtml}
+            </div>
+          </div>
+          ${isCurrentlyAssigned 
+            ? '<span class="badge-current-assigned">✓ Assigned</span>' 
+            : `<button class="btn-pick-assign" onclick="event.stopPropagation(); app.assignPlannerOutfit('${escapeHtml(outfit.id)}')">${currentOutfit ? 'Select' : 'Assign'}</button>`
+          }
+        </div>
+      `;
+    }).join('');
+  }
+
+  function assignPlannerOutfit(outfitId) {
+    const dateKey = plannerState.assigningForDateKey || plannerState.selectedDateKey;
+    if (!dateKey) return;
+
+    const outfit = PLANNER_SAMPLE_OUTFITS.find(o => o.id === outfitId);
+    if (!outfit) return;
+
+    plannerState.plannedOutfits[dateKey] = outfit;
+    savePlannerState();
+    closePlannerOutfitModal();
+    renderWeeklyCalendar();
+
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const dayObj = days.find(d => d.dateKey === dateKey);
+    const dayName = dayObj ? dayObj.fullDisplay : dateKey;
+    showToast(`✓ "${outfit.title}" assigned to ${dayName}`);
+  }
+
+  function removePlannerOutfit(dateKey) {
+    if (!dateKey || !plannerState.plannedOutfits[dateKey]) return;
+
+    const outfit = plannerState.plannedOutfits[dateKey];
+    delete plannerState.plannedOutfits[dateKey];
+    savePlannerState();
+    renderWeeklyCalendar();
+
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const dayObj = days.find(d => d.dateKey === dateKey);
+    const dayName = dayObj ? dayObj.fullDisplay : dateKey;
+    showToast(`🗑️ Removed "${outfit.title}" from ${dayName}`);
+  }
+
   function init() {
     if (typeof window !== 'undefined' && window.appBootstrap && typeof window.appBootstrap.start === 'function') {
       window.appBootstrap.start();
     }
     initStreakState();
+    initPlannerState();
 
     renderCurrentLook();
     renderWardrobeGrid();
@@ -2747,7 +3234,19 @@
     devSimulateTwoHoursLeft,
     devSimulateStreakBreak,
     devToggleRestoreToken,
-    devResetStreak
+    devResetStreak,
+
+    // Interactive Weekly Calendar & Outfit Planner API
+    renderWeeklyCalendar,
+    selectPlannerDate,
+    plannerChangeWeek,
+    plannerJumpToToday,
+    weeklyPlannerGoBack,
+    openPlannerOutfitModal,
+    closePlannerOutfitModal,
+    filterPlannerOutfits,
+    assignPlannerOutfit,
+    removePlannerOutfit
   };
 
   window.app = Object.assign(window.app || {}, appExports);
