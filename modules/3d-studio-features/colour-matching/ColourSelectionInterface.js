@@ -193,30 +193,9 @@ export class ColourSelectionInterface {
 
     // Update swatches and inputs
     const slots = [
-      {
-        id: 'shirt',
-        swatch: this.rootElement.querySelector('#swatchPreviewShirt'),
-        name: this.rootElement.querySelector('#selectedNameShirt'),
-        hex: this.rootElement.querySelector('#selectedHexShirt'),
-        text: this.rootElement.querySelector('#inputShirtText'),
-        picker: this.rootElement.querySelector('#pickerShirt')
-      },
-      {
-        id: 'pants',
-        swatch: this.rootElement.querySelector('#swatchPreviewPants'),
-        name: this.rootElement.querySelector('#selectedNamePants'),
-        hex: this.rootElement.querySelector('#selectedHexPants'),
-        text: this.rootElement.querySelector('#inputPantsText'),
-        picker: this.rootElement.querySelector('#pickerPants')
-      },
-      {
-        id: 'shoes',
-        swatch: this.rootElement.querySelector('#swatchPreviewShoes'),
-        name: this.rootElement.querySelector('#selectedNameShoes'),
-        hex: this.rootElement.querySelector('#selectedHexShoes'),
-        text: this.rootElement.querySelector('#inputShoesText'),
-        picker: this.rootElement.querySelector('#pickerShoes')
-      }
+      { id: 'shirt', swatch: this.rootElement.querySelector('#swatchPreviewShirt'), text: this.rootElement.querySelector('#inputShirtText'), picker: this.rootElement.querySelector('#pickerShirt') },
+      { id: 'pants', swatch: this.rootElement.querySelector('#swatchPreviewPants'), text: this.rootElement.querySelector('#inputPantsText'), picker: this.rootElement.querySelector('#pickerPants') },
+      { id: 'shoes', swatch: this.rootElement.querySelector('#swatchPreviewShoes'), text: this.rootElement.querySelector('#inputShoesText'), picker: this.rootElement.querySelector('#pickerShoes') }
     ];
 
     const { palette } = this.latestAnalysis;
@@ -226,12 +205,6 @@ export class ColourSelectionInterface {
       if (s.swatch) {
         s.swatch.style.backgroundColor = col.hex;
         s.swatch.title = `${col.name} (${col.hex})`;
-      }
-      if (s.name) {
-        s.name.textContent = col.name;
-      }
-      if (s.hex) {
-        s.hex.textContent = col.hex;
       }
       if (s.text && document.activeElement !== s.text) {
         s.text.value = col.name;
@@ -361,8 +334,8 @@ export class ColourSelectionInterface {
         <div class="acm-preview-box">
           <div class="acm-swatch-circle" id="swatchPreview${this._capitalize(slotId)}" style="background-color: ${colorRecord.hex};"></div>
           <div class="acm-preview-details">
-            <span class="acm-selected-name" id="selectedName${this._capitalize(slotId)}">${colorRecord.name}</span>
-            <span class="acm-selected-hex" id="selectedHex${this._capitalize(slotId)}">${colorRecord.hex}</span>
+            <span class="acm-selected-name">${colorRecord.name}</span>
+            <span class="acm-selected-hex">${colorRecord.hex}</span>
           </div>
         </div>
 
@@ -425,20 +398,6 @@ export class ColourSelectionInterface {
     });
 
     if (chips.length === 0) {
-      if (this.latestAnalysis.score < 85 && alt.recommendedPalettes && alt.recommendedPalettes.length > 0) {
-        const palettes = alt.recommendedPalettes.map(p => `
-          <button type="button" class="acm-alt-chip acm-palette-chip" data-shirt="${p.shirt}" data-pants="${p.pants}" data-shoes="${p.shoes}">
-            <span>Restore with: <strong>${p.name}</strong> (${p.score}%)</span>
-          </button>
-        `).join('');
-
-        return `
-          <div class="acm-alt-guidance" style="width: 100%;">
-            <p class="acm-warning-alt" style="color: #B45309; font-size: 13px; margin: 0 0 8px 0;">⚠️ Multiple clashing neon pieces detected. Restore harmony with a curated look:</p>
-            <div class="acm-alternatives-list">${palettes}</div>
-          </div>
-        `;
-      }
       return `<p class="acm-empty-alt">🎉 Current ensemble is already optimized with high color synergy!</p>`;
     }
 
@@ -458,17 +417,6 @@ export class ColourSelectionInterface {
 
       const altBtn = e.target.closest('.acm-alt-chip');
       if (altBtn) {
-        if (altBtn.classList.contains('acm-palette-chip')) {
-          this.selection = {
-            shirt: altBtn.dataset.shirt,
-            pants: altBtn.dataset.pants,
-            shoes: altBtn.dataset.shoes
-          };
-          this.updateAnalysis();
-          if (this.rootElement) this.refreshDOM();
-          return;
-        }
-
         const slot = altBtn.dataset.slot;
         const color = altBtn.dataset.color || altBtn.dataset.hex;
         this.applyAlternative(slot, color);
