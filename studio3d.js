@@ -15,41 +15,45 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
+  const v3 = (x, y, z) => (typeof THREE !== 'undefined' && typeof THREE.Vector3 === 'function')
+    ? new THREE.Vector3(x, y, z)
+    : { x, y, z, clone() { return v3(x, y, z); }, copy(src) { this.x = src.x; this.y = src.y; this.z = src.z; return this; } };
+
   // Camera Presets configured specifically for Portrait Mobile & Desktop Framing
   const CAMERA_STATES = {
     STUDIO_OVERVIEW: {
-      position: new THREE.Vector3(0, 1.22, 3.10),
-      target: new THREE.Vector3(-0.08, 1.08, 0),
+      position: v3(0, 1.22, 3.10),
+      target: v3(-0.08, 1.08, 0),
       fovLandscape: 42,
       fovPortrait: 56
     },
     WARDROBE_CLOSEUP: {
-      position: new THREE.Vector3(-0.96, 1.20, 2.50),
-      target: new THREE.Vector3(-0.96, 1.20, -0.32),
+      position: v3(-0.96, 1.20, 2.50),
+      target: v3(-0.96, 1.20, -0.32),
       fovLandscape: 38,
       fovPortrait: 54
     },
     AVATAR_FULL_BODY: {
-      position: new THREE.Vector3(0, 1.10, 2.10),
-      target: new THREE.Vector3(0, 1.00, 0),
+      position: v3(0, 1.10, 2.10),
+      target: v3(0, 1.00, 0),
       fovLandscape: 36,
       fovPortrait: 44
     },
     AVATAR_DETAIL: {
-      position: new THREE.Vector3(0, 1.44, 1.10),
-      target: new THREE.Vector3(0, 1.38, 0),
+      position: v3(0, 1.44, 1.10),
+      target: v3(0, 1.38, 0),
       fovLandscape: 30,
       fovPortrait: 36
     },
     VANITY_VIEW: {
-      position: new THREE.Vector3(0.65, 1.25, 1.55),
-      target: new THREE.Vector3(0.85, 1.20, -0.10),
+      position: v3(0.65, 1.25, 1.55),
+      target: v3(0.85, 1.20, -0.10),
       fovLandscape: 38,
       fovPortrait: 46
     },
     MIRROR_VIEW: {
-      position: new THREE.Vector3(0.65, 1.25, 1.55),
-      target: new THREE.Vector3(0.85, 1.20, -0.10),
+      position: v3(0.65, 1.25, 1.55),
+      target: v3(0.85, 1.20, -0.10),
       fovLandscape: 38,
       fovPortrait: 46
     }
@@ -1388,6 +1392,40 @@
       hitBox.userData = { interactiveType: 'vanity', name: 'Arched Vanity & Grooming Mirror' };
       vanityGroup.add(hitBox);
       this.interactiveObjects.push(hitBox);
+
+      // Attempt authentic Woobi Vanity GLB loading
+      if (typeof THREE.GLTFLoader !== 'undefined') {
+        const gltfLoader = new THREE.GLTFLoader();
+        const vanityPaths = [
+          '3D - Mirror and stuffs/woobi_vanity.glb',
+          'woobi_vanity.glb',
+          'seren_vanity.glb'
+        ];
+        const tryLoadGLB = (idx) => {
+          if (idx >= vanityPaths.length) return;
+          gltfLoader.load(vanityPaths[idx], (gltf) => {
+            const model = gltf.scene;
+            model.position.set(0, 0, 0);
+            model.traverse((child) => {
+              if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+                if (child.name === 'Mirror_Surface' || child.name.toLowerCase().includes('mirror_surface')) {
+                  this.mirrorGlassMesh = child;
+                }
+              }
+            });
+            topSlab.visible = false;
+            mirrorGroup.visible = false;
+            perfumeGroup.visible = false;
+            brushHolder.visible = false;
+            vaseGroup.visible = false;
+            stoolGroup.visible = false;
+            vanityGroup.add(model);
+          }, undefined, () => tryLoadGLB(idx + 1));
+        };
+        tryLoadGLB(0);
+      }
 
       this.scene.add(vanityGroup);
     }

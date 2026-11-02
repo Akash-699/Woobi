@@ -50,3 +50,7 @@ pr-4.patch
 scratch_*.ps1
 
 
+
+# Security & Keystores
+*.jks
+*.keystore

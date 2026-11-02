@@ -8,7 +8,7 @@ Responsible for the physical 3D grooming vanity, illuminated arched mirror, Cala
 - **Table Dimensions**: `Width: 0.98 m`, `Height: 0.84 m`, `Depth: 0.46 m`.
 - **Mirror Radius**: `0.48 m` (arched circular mirror with continuous 360° warm LED glow ring).
 - **Ottoman Stool**: `Position: (0.12, 0, 0.42)`, `Radius: 0.25 m`, `Height: 0.40 m`.
-- **Authentic Asset**: `seren_vanity.glb` (65 mesh objects with marble, brass, perfume flacons, cosmetic cream jars, and diffuser reeds).
+- **Authentic Asset**: `woobi_vanity.glb` / `seren_vanity.glb` (4.2 MB glTF 2.0 binary, 45 meshes, 63,584 triangles, packed 1K UV maps for ivory marble & bouclé normal, KHR transmission/sheen/emission, with champagne brass, reflective silver mirror, perfume flacons, cosmetic cream jars, brushes, and floral vase arrangement).
 - **Reflection Pipeline**: Offscreen WebGL render target (`512x512`) with automatic resource disposal and feedback loop prevention.
 
 ## Files

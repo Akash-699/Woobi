@@ -241,10 +241,16 @@ export class VanityModel {
 
     this.group.add(proceduralGroup);
 
-    // 5. Attempt authentic GLB model loading (seren_vanity.glb)
+    // 5. Attempt authentic GLB model loading (woobi_vanity.glb)
     VanityAssets.loadVanityGLB(
       THREE,
       (model) => {
+        model.name = 'woobi_vanity_glb';
+        model.traverse((child) => {
+          if (child.isMesh && (child.name === 'Mirror_Surface' || child.name.toLowerCase().includes('mirror_surface'))) {
+            this.mirrorGlassMesh = child;
+          }
+        });
         this.group.add(model);
         this.isGLBLoaded = true;
         proceduralGroup.visible = false;

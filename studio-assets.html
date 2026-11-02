@@ -9,9 +9,10 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Three.js + OrbitControls + GLTFLoader -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="libs/three.min.js"></script>
+  <script src="libs/OrbitControls.js"></script>
+  <script src="libs/GLTFLoader.js"></script>
+
   <script src="wardrobe-astra-material.js?v=20261031_6"></script>
 
   <style>
@@ -538,7 +539,9 @@
           wardrobe.rotation.y = Math.PI;
           activeGroup.add(wardrobe);
         } else if (mode === 'vanity') {
-          const vanity = await loadGLB('seren_vanity.glb');
+          const vanity = await loadGLB('3D - Mirror and stuffs/woobi_vanity.glb')
+            .catch(() => loadGLB('woobi_vanity.glb'))
+            .catch(() => loadGLB('seren_vanity.glb'));
           vanity.position.set(0, 0, 0);
           activeGroup.add(vanity);
         } else if (mode === 'stage') {
@@ -549,7 +552,7 @@
           // Complete Assembly
           const [wardrobe, vanity, stage, avatar] = await Promise.all([
             loadGLB('3D- Wardrobe by Astra/wardrobe.glb').catch(() => loadGLB('wardrobe.glb')),
-            loadGLB('seren_vanity.glb'),
+            loadGLB('3D - Mirror and stuffs/woobi_vanity.glb').catch(() => loadGLB('woobi_vanity.glb')).catch(() => loadGLB('seren_vanity.glb')),
             loadGLB('seren_stage.glb'),
             loadGLB('seren_avatar.glb')
           ]);

@@ -6,6 +6,9 @@
 
 export const VANITY_ASSET_PATHS = [
   'seren_vanity.glb',
+  'woobi_vanity.glb',
+  '3D - Mirror and stuffs/woobi_vanity.glb',
+  '3D - Mirror and stuffs/Woobi_Vanity_Package/woobi_vanity.glb',
   '3D - Vanity/seren_vanity.glb'
 ];
 
