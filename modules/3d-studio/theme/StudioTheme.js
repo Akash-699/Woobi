@@ -57,8 +57,9 @@ export class StudioTheme {
     const wallGeo = new _THREE.CylinderGeometry(6.6, 6.6, 6.8, 48, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
     this.backWall = new _THREE.Mesh(wallGeo, this.materials.wallMat);
     this.backWall.name = 'Studio_BackWall';
-    this.backWall.position.set(0, 3.4, 0);
-    this.backWall.receiveShadow = true;
+    this.backWall.position.set(0, 3.4, 5.4);
+    this.backWall.rotation.y = Math.PI; // Orient curved wall behind avatar towards negative Z
+    this.backWall.receiveShadow = false; // Smooth back wall illumination without shadow map frustum clipping
     this.group.add(this.backWall);
     this.disposables.push(wallGeo);
 
