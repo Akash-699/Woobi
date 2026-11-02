@@ -49,6 +49,7 @@ const testSuites = [
   { name: 'Database Concurrency & Recovery (5 Tests)', path: 'modules/backend/database/DatabaseConcurrency.test.js', isNodeTest: true },
   { name: 'Entitlement Anti-Tampering Security (5 Tests)', path: 'modules/backend/security/EntitlementSecurity.test.js', isNodeTest: true },
   { name: 'Branding & Compatibility Verification (6 Tests)', path: 'modules/core/BrandingCompatibility.test.js', isNodeTest: true },
+  { name: 'Daily Outfit Streak & Memories State Engine (15 Tests)', path: 'modules/core/state/StreakState.test.js', isNodeTest: true },
 
   // 6. Production User Journeys & End-to-End Flows (7 Tests)
   { name: 'Application User Journeys (7 Tests)', path: 'scripts/testing/test-user-journeys.js', isNodeTest: true },

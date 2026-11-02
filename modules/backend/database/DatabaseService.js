@@ -441,7 +441,7 @@ export class DatabaseService {
           try { fs.rmdirSync(lockDir); } catch {}
         };
       } catch (err) {
-        if (err.code !== 'EEXIST') throw err;
+        if (err.code !== 'EEXIST' && err.code !== 'EPERM' && err.code !== 'EACCES') throw err;
         try {
           const stat = fs.statSync(lockDir);
           // Break stale locks older than 10s
@@ -520,8 +520,24 @@ export class DatabaseService {
       // 2. Write to unique temporary file
       fs.writeFileSync(tmpPath, serialized, 'utf8');
 
-      // 3. Atomically replace target file
-      fs.renameSync(tmpPath, filePath);
+      // 3. Atomically replace target file with retry for Windows / OneDrive locks
+      let renamed = false;
+      let lastErr = null;
+      for (let attempt = 0; attempt < 10; attempt++) {
+        try {
+          fs.renameSync(tmpPath, filePath);
+          renamed = true;
+          break;
+        } catch (renameErr) {
+          lastErr = renameErr;
+          // Exponential backoff wait for Windows file locks to clear
+          const waitUntil = Date.now() + 15 * (attempt + 1);
+          while (Date.now() < waitUntil) { /* busy wait for sync retry */ }
+        }
+      }
+      if (!renamed && lastErr) {
+        throw lastErr;
+      }
 
       // Update mtime cache
       try {

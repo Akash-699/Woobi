@@ -7,7 +7,7 @@ Responsible for the shared application foundation, routing, state management, ca
 1. `app/`: Application bootstrap, initialization sequencing, feature flags.
 2. `navigation/`: Screen transitions (`screen-dashboard`, `screen-wardrobe-sheet`, `screen-profile`, etc.).
 3. `shared-ui/`: Design system tokens (`tokens.css`), toast notifications, modals, bottom navigation bar.
-4. `state/`: Reactive state store, immutable transitions, persistent storage synchronization.
+4. `state/`: Reactive state store, immutable transitions, persistent storage synchronization, daily outfit streak state engine, and outfit memories.
 5. `contracts/`: Canonical TypeScript/JSDoc data schemas (Garment, Look, Avatar, SceneState).
 6. `errors/`: Application error boundary, `ErrorBoundary3D`, WebGL context lost/restored handling.
 7. `platform/`: Touch/mouse device detection, mobile viewport resize handling, Android webview bridge.

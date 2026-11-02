@@ -45,14 +45,14 @@ if (process.env.WOOBI_WORKER_MODE === '1') {
   describe('Database Concurrency & Multi-Process Durability Suite', () => {
     beforeEach(() => {
       if (fs.existsSync(testDataDir)) {
-        fs.rmSync(testDataDir, { recursive: true, force: true });
+        try { fs.rmSync(testDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }); } catch {}
       }
       fs.mkdirSync(testDataDir, { recursive: true });
     });
 
     afterEach(() => {
       if (fs.existsSync(testDataDir)) {
-        fs.rmSync(testDataDir, { recursive: true, force: true });
+        try { fs.rmSync(testDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }); } catch {}
       }
     });
 
