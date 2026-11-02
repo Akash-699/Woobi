@@ -2165,6 +2165,29 @@
     // Initial UI render
     updateStreakUI();
 
+    // Wire up header buttons directly for bulletproof responsiveness
+    const streakBtn = document.getElementById('streakHeaderPill');
+    if (streakBtn) {
+      streakBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        handleStreakIconClick();
+      };
+    }
+    const cameraBtn = document.getElementById('streakCameraBtn');
+    if (cameraBtn) {
+      cameraBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        openCameraModal();
+      };
+    }
+    const galleryBtn = document.getElementById('streakGalleryBtn');
+    if (galleryBtn) {
+      galleryBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        openMemoriesModal();
+      };
+    }
+
     // Only show missed streak modal if user had earned a streak previously!
     if (state.streak && state.streak.isStreakBroken && state.streak.savedPreviousStreak > 0) {
       setTimeout(() => showMissedStreakModal(), 800);
@@ -2279,13 +2302,10 @@
   // --------------------------------------------------------------------------
   function handleStreakIconClick() {
     const engine = getStreakEngine();
-    if (!engine) return;
-
-    const status = getStreakStatusSafe(engine);
-    if (!status) return;
+    const status = getStreakStatusSafe(engine) || state.streak;
 
     // When streak is broken, clicking the wood and smoke icon opens the Restore option!
-    if (status.isStreakBroken && status.hasEarnedStreak && status.savedPreviousStreak > 0) {
+    if (status && status.isStreakBroken && status.hasEarnedStreak && status.savedPreviousStreak > 0) {
       showMissedStreakModal();
     } else {
       // Active streak opens the calendar
@@ -2334,8 +2354,6 @@
 
   function renderStreakCalendar() {
     const engine = getStreakEngine();
-    if (!engine) return;
-
     const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
     const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
     const badge = document.getElementById('calHeaderStreakBadge');
@@ -2343,7 +2361,33 @@
       badge.textContent = `🔥 Current Streak: ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}`;
     }
 
-    const calData = engine.getMonthlyCalendarData(currentCalYear, currentCalMonth);
+    let calData = null;
+    if (engine && typeof engine.getMonthlyCalendarData === 'function') {
+      calData = engine.getMonthlyCalendarData(currentCalYear, currentCalMonth);
+    } else {
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const firstDay = new Date(currentCalYear, currentCalMonth, 1).getDay();
+      const totalDays = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
+      const now = new Date();
+      const isCurMonth = now.getFullYear() === currentCalYear && now.getMonth() === currentCalMonth;
+      const todayDate = now.getDate();
+      const days = [];
+      for (let d = 1; d <= totalDays; d++) {
+        let status = 'upcoming';
+        if (isCurMonth && d === todayDate) status = 'today';
+        else if (isCurMonth && d < todayDate) status = 'completed';
+        days.push({ day: d, status });
+      }
+      calData = {
+        year: currentCalYear,
+        month: currentCalMonth,
+        monthName: monthNames[currentCalMonth],
+        totalDays,
+        firstDayOfWeek: firstDay,
+        days,
+        stats: { activeDays: isCurMonth ? todayDate : totalDays, brokenDays: 0, upcomingDays: isCurMonth ? (totalDays - todayDate) : 0 }
+      };
+    }
     const titleEl = document.getElementById('streakCalMonthTitle');
     const gridEl = document.getElementById('streakCalendarGrid');
     const activeEl = document.getElementById('calActiveCount');
@@ -2636,9 +2680,7 @@
 
   function renderOutfitMemories() {
     const engine = getStreakEngine();
-    if (!engine) return;
-
-    const memories = engine.getAllMemories();
+    const memories = (engine && typeof engine.getAllMemories === 'function') ? engine.getAllMemories() : [];
     const gridEl = document.getElementById('memoriesGridContainer');
     const countBadge = document.getElementById('memoriesTotalCountBadge');
 

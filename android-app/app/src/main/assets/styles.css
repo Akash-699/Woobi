@@ -129,6 +129,10 @@ html, body {
   display: none;
 }
 
+.hidden {
+  display: none !important;
+}
+
 /* Generic Screen Container */
 .phone-screen {
   display: none;
@@ -5179,8 +5183,10 @@ html, body {
 }
 
 .seren-header-left,
-.seren-header-right {
-  pointer-events: auto;
+.seren-header-right,
+.streak-trio-row,
+.streak-trio-btn {
+  pointer-events: auto !important;
 }
 
 .seren-header-left {
@@ -7731,18 +7737,25 @@ html, body {
   cursor: not-allowed;
 }
 
-/* 10. Three Icons in One Row: Streak, Camera, Gallery */
+/* 10. Three Icons in One Row: Camera, Streak, Gallery (Centered at Top) */
 .streak-trio-row {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 4px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(220, 210, 195, 0.75);
-  box-shadow: 0 2px 10px rgba(70, 50, 30, 0.06);
+  border: 1px solid rgba(220, 210, 195, 0.85);
+  box-shadow: 0 4px 16px rgba(70, 50, 30, 0.12);
+  z-index: 100;
+  pointer-events: auto !important;
 }
 
 .streak-trio-btn {
@@ -7758,10 +7771,15 @@ html, body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.88rem;
   font-weight: 700;
-  cursor: pointer;
+  cursor: pointer !important;
   user-select: none;
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 1px 3px rgba(50, 40, 30, 0.04);
+  pointer-events: auto !important;
+}
+
+.streak-trio-btn * {
+  pointer-events: none;
 }
 
 .streak-trio-btn:hover {
