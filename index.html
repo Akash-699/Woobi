@@ -387,6 +387,18 @@
                   <circle cx="12" cy="13" r="4"/>
                 </svg>
               </button>
+              <button class="seren-icon-btn" onclick="app.goToScreen('weekly-planning')" title="Weekly Outfit Planning">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </button>
+              <button class="seren-icon-btn" onclick="app.goToScreen('profile')" title="User Profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
 
               <!-- 2. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when broken) -->
               <button type="button" class="streak-trio-btn streak-flame-btn" id="streakHeaderPill" onclick="app.handleStreakIconClick()" title="Daily Outfit Streak">
@@ -2540,93 +2552,58 @@
         </section>
 
         <!-- ===================================================================
-             SCREEN 25: WEEKLY PLANNING (NEW)
+             SCREEN 25: WEEKLY PLANNING & CALENDAR
              =================================================================== -->
         <section class="phone-screen" id="screen-weekly-planning">
-          <div class="screen-body-padded" style="padding-top: 14px;">
-            <h1 class="screen-headline-serif">Your week, dressed</h1>
-            <p class="screen-caption-sub">Plan your outfits for the days ahead.</p>
+          <div class="screen-sub-header">
+            <button class="nav-back-arrow" onclick="app.weeklyPlannerGoBack()" title="Back to Today">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <span class="sub-header-title">Weekly Planner</span>
+            <button class="btn-today-pill" onclick="app.plannerJumpToToday()" title="Jump to Today">Today</button>
+          </div>
 
-            <div class="weekly-schedule-stream">
-              <!-- Mon -->
-              <div class="day-plan-card" onclick="app.goToScreen('outfit-details')">
-                <div class="dp-day-info">
-                  <strong>Mon</strong>
-                  <span>3 Nov</span>
-                </div>
-                <div class="dp-outfit-preview">
-                  <span class="dp-occ-tag">College</span>
-                  <div class="dp-thumbs-row">
-                    <img src="assets/terracotta_tee.jpg">
-                    <img src="assets/dark_denim.jpg">
-                    <img src="assets/white_sneakers.jpg">
-                  </div>
-                </div>
-                <span class="dp-chevron">›</span>
-              </div>
+          <div class="screen-body-padded" style="padding-top: 10px; padding-bottom: 80px;">
+            <div class="planner-header-intro">
+              <h1 class="screen-headline-serif">Your week, dressed</h1>
+              <p class="screen-caption-sub">Plan outfits for upcoming days, assign looks, and stay effortlessly ready.</p>
+            </div>
 
-              <!-- Tue -->
-              <div class="day-plan-card" onclick="app.goToScreen('outfit-details')">
-                <div class="dp-day-info">
-                  <strong>Tue</strong>
-                  <span>4 Nov</span>
-                </div>
-                <div class="dp-outfit-preview">
-                  <span class="dp-occ-tag">Office</span>
-                  <div class="dp-thumbs-row">
-                    <img src="assets/navy_shirt.jpg">
-                    <img src="assets/beige_chinos.jpg">
-                    <img src="assets/tan_loafers.jpg">
-                  </div>
-                </div>
-                <span class="dp-chevron">›</span>
+            <!-- Week Navigation Controls -->
+            <div class="planner-week-ctrl-bar">
+              <button class="planner-week-btn" onclick="app.plannerChangeWeek(-1)" title="Previous Week">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
+                <span>Prev</span>
+              </button>
+              <div class="planner-week-label-box">
+                <span class="planner-week-title" id="plannerWeekTitle">Nov 2 – Nov 8, 2026</span>
+                <span class="planner-week-sub" id="plannerWeekSub">This Week (Current)</span>
               </div>
+              <button class="planner-week-btn" onclick="app.plannerChangeWeek(1)" title="Next Week">
+                <span>Next</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
 
-              <!-- Wed -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Wed</strong>
-                  <span>5 Nov</span>
-                </div>
-                <span class="dp-empty-text">Choose an outfit</span>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
+            <!-- Interactive Weekly Date Strip (Calendar Ribbon) -->
+            <div class="planner-week-strip" id="plannerWeekStrip">
+              <!-- Dynamically rendered 7 day items (Mon-Sun) with date, status dot, active state -->
+            </div>
 
-              <!-- Thu -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Thu</strong>
-                  <span>6 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
+            <!-- Planning Summary / Progress Bar -->
+            <div class="planner-summary-card" id="plannerSummaryCard">
+              <div class="planner-summary-info">
+                <span class="planner-summary-count" id="plannerSummaryCount"><strong>2 of 7</strong> days planned</span>
+                <span class="planner-selected-date-badge" id="plannerSelectedDateBadge">Selected: Mon, 2 Nov</span>
               </div>
+              <div class="planner-progress-track">
+                <div class="planner-progress-fill" id="plannerProgressFill" style="width: 28.5%;"></div>
+              </div>
+            </div>
 
-              <!-- Fri -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Fri</strong>
-                  <span>7 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
-
-              <!-- Sat -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Sat</strong>
-                  <span>8 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
-
-              <!-- Sun -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Sun</strong>
-                  <span>9 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
+            <!-- Dynamic Day Schedule Cards Stream -->
+            <div class="weekly-schedule-stream" id="weeklyScheduleStream">
+              <!-- Dynamically populated for all 7 days of the selected week -->
             </div>
           </div>
 
@@ -3130,6 +3107,40 @@
   </main>
   </div><!-- /.desktop-editorial-frame -->
 <!-- /.app-viewport -->
+
+  <!-- Weekly Planner Outfit Selection Modal Sheet -->
+  <div class="planner-modal-backdrop hidden" id="plannerOutfitModal" onclick="if(event.target === this) app.closePlannerOutfitModal()">
+    <div class="planner-modal-sheet" onclick="event.stopPropagation()">
+      <div class="sheet-drag-handle"></div>
+      <div class="planner-modal-header">
+        <div>
+          <span class="planner-modal-sub" id="plannerModalSub">Assign outfit</span>
+          <h3 class="planner-modal-title" id="plannerModalTitle">Choose look for Wednesday, 5 Nov</h3>
+        </div>
+        <button class="sheet-close-btn" onclick="app.closePlannerOutfitModal()" title="Close">✕</button>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="planner-filter-tabs" id="plannerFilterTabs">
+        <button class="planner-filter-tab active" onclick="app.filterPlannerOutfits('All', this)">All</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Work', this)">Work</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Casual', this)">Casual</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Ethnic', this)">Ethnic</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Weekend', this)">Weekend</button>
+      </div>
+
+      <!-- Outfits Catalog Grid / Stream -->
+      <div class="planner-outfits-grid" id="plannerOutfitsGrid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <div style="text-align: center; margin-top: 10px; padding-top: 6px;">
+        <button class="btn-link-simple" style="font-size: 0.78rem; color: var(--olive-primary, #324334);" onclick="app.closePlannerOutfitModal(); app.goToScreen('custom-builder');">
+          ✦ Or build a custom outfit in Style Studio
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Item Condition & Fit Modal Sheet -->
   <div class="condition-modal-backdrop hidden" id="itemConditionModal">

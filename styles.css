@@ -2256,79 +2256,352 @@ html, body {
   opacity: 0.92;
 }
 
-/* Screen 25: Weekly Planning */
+/* Screen 25: Weekly Planning & Interactive Calendar */
+.planner-header-intro {
+  margin-bottom: 12px;
+}
+
+.btn-today-pill {
+  background: var(--bg-card, #F9F7F4);
+  border: 1px solid var(--border-light, #EAE6DF);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--olive-primary, #324334);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-today-pill:hover {
+  background: #EFECE6;
+  border-color: #D6D0C5;
+}
+
+.planner-week-ctrl-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1px solid var(--border-light, #EAE6DF);
+  border-radius: var(--radius-sm, 10px);
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.planner-week-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-main, #1A1A1A);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.planner-week-btn:hover {
+  background: #F3EFE8;
+}
+
+.planner-week-label-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.planner-week-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-main, #1A1A1A);
+}
+
+.planner-week-sub {
+  font-size: 0.7rem;
+  color: var(--text-muted, #7A756D);
+  font-weight: 500;
+}
+
+.planner-week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-light, #EAE6DF);
+  border-radius: var(--radius-sm, 10px);
+  padding: 8px 4px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.planner-week-strip .day-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 4px 2px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+  user-select: none;
+}
+
+.planner-week-strip .day-col:hover {
+  background: #FAF7F2;
+}
+
+.planner-week-strip .day-col.selected-day-col {
+  background: #F3EFE8;
+}
+
+.planner-week-strip .d-name {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted, #7A756D);
+}
+
+.planner-week-strip .d-num {
+  font-size: 0.8rem;
+  font-weight: 700;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--text-main, #1A1A1A);
+  transition: all 0.15s ease;
+}
+
+.planner-week-strip .d-num.active-bubble {
+  background: var(--olive-primary, #324334);
+  color: #FFFFFF;
+}
+
+.planner-week-strip .d-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.planner-week-strip .d-dot.has-plan {
+  background: #4A7C59;
+}
+
+.planner-summary-card {
+  background: linear-gradient(135deg, #FAF8F4 0%, #F5F1E9 100%);
+  border: 1px solid var(--border-light, #EAE6DF);
+  border-radius: var(--radius-sm, 10px);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.planner-summary-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.planner-summary-count {
+  font-size: 0.8rem;
+  color: var(--text-main, #1A1A1A);
+}
+
+.planner-selected-date-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(50, 67, 52, 0.08);
+  color: var(--olive-primary, #324334);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.planner-progress-track {
+  width: 100%;
+  height: 6px;
+  background: #EAE5DC;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.planner-progress-fill {
+  height: 100%;
+  background: var(--olive-primary, #324334);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
 .weekly-schedule-stream {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 14px;
+  margin-top: 4px;
   margin-bottom: 24px;
 }
 
 .day-plan-card {
   background: #FFFFFF;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light, #EAE6DF);
+  border-radius: var(--radius-sm, 10px);
   padding: 10px 12px;
   display: flex;
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: all 0.2s ease;
+  position: relative;
 }
 
 .day-plan-card:hover {
   border-color: #D2CBC3;
 }
 
+.day-plan-card.selected-day {
+  border-color: var(--olive-primary, #324334);
+  background: #FAF9F6;
+  box-shadow: 0 4px 12px rgba(50, 67, 52, 0.08);
+}
+
 .dp-day-info {
   width: 48px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  flex-shrink: 0;
 }
 
 .dp-day-info strong {
   font-size: 0.88rem;
-  color: var(--text-main);
+  color: var(--text-main, #1A1A1A);
+  line-height: 1.1;
 }
 
 .dp-day-info span {
   font-size: 0.72rem;
-  color: var(--text-muted);
+  color: var(--text-muted, #7A756D);
+}
+
+.dp-today-tag {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  background: var(--olive-primary, #324334);
+  color: #FFFFFF;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-top: 2px;
 }
 
 .dp-outfit-preview {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dp-outfit-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dp-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dp-outfit-title {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-main, #1A1A1A);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dp-occ-tag {
-  font-size: 0.74rem;
-  background: var(--bg-card);
-  padding: 3px 8px;
+  font-size: 0.68rem;
+  background: var(--bg-card, #F9F7F4);
+  border: 1px solid var(--border-light, #EAE6DF);
+  padding: 2px 6px;
   border-radius: 4px;
-  color: var(--text-sub);
+  color: var(--text-sub, #5A554E);
   font-weight: 500;
 }
 
 .dp-thumbs-row {
   display: flex;
   gap: 4px;
+  align-items: center;
 }
 
 .dp-thumbs-row img {
-  width: 32px;
-  height: 36px;
+  width: 30px;
+  height: 34px;
   object-fit: contain;
   background: #F5F2ED;
   border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-.dp-chevron {
-  font-size: 1.2rem;
-  color: var(--text-muted);
+.dp-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-plan-replace {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #FAF7F2;
+  border: 1px solid var(--border-light, #EAE6DF);
+  color: var(--text-main, #1A1A1A);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-plan-replace:hover {
+  background: #EFEBE3;
+  border-color: #D2CBC3;
+}
+
+.btn-plan-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: #FFF4F2;
+  border: 1px solid #FCD9D4;
+  color: #C0392B;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.btn-plan-remove:hover {
+  background: #FFE6E2;
 }
 
 .day-plan-card.empty-day {
@@ -2336,29 +2609,235 @@ html, body {
 }
 
 .dp-empty-text {
-  font-size: 0.82rem;
-  color: var(--text-muted);
+  font-size: 0.8rem;
+  color: var(--text-muted, #7A756D);
   flex: 1;
 }
 
-.btn-circle-add-sm {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--olive-primary);
-  color: #FFFFFF;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
+.btn-plan-add {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 4px;
+  background: var(--olive-primary, #324334);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: opacity var(--transition-fast);
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
 }
 
-.btn-circle-add-sm:hover {
-  opacity: 0.88;
+.btn-plan-add:hover {
+  opacity: 0.9;
+}
+
+.btn-plan-add .btn-plus-icon {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+/* Weekly Planner Outfit Selection Modal Sheet */
+.planner-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 3000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.planner-modal-backdrop.hidden {
+  display: none !important;
+}
+
+.planner-modal-sheet {
+  width: 100%;
+  max-width: 440px;
+  max-height: 84vh;
+  background: #FAF9F6;
+  border-radius: 28px 28px 0 0;
+  padding: 16px 18px 26px 18px;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  animation: slideSheetUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.planner-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.planner-modal-sub {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted, #7A756D);
+  font-weight: 600;
+  display: block;
+}
+
+.planner-modal-title {
+  font-family: var(--font-serif, 'DM Serif Display', serif);
+  font-size: 1.12rem;
+  color: var(--text-main, #1A1A1A);
+  margin: 2px 0 0 0;
+  line-height: 1.25;
+}
+
+.planner-filter-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  scrollbar-width: none;
+}
+
+.planner-filter-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.planner-filter-tab {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light, #EAE6DF);
+  border-radius: 16px;
+  padding: 4px 11px;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--text-muted, #7A756D);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.planner-filter-tab:hover {
+  border-color: #D2CBC3;
+}
+
+.planner-filter-tab.active {
+  background: var(--olive-primary, #324334);
+  color: #FFFFFF;
+  border-color: var(--olive-primary, #324334);
+}
+
+.planner-outfits-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  max-height: 52vh;
+  padding-right: 2px;
+}
+
+.planner-outfit-pick-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light, #EAE6DF);
+  border-radius: var(--radius-sm, 10px);
+  padding: 10px 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.planner-outfit-pick-card:hover {
+  border-color: #D2CBC3;
+  transform: translateY(-1px);
+}
+
+.planner-outfit-pick-card.currently-assigned {
+  border-color: var(--olive-primary, #324334);
+  background: #FAF9F6;
+}
+
+.pick-card-photo {
+  width: 52px;
+  height: 62px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #F5F2ED;
+  flex-shrink: 0;
+}
+
+.pick-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pick-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.pick-card-title {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-main, #1A1A1A);
+}
+
+.pick-card-caption {
+  font-size: 0.72rem;
+  color: var(--text-muted, #7A756D);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+.pick-card-thumbs {
+  display: flex;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.pick-card-thumbs img {
+  width: 24px;
+  height: 28px;
+  object-fit: contain;
+  background: #F5F2ED;
+  border-radius: 3px;
+}
+
+.btn-pick-assign {
+  background: var(--olive-primary, #324334);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 14px;
+  padding: 5px 11px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.btn-pick-assign:hover {
+  opacity: 0.9;
+}
+
+.badge-current-assigned {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--olive-primary, #324334);
+  background: rgba(50, 67, 52, 0.1);
+  border-radius: 12px;
+  padding: 4px 8px;
+  flex-shrink: 0;
 }
 
 /* Screen 26: Help and Support */
