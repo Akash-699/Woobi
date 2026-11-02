@@ -4,9 +4,18 @@
  */
 
 export const COLOR_PALETTE = {
+  // Warm Mediterranean Luxury Environment Tokens
+  desertSand: 0xDCC5A3,       // Main walls (#DCC5A3)
+  warmBeige: 0xCBB18D,        // Architectural surfaces (#CBB18D)
+  europeanOak: 0xB48653,      // Wood surfaces (#B48653)
+  champagneStone: 0xD2BEA0,   // Floor and platform (#D2BEA0)
+  warmTaupe: 0x98816B,        // Secondary accents (#98816B)
+  antiqueBronze: 0x74583D,    // Metal details (#74583D)
+  deepEspresso: 0x403126,     // Contrast accents (#403126)
+
+  // Baseline & Compatibility Tokens
   bgScene: 0xF7F3ED,
   ivorySurface: 0xFFFCF8,
-  warmBeige: 0xEAE0D3,
   lightWood: 0xD8B992,
   softTaupe: 0xA58F7A,
   primaryText: 0x51463E,
@@ -18,6 +27,55 @@ export const COLOR_PALETTE = {
 };
 
 export const THEME_PRESETS = {
+  // Warm Mediterranean Luxury Direction
+  'mediterranean-luxury': {
+    name: 'mediterranean-luxury',
+    description: 'Warm Mediterranean luxury with desert sand plaster, European oak, champagne stone, and deep espresso accents',
+    bgScene: 0xDCC5A3,
+    fog: {
+      color: 0xDCC5A3,
+      near: 9.0,
+      far: 24.0
+    },
+    wall: {
+      color: 0xDCC5A3, // Desert sand
+      roughness: 0.92,
+      metalness: 0.01
+    },
+    architectural: {
+      color: 0xCBB18D, // Warm beige
+      roughness: 0.88,
+      metalness: 0.01
+    },
+    wood: {
+      color: 0xB48653, // European oak
+      roughness: 0.50,
+      metalness: 0.02
+    },
+    floor: {
+      color: 0xDCC5A3, // Desert sand floor fully merged with main walls (#DCC5A3)
+      roughness: 0.92,
+      metalness: 0.01
+    },
+    accent: {
+      color: 0x98816B // Warm taupe
+    },
+    metal: {
+      color: 0x74583D, // Antique bronze
+      roughness: 0.35,
+      metalness: 0.75
+    },
+    windowShadow: {
+      color: 0x403126, // Deep espresso
+      opacity: 0.085
+    },
+    foliage: {
+      color: 0x2A4526,
+      roughness: 0.48,
+      metalness: 0.05
+    }
+  },
+
   // Baseline Target Reference: Serene cream plaster walls, polished marble, soft fog
   'luxury-cream': {
     name: 'luxury-cream',

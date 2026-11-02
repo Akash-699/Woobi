@@ -20,9 +20,15 @@ export class ThemeMaterials {
 
     const preset = THEME_PRESETS[presetName] || THEME_PRESETS[DEFAULT_THEME_PRESET];
 
-    // 1. Polished Marble Tile Flooring Material
+    // 1. Flooring Material (Merged with main walls in Mediterranean Luxury)
+    const floorTexture = (presetName === 'mediterranean-luxury')
+      ? (this.textures.sandPlaster || this.textures.champagneStone || null)
+      : (this.textures.champagneStone || this.textures.creamMarble || null);
+
     this.floorMat = new THREE.MeshStandardMaterial({
-      map: this.textures.creamMarble || null,
+      map: floorTexture,
+      bumpMap: (presetName === 'mediterranean-luxury' ? null : (this.textures.stoneBump || null)),
+      bumpScale: 0.008,
       roughness: preset.floor.roughness,
       metalness: preset.floor.metalness,
       color: preset.floor.color
@@ -31,6 +37,7 @@ export class ThemeMaterials {
 
     // 2. Smooth Architectural Wall Plaster Material
     this.wallMat = new THREE.MeshStandardMaterial({
+      map: this.textures.sandPlaster || null,
       color: preset.wall.color,
       roughness: preset.wall.roughness,
       metalness: preset.wall.metalness,

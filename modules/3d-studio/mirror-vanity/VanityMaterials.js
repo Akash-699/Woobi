@@ -5,20 +5,30 @@
  */
 
 export class VanityMaterials {
-  static createMarbleMaterial(THREE, marbleTexture = null) {
+  static createMarbleMaterial(THREE, marbleTexture = null, bumpTexture = null) {
     return new THREE.MeshStandardMaterial({
       map: marbleTexture || null,
-      roughness: 0.22,
+      bumpMap: bumpTexture || null,
+      bumpScale: 0.005,
+      roughness: 0.42,
       metalness: 0.02,
-      color: 0xFCFAF6
+      color: 0xCBB18D // Warm beige limestone / travertine (#CBB18D)
+    });
+  }
+
+  static createLegsMaterial(THREE) {
+    return new THREE.MeshStandardMaterial({
+      color: 0x362B22, // Deep espresso / dark antique bronze
+      roughness: 0.55,
+      metalness: 0.40
     });
   }
 
   static createBrassMaterial(THREE) {
     return new THREE.MeshStandardMaterial({
-      color: 0xD4AF37, // Warm champagne satin brass
-      metalness: 0.88,
-      roughness: 0.22
+      color: 0x74583D, // Antique bronze (#74583D)
+      metalness: 0.72,
+      roughness: 0.35
     });
   }
 
@@ -29,8 +39,21 @@ export class VanityMaterials {
   }
 
   static createMirrorMaterial(THREE, reflectionTexture = null) {
+    if (reflectionTexture) {
+      if (typeof THREE.MeshBasicMaterial !== 'undefined') {
+        return new THREE.MeshBasicMaterial({
+          map: reflectionTexture,
+          toneMapped: false
+        });
+      }
+      return new THREE.MeshStandardMaterial({
+        map: reflectionTexture,
+        color: 0xFFFFFF,
+        roughness: 0.02,
+        metalness: 0.05
+      });
+    }
     return new THREE.MeshStandardMaterial({
-      map: reflectionTexture || null,
       color: 0xEAE6DE,
       roughness: 0.04,
       metalness: 0.94
@@ -66,8 +89,8 @@ export class VanityMaterials {
   static createBoucleMaterial(THREE, wovenTexture = null) {
     return new THREE.MeshStandardMaterial({
       map: wovenTexture || null,
-      color: 0xF5F0E6,
-      roughness: 0.84,
+      color: 0xE0D6C7, // Cream bouclé matching seren_vanity.glb
+      roughness: 0.85,
       metalness: 0.02
     });
   }

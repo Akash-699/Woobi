@@ -13,19 +13,21 @@ export class StageMaterials {
     });
   }
 
-  static createDaisMaterial(THREE, wovenTexture = null) {
+  static createDaisMaterial(THREE, wovenTexture = null, bumpTexture = null) {
     return new THREE.MeshStandardMaterial({
       map: wovenTexture || null,
-      roughness: 0.82,
-      metalness: 0.01,
-      color: 0xF2ECE2
+      bumpMap: bumpTexture || null,
+      bumpScale: 0.012,
+      roughness: 0.70,
+      metalness: 0.02,
+      color: 0xD2BEA0 // Champagne stone (#D2BEA0)
     });
   }
 
   static createTrimMaterial(THREE) {
     return new THREE.MeshStandardMaterial({
-      color: 0xDFD6C8,
-      roughness: 0.85
+      color: 0xCBB18D, // Warm beige architectural trim (#CBB18D)
+      roughness: 0.82
     });
   }
 
