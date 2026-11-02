@@ -1,6 +1,7 @@
 import { AppBootstrap, appBootstrap } from './app/AppBootstrap.js';
 import { NavigationRouter, navigationRouter } from './navigation/NavigationRouter.js';
 import { Store, store } from './state/Store.js';
+import { StreakState, streakState, createStreakState, STREAK_EVENTS } from './state/StreakState.js';
 import { toastService } from './shared-ui/ToastService.js';
 import { modalService } from './shared-ui/ModalService.js';
 import { GlobalErrorHandler, globalErrorHandler } from './errors/GlobalErrorHandler.js';
@@ -14,6 +15,10 @@ export {
   navigationRouter,
   Store,
   store,
+  StreakState,
+  streakState,
+  createStreakState,
+  STREAK_EVENTS,
   toastService,
   modalService,
   GlobalErrorHandler,
@@ -42,6 +47,20 @@ export const CoreContract = {
     getState: () => store.getState(),
     subscribe: (listener) => store.subscribe(listener),
     setState: (partial) => store.setState(partial)
+  },
+
+  // Daily Outfit Streak & Memories Engine
+  streak: {
+    getStatus: () => streakState.getStreakStatus(),
+    hasUploadedToday: () => streakState.hasUploadedToday(),
+    hasUploadedOnDate: (dateStr) => streakState.hasUploadedOnDate(dateStr),
+    recordDailyOutfitUpload: (opts) => streakState.recordDailyOutfitUpload(opts),
+    getMemoryByDate: (dateStr) => streakState.getMemoryByDate(dateStr),
+    getAllMemories: () => streakState.getAllMemories(),
+    getMonthlyCalendarData: (y, m) => streakState.getMonthlyCalendarData(y, m),
+    restoreMonthlyStreak: () => streakState.restoreMonthlyStreak(),
+    startFreshStreak: () => streakState.startFreshStreak(),
+    on: (evt, cb) => streakState.on(evt, cb)
   },
   
   // Shared UI & Design System
