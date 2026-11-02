@@ -1,6 +1,7 @@
 import { AppBootstrap, appBootstrap } from './app/AppBootstrap.js';
 import { NavigationRouter, navigationRouter } from './navigation/NavigationRouter.js';
 import { Store, store } from './state/Store.js';
+import { StreakState, streakState, createStreakState, STREAK_EVENTS } from './state/StreakState.js';
 import { toastService } from './shared-ui/ToastService.js';
 import { modalService } from './shared-ui/ModalService.js';
 import { GlobalErrorHandler, globalErrorHandler } from './errors/GlobalErrorHandler.js';
@@ -14,6 +15,10 @@ export {
   navigationRouter,
   Store,
   store,
+  StreakState,
+  streakState,
+  createStreakState,
+  STREAK_EVENTS,
   toastService,
   modalService,
   GlobalErrorHandler,
@@ -43,6 +48,9 @@ export const CoreContract = {
     subscribe: (listener) => store.subscribe(listener),
     setState: (partial) => store.setState(partial)
   },
+
+  // Daily Outfit Streak & Memories Engine
+  streak: streakState,
   
   // Shared UI & Design System
   ui: {
