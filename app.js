@@ -2413,17 +2413,27 @@
     const currVal = document.getElementById('cameraCurrentStreakVal');
     const newVal = document.getElementById('cameraNewStreakVal');
     const curStreak = state.streak ? state.streak.currentStreak : 0;
-    if (currVal) currVal.textContent = curStreak;
-    if (newVal) newVal.textContent = curStreak + 1;
-
-    // Check duplicate
     const engine = getStreakEngine();
     const isAlreadyLogged = engine && engine.hasUploadedToday();
+
+    if (currVal) currVal.textContent = curStreak;
+    if (newVal) {
+      newVal.textContent = isAlreadyLogged ? curStreak : (curStreak + 1);
+    }
+
     const dupWarning = document.getElementById('cameraDuplicateWarning');
     const btnConfirm = document.getElementById('btnConfirmCapturedOutfit');
 
-    if (dupWarning) dupWarning.classList.toggle('hidden', !isAlreadyLogged);
-    if (btnConfirm) btnConfirm.disabled = isAlreadyLogged;
+    if (dupWarning) {
+      dupWarning.classList.toggle('hidden', !isAlreadyLogged);
+      if (isAlreadyLogged) {
+        dupWarning.innerHTML = `<span>✨ Streak for today completed (🔥 ${curStreak} Days). Extra photos are saved to your Gallery!</span>`;
+      }
+    }
+    if (btnConfirm) {
+      btnConfirm.disabled = false;
+      btnConfirm.textContent = isAlreadyLogged ? 'Add Photo to Gallery 📸' : 'Confirm & Log Outfit 🔥';
+    }
 
     modal.classList.remove('hidden');
 
@@ -2588,14 +2598,15 @@
       note: note.trim()
     });
 
-    if (!res.success) {
-      showToast(res.message || '⚠️ Already logged for today.');
-      return;
-    }
-
     closeCameraModal();
     triggerFlameReigniteAnimation();
     updateStreakUI();
+
+    if (!res.success && res.alreadyUploaded) {
+      showToast(`📸 Outfit photo added to Gallery! Streak remains at ${res.streak} (1 per day).`);
+      return;
+    }
+
     showToast(`🔥 Streak increased to ${res.streak}! Outfit memory saved!`);
   }
 

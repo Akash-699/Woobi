@@ -230,13 +230,30 @@ export class StreakState {
   recordDailyOutfitUpload({ photoUrl, note = '', customDate = null }) {
     const targetDate = customDate ? this.formatDateKey(new Date(customDate)) : this.formatDateKey();
 
-    // Prevent duplicate streak entries for the same day
+    // Prevent duplicate streak entries for the same day:
+    // If the user takes more than one photo today, save it to memories/gallery,
+    // but keep streak count at 1 increment per calendar day!
     if (this.hasUploadedOnDate(targetDate)) {
+      const memory = {
+        id: `mem_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+        date: targetDate,
+        timestamp: Date.now(),
+        photoUrl: photoUrl || 'assets/welcome_hero.jpg',
+        note: note.trim() || `Day ${this.state.currentStreak} Outfit Look`,
+        streakDay: this.state.currentStreak
+      };
+      this.memories.push(memory);
+      this.save();
+      this._emit(STREAK_EVENTS.UPDATED, {
+        streak: this.state.currentStreak,
+        memory
+      });
       return {
         success: false,
         alreadyUploaded: true,
-        message: `An outfit photo has already been logged for ${targetDate}. Each day allows one streak memory.`,
-        memory: this.getMemoryByDate(targetDate)
+        streak: this.state.currentStreak,
+        message: `Outfit photo saved to your gallery! Daily streak remains ${this.state.currentStreak} (1 streak per day).`,
+        memory
       };
     }
 
@@ -447,3 +464,4 @@ export function getStreakState() {
 
 export const streakState = getStreakState();
 export default streakState;
+
