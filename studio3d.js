@@ -1839,6 +1839,9 @@
 
       const loader = new THREE.GLTFLoader();
       const modelUrls = [
+        'seren_avatar.glb',
+        '3D - Mannequin By Astra/Woobi_Female_Mannequin.glb',
+        'woobi_female_mannequin.glb',
         'assets/models/avatar_female.glb',
         'https://readyplayerme.github.io/visage/female.glb'
       ];
@@ -2187,18 +2190,19 @@
     }
 
     /**
-     * Avatar Customization API: Gender Presentation
+     * Avatar Customization API: Gender Presentation (Swaps Female / Male Mannequin)
      */
     setGenderPresentation(gender) {
       this.avatarConfig.gender = gender;
-      if (this.avatarController && typeof this.avatarController.setGenderPresentation === 'function') {
-        this.avatarController.setGenderPresentation(gender);
-        return;
-      }
-      if (gender === 'masculine') {
+      if (gender === 'masculine' || gender === 'male') {
+        this.loadMannequin('male');
         this.setBodyProportions('athletic');
       } else {
+        this.loadMannequin('female');
         this.setBodyProportions('regular');
+      }
+      if (this.avatarController && typeof this.avatarController.setGenderPresentation === 'function') {
+        this.avatarController.setGenderPresentation(gender);
       }
       this.savePreferences();
     }
