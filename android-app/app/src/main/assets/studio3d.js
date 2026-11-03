@@ -2490,7 +2490,7 @@
           return minDisp * t;
         } else {
           const t = (v - defaultVal) / (150 - defaultVal);
-          return maxDisp * Math.min(1.4, t);
+          return maxDisp * (t + 0.12 * t * t);
         }
       };
 
@@ -2515,7 +2515,7 @@
           const shoulderDisp = organicDisp(shoulders, 72, 0.035);
           const stomachDisp = organicDisp(stomach, 22, 0.028);
           const thighDisp = organicDisp(thighs, 58, 0.030);
-          const gluteDisp = organicDisp(glutes, 55, 0.038);
+          const gluteDisp = organicDisp(glutes, 55, 0.075);
 
           for (let i = 0; i < pos.length; i += 3) {
             const ox = base[i];
@@ -2560,15 +2560,23 @@
               }
             }
 
-            // 4. Male Glutes (Unified athletic cheeks, apex at x=+-0.097, y=0.94, z=-0.212)
-            if (oz < -0.06 && oy >= 0.78 && oy <= 1.08 && Math.abs(ox) <= 0.22) {
-              const wGlL = compactWeight(ox, oy, oz, -0.097, 0.94, -0.18, 0.11, 0.14, 0.10);
-              const wGlR = compactWeight(ox, oy, oz,  0.097, 0.94, -0.18, 0.11, 0.14, 0.10);
+            // 4. Male Glutes (Spherical athletic balloon cheeks with 3D radial expansion)
+            if (oz < -0.05 && oy >= 0.76 && oy <= 1.10 && Math.abs(ox) <= 0.235) {
+              const cxL = -0.099, cxR = 0.099, cyGlute = 0.934, czGlute = -0.155;
+              const rxGl = 0.125, ryGl = 0.165, rzGl = 0.150;
+              const wGlL = compactWeight(ox, oy, oz, cxL, cyGlute, czGlute, rxGl, ryGl, rzGl);
+              const wGlR = compactWeight(ox, oy, oz, cxR, cyGlute, czGlute, rxGl, ryGl, rzGl);
               const wGl = Math.max(wGlL, wGlR);
               if (wGl > 0) {
-                dz -= wGl * gluteDisp;
-                dy += wGl * gluteDisp * 0.20;
-                dx += (ox < 0 ? -1 : 1) * wGl * 0.20 * gluteDisp;
+                const isLeft = ox < 0;
+                const cx = isLeft ? cxL : cxR;
+                const vx = (ox - cx) / rxGl;
+                const vy = (oy - cyGlute) / ryGl;
+                const vz = (oz - czGlute) / rzGl;
+                const len = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0;
+                dz -= wGl * gluteDisp * (0.65 + 0.35 * Math.max(0, -vz / len));
+                dx += (isLeft ? -1 : 1) * wGl * gluteDisp * (0.30 + 0.18 * Math.max(0, Math.abs(vx) / len));
+                dy += wGl * gluteDisp * (0.20 + 0.15 * (vy / len));
               }
             }
 
@@ -2598,7 +2606,7 @@
           const stomach = anatomy.stomach ?? 25;
 
           const bustDisp = organicDisp(bust, 55, 0.042);
-          const gluteDisp = organicDisp(glutes, 60, 0.040);
+          const gluteDisp = organicDisp(glutes, 60, 0.082);
           const thighDisp = organicDisp(thighs, 48, 0.030);
           const stomachDisp = organicDisp(stomach, 25, 0.025);
           const waistDisp = organicDisp(waist, 72, 0.024);
@@ -2624,15 +2632,23 @@
               }
             }
 
-            // 2. Female Glutes / Butt (Unified peach cheeks, apex at x=+-0.095, y=0.89, z=-0.234; ZERO side lumps!)
-            if (oz < -0.06 && oy >= 0.74 && oy <= 1.02 && Math.abs(ox) <= 0.22) {
-              const wGlL = compactWeight(ox, oy, oz, -0.095, 0.89, -0.19, 0.105, 0.14, 0.11);
-              const wGlR = compactWeight(ox, oy, oz,  0.095, 0.89, -0.19, 0.105, 0.14, 0.11);
+            // 2. Female Glutes / Butt (Spherical balloon bubble curve with 3D radial expansion)
+            if (oz < -0.05 && oy >= 0.70 && oy <= 1.05 && Math.abs(ox) <= 0.235) {
+              const cxL = -0.108, cxR = 0.108, cyGlute = 0.875, czGlute = -0.155;
+              const rxGl = 0.135, ryGl = 0.170, rzGl = 0.155;
+              const wGlL = compactWeight(ox, oy, oz, cxL, cyGlute, czGlute, rxGl, ryGl, rzGl);
+              const wGlR = compactWeight(ox, oy, oz, cxR, cyGlute, czGlute, rxGl, ryGl, rzGl);
               const wGl = Math.max(wGlL, wGlR);
               if (wGl > 0) {
-                dz -= wGl * gluteDisp;
-                dy += wGl * gluteDisp * 0.25; // Perky model lift
-                dx += (ox < 0 ? -1 : 1) * wGl * 0.22 * gluteDisp;
+                const isLeft = ox < 0;
+                const cx = isLeft ? cxL : cxR;
+                const vx = (ox - cx) / rxGl;
+                const vy = (oy - cyGlute) / ryGl;
+                const vz = (oz - czGlute) / rzGl;
+                const len = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0;
+                dz -= wGl * gluteDisp * (0.65 + 0.35 * Math.max(0, -vz / len));
+                dx += (isLeft ? -1 : 1) * wGl * gluteDisp * (0.32 + 0.20 * Math.max(0, Math.abs(vx) / len));
+                dy += wGl * gluteDisp * (0.22 + 0.18 * (vy / len));
               }
             }
 
