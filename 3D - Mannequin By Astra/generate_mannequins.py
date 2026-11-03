@@ -85,13 +85,13 @@ def create_body(sex):
         parts.append(ellipsoid('Breast_R', (-0.045, -0.064, 0.716), (0.038, 0.044, 0.039)))
         parts.append(ellipsoid('Cleavage_Slope', (0, -0.046, 0.730), (0.032, 0.022, 0.030)))
 
-        # 2. Feminine sculpted glutes / buttocks (rounded, natural, lifted)
-        parts.append(ellipsoid('Glute_L', (0.048, 0.064, 0.520), (0.052, 0.048, 0.056)))
-        parts.append(ellipsoid('Glute_R', (-0.048, 0.064, 0.520), (0.052, 0.048, 0.056)))
+        # 2. Feminine sculpted glutes / buttocks (rounded, natural, lifted high-fashion curve)
+        parts.append(ellipsoid('Glute_L', (0.050, 0.072, 0.520), (0.056, 0.052, 0.060)))
+        parts.append(ellipsoid('Glute_R', (-0.050, 0.072, 0.520), (0.056, 0.052, 0.060)))
 
         # 3. Lateral hip flare (visible clearly from the FRONT view!)
-        parts.append(ellipsoid('Hip_Shelf_L', (0.102, 0.006, 0.536), (0.034, 0.056, 0.068)))
-        parts.append(ellipsoid('Hip_Shelf_R', (-0.102, 0.006, 0.536), (0.034, 0.056, 0.068)))
+        parts.append(ellipsoid('Hip_Shelf_L', (0.106, 0.008, 0.534), (0.038, 0.058, 0.070)))
+        parts.append(ellipsoid('Hip_Shelf_R', (-0.106, 0.008, 0.534), (0.038, 0.058, 0.070)))
     else:
         # Male athletic model torso cross-sections:
         torso = [
@@ -115,9 +115,9 @@ def create_body(sex):
         parts.append(ellipsoid('Pec_R', (-0.054, -0.062, 0.730), (0.054, 0.032, 0.042)))
         parts.append(ellipsoid('Pec_Upper', (0, -0.050, 0.744), (0.036, 0.020, 0.028)))
 
-        # 2. Deltoid shoulder caps (broad athletic V-taper)
-        parts.append(ellipsoid('Deltoid_L', (0.134, -0.002, 0.806), (0.042, 0.042, 0.040)))
-        parts.append(ellipsoid('Deltoid_R', (-0.134, -0.002, 0.806), (0.042, 0.042, 0.040)))
+        # 2. Deltoid shoulder caps (broad athletic V-taper, seamless arm joint alignment)
+        parts.append(ellipsoid('Deltoid_L', (0.116, -0.002, 0.796), (0.036, 0.036, 0.036)))
+        parts.append(ellipsoid('Deltoid_R', (-0.116, -0.002, 0.796), (0.036, 0.036, 0.036)))
 
         # 3. Toned flat abdominal wall (smooth, unblurred)
         parts.append(ellipsoid('Abs_Core', (0, -0.046, 0.630), (0.058, 0.022, 0.080)))

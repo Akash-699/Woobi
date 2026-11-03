@@ -1,12 +1,12 @@
 {
   "vertices": 13001,
-  "faces": 24804,
+  "faces": 24838,
   "triangles": 25998,
   "non_manifold_edges": 0,
   "loose_vertices": 0,
   "uv_layers": 1,
   "connected_components": 1,
-  "signed_volume_m3": 0.08561008448200055,
+  "signed_volume_m3": 0.08799426275629553,
   "height_m": 1.7000000476837158,
   "ground_z": 0.0,
   "glb_roundtrip": {
@@ -18,11 +18,11 @@
   "files": {
     ".blend": {
       "name": "Woobi_Female_Mannequin.blend",
-      "bytes": 1993729
+      "bytes": 1996128
     },
     ".glb": {
       "name": "Woobi_Female_Mannequin.glb",
-      "bytes": 661356
+      "bytes": 657744
     }
   },
   "rig": "not implemented",

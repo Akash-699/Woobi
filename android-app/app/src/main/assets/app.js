@@ -2024,10 +2024,10 @@
       // Perfect Female High-Fashion Runway Model:
       // Natural perky breasts, cinched hourglass waist, lifted glutes, lateral hip flare, long model legs
       serenSetAnatomy('bust', 68, 'female');
-      serenSetAnatomy('glutes', 66, 'female');
-      serenSetAnatomy('thighs', 46, 'female');
-      serenSetAnatomy('waist', 80, 'female');
-      serenSetAnatomy('height', 1.72, 'female');
+      serenSetAnatomy('glutes', 74, 'female');
+      serenSetAnatomy('thighs', 52, 'female');
+      serenSetAnatomy('waist', 78, 'female');
+      serenSetAnatomy('height', 1.74, 'female');
       serenSetAnatomy('weight', 54, 'female');
       serenSetBodyFat(18);
       if (window.Studio3D) window.Studio3D.setBodyProportions('slim_fit');
