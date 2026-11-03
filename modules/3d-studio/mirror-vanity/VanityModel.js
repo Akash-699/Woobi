@@ -11,7 +11,7 @@ import { VanityLighting } from './VanityLighting.js';
 import { MirrorReflection } from './MirrorReflection.js';
 
 export const VANITY_CONFIG = {
-  position: { x: 0.92, y: 0, z: -0.05 },
+  position: { x: 1.15, y: 0, z: -2.20 },
   rotationY: -0.32,
   tableHeight: 0.84,
   tableWidth: 0.98,
@@ -224,18 +224,30 @@ export class VanityModel {
     stoolGroup.position.set(this.config.stoolPosition.x, this.config.stoolPosition.y, this.config.stoolPosition.z);
 
     const stoolPlinthGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.05, 36);
-    const stoolPlinth = new THREE.Mesh(stoolPlinthGeo, boucleMat);
+    const stoolPlinth = new THREE.Mesh(stoolPlinthGeo, brassMat);
     stoolPlinth.position.y = 0.025;
     stoolPlinth.castShadow = true;
     stoolGroup.add(stoolPlinth);
     this.disposables.push(stoolPlinthGeo);
 
-    const stoolCushionGeo = new THREE.CylinderGeometry(this.config.stoolRadius, 0.24, this.config.stoolHeight, 36);
-    const stoolCushion = new THREE.Mesh(stoolCushionGeo, boucleMat);
-    stoolCushion.position.y = 0.25;
+    const stoolBodyGeo = new THREE.CylinderGeometry(0.245, 0.238, 0.33, 36);
+    const stoolBody = new THREE.Mesh(stoolBodyGeo, boucleMat);
+    stoolBody.position.y = 0.215;
+    stoolBody.castShadow = true;
+    stoolGroup.add(stoolBody);
+    this.disposables.push(stoolBodyGeo);
+
+    const stoolCushionGeo = new THREE.CylinderGeometry(this.config.stoolRadius, 0.245, 0.07, 36);
+    const cushionMat = new THREE.MeshStandardMaterial({
+      color: 0xF8F4EE,
+      roughness: 0.82,
+      metalness: 0.02
+    });
+    const stoolCushion = new THREE.Mesh(stoolCushionGeo, cushionMat);
+    stoolCushion.position.y = 0.415;
     stoolCushion.castShadow = true;
     stoolGroup.add(stoolCushion);
-    this.disposables.push(stoolCushionGeo);
+    this.disposables.push(stoolCushionGeo, cushionMat);
 
     proceduralGroup.add(stoolGroup);
 
@@ -289,12 +301,21 @@ export class VanityModel {
             } else if (child.name.includes('Vanity_Leg') || child.name.includes('Vanity_Top_Rail') || child.name.includes('Vanity_Tray_Rim') || child.name.includes('Vanity_Drawer_Seam')) {
               child.material = VanityMaterials.createLegsMaterial(THREE);
             } else if (child.name === 'Stool_Brass_Base_Ring' || child.name.includes('Stool_Brass') || child.name.includes('Stool_Base')) {
-              const stoolBody = model.getObjectByName('Stool_Upholstered_Body');
-              if (stoolBody && stoolBody.material) {
-                child.material = stoolBody.material;
-              } else {
-                child.material = boucleMat;
-              }
+              child.material = VanityMaterials.createBrassMaterial(THREE);
+            } else if (child.name === 'Stool_Top_Padded_Cushion') {
+              child.material = new THREE.MeshStandardMaterial({
+                color: 0xF8F4EE,
+                roughness: 0.80,
+                metalness: 0.02
+              });
+              this.disposables.push(child.material);
+            } else if (child.name === 'Stool_Upholstered_Body') {
+              child.material = new THREE.MeshStandardMaterial({
+                color: 0xEEE6DC,
+                roughness: 0.85,
+                metalness: 0.02
+              });
+              this.disposables.push(child.material);
             }
           }
         });

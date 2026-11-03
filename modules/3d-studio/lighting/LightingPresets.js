@@ -41,8 +41,8 @@ export const LIGHTING_PRESETS = {
       angle: Math.PI / 4,
       penumbra: 0.45,
       decay: 1.2,
-      position: { x: -0.96, y: 3.2, z: 0.8 },
-      target: { x: -0.96, y: 1.22, z: -0.32 }
+      position: { x: -1.20, y: 3.4, z: -1.00 },
+      target: { x: -1.20, y: 1.22, z: -2.40 }
     },
     vanitySpot: {
       color: 0xFFE5BF,
@@ -51,8 +51,8 @@ export const LIGHTING_PRESETS = {
       angle: Math.PI / 4,
       penumbra: 0.45,
       decay: 1.2,
-      position: { x: 0.95, y: 3.4, z: 0.4 },
-      target: { x: 0.90, y: 1.20, z: -0.10 }
+      position: { x: 1.15, y: 3.5, z: -0.90 },
+      target: { x: 1.15, y: 1.20, z: -2.20 }
     }
   },
 
@@ -93,8 +93,8 @@ export const LIGHTING_PRESETS = {
       angle: Math.PI / 4,
       penumbra: 0.45,
       decay: 1.2,
-      position: { x: -0.96, y: 3.2, z: 0.8 },
-      target: { x: -0.96, y: 1.22, z: -0.32 }
+      position: { x: -1.20, y: 3.4, z: -1.00 },
+      target: { x: -1.20, y: 1.22, z: -2.40 }
     },
     vanitySpot: {
       color: 0xF2F2F2,
@@ -103,8 +103,8 @@ export const LIGHTING_PRESETS = {
       angle: Math.PI / 4,
       penumbra: 0.45,
       decay: 1.2,
-      position: { x: 0.95, y: 3.4, z: 0.4 },
-      target: { x: 0.90, y: 1.20, z: -0.10 }
+      position: { x: 1.15, y: 3.5, z: -0.90 },
+      target: { x: 1.15, y: 1.20, z: -2.20 }
     }
   },
 
@@ -145,8 +145,8 @@ export const LIGHTING_PRESETS = {
       angle: Math.PI / 4,
       penumbra: 0.45,
       decay: 1.2,
-      position: { x: -0.96, y: 3.2, z: 0.8 },
-      target: { x: -0.96, y: 1.22, z: -0.32 }
+      position: { x: -1.20, y: 3.4, z: -1.00 },
+      target: { x: -1.20, y: 1.22, z: -2.40 }
     },
     vanitySpot: {
       color: 0xFFDDB0,
@@ -155,8 +155,8 @@ export const LIGHTING_PRESETS = {
       angle: Math.PI / 4,
       penumbra: 0.45,
       decay: 1.2,
-      position: { x: 0.95, y: 3.4, z: 0.4 },
-      target: { x: 0.90, y: 1.20, z: -0.10 }
+      position: { x: 1.15, y: 3.5, z: -0.90 },
+      target: { x: 1.15, y: 1.20, z: -2.20 }
     }
   }
 };
