@@ -581,6 +581,16 @@
 
               <!-- Tab 1: Avatar Appearance Controls -->
               <div class="vanity-tab-content active" id="vanityAppearanceView">
+                <!-- Studio Model & Mannequin Selection -->
+                <div class="vanity-section">
+                  <label class="vanity-sec-label">Studio Model & Mannequin (Astra)</label>
+                  <div class="vanity-pill-group">
+                    <button class="vanity-chip active" data-model="avatar" onclick="app.serenSetModelType('avatar', this)">Stylized Avatar</button>
+                    <button class="vanity-chip" data-model="mannequin_female" onclick="app.serenSetModelType('mannequin_female', this)">Astra Female Mannequin</button>
+                    <button class="vanity-chip" data-model="mannequin_male" onclick="app.serenSetModelType('mannequin_male', this)">Astra Male Mannequin</button>
+                  </div>
+                </div>
+
                 <!-- Gender Presentation -->
                 <div class="vanity-section">
                   <label class="vanity-sec-label">Gender Presentation</label>

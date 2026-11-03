@@ -19,7 +19,9 @@ $coreFiles = @(
     "woobi_vanity.glb",
     "wardrobe.glb",
     "seren_stage.glb",
-    "seren_avatar.glb"
+    "seren_avatar.glb",
+    "woobi_female_mannequin.glb",
+    "woobi_male_mannequin.glb"
 )
 
 foreach ($f in $coreFiles) {
@@ -47,5 +49,10 @@ Copy-Item (Join-Path $src "3D- Wardrobe by Astra\wardrobe.glb") (Join-Path $ward
 $stageDest = Join-Path $dest "3D - Stage by Astra"
 New-Item -ItemType Directory -Force -Path $stageDest | Out-Null
 Copy-Item (Join-Path $src "3D - Stage by Astra\seren_stage.glb") (Join-Path $stageDest "seren_stage.glb") -Force
+
+$mannequinDest = Join-Path $dest "3D - Mannequin By Astra"
+New-Item -ItemType Directory -Force -Path $mannequinDest | Out-Null
+Copy-Item (Join-Path $src "3D - Mannequin By Astra\Woobi_Female_Mannequin.glb") (Join-Path $mannequinDest "Woobi_Female_Mannequin.glb") -Force
+Copy-Item (Join-Path $src "3D - Mannequin By Astra\Woobi_Male_Mannequin.glb") (Join-Path $mannequinDest "Woobi_Male_Mannequin.glb") -Force
 
 Write-Host "[SUCCESS] Assets synchronized to Android app assets successfully."

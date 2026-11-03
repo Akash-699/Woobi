@@ -281,6 +281,12 @@
     <button class="asset-tab active" data-mode="avatar">
       <span>👤</span> Avatar (Step 4)
     </button>
+    <button class="asset-tab" data-mode="mannequin-female">
+      <span>🧍‍♀️</span> Female Mannequin (Astra)
+    </button>
+    <button class="asset-tab" data-mode="mannequin-male">
+      <span>🧍‍♂️</span> Male Mannequin (Astra)
+    </button>
     <button class="asset-tab" data-mode="wardrobe">
       <span>🚪</span> Wardrobe (Step 1)
     </button>
@@ -341,6 +347,22 @@
         camPos: new THREE.Vector3(0, 1.15, 2.5),
         camLook: new THREE.Vector3(0, 0.95, 0),
         stats: "Objects: 54 | Vertices: 6,234 | Polygons: 6,196<br>Height: 1.72m | PBR SSS & Procedural Knit"
+      },
+      'mannequin-female': {
+        title: "Female Mannequin by Astra",
+        badge: "3D Mannequin by Astra",
+        desc: "Authentic procedural female fashion mannequin (1.70m stature, 26k triangles). Single connected manifold body mesh in studio A-pose with matte porcelain finish on central bouclé dais.",
+        camPos: new THREE.Vector3(0, 1.15, 2.5),
+        camLook: new THREE.Vector3(0, 0.95, 0),
+        stats: "Asset: Woobi_Female_Mannequin.glb | Stature: 1.70m<br>Triangles: 26,000 | Watertight Manifold Shell"
+      },
+      'mannequin-male': {
+        title: "Male Mannequin by Astra",
+        badge: "3D Mannequin by Astra",
+        desc: "Authentic procedural male fashion mannequin (1.80m stature, 26k triangles). Athletic build, anatomical contours, matte neutral finish, and studio A-pose for menswear tailoring.",
+        camPos: new THREE.Vector3(0, 1.20, 2.6),
+        camLook: new THREE.Vector3(0, 1.00, 0),
+        stats: "Asset: Woobi_Male_Mannequin.glb | Stature: 1.80m<br>Triangles: 26,000 | Watertight Manifold Shell"
       },
       wardrobe: {
         title: "Step 1: Oak Wardrobe",
@@ -530,6 +552,22 @@
           stage.position.set(0, 0, 0);
           activeGroup.add(stage);
           activeGroup.add(avatar);
+        } else if (mode === 'mannequin-female') {
+          const mannequin = await loadGLB('3D - Mannequin By Astra/Woobi_Female_Mannequin.glb')
+            .catch(() => loadGLB('woobi_female_mannequin.glb'));
+          const stage = await loadGLB('seren_stage.glb');
+          mannequin.position.set(0, 0.080, 0);
+          stage.position.set(0, 0, 0);
+          activeGroup.add(stage);
+          activeGroup.add(mannequin);
+        } else if (mode === 'mannequin-male') {
+          const mannequin = await loadGLB('3D - Mannequin By Astra/Woobi_Male_Mannequin.glb')
+            .catch(() => loadGLB('woobi_male_mannequin.glb'));
+          const stage = await loadGLB('seren_stage.glb');
+          mannequin.position.set(0, 0.080, 0);
+          stage.position.set(0, 0, 0);
+          activeGroup.add(stage);
+          activeGroup.add(mannequin);
         } else if (mode === 'wardrobe') {
           const wardrobe = await loadGLB('3D- Wardrobe by Astra/wardrobe.glb').catch(() => loadGLB('wardrobe.glb'));
           if (window.AstraWardrobeStyling) {

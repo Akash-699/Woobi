@@ -2204,6 +2204,93 @@
     }
 
     /**
+     * Model Display Mode: Stylized Avatar vs. Astra Tailoring Mannequin
+     */
+    setModelType(type) {
+      this.avatarConfig.modelType = type;
+      if (type === 'mannequin_female' || type === 'female_mannequin') {
+        this.loadMannequin('female');
+      } else if (type === 'mannequin_male' || type === 'male_mannequin') {
+        this.loadMannequin('male');
+      } else {
+        // Return to standard avatar
+        if (this.gltfAvatarGroup && this.avatarRoot) {
+          this.avatarRoot.remove(this.gltfAvatarGroup);
+          this.gltfAvatarGroup = null;
+        }
+        if (this.sculptedAvatarGroup) {
+          this.sculptedAvatarGroup.visible = true;
+        }
+        this.activeAvatarType = 'sculpted';
+        this.avatarConfig.modelType = 'avatar';
+        this.loadRiggedAvatarGLB();
+        this.savePreferences();
+      }
+    }
+
+    /**
+     * Loads Astra Mannequin (Female or Male)
+     */
+    loadMannequin(gender = 'female') {
+      if (typeof THREE.GLTFLoader === 'undefined') return;
+
+      const loader = new THREE.GLTFLoader();
+      const urls = gender === 'male'
+        ? [
+            '3D - Mannequin By Astra/Woobi_Male_Mannequin.glb',
+            '3D - Mannequin By Astra/male/Woobi_Male_Mannequin.glb',
+            'woobi_male_mannequin.glb'
+          ]
+        : [
+            '3D - Mannequin By Astra/Woobi_Female_Mannequin.glb',
+            '3D - Mannequin By Astra/female/Woobi_Female_Mannequin.glb',
+            'woobi_female_mannequin.glb'
+          ];
+
+      const tryLoad = (idx) => {
+        if (idx >= urls.length) return;
+        const url = urls[idx];
+        loader.load(
+          url,
+          (gltf) => {
+            console.log(`Studio3D: Astra ${gender} mannequin loaded successfully from`, url);
+            const model = gltf.scene;
+
+            // Remove existing gltfAvatarGroup if present
+            if (this.gltfAvatarGroup && this.avatarRoot) {
+              this.avatarRoot.remove(this.gltfAvatarGroup);
+            }
+
+            // Position model cleanly on the dais (0.08m height)
+            model.position.set(0, 0.080, 0);
+
+            model.traverse((child) => {
+              if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+              }
+            });
+
+            this.gltfAvatarGroup = model;
+            if (this.avatarRoot) {
+              this.avatarRoot.add(this.gltfAvatarGroup);
+            }
+            if (this.sculptedAvatarGroup) {
+              this.sculptedAvatarGroup.visible = false;
+            }
+            this.activeAvatarType = 'mannequin';
+            this.avatarConfig.modelType = `mannequin_${gender}`;
+            this.savePreferences();
+          },
+          undefined,
+          () => tryLoad(idx + 1)
+        );
+      };
+
+      tryLoad(0);
+    }
+
+    /**
      * Avatar Customization API: Toggle Accessories
      */
     toggleAccessory(name, isActive) {

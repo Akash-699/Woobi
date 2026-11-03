@@ -1947,6 +1947,19 @@
     }
   }
 
+  function serenSetModelType(type, btn) {
+    if (btn) {
+      btn.parentElement.querySelectorAll('.vanity-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    if (window.Studio3D && typeof window.Studio3D.setModelType === 'function') {
+      window.Studio3D.setModelType(type);
+    }
+    const label = type === 'mannequin_female' ? 'Female Mannequin by Astra' :
+                  type === 'mannequin_male' ? 'Male Mannequin by Astra' : 'Stylized Avatar';
+    showToast(`Display model set to ${label}.`);
+  }
+
   function serenSetGender(gender, btn) {
     if (btn) {
       btn.parentElement.querySelectorAll('.vanity-chip').forEach(c => c.classList.remove('active'));
@@ -3578,6 +3591,7 @@
     serenOpenVanity,
     serenCloseVanity,
     serenSwitchVanityTab,
+    serenSetModelType,
     serenSetGender,
     serenSetSkinTone,
     serenSetHairStyle,

@@ -103,6 +103,26 @@ export class AvatarModel {
     );
   }
 
+  loadMannequin(gender = 'female', onSuccess, onError) {
+    if (!this.assets) return;
+    this.assets.loadMannequinModel(
+      gender,
+      (model, url) => {
+        if (this.isDisposed) return;
+        this.gltfAvatarGroup = model;
+        if (this.avatarRoot) {
+          this.avatarRoot.add(this.gltfAvatarGroup);
+        }
+        if (this.sculptedAvatarGroup) {
+          this.sculptedAvatarGroup.visible = false;
+        }
+        this.activeAvatarType = 'mannequin';
+        if (onSuccess) onSuccess(model, url);
+      },
+      onError
+    );
+  }
+
   getElevation() {
     return AVATAR_CONFIG.daisElevation;
   }

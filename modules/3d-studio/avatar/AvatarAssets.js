@@ -6,8 +6,22 @@
 export const AVATAR_ASSET_PATHS = [
   'seren_avatar.glb',
   'assets/models/avatar_female.glb',
+  '3D - Mannequin By Astra/Woobi_Female_Mannequin.glb',
   'https://readyplayerme.github.io/visage/female.glb'
 ];
+
+export const MANNEQUIN_ASSET_PATHS = {
+  female: [
+    '3D - Mannequin By Astra/Woobi_Female_Mannequin.glb',
+    '3D - Mannequin By Astra/female/Woobi_Female_Mannequin.glb',
+    'woobi_female_mannequin.glb'
+  ],
+  male: [
+    '3D - Mannequin By Astra/Woobi_Male_Mannequin.glb',
+    '3D - Mannequin By Astra/male/Woobi_Male_Mannequin.glb',
+    'woobi_male_mannequin.glb'
+  ]
+};
 
 export class AvatarAssets {
   constructor(materials, THREE = window.THREE) {
@@ -106,6 +120,11 @@ export class AvatarAssets {
     };
 
     tryLoad(0);
+  }
+
+  loadMannequinModel(gender = 'female', onSuccess, onError) {
+    const paths = MANNEQUIN_ASSET_PATHS[gender] || MANNEQUIN_ASSET_PATHS.female;
+    return this.loadRiggedModel(onSuccess, onError, paths);
   }
 
   cancelLoading() {
