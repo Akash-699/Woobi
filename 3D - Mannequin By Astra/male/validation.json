@@ -1,12 +1,12 @@
 {
   "vertices": 13002,
-  "faces": 26000,
+  "faces": 24767,
   "triangles": 26000,
   "non_manifold_edges": 0,
   "loose_vertices": 0,
   "uv_layers": 1,
   "connected_components": 1,
-  "signed_volume_m3": 0.10148112881912048,
+  "signed_volume_m3": 0.1057626521958711,
   "height_m": 1.7999999523162842,
   "ground_z": 0.0,
   "glb_roundtrip": {
@@ -18,11 +18,11 @@
   "files": {
     ".blend": {
       "name": "Woobi_Male_Mannequin.blend",
-      "bytes": 6994840
+      "bytes": 1992622
     },
     ".glb": {
       "name": "Woobi_Male_Mannequin.glb",
-      "bytes": 646904
+      "bytes": 655640
     }
   },
   "rig": "not implemented",

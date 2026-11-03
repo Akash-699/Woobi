@@ -61,14 +61,71 @@ def create_body(sex):
     female = sex == 'Female'
     parts=[]
     # Normalized stature; Z-up, forward -Y. Sculpted, understated adult proportions.
-    torso = ([(.49,.092,.070),(.53,.111,.080),(.57,.110,.074),(.61,.086,.062),
-              (.65,.079,.064),(.69,.089,.076),(.73,.103,.079),(.77,.103,.069),(.80,.096,.052)]
-             if female else
-             [(.49,.088,.071),(.53,.100,.079),(.57,.097,.071),(.61,.089,.066),
-              (.65,.097,.074),(.69,.112,.083),(.73,.123,.087),(.77,.127,.076),(.80,.116,.055)])
-    torso += [(.815,.080,.044),(.838,.039,.034)]
-    parts.append(loft('Torso',[(0,0,z,rx,ry) for z,rx,ry in torso]))
-    parts.append(ellipsoid('Pelvis',(0,.006,.514),(.108 if female else .098,.077,.072)))
+    if female:
+        # Female high-fashion model torso cross-sections:
+        # Curvaceous hip, cinched hourglass waist, natural ribcage
+        torso = [
+            (0.49, 0.096, 0.072),  # Lower hip
+            (0.53, 0.114, 0.082),  # Full hip shelf
+            (0.57, 0.108, 0.074),  # Upper hip transition
+            (0.61, 0.084, 0.060),  # Lower waist
+            (0.64, 0.076, 0.056),  # Cinched hourglass waist
+            (0.68, 0.086, 0.068),  # Ribcage start
+            (0.72, 0.100, 0.076),  # Underbust / lower chest
+            (0.76, 0.102, 0.068),  # Mid chest
+            (0.80, 0.096, 0.052),  # Clavicle
+            (0.815, 0.080, 0.044),
+            (0.838, 0.039, 0.034)
+        ]
+        parts.append(loft('Torso', [(0, 0, z, rx, ry) for z, rx, ry in torso]))
+        parts.append(ellipsoid('Pelvis', (0, 0.006, 0.514), (0.112, 0.080, 0.074)))
+
+        # 1. Natural, graceful anatomical breasts (sloped teardrop, natural gravity)
+        parts.append(ellipsoid('Breast_L', (0.045, -0.064, 0.716), (0.038, 0.044, 0.039)))
+        parts.append(ellipsoid('Breast_R', (-0.045, -0.064, 0.716), (0.038, 0.044, 0.039)))
+        parts.append(ellipsoid('Cleavage_Slope', (0, -0.046, 0.730), (0.032, 0.022, 0.030)))
+
+        # 2. Feminine sculpted glutes / buttocks (rounded, natural, lifted)
+        parts.append(ellipsoid('Glute_L', (0.048, 0.064, 0.520), (0.052, 0.048, 0.056)))
+        parts.append(ellipsoid('Glute_R', (-0.048, 0.064, 0.520), (0.052, 0.048, 0.056)))
+
+        # 3. Lateral hip flare (visible clearly from the FRONT view!)
+        parts.append(ellipsoid('Hip_Shelf_L', (0.102, 0.006, 0.536), (0.034, 0.056, 0.068)))
+        parts.append(ellipsoid('Hip_Shelf_R', (-0.102, 0.006, 0.536), (0.034, 0.056, 0.068)))
+    else:
+        # Male athletic model torso cross-sections:
+        torso = [
+            (0.49, 0.088, 0.071),
+            (0.53, 0.098, 0.078),
+            (0.57, 0.096, 0.072),
+            (0.61, 0.088, 0.066),
+            (0.65, 0.094, 0.072),
+            (0.69, 0.110, 0.082),
+            (0.73, 0.124, 0.088),
+            (0.77, 0.128, 0.078),
+            (0.80, 0.116, 0.055),
+            (0.815, 0.080, 0.044),
+            (0.838, 0.039, 0.034)
+        ]
+        parts.append(loft('Torso', [(0, 0, z, rx, ry) for z, rx, ry in torso]))
+        parts.append(ellipsoid('Pelvis', (0, 0.006, 0.514), (0.098, 0.077, 0.072)))
+
+        # 1. Broad chiseled pectorals (athletic male chest)
+        parts.append(ellipsoid('Pec_L', (0.054, -0.062, 0.730), (0.054, 0.032, 0.042)))
+        parts.append(ellipsoid('Pec_R', (-0.054, -0.062, 0.730), (0.054, 0.032, 0.042)))
+        parts.append(ellipsoid('Pec_Upper', (0, -0.050, 0.744), (0.036, 0.020, 0.028)))
+
+        # 2. Deltoid shoulder caps (broad athletic V-taper)
+        parts.append(ellipsoid('Deltoid_L', (0.134, -0.002, 0.806), (0.042, 0.042, 0.040)))
+        parts.append(ellipsoid('Deltoid_R', (-0.134, -0.002, 0.806), (0.042, 0.042, 0.040)))
+
+        # 3. Toned flat abdominal wall (smooth, unblurred)
+        parts.append(ellipsoid('Abs_Core', (0, -0.046, 0.630), (0.058, 0.022, 0.080)))
+
+        # 4. Athletic masculine glutes
+        parts.append(ellipsoid('Glute_L', (0.046, 0.056, 0.518), (0.048, 0.042, 0.052)))
+        parts.append(ellipsoid('Glute_R', (-0.046, 0.056, 0.518), (0.048, 0.042, 0.052)))
+
     parts.append(loft('Neck',[(0,.004,.78,.049,.042),(0,.006,.825,.035,.033),
                               (0,.002,.865,.034,.033),(0,0,.885,.039,.039)]))
     parts.append(loft('Featureless_Head',[(0,-.007,.852,.018,.025),(0,-.009,.865,.030,.036),

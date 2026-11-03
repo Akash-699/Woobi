@@ -891,7 +891,10 @@
                   </div>
                 </div>
 
-                <div class="vanity-action-row">
+                <div class="vanity-action-row" style="display: flex; flex-direction: column; gap: 8px;">
+                  <button type="button" class="btn-outline-white full-width" onclick="app.resetToPerfectModelAvatar()" style="color: #4A5B44; border-color: rgba(82,99,75,0.45); font-weight: 700; background: rgba(255,255,255,0.85); box-shadow: 0 2px 8px rgba(82,99,75,0.08);">
+                    ✨ Reset to Perfect Model Avatar
+                  </button>
                   <button class="btn-olive-primary" onclick="app.serenSaveAvatarCustomization()">
                     Save & Return to Studio ✨
                   </button>
@@ -3638,10 +3641,10 @@
           </div>
         </div>
 
-        <!-- 7. Reset to Standards Action -->
+        <!-- 7. Reset to Perfect Model Avatar Action -->
         <div class="dock-actions-row">
-          <button class="dock-reset-btn" onclick="app.resetMannequinToStandards()">
-            ↺ Reset to Astra Standards
+          <button class="dock-perfect-model-btn" onclick="app.resetToPerfectModelAvatar()" title="Reset all curves, waist, chest and biometrics to ideal fashion model standards">
+            ✨ Reset to Perfect Model Avatar
           </button>
         </div>
       </div>

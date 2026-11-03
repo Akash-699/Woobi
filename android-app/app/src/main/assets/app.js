@@ -1998,26 +1998,55 @@
     showToast(`Inspecting mannequin at ${deg}° angle.`);
   }
 
-  function resetMannequinToStandards() {
+  function resetToPerfectModelAvatar() {
     const isMale = (window.Studio3D && window.Studio3D.avatarConfig && window.Studio3D.avatarConfig.gender === 'male');
-    if (isMale) {
-      serenSetAnatomy('pecs', 65, 'male');
-      serenSetAnatomy('shoulders', 72, 'male');
-      serenSetAnatomy('stomach', 22, 'male');
-      serenSetAnatomy('thighs', 58, 'male');
-      serenSetAnatomy('height', 1.80, 'male');
-      serenSetAnatomy('weight', 78, 'male');
-      serenSetBodyFat(20);
-    } else {
-      serenSetAnatomy('bust', 55, 'female');
-      serenSetAnatomy('glutes', 60, 'female');
-      serenSetAnatomy('thighs', 48, 'female');
-      serenSetAnatomy('waist', 72, 'female');
-      serenSetAnatomy('height', 1.70, 'female');
-      serenSetAnatomy('weight', 58, 'female');
-      serenSetBodyFat(25);
+
+    if (window.Studio3D) {
+      window.Studio3D.setAvatarRotation(0);
     }
-    showToast('Mannequin proportions reset to authentic Astra tailoring standards.');
+    document.querySelectorAll('.dock-angle-btn').forEach((b, i) => {
+      if (i === 0) b.classList.add('active');
+      else b.classList.remove('active');
+    });
+
+    if (isMale) {
+      // Perfect Male High-Fashion Athletic Model:
+      // Broad V-taper, chiseled chest, lean core, model height & athletic stature
+      serenSetAnatomy('pecs', 72, 'male');
+      serenSetAnatomy('shoulders', 80, 'male');
+      serenSetAnatomy('stomach', 16, 'male');
+      serenSetAnatomy('thighs', 56, 'male');
+      serenSetAnatomy('height', 1.85, 'male');
+      serenSetAnatomy('weight', 76, 'male');
+      serenSetBodyFat(14);
+      if (window.Studio3D) window.Studio3D.setBodyProportions('athletic');
+    } else {
+      // Perfect Female High-Fashion Runway Model:
+      // Natural perky breasts, cinched hourglass waist, lifted glutes, lateral hip flare, long model legs
+      serenSetAnatomy('bust', 68, 'female');
+      serenSetAnatomy('glutes', 66, 'female');
+      serenSetAnatomy('thighs', 46, 'female');
+      serenSetAnatomy('waist', 80, 'female');
+      serenSetAnatomy('height', 1.72, 'female');
+      serenSetAnatomy('weight', 54, 'female');
+      serenSetBodyFat(18);
+      if (window.Studio3D) window.Studio3D.setBodyProportions('slim_fit');
+    }
+
+    if (window.Studio3D) {
+      window.Studio3D.updateBodyMeshScale();
+      window.Studio3D.savePreferences();
+    }
+
+    const currentGender = isMale ? 'male' : 'female';
+    serenSyncAnatomyPanel(currentGender);
+    serenUpdateTesterPills();
+
+    showToast(`✨ Reset to Perfect High-Fashion ${isMale ? 'Male' : 'Female'} Model Avatar!`);
+  }
+
+  function resetMannequinToStandards() {
+    resetToPerfectModelAvatar();
   }
 
   function serenQuickSwitchGender(gender, btn) {
@@ -3900,6 +3929,7 @@
     toggleTestingDock,
     setStudioMannequinAngle,
     resetMannequinToStandards,
+    resetToPerfectModelAvatar,
     serenSetSkinTone,
     serenSetHairStyle,
     serenSetHairColor,

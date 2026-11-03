@@ -2376,15 +2376,16 @@
     }
 
     /**
-     * Builds and attaches anatomically sculpted features:
-     * - Female: natural teardrop bust/breasts, sculpted glutes/butt, hips & thighs curvature, hourglass waist
-     * - Male: broad chiseled chest/pectorals, shoulder deltoids (V-taper), stomach/core, athletic quads
+     * Builds and attaches anatomically sculpted features.
+     * When using Astra Mannequin GLBs, the anatomical contours (bust, glutes, hip flares, pecs,
+     * shoulders, stomach) are natively integrated into the single manifold mesh to eliminate
+     * all surface z-fighting and blurring artifacts.
      */
     buildAnatomicalFeatures(gender = 'female') {
       const isMale = (gender === 'male' || gender === 'masculine');
       const targetGender = isMale ? 'male' : 'female';
 
-      // Remove existing anatomical group
+      // Clean up previous anatomical group to guarantee zero z-fighting/blurring
       if (this.anatomicalGroup) {
         if (this.avatarRoot) {
           this.avatarRoot.remove(this.anatomicalGroup);
@@ -2398,141 +2399,45 @@
             }
           }
         });
+        this.anatomicalGroup = null;
+        this.anatomicalMeshes = {};
       }
 
-      this.anatomicalGroup = new THREE.Group();
-      this.anatomicalGroup.name = `WoobiAnatomy_${targetGender}`;
-      this.anatomicalMeshes = {};
+      // If procedural fallback avatar is active, create clean non-interfering contours
+      if (!this.gltfAvatarGroup && this.sculptedAvatarGroup && this.sculptedAvatarGroup.visible) {
+        this.anatomicalGroup = new THREE.Group();
+        this.anatomicalGroup.name = `WoobiAnatomy_${targetGender}`;
+        this.anatomicalMeshes = {};
 
-      const mat = this.createPorcelainAnatomyMaterial();
+        const mat = this.createPorcelainAnatomyMaterial();
 
-      if (isMale) {
-        // === MALE ANATOMICAL SCULPTING ===
-        // 1. Chiseled Pectoral Plates (Chest)
-        const pecGeo = new THREE.SphereGeometry(0.125, 32, 24);
-        pecGeo.scale(1.18, 0.78, 0.68);
+        if (isMale) {
+          const pecGeo = new THREE.SphereGeometry(0.12, 28, 20);
+          pecGeo.scale(1.15, 0.75, 0.65);
+          const leftPec = new THREE.Mesh(pecGeo, mat);
+          leftPec.position.set(-0.098, 1.28, 0.095);
+          const rightPec = new THREE.Mesh(pecGeo, mat);
+          rightPec.position.set(0.098, 1.28, 0.095);
+          this.anatomicalGroup.add(leftPec);
+          this.anatomicalGroup.add(rightPec);
+          this.anatomicalMeshes.leftPec = leftPec;
+          this.anatomicalMeshes.rightPec = rightPec;
+        } else {
+          const breastGeo = new THREE.SphereGeometry(0.092, 28, 20);
+          breastGeo.scale(1.0, 1.10, 1.25);
+          const leftBreast = new THREE.Mesh(breastGeo, mat);
+          leftBreast.position.set(-0.092, 1.20, 0.102);
+          const rightBreast = new THREE.Mesh(breastGeo, mat);
+          rightBreast.position.set(0.092, 1.20, 0.102);
+          this.anatomicalGroup.add(leftBreast);
+          this.anatomicalGroup.add(rightBreast);
+          this.anatomicalMeshes.leftBreast = leftBreast;
+          this.anatomicalMeshes.rightBreast = rightBreast;
+        }
 
-        const leftPec = new THREE.Mesh(pecGeo, mat);
-        leftPec.position.set(-0.098, 1.28, 0.100);
-        leftPec.rotation.set(-0.06, -0.06, -0.05);
-        leftPec.castShadow = true;
-        leftPec.receiveShadow = true;
-        this.anatomicalGroup.add(leftPec);
-        this.anatomicalMeshes.leftPec = leftPec;
-
-        const rightPec = new THREE.Mesh(pecGeo, mat);
-        rightPec.position.set(0.098, 1.28, 0.100);
-        rightPec.rotation.set(-0.06, 0.06, 0.05);
-        rightPec.castShadow = true;
-        rightPec.receiveShadow = true;
-        this.anatomicalGroup.add(rightPec);
-        this.anatomicalMeshes.rightPec = rightPec;
-
-        // 2. Broad Deltoid Shoulders (V-Taper)
-        const deltoidGeo = new THREE.SphereGeometry(0.095, 28, 20);
-        deltoidGeo.scale(1.18, 1.02, 0.96);
-
-        const leftDeltoid = new THREE.Mesh(deltoidGeo, mat);
-        leftDeltoid.position.set(-0.262, 1.40, 0.0);
-        leftDeltoid.castShadow = true;
-        this.anatomicalGroup.add(leftDeltoid);
-        this.anatomicalMeshes.leftDeltoid = leftDeltoid;
-
-        const rightDeltoid = new THREE.Mesh(deltoidGeo, mat);
-        rightDeltoid.position.set(0.262, 1.40, 0.0);
-        rightDeltoid.castShadow = true;
-        this.anatomicalGroup.add(rightDeltoid);
-        this.anatomicalMeshes.rightDeltoid = rightDeltoid;
-
-        // 3. Stomach & Abdominal Core
-        const stomachGeo = new THREE.CylinderGeometry(0.128, 0.140, 0.22, 28, 1, false, -Math.PI / 2, Math.PI);
-        stomachGeo.scale(1.0, 1.0, 0.75);
-        const stomachMesh = new THREE.Mesh(stomachGeo, mat);
-        stomachMesh.position.set(0, 1.07, 0.050);
-        stomachMesh.rotation.set(-0.04, 0, 0);
-        stomachMesh.castShadow = true;
-        this.anatomicalGroup.add(stomachMesh);
-        this.anatomicalMeshes.stomach = stomachMesh;
-
-        // 4. Muscular Athletic Quads
-        const quadGeo = new THREE.CylinderGeometry(0.102, 0.082, 0.40, 24);
-        quadGeo.scale(1.06, 1.0, 1.15);
-
-        const leftQuad = new THREE.Mesh(quadGeo, mat);
-        leftQuad.position.set(-0.118, 0.68, 0.020);
-        leftQuad.castShadow = true;
-        this.anatomicalGroup.add(leftQuad);
-        this.anatomicalMeshes.leftQuad = leftQuad;
-
-        const rightQuad = new THREE.Mesh(quadGeo, mat);
-        rightQuad.position.set(0.118, 0.68, 0.020);
-        rightQuad.castShadow = true;
-        this.anatomicalGroup.add(rightQuad);
-        this.anatomicalMeshes.rightQuad = rightQuad;
-
-      } else {
-        // === FEMALE ANATOMICAL SCULPTING ===
-        // 1. Natural Teardrop Bust / Breasts
-        const breastGeo = new THREE.SphereGeometry(0.096, 32, 24);
-        breastGeo.scale(1.0, 1.12, 1.30); // Teardrop projection
-
-        const leftBreast = new THREE.Mesh(breastGeo, mat);
-        leftBreast.position.set(-0.092, 1.20, 0.105);
-        leftBreast.rotation.set(-0.16, -0.09, -0.05);
-        leftBreast.castShadow = true;
-        leftBreast.receiveShadow = true;
-        this.anatomicalGroup.add(leftBreast);
-        this.anatomicalMeshes.leftBreast = leftBreast;
-
-        const rightBreast = new THREE.Mesh(breastGeo, mat);
-        rightBreast.position.set(0.092, 1.20, 0.105);
-        rightBreast.rotation.set(-0.16, 0.09, 0.05);
-        rightBreast.castShadow = true;
-        rightBreast.receiveShadow = true;
-        this.anatomicalGroup.add(rightBreast);
-        this.anatomicalMeshes.rightBreast = rightBreast;
-
-        // 2. Sculpted Glutes / Buttocks
-        const gluteGeo = new THREE.SphereGeometry(0.122, 32, 24);
-        gluteGeo.scale(1.06, 1.18, 1.15);
-
-        const leftGlute = new THREE.Mesh(gluteGeo, mat);
-        leftGlute.position.set(-0.088, 0.84, -0.068);
-        leftGlute.rotation.set(0.12, 0.06, 0.03);
-        leftGlute.castShadow = true;
-        leftGlute.receiveShadow = true;
-        this.anatomicalGroup.add(leftGlute);
-        this.anatomicalMeshes.leftGlute = leftGlute;
-
-        const rightGlute = new THREE.Mesh(gluteGeo, mat);
-        rightGlute.position.set(0.088, 0.84, -0.068);
-        rightGlute.rotation.set(0.12, -0.06, -0.03);
-        rightGlute.castShadow = true;
-        rightGlute.receiveShadow = true;
-        this.anatomicalGroup.add(rightGlute);
-        this.anatomicalMeshes.rightGlute = rightGlute;
-
-        // 3. Feminine Outer Hips & Thighs Flare
-        const thighGeo = new THREE.CylinderGeometry(0.098, 0.076, 0.40, 28);
-        thighGeo.scale(1.15, 1.0, 1.06);
-
-        const leftThigh = new THREE.Mesh(thighGeo, mat);
-        leftThigh.position.set(-0.126, 0.65, 0.002);
-        leftThigh.rotation.set(0, 0, 0.06);
-        leftThigh.castShadow = true;
-        this.anatomicalGroup.add(leftThigh);
-        this.anatomicalMeshes.leftThigh = leftThigh;
-
-        const rightThigh = new THREE.Mesh(thighGeo, mat);
-        rightThigh.position.set(0.126, 0.65, 0.002);
-        rightThigh.rotation.set(0, 0, -0.06);
-        rightThigh.castShadow = true;
-        this.anatomicalGroup.add(rightThigh);
-        this.anatomicalMeshes.rightThigh = rightThigh;
-      }
-
-      if (this.avatarRoot) {
-        this.avatarRoot.add(this.anatomicalGroup);
+        if (this.avatarRoot) {
+          this.avatarRoot.add(this.anatomicalGroup);
+        }
       }
 
       this.updateAnatomy();
