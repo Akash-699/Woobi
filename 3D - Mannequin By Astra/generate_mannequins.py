@@ -85,46 +85,62 @@ def create_body(sex):
         parts.append(ellipsoid('Breast_R', (-0.045, -0.064, 0.716), (0.038, 0.044, 0.039)))
         parts.append(ellipsoid('Cleavage_Slope', (0, -0.046, 0.730), (0.032, 0.022, 0.030)))
 
-        # 2. Feminine sculpted glutes / buttocks (rounded, natural, lifted high-fashion curve)
-        parts.append(ellipsoid('Glute_L', (0.050, 0.072, 0.520), (0.056, 0.052, 0.060)))
-        parts.append(ellipsoid('Glute_R', (-0.050, 0.072, 0.520), (0.056, 0.052, 0.060)))
+        # 2. Feminine sculpted glutes / buttocks (voluptuous, high-fashion peach shape)
+        # Main gluteal cheeks (separated by anatomical cleft)
+        parts.append(ellipsoid('Glute_L', (0.056, 0.078, 0.522), (0.054, 0.060, 0.058)))
+        parts.append(ellipsoid('Glute_R', (-0.056, 0.078, 0.522), (0.054, 0.060, 0.058)))
+        # Upper gluteal shelf (sacral lordosis arch / high butt shelf)
+        parts.append(ellipsoid('Glute_Shelf_L', (0.048, 0.070, 0.556), (0.044, 0.040, 0.034)))
+        parts.append(ellipsoid('Glute_Shelf_R', (-0.048, 0.070, 0.556), (0.044, 0.040, 0.034)))
+        # Lower glute under-butt crease (gluteal fold separating butt from hamstring)
+        parts.append(ellipsoid('Glute_Fold_L', (0.052, 0.072, 0.490), (0.044, 0.046, 0.034)))
+        parts.append(ellipsoid('Glute_Fold_R', (-0.052, 0.072, 0.490), (0.044, 0.046, 0.034)))
 
         # 3. Lateral hip flare (visible clearly from the FRONT view!)
-        parts.append(ellipsoid('Hip_Shelf_L', (0.106, 0.008, 0.534), (0.038, 0.058, 0.070)))
-        parts.append(ellipsoid('Hip_Shelf_R', (-0.106, 0.008, 0.534), (0.038, 0.058, 0.070)))
+        parts.append(ellipsoid('Hip_Shelf_L', (0.110, 0.008, 0.534), (0.042, 0.062, 0.074)))
+        parts.append(ellipsoid('Hip_Shelf_R', (-0.110, 0.008, 0.534), (0.042, 0.062, 0.074)))
     else:
         # Male athletic model torso cross-sections:
+        # Broad square chest, strong lats, athletic taper, wide clavicles for real men's shoulders
         torso = [
-            (0.49, 0.088, 0.071),
-            (0.53, 0.098, 0.078),
-            (0.57, 0.096, 0.072),
-            (0.61, 0.088, 0.066),
-            (0.65, 0.094, 0.072),
-            (0.69, 0.110, 0.082),
-            (0.73, 0.124, 0.088),
-            (0.77, 0.128, 0.078),
-            (0.80, 0.116, 0.055),
-            (0.815, 0.080, 0.044),
-            (0.838, 0.039, 0.034)
+            (0.49, 0.088, 0.071),  # Lower hip
+            (0.53, 0.098, 0.076),  # Pelvis transition
+            (0.57, 0.096, 0.070),  # Upper hip
+            (0.61, 0.088, 0.064),  # Waist
+            (0.65, 0.096, 0.070),  # Lower ribs
+            (0.69, 0.114, 0.080),  # Mid ribcage / lats
+            (0.73, 0.130, 0.086),  # Broad lats / lower chest
+            (0.77, 0.138, 0.082),  # Full athletic chest
+            (0.80, 0.140, 0.066),  # Broad square clavicles
+            (0.818, 0.128, 0.052), # Shoulder/neck transition
+            (0.838, 0.044, 0.036)  # Neck base
         ]
         parts.append(loft('Torso', [(0, 0, z, rx, ry) for z, rx, ry in torso]))
         parts.append(ellipsoid('Pelvis', (0, 0.006, 0.514), (0.098, 0.077, 0.072)))
 
         # 1. Broad chiseled pectorals (athletic male chest)
-        parts.append(ellipsoid('Pec_L', (0.054, -0.062, 0.730), (0.054, 0.032, 0.042)))
-        parts.append(ellipsoid('Pec_R', (-0.054, -0.062, 0.730), (0.054, 0.032, 0.042)))
-        parts.append(ellipsoid('Pec_Upper', (0, -0.050, 0.744), (0.036, 0.020, 0.028)))
+        parts.append(ellipsoid('Pec_L', (0.056, -0.064, 0.730), (0.056, 0.034, 0.044)))
+        parts.append(ellipsoid('Pec_R', (-0.056, -0.064, 0.730), (0.056, 0.034, 0.044)))
+        parts.append(ellipsoid('Pec_Upper', (0, -0.052, 0.746), (0.038, 0.022, 0.030)))
 
         # 2. Deltoid shoulder caps (broad athletic V-taper, seamless arm joint alignment)
-        parts.append(ellipsoid('Deltoid_L', (0.116, -0.002, 0.796), (0.036, 0.036, 0.036)))
-        parts.append(ellipsoid('Deltoid_R', (-0.116, -0.002, 0.796), (0.036, 0.036, 0.036)))
+        parts.append(ellipsoid('Deltoid_L', (0.142, -0.002, 0.795), (0.042, 0.046, 0.046)))
+        parts.append(ellipsoid('Deltoid_R', (-0.142, -0.002, 0.795), (0.042, 0.046, 0.046)))
+
+        # Trapezius muscles (slope connecting neck to broad clavicles)
+        parts.append(ellipsoid('Trap_L', (0.074, 0.010, 0.814), (0.046, 0.034, 0.030)))
+        parts.append(ellipsoid('Trap_R', (-0.074, 0.010, 0.814), (0.046, 0.034, 0.030)))
 
         # 3. Toned flat abdominal wall (smooth, unblurred)
         parts.append(ellipsoid('Abs_Core', (0, -0.046, 0.630), (0.058, 0.022, 0.080)))
 
-        # 4. Athletic masculine glutes
-        parts.append(ellipsoid('Glute_L', (0.046, 0.056, 0.518), (0.048, 0.042, 0.052)))
-        parts.append(ellipsoid('Glute_R', (-0.046, 0.056, 0.518), (0.048, 0.042, 0.052)))
+        # 4. Athletic masculine glutes (firm, muscular runner/athlete shape)
+        parts.append(ellipsoid('Glute_L', (0.054, 0.068, 0.522), (0.048, 0.050, 0.052)))
+        parts.append(ellipsoid('Glute_R', (-0.054, 0.068, 0.522), (0.048, 0.050, 0.052)))
+        parts.append(ellipsoid('Glute_Shelf_L', (0.046, 0.062, 0.552), (0.040, 0.034, 0.030)))
+        parts.append(ellipsoid('Glute_Shelf_R', (-0.046, 0.062, 0.552), (0.040, 0.034, 0.030)))
+        parts.append(ellipsoid('Glute_Fold_L', (0.048, 0.060, 0.494), (0.040, 0.040, 0.030)))
+        parts.append(ellipsoid('Glute_Fold_R', (-0.048, 0.060, 0.494), (0.040, 0.040, 0.030)))
 
     parts.append(loft('Neck',[(0,.004,.78,.049,.042),(0,.006,.825,.035,.033),
                               (0,.002,.865,.034,.033),(0,0,.885,.039,.039)]))
@@ -139,14 +155,21 @@ def create_body(sex):
         parts.append(loft('Leg_'+side,[(sign*(hip+.012*(1-z/.53)),.004,z,rx,ry) for z,rx,ry in leg]))
         parts.append(ellipsoid('Heel_'+side,(sign*(hip+.010),.008,.045),(.033,.041,.040)))
         parts.append(ellipsoid('Foot_'+side,(sign*(hip+.010),-.040,.031),(.035,.080,.031)))
-        shoulder=.103 if female else .121
+        shoulder=.103 if female else .142
+        arm_scale = 1.0 if female else 1.14
         # Shoulder is blended into the upper-arm loft, without a separate joint bulge.
         # Quiet A-pose; hands clear the hips. Soft changes around elbow and wrist.
-        arm=[(.823,shoulder-.030,.010,.014),(.804,shoulder-.010,.033,.036),(.778,shoulder,.044,.044),(.745,shoulder+.025,.041,.042),
-             (.700,shoulder+.041,.034,.036),(.656,shoulder+.055,.028,.030),
-             (.625,shoulder+.064,.025,.026),(.595,shoulder+.075,.029,.029),
-             (.556,shoulder+.087,.025,.025),(.515,shoulder+.097,.018,.020),
-             (.496,shoulder+.101,.017,.018)]
+        arm=[(.823,shoulder-.022 if female else shoulder-.014,.010*arm_scale,.014*arm_scale),
+             (.804,shoulder-.010 if female else shoulder,.033*arm_scale,.036*arm_scale),
+             (.778,shoulder if female else shoulder+.006,.044*arm_scale,.044*arm_scale),
+             (.745,shoulder+.025,.041*arm_scale,.042*arm_scale),
+             (.700,shoulder+.041,.034*arm_scale,.036*arm_scale),
+             (.656,shoulder+.055,.028*arm_scale,.030*arm_scale),
+             (.625,shoulder+.064,.025*arm_scale,.026*arm_scale),
+             (.595,shoulder+.075,.029*arm_scale,.029*arm_scale),
+             (.556,shoulder+.087,.025*arm_scale,.025*arm_scale),
+             (.515,shoulder+.097,.018*arm_scale,.020*arm_scale),
+             (.496,shoulder+.101,.017*arm_scale,.018*arm_scale)]
         parts.append(loft('Arm_'+side,[(sign*x,0,z,rx,ry) for z,x,rx,ry in reversed(arm)]))
         palmx=shoulder+.106
         parts.append(ellipsoid('Palm_'+side,(sign*palmx,-.002,.473),(.024,.014,.034)))

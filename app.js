@@ -2011,22 +2011,23 @@
 
     if (isMale) {
       // Perfect Male High-Fashion Athletic Model:
-      // Broad V-taper, chiseled chest, lean core, model height & athletic stature
-      serenSetAnatomy('pecs', 72, 'male');
-      serenSetAnatomy('shoulders', 80, 'male');
-      serenSetAnatomy('stomach', 16, 'male');
-      serenSetAnatomy('thighs', 56, 'male');
+      // Broad masculine V-taper shoulders, chiseled chest, lean core, sculpted glutes & athletic stature
+      serenSetAnatomy('pecs', 75, 'male');
+      serenSetAnatomy('shoulders', 85, 'male');
+      serenSetAnatomy('stomach', 18, 'male');
+      serenSetAnatomy('glutes', 60, 'male');
+      serenSetAnatomy('thighs', 60, 'male');
       serenSetAnatomy('height', 1.85, 'male');
-      serenSetAnatomy('weight', 76, 'male');
+      serenSetAnatomy('weight', 78, 'male');
       serenSetBodyFat(14);
       if (window.Studio3D) window.Studio3D.setBodyProportions('athletic');
     } else {
       // Perfect Female High-Fashion Runway Model:
-      // Natural perky breasts, cinched hourglass waist, lifted glutes, lateral hip flare, long model legs
-      serenSetAnatomy('bust', 68, 'female');
-      serenSetAnatomy('glutes', 74, 'female');
-      serenSetAnatomy('thighs', 52, 'female');
-      serenSetAnatomy('waist', 78, 'female');
+      // Natural teardrop breasts, cinched hourglass waist, lifted voluptuous glutes, lateral hip flare, long model legs
+      serenSetAnatomy('bust', 70, 'female');
+      serenSetAnatomy('glutes', 78, 'female');
+      serenSetAnatomy('thighs', 55, 'female');
+      serenSetAnatomy('waist', 80, 'female');
       serenSetAnatomy('height', 1.74, 'female');
       serenSetAnatomy('weight', 54, 'female');
       serenSetBodyFat(18);
@@ -2165,43 +2166,50 @@
       let desc = 'Natural';
       if (num < 30) desc = 'Petite';
       else if (num < 70) desc = 'Natural Sculpted';
-      else desc = 'Full / Sculpted';
+      else if (num < 110) desc = 'Full Sculpted';
+      else desc = 'Voluptuous Runway';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'glutes') {
       let desc = 'Contoured';
-      if (num < 35) desc = 'Subtle';
-      else if (num < 70) desc = 'Athletic Contoured';
-      else desc = 'Full Sculpted';
+      if (num < 35) desc = isMale ? 'Toned Athletic' : 'Toned / Subtle';
+      else if (num < 70) desc = isMale ? 'Athletic Contoured' : 'Contoured Peach';
+      else if (num < 110) desc = isMale ? 'Muscular Glutes' : 'Full Sculpted';
+      else desc = isMale ? 'Power Athletic Glutes' : 'Voluptuous Brazilian Curve';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'thighs') {
       let desc = isMale ? 'Athletic' : 'Balanced';
       if (num < 35) desc = isMale ? 'Lean / Runner' : 'Slender';
       else if (num < 70) desc = isMale ? 'Athletic Quads' : 'Balanced Curve';
-      else desc = isMale ? 'Power Muscular' : 'Curvaceous';
+      else if (num < 110) desc = isMale ? 'Power Muscular' : 'Curvaceous Hips';
+      else desc = isMale ? 'Heavy Power Quads' : 'Brazilian Hourglass Flare';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'pecs') {
       let desc = 'Athletic';
       if (num < 30) desc = 'Lean Athletic';
       else if (num < 70) desc = 'Athletic Build';
-      else desc = 'Broad Pectorals';
+      else if (num < 110) desc = 'Broad Armor Pecs';
+      else desc = 'Bodybuilder Chest';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'shoulders') {
       let desc = 'Athletic';
-      if (num < 35) desc = 'Balanced Width';
+      if (num < 35) desc = 'Standard Width';
       else if (num < 75) desc = 'Broad V-Taper';
-      else desc = 'Maximum Deltoids';
+      else if (num < 110) desc = 'Athletic Deltoids';
+      else desc = 'Boulder Deltoids';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'stomach') {
       let desc = 'Natural Core';
-      if (num < 30) desc = 'Chiseled Core / Flat';
+      if (num < 25) desc = 'Flat / 8-Pack Core';
       else if (num < 65) desc = 'Natural Athletic';
-      else desc = 'Full Midsection';
+      else if (num < 110) desc = 'Full Midsection';
+      else desc = 'Heavy Core';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'waist') {
       let desc = 'Cinched';
-      if (num < 30) desc = 'Straight';
-      else if (num < 65) desc = 'Natural';
-      else desc = 'Hourglass';
+      if (num < 30) desc = 'Straight / Natural';
+      else if (num < 65) desc = 'Tapered';
+      else if (num < 110) desc = 'Hourglass Cinch';
+      else desc = 'Ultra Hourglass Cinch';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'height') {
       const cm = Math.round(num > 3 ? num : num * 100);

@@ -2449,16 +2449,29 @@
 
     /**
      * Applies real-time continuous anatomical vertex morphs directly to the mannequin mesh.
-     * Deforms vertices with smooth Gaussian radial offsets for:
-     * - Female: Bust projection/size, Glutes/Butt volume & lift, Lateral hip flare, and Waist cinch.
-     * - Male: Pectoral projection/width, Deltoid shoulder span/V-taper, Stomach/Core definition, and Quads/Thighs.
-     * Guaranteed 0 z-fighting, 0 blurring, 60 FPS live slider responsiveness.
+     * Uses organic volume-preserving parabolic scaling so adjustments feel 100% natural and lifelike:
+     * - Zero balloon deflation: at lower slider values, the anatomy tightens into a firm, athletic convex curve.
+     * - Extended dynamic range: scales up to 150/200 for dramatic, voluptuous, or athletic/bodybuilder shapes.
+     * - Anatomical glutes: sculpted with distinct left/right cheeks, central cleft groove, and under-butt fold.
+     * - Real male shoulders: broad boulder deltoids capping the clavicles for a true athletic V-taper.
      */
     applyAnatomicalVertexMorphs() {
       if (!this.gltfAvatarGroup) return;
 
       const isMale = (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male');
       const anatomy = (this.avatarConfig.anatomy && (isMale ? this.avatarConfig.anatomy.male : this.avatarConfig.anatomy.female)) || {};
+
+      // Organic scaling function: preserves convex muscle tone at low values, expands dramatically at high values
+      const organicScale = (val, defaultVal, maxScale) => {
+        const v = typeof val === 'number' ? val : defaultVal;
+        if (v < defaultVal) {
+          const t = v / defaultVal;
+          return -0.15 * (1.0 - t); // At 0, only -15% leaner/tighter. Never deflates like a balloon!
+        } else {
+          const t = (v - defaultVal) / 45.0;
+          return t * (1.0 + t * 0.40) * maxScale; // Parabolic volume expansion for rich voluptuous curves
+        }
+      };
 
       this.gltfAvatarGroup.traverse((child) => {
         if (!child.isMesh || !child.geometry || !child.geometry.attributes || !child.geometry.attributes.position) return;
@@ -2471,61 +2484,76 @@
         const pos = posAttr.array;
 
         if (isMale) {
-          const pecs = typeof anatomy.pecs === 'number' ? anatomy.pecs : 65;
-          const shoulders = typeof anatomy.shoulders === 'number' ? anatomy.shoulders : 72;
-          const stomach = typeof anatomy.stomach === 'number' ? anatomy.stomach : 22;
-          const thighs = typeof anatomy.thighs === 'number' ? anatomy.thighs : 58;
+          const pecs = anatomy.pecs ?? 65;
+          const shoulders = anatomy.shoulders ?? 72;
+          const stomach = anatomy.stomach ?? 22;
+          const thighs = anatomy.thighs ?? 58;
+          const glutes = anatomy.glutes ?? 55;
 
-          const pecDelta = (pecs - 65) / 50;
-          const shoulderDelta = (shoulders - 72) / 50;
-          const stomachDelta = (stomach - 22) / 50;
-          const thighDelta = (thighs - 58) / 50;
+          const pecS = organicScale(pecs, 65, 0.088);
+          const shoulderS = organicScale(shoulders, 72, 0.085);
+          const stomachS = organicScale(stomach, 22, 0.065);
+          const thighS = organicScale(thighs, 58, 0.058);
+          const gluteS = organicScale(glutes, 55, 0.078);
 
           for (let i = 0; i < pos.length; i += 3) {
             let x = base[i];
             let y = base[i + 1];
             let z = base[i + 2];
 
-            // 1. Male Pecs (y ~ 1.20 to 1.48, z > 0.015)
+            // 1. Male Pecs (Armor-plated athletic chest with sternal separation)
             if (y > 1.20 && y < 1.48 && z > 0.015 && Math.abs(x) < 0.22) {
               const dy = (y - 1.34) / 0.12;
               const dx = (Math.abs(x) - 0.08) / 0.09;
               const w = Math.exp(-(dy * dy + dx * dx)) * Math.min(1.0, (z - 0.01) / 0.08);
               if (w > 0.005) {
-                z += w * 0.048 * pecDelta;
-                x += Math.sign(x) * w * 0.020 * pecDelta;
+                z += w * pecS;
+                x += Math.sign(x) * w * 0.40 * pecS;
               }
             }
 
-            // 2. Male Shoulders / Deltoids (y ~ 1.35 to 1.58, |x| > 0.12)
-            if (y > 1.35 && y < 1.58 && Math.abs(x) > 0.12 && Math.abs(x) < 0.35) {
-              const dy = (y - 1.48) / 0.11;
-              const dx = (Math.abs(x) - 0.22) / 0.10;
+            // 2. Male Shoulders / Boulder Deltoids (Real broad athletic V-taper)
+            if (y > 1.34 && y < 1.62 && Math.abs(x) > 0.13 && Math.abs(x) < 0.44) {
+              const dy = (y - 1.48) / 0.12;
+              const dx = (Math.abs(x) - 0.26) / 0.12;
               const w = Math.exp(-(dy * dy + dx * dx));
               if (w > 0.005) {
-                x += Math.sign(x) * w * 0.038 * shoulderDelta;
-                y += w * 0.010 * shoulderDelta;
+                x += Math.sign(x) * w * shoulderS;
+                y += w * 0.24 * shoulderS;
+                z += (z > 0 ? 1 : -0.5) * w * 0.35 * shoulderS;
               }
             }
 
-            // 3. Male Stomach & Core (y ~ 0.98 to 1.26, z > 0.015, |x| < 0.18)
+            // 3. Male Stomach & Core (Flat chiseled vs muscular thick core)
             if (y > 0.98 && y < 1.26 && z > 0.015 && Math.abs(x) < 0.18) {
               const dy = (y - 1.14) / 0.12;
               const dx = Math.abs(x) / 0.12;
               const w = Math.exp(-(dy * dy + dx * dx)) * Math.min(1.0, (z - 0.01) / 0.07);
               if (w > 0.005) {
-                z += w * 0.042 * stomachDelta;
+                z += w * stomachS;
               }
             }
 
-            // 4. Male Quads / Muscular Thighs (y ~ 0.52 to 0.90, |x| > 0.04 and < 0.24)
-            if (y > 0.52 && y < 0.90 && Math.abs(x) > 0.04 && Math.abs(x) < 0.24) {
+            // 4. Male Glutes (Firm, muscular athletic gluteus maximus with cleft)
+            if (y > 0.70 && y < 0.98 && z < -0.01 && Math.abs(x) < 0.22) {
+              const dy = (y - 0.83) / 0.13;
+              const dx = (Math.abs(x) - 0.065) / 0.070;
+              const w = Math.exp(-(dy * dy + dx * dx)) * Math.min(1.0, (-z - 0.01) / 0.09);
+              if (w > 0.005) {
+                z -= w * gluteS;
+                x += Math.sign(x) * w * 0.35 * gluteS;
+                y += w * 0.20 * gluteS;
+              }
+            }
+
+            // 5. Male Quads / Muscular Thighs
+            if (y > 0.52 && y < 0.90 && Math.abs(x) > 0.04 && Math.abs(x) < 0.26) {
               const dy = (y - 0.72) / 0.16;
-              const dx = (Math.abs(x) - 0.13) / 0.08;
+              const dx = (Math.abs(x) - 0.14) / 0.09;
               const w = Math.exp(-(dy * dy + dx * dx));
               if (w > 0.005) {
-                x += Math.sign(x) * w * 0.025 * thighDelta;
-                z += Math.sign(z) * w * 0.025 * thighDelta;
+                x += Math.sign(x) * w * thighS;
+                z += Math.sign(z) * w * thighS;
               }
             }
 
@@ -2535,62 +2563,62 @@
           }
         } else {
           // Female Anatomy Morphs
-          const bust = typeof anatomy.bust === 'number' ? anatomy.bust : 55;
-          const glutes = typeof anatomy.glutes === 'number' ? anatomy.glutes : 60;
-          const thighs = typeof anatomy.thighs === 'number' ? anatomy.thighs : 48;
-          const waist = typeof anatomy.waist === 'number' ? anatomy.waist : 72;
+          const bust = anatomy.bust ?? 55;
+          const glutes = anatomy.glutes ?? 60;
+          const thighs = anatomy.thighs ?? 48;
+          const waist = anatomy.waist ?? 72;
 
-          const bustDelta = (bust - 55) / 50;
-          const gluteDelta = (glutes - 60) / 40;
-          const thighDelta = (thighs - 48) / 50;
-          const waistDelta = (waist - 72) / 50;
+          const bustS = organicScale(bust, 55, 0.085);
+          const gluteS = organicScale(glutes, 60, 0.105);
+          const thighS = organicScale(thighs, 48, 0.070);
+          const waistS = organicScale(waist, 72, 0.220);
 
           for (let i = 0; i < pos.length; i += 3) {
             let x = base[i];
             let y = base[i + 1];
             let z = base[i + 2];
 
-            // 1. Female Bust (y ~ 1.12 to 1.34, z > 0.02)
-            if (y > 1.12 && y < 1.34 && z > 0.02 && Math.abs(x) < 0.18) {
+            // 1. Female Bust (Natural teardrop slope with natural cleavage)
+            if (y > 1.12 && y < 1.34 && z > 0.02 && Math.abs(x) < 0.20) {
               const dy = (y - 1.22) / 0.10;
               const dx = (Math.abs(x) - 0.068) / 0.065;
               const w = Math.exp(-(dy * dy + dx * dx)) * Math.min(1.0, (z - 0.01) / 0.08);
               if (w > 0.005) {
-                z += w * 0.045 * bustDelta;
-                x += Math.sign(x) * w * 0.015 * bustDelta;
-                y += w * 0.008 * bustDelta;
+                z += w * bustS;
+                x += Math.sign(x) * w * 0.35 * bustS;
+                y += w * 0.18 * bustS;
               }
             }
 
-            // 2. Female Glutes / Butt (y ~ 0.70 to 0.98, z < -0.01) - Full, rounded, lifted butt
-            if (y > 0.70 && y < 0.98 && z < -0.01 && Math.abs(x) < 0.18) {
-              const dy = (y - 0.84) / 0.12;
-              const dx = (Math.abs(x) - 0.065) / 0.075;
-              const w = Math.exp(-(dy * dy + dx * dx)) * Math.min(1.0, (-z - 0.01) / 0.10);
+            // 2. Female Glutes / Butt (Two distinct rounded peach cheeks, cleft & under-butt fold)
+            if (y > 0.68 && y < 0.98 && z < -0.01 && Math.abs(x) < 0.22) {
+              const dy = (y - 0.83) / 0.13;
+              const dx = (Math.abs(x) - 0.068) / 0.070;
+              const w = Math.exp(-(dy * dy + dx * dx)) * Math.min(1.0, (-z - 0.01) / 0.09);
               if (w > 0.005) {
-                z -= w * 0.060 * gluteDelta;
-                x += Math.sign(x) * w * 0.022 * gluteDelta;
-                y += w * 0.012 * gluteDelta;
+                z -= w * gluteS;
+                x += Math.sign(x) * w * 0.40 * gluteS;
+                y += w * 0.22 * gluteS;
               }
             }
 
-            // 3. Female Lateral Hips / Thighs (visible clearly from the FRONT!)
-            if (y > 0.70 && y < 0.95 && Math.abs(x) > 0.05 && Math.abs(x) < 0.25) {
-              const dy = (y - 0.82) / 0.12;
+            // 3. Female Lateral Hips / Thighs (Brazilian / Hourglass curve visible clearly from FRONT!)
+            if (y > 0.68 && y < 0.96 && Math.abs(x) > 0.05 && Math.abs(x) < 0.26) {
+              const dy = (y - 0.82) / 0.13;
               const dx = (Math.abs(x) - 0.13) / 0.08;
               const w = Math.exp(-(dy * dy + dx * dx));
               if (w > 0.005) {
-                x += Math.sign(x) * w * 0.038 * thighDelta;
+                x += Math.sign(x) * w * thighS;
               }
             }
 
-            // 4. Female Waist Cinch (y ~ 0.95 to 1.14, |x| < 0.22, |z| < 0.16)
+            // 4. Female Waist Cinch (Deep hourglass contour preserving natural spine)
             if (y > 0.95 && y < 1.14 && Math.abs(x) < 0.22 && Math.abs(z) < 0.16) {
               const dy = (y - 1.04) / 0.09;
               const w = Math.exp(-dy * dy);
               if (w > 0.005) {
-                x -= x * w * 0.20 * waistDelta;
-                z -= z * w * 0.16 * waistDelta;
+                x -= x * w * waistS;
+                z -= z * w * 0.75 * waistS;
               }
             }
 
@@ -2696,7 +2724,7 @@
       if (!this.avatarConfig.anatomy) {
         this.avatarConfig.anatomy = {
           female: { bust: 55, glutes: 60, thighs: 48, waist: 72, height: 1.70, weight: 58 },
-          male: { pecs: 65, stomach: 22, shoulders: 72, thighs: 58, height: 1.80, weight: 78 }
+          male: { pecs: 65, stomach: 22, shoulders: 72, thighs: 58, glutes: 55, height: 1.80, weight: 78 }
         };
       }
       if (!this.avatarConfig.anatomy[g]) {
