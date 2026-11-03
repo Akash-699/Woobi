@@ -8353,7 +8353,7 @@ html, body {
   width: 24px;
   height: 24px;
   object-fit: contain;
-  filter: drop-shadow(0 0 6px rgba(255, 110, 0, 0.75));
+  filter: drop-shadow(0 0 4px rgba(255, 120, 20, 0.6));
   animation: realisticFlameFlicker 2.2s ease-in-out infinite alternate;
 }
 
@@ -8361,22 +8361,22 @@ html, body {
   width: 24px;
   height: 24px;
   object-fit: contain;
-  filter: drop-shadow(0 0 5px rgba(70, 60, 50, 0.5));
+  filter: drop-shadow(0 0 4px rgba(70, 60, 50, 0.45));
   animation: realisticWoodSmoke 3.2s ease-in-out infinite alternate;
 }
 
 @keyframes realisticFlameFlicker {
   0% {
     transform: scale(0.97) rotate(-1deg);
-    filter: drop-shadow(0 0 6px rgba(255, 90, 0, 0.8)) brightness(1);
+    opacity: 0.95;
   }
   50% {
-    transform: scale(1.06) rotate(1.5deg);
-    filter: drop-shadow(0 0 12px rgba(255, 130, 0, 0.95)) brightness(1.18);
+    transform: scale(1.05) rotate(1.5deg);
+    opacity: 1;
   }
   100% {
     transform: scale(0.98) rotate(-0.5deg);
-    filter: drop-shadow(0 0 7px rgba(255, 100, 0, 0.85)) brightness(1.04);
+    opacity: 0.95;
   }
 }
 
@@ -8818,14 +8818,14 @@ html, body {
    ========================================================================== */
 /* 1. Fire Cell Wrap & Vertical Burning Surge - Top emerges above cave rim */
 .streak-cell-fire-wrap {
-  width: 34px;
-  height: 42px;
+  width: 36px;
+  height: 40px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   position: relative;
   pointer-events: none;
-  margin-top: -12px;
+  margin-top: -10px;
   transform-origin: 50% 92%;
   z-index: 2;
   overflow: visible;
@@ -8869,8 +8869,10 @@ html, body {
 
 /* 2. Fire Cell Image & Dynamic Radiant Burning Flame Flickering */
 .streak-cell-fire-img {
-  width: 32px;
-  height: 38px;
+  max-width: 36px;
+  max-height: 38px;
+  width: auto;
+  height: auto;
   object-fit: contain;
   transform-origin: 50% 90%;
   animation-name: fireSmoothContinuousFlicker;
@@ -8883,73 +8885,47 @@ html, body {
 
 @keyframes fireSmoothContinuousFlicker {
   0% {
-    filter: brightness(1.04) saturate(1.18) drop-shadow(0 -2px 5px rgba(255, 120, 15, 0.58)) drop-shadow(0 0 5px rgba(230, 90, 10, 0.28));
+    transform: scale(1.0) translateY(0);
+    opacity: 0.95;
   }
   35% {
-    filter: brightness(1.12) saturate(1.24) drop-shadow(0 -3px 7px rgba(255, 140, 20, 0.68)) drop-shadow(0 0 6px rgba(255, 95, 10, 0.35));
+    transform: scale(1.03) translateY(-1px);
+    opacity: 1;
   }
   70% {
-    filter: brightness(1.06) saturate(1.16) drop-shadow(0 -2px 4px rgba(255, 110, 15, 0.52)) drop-shadow(0 0 4px rgba(220, 80, 10, 0.25));
+    transform: scale(0.98) translateY(0.5px);
+    opacity: 0.94;
   }
   100% {
-    filter: brightness(1.15) saturate(1.26) drop-shadow(0 -3.5px 8px rgba(255, 150, 25, 0.72)) drop-shadow(0 0 7px rgba(255, 105, 15, 0.38));
+    transform: scale(1.04) translateY(-1.2px);
+    opacity: 1;
   }
 }
 
-/* 3. Flowing Flame Heat Streaks (Upward-streaming flame ribbons) */
+/* 3. Flowing Flame Heat Streaks (Hidden so custom fire characters remain crisp) */
 .flowing-flame-streaks {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  border-radius: 50% 50% 30% 30%;
-  mix-blend-mode: screen;
-  z-index: 3;
+  display: none !important;
 }
 
 .flame-streak-ribbon {
-  position: absolute;
-  bottom: 0;
-  width: 3.5px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 215, 60, 0.82) 45%, rgba(255, 69, 0, 0) 100%);
-  border-radius: 3px;
-  filter: blur(0.8px);
-  opacity: 0.85;
-}
-
-.flame-streak-ribbon.ribbon-1 {
-  left: 30%;
-  height: 65%;
-  animation: flameRibbonFlow1 0.92s ease-in-out infinite;
-}
-
-.flame-streak-ribbon.ribbon-2 {
-  left: 48%;
-  height: 85%;
-  animation: flameRibbonFlow2 0.78s ease-in-out infinite 0.15s;
-}
-
-.flame-streak-ribbon.ribbon-3 {
-  left: 66%;
-  height: 60%;
-  animation: flameRibbonFlow3 1.05s ease-in-out infinite 0.35s;
+  display: none !important;
 }
 
 @keyframes flameRibbonFlow1 {
-  0% { transform: translateY(6px) scaleY(0.7); opacity: 0.25; }
-  50% { transform: translateY(-5px) scaleY(1.25); opacity: 0.95; }
+  0% { transform: translateY(6px) scaleY(0.7); opacity: 0; }
+  50% { transform: translateY(-5px) scaleY(1.25); opacity: 0; }
   100% { transform: translateY(-16px) scaleY(0.4); opacity: 0; }
 }
 
 @keyframes flameRibbonFlow2 {
-  0% { transform: translateY(5px) scaleY(0.6); opacity: 0.3; }
-  50% { transform: translateY(-7px) scaleY(1.35); opacity: 1; }
+  0% { transform: translateY(5px) scaleY(0.6); opacity: 0; }
+  50% { transform: translateY(-7px) scaleY(1.35); opacity: 0; }
   100% { transform: translateY(-20px) scaleY(0.3); opacity: 0; }
 }
 
 @keyframes flameRibbonFlow3 {
-  0% { transform: translateY(6px) scaleY(0.7); opacity: 0.2; }
-  50% { transform: translateY(-4px) scaleY(1.15); opacity: 0.9; }
+  0% { transform: translateY(6px) scaleY(0.7); opacity: 0; }
+  50% { transform: translateY(-4px) scaleY(1.15); opacity: 0; }
   100% { transform: translateY(-14px) scaleY(0.4); opacity: 0; }
 }
 
@@ -8959,6 +8935,7 @@ html, body {
 .streak-cell-fire-wrap.fire-lvl-1.fire-shaking-active {
   animation-duration: 1.35s;
 }
+.streak-header-icon-img.fire-lvl-1,
 .fire-lvl-1-img {
   filter: brightness(1.04) saturate(1.18) drop-shadow(0 -2px 5px rgba(255, 120, 15, 0.58)) drop-shadow(0 0 5px rgba(230, 90, 10, 0.28));
 }
@@ -8968,6 +8945,7 @@ html, body {
 .streak-cell-fire-wrap.fire-lvl-2.fire-shaking-active {
   animation-duration: 1.15s;
 }
+.streak-header-icon-img.fire-lvl-2,
 .fire-lvl-2-img {
   filter: brightness(1.05) saturate(1.20) drop-shadow(0 -2.5px 6px rgba(255, 130, 15, 0.62)) drop-shadow(0 0 5px rgba(230, 90, 10, 0.30));
 }
@@ -8977,6 +8955,7 @@ html, body {
 .streak-cell-fire-wrap.fire-lvl-3.fire-shaking-active {
   animation-duration: 1.00s;
 }
+.streak-header-icon-img.fire-lvl-3,
 .fire-lvl-3-img {
   filter: brightness(1.06) saturate(1.22) drop-shadow(0 -3px 6px rgba(255, 135, 15, 0.65)) drop-shadow(0 0 5px rgba(230, 85, 10, 0.32));
 }
@@ -8986,6 +8965,7 @@ html, body {
 .streak-cell-fire-wrap.fire-lvl-4.fire-shaking-active {
   animation-duration: 0.88s;
 }
+.streak-header-icon-img.fire-lvl-4,
 .fire-lvl-4-img {
   filter: brightness(1.07) saturate(1.22) drop-shadow(0 -3px 6px rgba(255, 138, 18, 0.68)) drop-shadow(0 0 6px rgba(240, 95, 10, 0.34));
 }
@@ -8996,6 +8976,7 @@ html, body {
   animation-duration: 0.82s;
   animation-name: fireLevel5RadiantFlow;
 }
+.streak-header-icon-img.fire-lvl-5,
 .fire-lvl-5-img {
   filter: brightness(1.08) saturate(1.24) drop-shadow(0 -3.5px 7px rgba(255, 140, 20, 0.70)) drop-shadow(0 0 6px rgba(255, 100, 10, 0.35)) drop-shadow(0 -1px 3px rgba(255, 220, 120, 0.45));
 }
