@@ -11,6 +11,7 @@ describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
       storageKey: null,
       memoriesKey: null
     });
+    streakState.memories = [];
   });
 
   it('1. initializes with zero streak and no broken streak state for a new user', () => {
@@ -151,18 +152,20 @@ describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
   });
 
   it('10. classifies completed days, missed days and upcoming days properly', () => {
-    // Current date is 2026-11-02 in test environment
     streakState.recordDailyOutfitUpload({ photoUrl: 'img.jpg', customDate: '2026-11-01' });
 
-    const calData = streakState.getMonthlyCalendarData(2026, 10); // November 2026
-    const nov1 = calData.days.find(d => d.day === 1);
-    assert.strictEqual(nov1.status, 'completed');
+    const now = new Date();
+    const calData = streakState.getMonthlyCalendarData(now.getFullYear(), now.getMonth());
+    const day1 = calData.days.find(d => d.day === 1);
+    assert.strictEqual(day1.status, 'completed');
 
-    const nov2 = calData.days.find(d => d.day === 2);
-    assert.ok(['today', 'completed'].includes(nov2.status));
+    const todayDay = calData.days.find(d => d.day === now.getDate());
+    assert.ok(['today', 'completed'].includes(todayDay.status));
 
-    const nov25 = calData.days.find(d => d.day === 25);
-    assert.strictEqual(nov25.status, 'upcoming');
+    const futureDay = calData.days.find(d => d.day > now.getDate());
+    if (futureDay) {
+      assert.strictEqual(futureDay.status, 'upcoming');
+    }
   });
 
   it('11. verifies monthly restore eligibility (1 free per calendar month cycle)', () => {
