@@ -391,8 +391,8 @@
               <!-- 2. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when broken) -->
               <button type="button" class="streak-trio-btn streak-flame-btn" id="streakHeaderPill" onclick="app.handleStreakIconClick()" title="Daily Outfit Streak">
                 <div class="streak-flame-wrapper" id="streakFlameWrapper">
-                  <img src="assets/streak_fire.jpg" class="streak-header-icon-img" id="streakHeaderFireImg" alt="Streak Fire" />
-                  <img src="assets/streak_bonfire_smoke.jpg" class="streak-header-icon-img hidden" id="streakHeaderSmokeImg" alt="Streak Wood & Smoke" />
+                  <img src="assets/streak/fire_level_1.png" class="streak-header-icon-img fire-lvl-1" id="streakHeaderFireImg" alt="Streak Fire" />
+                  <img src="assets/streak/bonfire_smoke.png" class="streak-header-icon-img hidden" id="streakHeaderSmokeImg" alt="Streak Wood & Smoke" />
                 </div>
                 <span class="streak-count" id="streakCount">0</span>
                 <span class="streak-count-label" id="streakCountLabel">Streaks</span>
@@ -3369,22 +3369,40 @@
 
   <!-- Modal 5: Woobi Streak Calendar & Monthly Fire Animation -->
   <div class="streak-modal-backdrop hidden" id="streakDetailsModal">
-    <div class="streak-modal-card streak-details-card streak-calendar-modal-card">
-      <div class="streak-modal-header">
-        <div class="streak-cal-title-wrap">
-          <h3 class="streak-modal-title">Streak Calendar</h3>
-          <span class="streak-cal-active-badge" id="calHeaderStreakBadge">🔥 Current Streak: 0 Days</span>
+    <div class="streak-modal-card streak-details-card streak-calendar-modal-card woobi-calendar-card">
+      <!-- Top Brand Tag & Exit Button -->
+      <div class="cal-header-top-bar">
+        <div class="cal-brand-pill">
+          <svg class="cal-cloud-svg" viewBox="0 0 24 24" width="18" height="18" fill="#7D9AA8">
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+          </svg>
+          <span class="cal-brand-label">Woobi</span>
         </div>
-        <button class="streak-modal-close" onclick="app.closeStreakModal()" title="Close">✕</button>
+        <button class="streak-modal-close cal-exit-circle-btn" onclick="app.closeStreakModal()" title="Close Calendar" aria-label="Exit">✕</button>
       </div>
 
-      <!-- Monthly Circular Calendar Card: Only the Calendar -->
-      <div class="streak-calendar-card" style="margin-bottom: 0;">
+      <!-- Hero Header: Title, Subtitle, Tier Badge, Mascot -->
+      <div class="cal-hero-section">
+        <div class="cal-hero-details">
+          <h2 class="cal-main-title">Woobi Streak Calendar</h2>
+          <p class="cal-main-subtitle">Keep the flame going ✨</p>
+          <div class="cal-streak-badge-pill" id="calHeaderStreakBadge">
+            <span class="cal-badge-fire-icon" id="calTierFlameIcon">🔥</span>
+            <span id="calTierText">0 Day Streak • Spark Flame</span>
+          </div>
+        </div>
+        <div class="cal-mascot-container">
+          <img src="assets/streak/streak_mascot.png" alt="Woobi Flame Mascot" class="cal-mascot-avatar">
+        </div>
+      </div>
+
+      <!-- Monthly Calendar Container with Recessed Date Tiles -->
+      <div class="streak-calendar-card recessed-theme-calendar" style="margin-bottom: 0;">
         <!-- Month Navigation Bar -->
         <div class="streak-calendar-nav">
-          <button class="btn-cal-nav" onclick="app.prevCalendarMonth()" title="Previous Month">❮</button>
+          <button class="btn-cal-nav btn-cal-nav-prev" onclick="app.prevCalendarMonth()" title="Previous Month" aria-label="Previous Month">❮</button>
           <div class="streak-cal-month-title" id="streakCalMonthTitle">October 2026 ▾</div>
-          <button class="btn-cal-nav" onclick="app.nextCalendarMonth()" title="Next Month">❯</button>
+          <button class="btn-cal-nav btn-cal-nav-next" onclick="app.nextCalendarMonth()" title="Next Month" aria-label="Next Month">❯</button>
         </div>
 
         <!-- Weekdays Header Row -->
@@ -3398,13 +3416,13 @@
           <span>SAT</span>
         </div>
 
-        <!-- Dynamic Circular Days Grid -->
-        <div class="streak-calendar-grid" id="streakCalendarGrid">
-          <!-- Rendered dynamically by app.renderCalendar() -->
+        <!-- Dynamic 3D Recessed Crater Days Grid -->
+        <div class="streak-calendar-grid recessed-tiles-grid" id="streakCalendarGrid">
+          <!-- Rendered dynamically by app.renderStreakCalendar() -->
         </div>
 
-        <!-- Monthly Summary Stats Bar -->
-        <div class="streak-cal-stats-bar">
+        <!-- Monthly Summary Stats Bar (3 columns matching target design) -->
+        <div class="streak-cal-stats-bar stats-pill-card">
           <div class="cal-stat-item">
             <span class="stat-icon">🔥</span>
             <span class="stat-val" id="calActiveCount">0</span>
@@ -3414,13 +3432,13 @@
           <div class="cal-stat-item">
             <span class="stat-icon">🪵</span>
             <span class="stat-val" id="calBrokenCount">0</span>
-            <span class="stat-name">Missed Days</span>
+            <span class="stat-name">Broken Days</span>
           </div>
           <div class="cal-stat-sep">|</div>
           <div class="cal-stat-item">
             <span class="stat-icon">⚪</span>
             <span class="stat-val" id="calUpcomingCount">0</span>
-            <span class="stat-name">Upcoming</span>
+            <span class="stat-name">Inactive / Upcoming</span>
           </div>
         </div>
       </div>

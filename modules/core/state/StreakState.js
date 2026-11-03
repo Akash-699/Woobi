@@ -253,13 +253,40 @@ export class StreakState {
     return [...this.memories].sort((a, b) => b.date.localeCompare(a.date));
   }
 
+  // ---------------------------------------------------------------------------
+  // Streak Levels & Tier Calculation (5 Fire Levels)
+  // ---------------------------------------------------------------------------
+  getFireLevel(streakCount) {
+    const s = typeof streakCount === 'number' ? streakCount : 0;
+    if (s >= 30) return 5;
+    if (s >= 14) return 4;
+    if (s >= 7) return 3;
+    if (s >= 3) return 2;
+    return 1;
+  }
+
+  getFireLevelName(streakCount) {
+    const level = this.getFireLevel(streakCount);
+    switch (level) {
+      case 5: return 'Ultra Astral Aura';
+      case 4: return 'Inferno Dash';
+      case 3: return 'Power Flame';
+      case 2: return 'Cool Blaze';
+      case 1:
+      default: return 'Spark Flame';
+    }
+  }
+
   getStreakStatus() {
     this._checkDailyStatus();
     const now = Date.now();
     const msRemaining = Math.max(0, this.state.deadline - now);
+    const cur = this.state.currentStreak || 0;
 
     return {
-      currentStreak: this.state.currentStreak,
+      currentStreak: cur,
+      fireLevel: this.getFireLevel(cur),
+      fireLevelName: this.getFireLevelName(cur),
       bestStreak: this.state.bestStreak,
       savedPreviousStreak: this.state.savedPreviousStreak,
       isStreakBroken: this.state.isStreakBroken,
@@ -437,6 +464,7 @@ export class StreakState {
     let activeDays = 0;
     let brokenDays = 0;
     let upcomingDays = 0;
+    let runningStreak = 0;
 
     for (let day = 1; day <= daysInMonth; day++) {
       const dayStr = String(day).padStart(2, '0');
@@ -465,11 +493,24 @@ export class StreakState {
         upcomingDays++;
       }
 
+      let fireLevel = 1;
+      let streakOnDay = 0;
+      if (status === 'completed') {
+        runningStreak++;
+        streakOnDay = runningStreak;
+        fireLevel = this.getFireLevel(runningStreak);
+      } else if (status === 'missed') {
+        runningStreak = 0;
+      }
+
       days.push({
         day,
         dateKey,
         dayOfWeek: new Date(y, m, day).getDay(),
         status, // 'completed' | 'missed' | 'today' | 'upcoming'
+        fireLevel: status === 'completed' ? fireLevel : 0,
+        fireLevelName: status === 'completed' ? this.getFireLevelName(streakOnDay) : '',
+        streakOnDay,
         memory: memory || null
       });
     }

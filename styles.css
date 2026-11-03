@@ -8034,27 +8034,167 @@ html, body {
 }
 
 /* ==========================================================================
-   11. MONTHLY CIRCULAR CALENDAR & FIRE/SMOKE BUBBLES
+   11. MONTHLY CIRCULAR CALENDAR & 5 ANIMATED FIRE LEVELS
    ========================================================================== */
-.streak-calendar-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(225, 215, 200, 0.8);
-  border-radius: 20px;
-  padding: 16px 14px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 20px rgba(70, 50, 30, 0.05);
+.streak-calendar-modal-card.woobi-calendar-card {
+  background: #F6EEE5;
+  background: linear-gradient(180deg, #F8F1E9 0%, #F5EAE0 100%);
+  border: 1.5px solid rgba(225, 212, 198, 0.95);
+  border-radius: 30px;
+  padding: 20px 20px 22px;
+  max-width: 460px;
+  width: 94%;
+  box-shadow: 0 24px 64px rgba(60, 40, 25, 0.28), 0 4px 16px rgba(0, 0, 0, 0.08);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-sizing: border-box;
 }
 
+/* Header Top Bar: Cloud Brand & Exit Button */
+.cal-header-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cal-brand-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(215, 202, 188, 0.6);
+  padding: 4px 12px;
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(80, 60, 40, 0.05);
+}
+
+.cal-brand-label {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #5C4A3E;
+  letter-spacing: 0.4px;
+}
+
+.cal-exit-circle-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(210, 195, 180, 0.7);
+  color: #4C3B30;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(80, 60, 40, 0.08);
+  padding: 0;
+  line-height: 1;
+}
+
+.cal-exit-circle-btn:hover {
+  background: #ECE0D2;
+  color: #C85A17;
+  transform: scale(1.1);
+  border-color: rgba(200, 90, 23, 0.4);
+}
+
+/* Hero Section: Title, Subtitle, Tier Badge, Mascot */
+.cal-hero-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 0 2px;
+}
+
+.cal-hero-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.cal-main-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.62rem;
+  font-weight: 700;
+  color: #2F2117;
+  margin: 0 0 3px 0;
+  line-height: 1.18;
+  letter-spacing: -0.3px;
+}
+
+.cal-main-subtitle {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 0.96rem;
+  color: #8C7565;
+  margin: 0 0 10px 0;
+  line-height: 1.25;
+}
+
+.cal-streak-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(230, 140, 60, 0.4);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #C85A17;
+  box-shadow: 0 2px 8px rgba(200, 90, 20, 0.08);
+}
+
+.cal-mascot-container {
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cal-mascot-avatar {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(100, 70, 40, 0.16));
+  animation: mascotGentleHover 3.5s ease-in-out infinite alternate;
+}
+
+@keyframes mascotGentleHover {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(1.5deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+/* White Inner Card Container */
+.streak-calendar-card.recessed-theme-calendar {
+  background: #FFFFFF;
+  border: 1.5px solid rgba(230, 218, 204, 0.9);
+  border-radius: 24px;
+  padding: 16px 12px 14px;
+  margin-bottom: 0;
+  box-shadow: 0 6px 20px rgba(60, 40, 20, 0.05);
+}
+
+/* Calendar Month Navigation */
 .streak-calendar-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+  padding: 0 4px;
 }
 
 .btn-cal-nav {
-  background: #F8F4EE;
-  border: 1px solid rgba(215, 200, 180, 0.6);
+  background: #F9F5EE;
+  border: 1px solid rgba(215, 200, 180, 0.65);
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -8062,52 +8202,313 @@ html, body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #554433;
+  color: #4A3A2F;
+  font-size: 0.85rem;
   font-weight: 700;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(80, 60, 40, 0.06);
 }
 
 .btn-cal-nav:hover {
-  background: #EDE4D6;
+  background: #EFE4D6;
   color: #C85A17;
   transform: scale(1.08);
 }
 
 .streak-cal-month-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.18rem;
   font-weight: 700;
-  color: #2C241D;
+  color: #2F2117;
   letter-spacing: 0.3px;
+  cursor: default;
 }
 
+/* Weekdays Header Row */
 .streak-cal-weekdays-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
-  font-size: 0.72rem;
+  font-size: 0.70rem;
   font-weight: 700;
-  color: #8C755E;
+  color: #9C897B;
   margin-bottom: 10px;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.8px;
 }
 
-.streak-calendar-grid {
+/* 7-Column Recessed Days Grid */
+.streak-calendar-grid.recessed-tiles-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 10px 6px;
-  justify-items: center;
-  align-items: center;
+  gap: 7px;
   margin-bottom: 14px;
 }
 
-/* Empty placeholder offset slots */
-.streak-cal-slot-empty {
-  width: 42px;
-  height: 42px;
+/* 3D Recessed Date Tile */
+.date-tile-recessed {
+  position: relative;
+  height: 58px;
+  background: #FCFAF7;
+  border: 1px solid rgba(228, 216, 202, 0.8);
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 5px;
+  box-shadow: 0 2px 5px rgba(90, 70, 50, 0.05), inset 0 1px 1px #FFFFFF;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease;
+  overflow: visible;
+  box-sizing: border-box;
 }
 
-/* Individual Circular Day Bubble */
+.date-tile-recessed:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(90, 65, 45, 0.12), inset 0 1px 1px #FFFFFF;
+  z-index: 5;
+}
+
+.date-tile-num {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #4C3B30;
+  line-height: 1;
+}
+
+/* Circular Recessed Cave / Crater Socket */
+.crater-socket {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: linear-gradient(180deg, #E9DFD4 0%, #F5ECE3 100%);
+  box-shadow: inset 0 3px 6px rgba(110, 85, 65, 0.32),
+              inset 0 1px 2px rgba(80, 50, 30, 0.38),
+              inset 0 -2px 3px rgba(255, 255, 255, 0.9);
+  transition: all 0.22s ease;
+}
+
+/* Socket Variants */
+.crater-socket.completed-crater {
+  box-shadow: inset 0 3px 6px rgba(190, 80, 10, 0.35),
+              0 0 10px rgba(255, 140, 20, 0.42),
+              inset 0 -2px 3px rgba(255, 240, 210, 0.9);
+}
+
+.crater-socket.missed-crater {
+  background: linear-gradient(180deg, #E2D7CC 0%, #EDE4DB 100%);
+  box-shadow: inset 0 3px 6px rgba(55, 45, 40, 0.42),
+              inset 0 1px 2px rgba(40, 30, 25, 0.35),
+              inset 0 -2px 3px rgba(255, 255, 255, 0.7);
+}
+
+.crater-socket.today-crater {
+  background: #FFFBF4;
+  border: 1.5px dashed #E67E22;
+  box-shadow: 0 0 8px rgba(230, 126, 34, 0.35), inset 0 2px 4px rgba(230, 126, 34, 0.15);
+  animation: todayCraterPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes todayCraterPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 126, 34, 0.45); }
+  70% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(230, 126, 34, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 126, 34, 0); }
+}
+
+.today-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #E67E22;
+  box-shadow: 0 0 6px rgba(230, 126, 34, 0.8);
+}
+
+.crater-socket.upcoming-crater {
+  opacity: 0.78;
+}
+
+/* Crater Character Images */
+.crater-fire-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  pointer-events: none;
+  transform-origin: center bottom;
+}
+
+.crater-smoke-img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  pointer-events: none;
+  animation: smokeRisingWaft 3.2s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 4px rgba(45, 38, 32, 0.38));
+}
+
+@keyframes smokeRisingWaft {
+  0% { transform: translateY(0) scale(1); opacity: 0.9; }
+  50% { transform: translateY(-2px) scale(1.05); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 0.9; }
+}
+
+/* ==========================================================================
+   THE 5 DISTINCT ANIMATED FIRE LEVELS
+   ========================================================================== */
+/* Level 1: Cute Winking Flame (Spark Ember, 1-2 Days) */
+.fire-lvl-1 {
+  animation: flameLvl1Wink 2.2s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 5px rgba(255, 170, 40, 0.75));
+}
+
+@keyframes flameLvl1Wink {
+  0% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 4px rgba(255, 160, 40, 0.7));
+  }
+  50% {
+    transform: translateY(-2px) scale(1.06);
+    filter: drop-shadow(0 0 7px rgba(255, 185, 60, 0.9));
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 4px rgba(255, 160, 40, 0.7));
+  }
+}
+
+/* Level 2: Sunglasses & Sparkle Flame (Cool Blaze, 3-6 Days) */
+.fire-lvl-2 {
+  animation: flameLvl2CoolPulse 2.0s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 6px rgba(255, 180, 20, 0.85));
+}
+
+@keyframes flameLvl2CoolPulse {
+  0% {
+    transform: translateY(0) rotate(-2deg) scale(1);
+    filter: drop-shadow(0 0 5px rgba(255, 170, 20, 0.8));
+  }
+  50% {
+    transform: translateY(-2px) rotate(2deg) scale(1.08);
+    filter: drop-shadow(0 0 9px rgba(255, 200, 30, 0.95)) brightness(1.1);
+  }
+  100% {
+    transform: translateY(0) rotate(-2deg) scale(1);
+    filter: drop-shadow(0 0 5px rgba(255, 170, 20, 0.8));
+  }
+}
+
+/* Level 3: Barbell Weightlifter Flame (Power Flame, 7-13 Days) */
+.fire-lvl-3 {
+  animation: flameLvl3PowerLift 1.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(255, 110, 20, 0.9));
+}
+
+@keyframes flameLvl3PowerLift {
+  0% {
+    transform: translateY(0) scaleX(1) scaleY(1);
+  }
+  30% {
+    transform: translateY(1px) scaleX(1.06) scaleY(0.95);
+  }
+  60% {
+    transform: translateY(-3px) scaleX(0.97) scaleY(1.08);
+    filter: drop-shadow(0 0 11px rgba(255, 120, 20, 1)) brightness(1.15);
+  }
+  100% {
+    transform: translateY(0) scaleX(1) scaleY(1);
+  }
+}
+
+/* Level 4: Ninja Headband Sprint Flame (Inferno Dash, 14-29 Days) */
+.fire-lvl-4 {
+  animation: flameLvl4InfernoDash 1.4s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 10px rgba(255, 75, 15, 0.95));
+}
+
+@keyframes flameLvl4InfernoDash {
+  0% {
+    transform: translateX(-1px) translateY(0) skewX(-2deg) scale(1);
+  }
+  50% {
+    transform: translateX(2px) translateY(-3px) skewX(3deg) scale(1.09);
+    filter: drop-shadow(0 0 13px rgba(255, 60, 0, 1)) brightness(1.2);
+  }
+  100% {
+    transform: translateX(-1px) translateY(0) skewX(-2deg) scale(1);
+  }
+}
+
+/* Level 5: Super Saiyan Blazing Ultra Aura (Ultra Astral Fire, 30+ Days) */
+.fire-lvl-5 {
+  animation: flameLvl5SuperSaiyan 1.6s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 12px rgba(255, 210, 40, 1)) drop-shadow(0 0 18px rgba(255, 50, 0, 0.65));
+}
+
+@keyframes flameLvl5SuperSaiyan {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(255, 200, 30, 0.95)) drop-shadow(0 0 16px rgba(255, 60, 0, 0.6));
+  }
+  50% {
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 16px rgba(255, 230, 60, 1)) drop-shadow(0 0 24px rgba(255, 40, 0, 0.85)) brightness(1.25);
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(255, 200, 30, 0.95)) drop-shadow(0 0 16px rgba(255, 60, 0, 0.6));
+  }
+}
+
+/* Bottom 3-Segment Stats Bar matching Target Reference */
+.streak-cal-stats-bar.stats-pill-card {
+  background: rgba(248, 244, 238, 0.92);
+  border: 1.5px solid rgba(226, 216, 204, 0.85);
+  border-radius: 16px;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-top: 12px;
+  box-shadow: 0 2px 6px rgba(80, 60, 40, 0.04);
+}
+
+.cal-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #4C3C30;
+}
+
+.cal-stat-item .stat-icon {
+  font-size: 1.05rem;
+}
+
+.cal-stat-item .stat-val {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #2F2117;
+}
+
+.cal-stat-item .stat-name {
+  color: #5C4B3E;
+}
+
+.cal-stat-sep {
+  color: #D6C9BB;
+  font-weight: 300;
+}
+
+/* Backwards-compatibility for .streak-cal-bubble */
 .streak-cal-bubble {
   position: relative;
   width: 42px;
@@ -8138,11 +8539,11 @@ html, body {
   line-height: 1;
 }
 
-/* COMPLETED DAY: REALISTIC BURNING FIRE BUBBLE */
 .streak-cal-bubble.completed {
-  background-image: url('assets/streak_fire.jpg');
-  background-size: 125%;
+  background-image: url('assets/streak/fire_level_1.png');
+  background-size: 85%;
   background-position: center;
+  background-repeat: no-repeat;
   border: 1.5px solid #FF8C00;
   box-shadow: 0 0 10px rgba(255, 110, 0, 0.8), inset 0 0 8px rgba(255, 190, 0, 0.6);
   animation: flameBurnPulse 2.4s ease-in-out infinite alternate;
@@ -8153,7 +8554,6 @@ html, body {
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 6px rgba(180, 50, 0, 0.9);
 }
 
-/* Smooth realistic burning fire animation */
 @keyframes flameBurnPulse {
   0% {
     box-shadow: 0 0 8px rgba(255, 90, 0, 0.7), inset 0 0 6px rgba(255, 180, 0, 0.5);
@@ -8169,11 +8569,11 @@ html, body {
   }
 }
 
-/* MISSED DAY: NATURAL BONFIRE SMOKE BUBBLE */
 .streak-cal-bubble.missed {
-  background-image: url('assets/streak_bonfire_smoke.jpg');
-  background-size: 130%;
-  background-position: center 40%;
+  background-image: url('assets/streak/bonfire_smoke.png');
+  background-size: 90%;
+  background-position: center;
+  background-repeat: no-repeat;
   border: 1.5px solid #7D6F63;
   box-shadow: 0 0 8px rgba(50, 45, 40, 0.35), inset 0 0 8px rgba(0, 0, 0, 0.4);
   animation: smokeWaftDrift 3s ease-in-out infinite alternate;
@@ -8185,21 +8585,11 @@ html, body {
 }
 
 @keyframes smokeWaftDrift {
-  0% {
-    transform: translateY(0);
-    filter: drop-shadow(0 0 4px rgba(40, 35, 30, 0.3));
-  }
-  50% {
-    transform: translateY(-2px);
-    filter: drop-shadow(0 0 8px rgba(50, 45, 40, 0.5));
-  }
-  100% {
-    transform: translateY(0);
-    filter: drop-shadow(0 0 4px rgba(40, 35, 30, 0.3));
-  }
+  0% { transform: translateY(0); filter: drop-shadow(0 0 4px rgba(40, 35, 30, 0.3)); }
+  50% { transform: translateY(-2px); filter: drop-shadow(0 0 8px rgba(50, 45, 40, 0.5)); }
+  100% { transform: translateY(0); filter: drop-shadow(0 0 4px rgba(40, 35, 30, 0.3)); }
 }
 
-/* TODAY (NOT YET UPLOADED) */
 .streak-cal-bubble.today {
   background: #FFF8EE;
   border: 2px dashed #E67E22;
@@ -8218,7 +8608,6 @@ html, body {
   100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 126, 34, 0); }
 }
 
-/* UPCOMING DAY */
 .streak-cal-bubble.upcoming {
   background: #FAF7F2;
   border: 1px solid rgba(220, 212, 202, 0.6);
@@ -8230,16 +8619,9 @@ html, body {
   font-weight: 600;
 }
 
-/* Monthly Stats Bar */
-.streak-cal-stats-bar {
-  background: #FBF8F3;
-  border: 1px solid rgba(220, 210, 195, 0.7);
-  border-radius: 12px;
-  padding: 10px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  margin-top: 10px;
+.streak-cal-slot-empty {
+  visibility: hidden;
+  height: 58px;
 }
 
 .cal-stat-item {

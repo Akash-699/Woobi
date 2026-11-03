@@ -2276,6 +2276,17 @@
       streakCountLabelEl.textContent = count === 1 ? 'Streak' : 'Streaks';
     }
 
+    // Determine current fire level for trio header icon
+    let headerLevel = 1;
+    if (engine && typeof engine.getFireLevel === 'function') {
+      headerLevel = engine.getFireLevel(count);
+    } else {
+      if (count >= 30) headerLevel = 5;
+      else if (count >= 14) headerLevel = 4;
+      else if (count >= 7) headerLevel = 3;
+      else if (count >= 3) headerLevel = 2;
+    }
+
     // Only show broken streak (wood & rising smoke) if user had previously earned a streak!
     // A new user who has never earned a streak must NOT be shown a broken streak.
     const isBroken = streak.isStreakBroken && streak.hasEarnedStreak && streak.savedPreviousStreak > 0;
@@ -2288,7 +2299,11 @@
         streakPillEl.title = 'Streak broken! Click to restore your streak';
       }
     } else {
-      if (fireImg) fireImg.classList.remove('hidden');
+      if (fireImg) {
+        fireImg.classList.remove('hidden');
+        fireImg.src = `assets/streak/fire_level_${headerLevel}.png`;
+        fireImg.className = `streak-header-icon-img fire-lvl-${headerLevel}`;
+      }
       if (smokeImg) smokeImg.classList.add('hidden');
       if (streakPillEl) {
         streakPillEl.classList.remove('broken-streak');
@@ -2316,15 +2331,6 @@
   function openStreakModal() {
     const modal = document.getElementById('streakDetailsModal');
     if (!modal) return;
-
-    const engine = getStreakEngine();
-    const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
-    const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
-    const badge = document.getElementById('calHeaderStreakBadge');
-    if (badge) {
-      badge.textContent = `🔥 Current Streak: ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}`;
-    }
-
     renderStreakCalendar();
     modal.classList.remove('hidden');
   }
@@ -2356,8 +2362,25 @@
     const engine = getStreakEngine();
     const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
     const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
+
+    let tierLevel = 1;
+    let tierName = 'Spark Flame';
+    if (engine && typeof engine.getFireLevel === 'function') {
+      tierLevel = engine.getFireLevel(curStreak);
+      tierName = engine.getFireLevelName(curStreak);
+    } else {
+      if (curStreak >= 30) { tierLevel = 5; tierName = 'Ultra Astral Aura'; }
+      else if (curStreak >= 14) { tierLevel = 4; tierName = 'Inferno Dash'; }
+      else if (curStreak >= 7) { tierLevel = 3; tierName = 'Power Flame'; }
+      else if (curStreak >= 3) { tierLevel = 2; tierName = 'Cool Blaze'; }
+    }
+
+    const tierTextEl = document.getElementById('calTierText');
+    if (tierTextEl) {
+      tierTextEl.textContent = `${curStreak} ${curStreak === 1 ? 'Day' : 'Days'} Streak • ${tierName}`;
+    }
     const badge = document.getElementById('calHeaderStreakBadge');
-    if (badge) {
+    if (badge && !tierTextEl) {
       badge.textContent = `🔥 Current Streak: ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}`;
     }
 
@@ -2372,12 +2395,31 @@
       const isCurMonth = now.getFullYear() === currentCalYear && now.getMonth() === currentCalMonth;
       const todayDate = now.getDate();
       const days = [];
+      let runningStreak = 0;
+      let activeDays = 0;
+      let brokenDays = 0;
+      let upcomingDays = 0;
+
       for (let d = 1; d <= totalDays; d++) {
         let status = 'upcoming';
-        if (isCurMonth && d === todayDate) status = 'today';
-        else if (isCurMonth && d < todayDate) status = 'completed';
-        days.push({ day: d, status });
+        let fireLvl = 1;
+        if (isCurMonth && d === todayDate) {
+          status = 'today';
+          upcomingDays++;
+        } else if (isCurMonth && d < todayDate) {
+          status = 'completed';
+          activeDays++;
+          runningStreak++;
+          if (runningStreak >= 30) fireLvl = 5;
+          else if (runningStreak >= 14) fireLvl = 4;
+          else if (runningStreak >= 7) fireLvl = 3;
+          else if (runningStreak >= 3) fireLvl = 2;
+        } else {
+          upcomingDays++;
+        }
+        days.push({ day: d, status, fireLevel: fireLvl });
       }
+
       calData = {
         year: currentCalYear,
         month: currentCalMonth,
@@ -2385,9 +2427,10 @@
         totalDays,
         firstDayOfWeek: firstDay,
         days,
-        stats: { activeDays: isCurMonth ? todayDate : totalDays, brokenDays: 0, upcomingDays: isCurMonth ? (totalDays - todayDate) : 0 }
+        stats: { activeDays, brokenDays, upcomingDays }
       };
     }
+
     const titleEl = document.getElementById('streakCalMonthTitle');
     const gridEl = document.getElementById('streakCalendarGrid');
     const activeEl = document.getElementById('calActiveCount');
@@ -2412,31 +2455,66 @@
       gridEl.appendChild(emptySlot);
     }
 
-    // 2. Render each day bubble
+    const fireImages = {
+      1: 'assets/streak/fire_level_1.png',
+      2: 'assets/streak/fire_level_2.png',
+      3: 'assets/streak/fire_level_3.png',
+      4: 'assets/streak/fire_level_4.png',
+      5: 'assets/streak/fire_level_5.png'
+    };
+
+    // 2. Render each day in 3D Recessed Tile format with circular Crater Sockets
     calData.days.forEach(dayInfo => {
-      const bubble = document.createElement('div');
-      bubble.className = `streak-cal-bubble ${dayInfo.status}`;
-      bubble.title = `${calData.monthName} ${dayInfo.day}: ${dayInfo.status.toUpperCase()}`;
+      const tile = document.createElement('div');
+      tile.className = `date-tile-recessed ${dayInfo.status}`;
+      tile.title = `${calData.monthName} ${dayInfo.day}: ${dayInfo.status.toUpperCase()}`;
 
-      // Date number centered
+      // Date number at top-left
       const numSpan = document.createElement('span');
-      numSpan.className = 'streak-cal-day-num';
+      numSpan.className = 'date-tile-num';
       numSpan.textContent = dayInfo.day;
-      bubble.appendChild(numSpan);
+      tile.appendChild(numSpan);
 
-      // Click behavior
-      bubble.addEventListener('click', () => {
+      // Inner circular crater socket
+      const crater = document.createElement('div');
+      crater.className = `crater-socket ${dayInfo.status}-crater`;
+
+      if (dayInfo.status === 'completed') {
+        const lvl = dayInfo.fireLevel || 1;
+        const img = document.createElement('img');
+        img.src = fireImages[lvl] || fireImages[1];
+        img.alt = `Streak Fire Level ${lvl}`;
+        img.className = `crater-fire-img fire-lvl-${lvl}`;
+        crater.appendChild(img);
+      } else if (dayInfo.status === 'missed') {
+        const smokeImg = document.createElement('img');
+        smokeImg.src = 'assets/streak/bonfire_smoke.png';
+        smokeImg.alt = 'Missed Bonfire Smoke';
+        smokeImg.className = 'crater-smoke-img';
+        crater.appendChild(smokeImg);
+      } else if (dayInfo.status === 'today') {
+        const dot = document.createElement('div');
+        dot.className = 'today-pulse-dot';
+        crater.appendChild(dot);
+      }
+
+      tile.appendChild(crater);
+
+      // Interactive Click Handling
+      tile.addEventListener('click', () => {
         if (dayInfo.status === 'completed' && dayInfo.memory) {
           openMemoryDetail(dayInfo.memory.id);
         } else if (dayInfo.status === 'today') {
           closeStreakModal();
           openCameraModal();
+        } else if (dayInfo.status === 'missed') {
+          showMissedStreakModal();
         } else {
           showToast(`📅 ${calData.monthName} ${dayInfo.day}: ${dayInfo.status.charAt(0).toUpperCase() + dayInfo.status.slice(1)}`);
         }
       });
 
-      gridEl.appendChild(bubble);
+      gridEl.appendChild(tile);
     });
   }
 
