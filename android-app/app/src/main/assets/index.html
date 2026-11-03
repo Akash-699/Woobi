@@ -715,6 +715,24 @@
                     </div>
                   </div>
 
+                  <!-- Female Abdominal Core & Abs -->
+                  <div class="vanity-section body-comp-section">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                      <label class="vanity-sec-label" style="margin-bottom: 0;">Abdominal Core & Tummy</label>
+                      <span class="body-comp-val" id="femaleStomachVal">Flat / Toned Core (25%)</span>
+                    </div>
+                    <div class="slider-container">
+                      <input type="range" class="seren-range-slider" id="femaleStomachSlider" min="0" max="200" value="25"
+                        oninput="app.serenSetAnatomy('stomach', this.value, 'female')">
+                      <div class="slider-ticks-row">
+                        <span>Flat / Cut</span>
+                        <span>Natural Core</span>
+                        <span>Full Midsection</span>
+                        <span>Max (200%)</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <!-- Female Height / Stature -->
                   <div class="vanity-section body-comp-section">
                     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
@@ -3541,6 +3559,22 @@
             </div>
           </div>
 
+          <!-- Female Abdominal Core & Abs -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Abdominal Core & Tummy</span>
+              <span class="dock-ctrl-val" id="dockFemaleStomachVal">Flat / Toned Core (25%)</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockFemaleStomachSlider" min="0" max="200" value="25"
+              oninput="app.serenSetAnatomy('stomach', this.value, 'female')">
+            <div class="dock-ticks-row">
+              <span>Flat / Cut</span>
+              <span>Natural Core</span>
+              <span>Full Midsection</span>
+              <span>Max (200%)</span>
+            </div>
+          </div>
+
           <!-- Female Height -->
           <div class="dock-control-group">
             <div class="dock-label-row">
@@ -4073,9 +4107,9 @@
   <script type="module" src="modules/3d-studio/camera/index.js"></script>
   <script type="module" src="modules/3d-studio-features/index.js"></script>
   <script type="module" src="modules/settings/index.js"></script>
-  <script src="wardrobe-astra-material.js?v=20261103_v2"></script>
-  <script src="wardrobe3d.js?v=20261103_v2"></script>
-  <script src="studio3d.js?v=20261103_v2"></script>
-  <script src="app.js?v=20261103_v2"></script>
+  <script src="wardrobe-astra-material.js?v=20261103_v4"></script>
+  <script src="wardrobe3d.js?v=20261103_v4"></script>
+  <script src="studio3d.js?v=20261103_v4"></script>
+  <script src="app.js?v=20261103_v4"></script>
 </body>
 </html>

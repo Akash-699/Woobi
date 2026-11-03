@@ -2477,19 +2477,20 @@
       };
 
       // Organic displacement with rich dynamic scaling (in meters)
-      // At 0%: -2.0cm (lean, firm, athletic contraction)
+      // Organic displacement with stable, anthropometric scaling
+      // At 0%: -1.5cm (lean, firm, athletic contraction)
       // At default: 0.0cm (exact pristine base mesh)
-      // At 100%: +3.0 to +3.8cm (athletic definition)
-      // At 150%: +7.5 to +8.7cm (sculpted bodybuilder / voluptuous curves)
-      // At 200%: +12.5 to +14.2cm (maximum heroic / high-fashion curvature)
-      const organicDisp = (val, defaultVal, maxDisp, minDisp = -0.020) => {
+      // At 100%: +2.5 to +3.2cm (athletic definition)
+      // At 150%: +3.5 to +4.2cm (sculpted bodybuilder / voluptuous curves)
+      // At 200%: +4.8 to +5.5cm (maximum heroic / high-fashion curvature)
+      const organicDisp = (val, defaultVal, maxDisp, minDisp = -0.015) => {
         const v = typeof val === 'number' ? val : defaultVal;
         if (v <= defaultVal) {
           const t = (defaultVal - v) / Math.max(1, defaultVal);
           return minDisp * t;
         } else {
           const t = (v - defaultVal) / (150 - defaultVal);
-          return maxDisp * (t + 0.15 * t * t) / 1.15;
+          return maxDisp * Math.min(1.4, t);
         }
       };
 
@@ -2510,11 +2511,11 @@
           const thighs = anatomy.thighs ?? 58;
           const glutes = anatomy.glutes ?? 55;
 
-          const pecDisp = organicDisp(pecs, 65, 0.080);
-          const shoulderDisp = organicDisp(shoulders, 72, 0.075);
-          const stomachDisp = organicDisp(stomach, 22, 0.055);
-          const thighDisp = organicDisp(thighs, 58, 0.060);
-          const gluteDisp = organicDisp(glutes, 55, 0.085);
+          const pecDisp = organicDisp(pecs, 65, 0.040);
+          const shoulderDisp = organicDisp(shoulders, 72, 0.035);
+          const stomachDisp = organicDisp(stomach, 22, 0.028);
+          const thighDisp = organicDisp(thighs, 58, 0.030);
+          const gluteDisp = organicDisp(glutes, 55, 0.038);
 
           for (let i = 0; i < pos.length; i += 3) {
             const ox = base[i];
@@ -2525,50 +2526,63 @@
             let dy = 0;
             let dz = 0;
 
-            // 1. Male Pecs (Chest plates with central sternum cleavage groove)
-            const wPecL = compactWeight(ox, oy, oz, -0.095, 1.30, 0.10, 0.13, 0.15, 0.12);
-            const wPecR = compactWeight(ox, oy, oz,  0.095, 1.30, 0.10, 0.13, 0.15, 0.12);
-            const wPec = Math.max(wPecL, wPecR);
-            if (wPec > 0) {
-              dz += wPec * pecDisp;
-              dx += (ox < 0 ? -1 : 1) * wPec * 0.35 * pecDisp;
-              dy += wPec * 0.15 * pecDisp;
+            // 1. Male Pecs (Apex at x=+-0.103, y=1.315, z=0.176 with height lift and cleavage cleft)
+            if (oz > 0.04 && oy >= 1.18 && oy <= 1.44 && Math.abs(ox) <= 0.22) {
+              const wPecL = compactWeight(ox, oy, oz, -0.103, 1.315, 0.155, 0.11, 0.13, 0.09);
+              const wPecR = compactWeight(ox, oy, oz,  0.103, 1.315, 0.155, 0.11, 0.13, 0.09);
+              const wPec = Math.max(wPecL, wPecR);
+              if (wPec > 0) {
+                dz += wPec * pecDisp;
+                dy += wPec * pecDisp * 0.35; // Perky upward elevation and upper chest fullness!
+                dx += (ox < 0 ? -1 : 1) * wPec * 0.22 * pecDisp;
+              }
             }
 
-            // 2. Male Shoulders / Boulder Deltoids (Continuous broad athletic V-taper)
-            const wShL = compactWeight(ox, oy, oz, -0.26, 1.45, 0.01, 0.14, 0.13, 0.12);
-            const wShR = compactWeight(ox, oy, oz,  0.26, 1.45, 0.01, 0.14, 0.13, 0.12);
-            const wSh = Math.max(wShL, wShR);
-            if (wSh > 0) {
-              dx += (ox < 0 ? -1 : 1) * wSh * shoulderDisp;
-              dy += wSh * 0.22 * shoulderDisp;
-              dz += (oz > 0 ? 0.25 : -0.20) * wSh * shoulderDisp;
+            // 2. Male Shoulders / Boulder Deltoids (Cap at x=+-0.33, y=1.37, z=0.0; aligned with arm joint)
+            if (oy >= 1.26 && oy <= 1.48 && Math.abs(ox) >= 0.22 && Math.abs(ox) <= 0.44) {
+              const wShL = compactWeight(ox, oy, oz, -0.33, 1.37, 0.0, 0.11, 0.11, 0.10);
+              const wShR = compactWeight(ox, oy, oz,  0.33, 1.37, 0.0, 0.11, 0.11, 0.10);
+              const wSh = Math.max(wShL, wShR);
+              if (wSh > 0) {
+                dx += (ox < 0 ? -1 : 1) * wSh * shoulderDisp;
+                dy += wSh * 0.18 * shoulderDisp;
+                dz += (oz > 0 ? 0.20 : -0.20) * wSh * shoulderDisp;
+              }
             }
 
-            // 3. Male Stomach & Core (Flat chiseled vs muscular athletic midsection)
-            const wSt = compactWeight(ox, oy, oz, 0.0, 1.06, 0.08, 0.16, 0.13, 0.10);
-            if (wSt > 0) {
-              dz += wSt * stomachDisp;
-              dx += (ox < 0 ? -1 : 1) * wSt * 0.20 * stomachDisp;
+            // 3. Male Stomach & 8-Pack Core (Full vertical column from Y=0.96 to Y=1.24 with height lift)
+            if (oz > 0.04 && oy >= 0.96 && oy <= 1.24 && Math.abs(ox) <= 0.16) {
+              const wSt = compactWeight(ox, oy, oz, 0.0, 1.09, 0.10, 0.12, 0.14, 0.09);
+              if (wSt > 0) {
+                dz += wSt * stomachDisp;
+                dy += wSt * stomachDisp * 0.30; // Upward abdominal column lift along ribcage!
+                dx += (ox < 0 ? -1 : 1) * wSt * 0.14 * stomachDisp;
+              }
             }
 
-            // 4. Male Glutes (Distinct left and right cheeks, intergluteal cleft groove preserved)
-            const wGlL = compactWeight(ox, oy, oz, -0.085, 0.86, -0.13, 0.12, 0.15, 0.13);
-            const wGlR = compactWeight(ox, oy, oz,  0.085, 0.86, -0.13, 0.12, 0.15, 0.13);
-            const wGl = Math.max(wGlL, wGlR);
-            if (wGl > 0) {
-              dz -= wGl * gluteDisp;
-              dx += (ox < 0 ? -1 : 1) * wGl * 0.30 * gluteDisp;
-              dy += wGl * 0.20 * gluteDisp;
+            // 4. Male Glutes (Unified athletic cheeks, apex at x=+-0.097, y=0.94, z=-0.212)
+            if (oz < -0.06 && oy >= 0.78 && oy <= 1.08 && Math.abs(ox) <= 0.22) {
+              const wGlL = compactWeight(ox, oy, oz, -0.097, 0.94, -0.18, 0.11, 0.14, 0.10);
+              const wGlR = compactWeight(ox, oy, oz,  0.097, 0.94, -0.18, 0.11, 0.14, 0.10);
+              const wGl = Math.max(wGlL, wGlR);
+              if (wGl > 0) {
+                dz -= wGl * gluteDisp;
+                dy += wGl * gluteDisp * 0.20;
+                dx += (ox < 0 ? -1 : 1) * wGl * 0.20 * gluteDisp;
+              }
             }
 
-            // 5. Male Quads / Muscular Thighs
-            const wQdL = compactWeight(ox, oy, oz, -0.12, 0.72, 0.0, 0.10, 0.18, 0.11);
-            const wQdR = compactWeight(ox, oy, oz,  0.12, 0.72, 0.0, 0.10, 0.18, 0.11);
-            const wQd = Math.max(wQdL, wQdR);
-            if (wQd > 0) {
-              dx += (ox < 0 ? -1 : 1) * wQd * thighDisp;
-              dz += (oz > 0 ? 1 : -0.5) * wQd * 0.60 * thighDisp;
+            // 5. Male Quads & Thighs (Bounded to LEGS ONLY: |ox| <= 0.23, NEVER touching hands/arms!)
+            if (oy >= 0.55 && oy <= 0.86 && Math.abs(ox) >= 0.06 && Math.abs(ox) <= 0.23 && Math.abs(oz) <= 0.16) {
+              const dyQd = (oy - 0.72) / 0.14;
+              const dxQd = (Math.abs(ox) - 0.14) / 0.08;
+              const dzQd = oz / 0.13;
+              const d2Qd = dyQd * dyQd + dxQd * dxQd + dzQd * dzQd;
+              if (d2Qd < 1.0) {
+                const wQd = (1.0 - d2Qd) * (1.0 - d2Qd);
+                dx += Math.sign(ox) * wQd * thighDisp * 0.75;
+                dz += (oz > 0 ? 0.60 : -0.30) * wQd * thighDisp * 0.60;
+              }
             }
 
             pos[i] = ox + dx;
@@ -2581,11 +2595,13 @@
           const glutes = anatomy.glutes ?? 60;
           const thighs = anatomy.thighs ?? 48;
           const waist = anatomy.waist ?? 72;
+          const stomach = anatomy.stomach ?? 25;
 
-          const bustDisp = organicDisp(bust, 55, 0.085);
-          const gluteDisp = organicDisp(glutes, 60, 0.090);
-          const thighDisp = organicDisp(thighs, 48, 0.070);
-          const waistDisp = organicDisp(waist, 72, 0.050);
+          const bustDisp = organicDisp(bust, 55, 0.042);
+          const gluteDisp = organicDisp(glutes, 60, 0.040);
+          const thighDisp = organicDisp(thighs, 48, 0.030);
+          const stomachDisp = organicDisp(stomach, 25, 0.025);
+          const waistDisp = organicDisp(waist, 72, 0.024);
 
           for (let i = 0; i < pos.length; i += 3) {
             const ox = base[i];
@@ -2596,39 +2612,58 @@
             let dy = 0;
             let dz = 0;
 
-            // 1. Female Bust (Left and Right breasts, natural teardrop slope and cleavage)
-            const wBustL = compactWeight(ox, oy, oz, -0.080, 1.25, 0.11, 0.11, 0.14, 0.12);
-            const wBustR = compactWeight(ox, oy, oz,  0.080, 1.25, 0.11, 0.11, 0.14, 0.12);
-            const wBust = Math.max(wBustL, wBustR);
-            if (wBust > 0) {
-              dz += wBust * bustDisp;
-              dx += (ox < 0 ? -1 : 1) * wBust * 0.28 * bustDisp;
-              dy += wBust * 0.18 * bustDisp;
+            // 1. Female Bust (Apex at x=+-0.079, y=1.215, z=0.183; physical height lift AND projection)
+            if (oz > 0.04 && oy >= 1.08 && oy <= 1.36 && Math.abs(ox) <= 0.18) {
+              const wBustL = compactWeight(ox, oy, oz, -0.079, 1.215, 0.165, 0.095, 0.14, 0.10);
+              const wBustR = compactWeight(ox, oy, oz,  0.079, 1.215, 0.165, 0.095, 0.14, 0.10);
+              const wBust = Math.max(wBustL, wBustR);
+              if (wBust > 0) {
+                dz += wBust * bustDisp;
+                dy += wBust * bustDisp * 0.40; // Perky upward elevation and upper chest fullness!
+                dx += (ox < 0 ? -1 : 1) * wBust * 0.20 * bustDisp;
+              }
             }
 
-            // 2. Female Glutes / Butt (Two distinct peach cheeks, cleft & under-butt fold)
-            const wGlL = compactWeight(ox, oy, oz, -0.080, 0.84, -0.14, 0.12, 0.16, 0.14);
-            const wGlR = compactWeight(ox, oy, oz,  0.080, 0.84, -0.14, 0.12, 0.16, 0.14);
-            const wGl = Math.max(wGlL, wGlR);
-            if (wGl > 0) {
-              dz -= wGl * gluteDisp;
-              dx += (ox < 0 ? -1 : 1) * wGl * 0.35 * gluteDisp;
-              dy += wGl * 0.22 * gluteDisp;
+            // 2. Female Glutes / Butt (Unified peach cheeks, apex at x=+-0.095, y=0.89, z=-0.234; ZERO side lumps!)
+            if (oz < -0.06 && oy >= 0.74 && oy <= 1.02 && Math.abs(ox) <= 0.22) {
+              const wGlL = compactWeight(ox, oy, oz, -0.095, 0.89, -0.19, 0.105, 0.14, 0.11);
+              const wGlR = compactWeight(ox, oy, oz,  0.095, 0.89, -0.19, 0.105, 0.14, 0.11);
+              const wGl = Math.max(wGlL, wGlR);
+              if (wGl > 0) {
+                dz -= wGl * gluteDisp;
+                dy += wGl * gluteDisp * 0.25; // Perky model lift
+                dx += (ox < 0 ? -1 : 1) * wGl * 0.22 * gluteDisp;
+              }
             }
 
-            // 3. Female Lateral Hips & Thighs (Brazilian hourglass curve clearly visible from front)
-            const wThL = compactWeight(ox, oy, oz, -0.16, 0.80, -0.02, 0.11, 0.16, 0.12);
-            const wThR = compactWeight(ox, oy, oz,  0.16, 0.80, -0.02, 0.11, 0.16, 0.12);
-            const wTh = Math.max(wThL, wThR);
-            if (wTh > 0) {
-              dx += (ox < 0 ? -1 : 1) * wTh * thighDisp;
+            // 3. Female Lateral Hips & Thighs (Bounded to PELVIS ONLY: |ox| <= 0.235, NEVER touches hands/arms!)
+            if (Math.abs(ox) >= 0.09 && Math.abs(ox) <= 0.235 && oy >= 0.72 && oy <= 0.94 && Math.abs(oz) <= 0.15) {
+              const dyHip = (oy - 0.83) / 0.11;
+              const dxHip = (Math.abs(ox) - 0.17) / 0.07;
+              const dzHip = oz / 0.14;
+              const d2Hip = dyHip * dyHip + dxHip * dxHip + dzHip * dzHip;
+              if (d2Hip < 1.0) {
+                const wHip = (1.0 - d2Hip) * (1.0 - d2Hip);
+                dx += Math.sign(ox) * wHip * thighDisp;
+              }
             }
 
-            // 4. Female Waist Cinch (Deep hourglass contour preserving natural spine)
-            const wWst = compactWeight(ox, oy, oz, 0.0, 1.04, 0.0, 0.18, 0.12, 0.14);
-            if (wWst > 0) {
-              dx -= ox * wWst * waistDisp * 2.2;
-              dz -= oz * wWst * waistDisp * 1.4;
+            // 4. Female Abdominal Core & Tummy (Full vertical height lift and flat toned definition)
+            if (oz > 0.04 && oy >= 0.94 && oy <= 1.22 && Math.abs(ox) <= 0.14) {
+              const wCore = compactWeight(ox, oy, oz, 0.0, 1.08, 0.10, 0.11, 0.14, 0.08);
+              if (wCore > 0) {
+                dz += wCore * stomachDisp;
+                dy += wCore * stomachDisp * 0.30; // Physical height lift along the abdominal wall!
+              }
+            }
+
+            // 5. Female Waist Cinch (Deep hourglass contour preserving natural spine)
+            if (oy >= 0.98 && oy <= 1.14 && Math.abs(ox) <= 0.18) {
+              const wWst = compactWeight(ox, oy, oz, 0.0, 1.06, 0.0, 0.16, 0.09, 0.12);
+              if (wWst > 0) {
+                dx -= ox * wWst * waistDisp * 1.5;
+                dz -= oz * wWst * waistDisp * 1.0;
+              }
             }
 
             pos[i] = ox + dx;
@@ -2732,7 +2767,7 @@
       const g = gender || (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male' ? 'male' : 'female');
       if (!this.avatarConfig.anatomy) {
         this.avatarConfig.anatomy = {
-          female: { bust: 55, glutes: 60, thighs: 48, waist: 72, height: 1.70, weight: 58 },
+          female: { bust: 55, glutes: 60, thighs: 48, waist: 72, stomach: 25, height: 1.70, weight: 58 },
           male: { pecs: 65, stomach: 22, shoulders: 72, thighs: 58, glutes: 55, height: 1.80, weight: 78 }
         };
       }

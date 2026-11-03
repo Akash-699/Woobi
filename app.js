@@ -2028,6 +2028,7 @@
       serenSetAnatomy('glutes', 78, 'female');
       serenSetAnatomy('thighs', 55, 'female');
       serenSetAnatomy('waist', 80, 'female');
+      serenSetAnatomy('stomach', 20, 'female');
       serenSetAnatomy('height', 1.74, 'female');
       serenSetAnatomy('weight', 54, 'female');
       serenSetBodyFat(18);
@@ -2203,9 +2204,9 @@
       else desc = 'Ultra Broad Heroic Deltoids';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'stomach') {
-      let desc = 'Natural Core';
-      if (num < 25) desc = 'Flat / 8-Pack Core';
-      else if (num < 65) desc = 'Natural Athletic';
+      let desc = isMale ? 'Natural Core' : 'Flat / Toned Core';
+      if (num < 25) desc = isMale ? 'Flat / 8-Pack Core' : 'Chiseled Flat Tummy';
+      else if (num < 65) desc = isMale ? 'Natural Athletic' : 'Natural Slender Core';
       else if (num < 110) desc = 'Full Midsection';
       else if (num < 155) desc = 'Heavy Core';
       else desc = 'Heavy Power Core';
