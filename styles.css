@@ -8734,8 +8734,8 @@ html, body {
 
 /* Circular Recessed Cave / Crater Socket */
 .crater-socket {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: flex-end;
@@ -8744,15 +8744,15 @@ html, body {
   overflow: visible;
   padding-bottom: 2px;
   background: linear-gradient(180deg, #E9DFD4 0%, #F5ECE3 100%);
-  box-shadow: inset 0 2.5px 5px rgba(110, 85, 65, 0.32),
-              inset 0 1px 2px rgba(80, 50, 30, 0.38),
+  box-shadow: inset 0 2.5px 5px rgba(110, 85, 65, 0.35),
+              inset 0 1px 2px rgba(80, 50, 30, 0.40),
               inset 0 -2px 3px rgba(255, 255, 255, 0.9);
   transition: all 0.22s ease;
 }
 
 /* Socket Variants */
 .crater-socket.completed-crater {
-  background: radial-gradient(circle at 50% 65%, #F8E2C8 0%, #EBD5BE 50%, #DCBEA2 100%);
+  background: radial-gradient(circle at 50% 70%, #F8E2C8 0%, #EBD5BE 50%, #DCBEA2 100%);
   box-shadow: inset 0 3px 6px rgba(160, 60, 10, 0.45),
               0 0 14px rgba(255, 140, 20, 0.55),
               inset 0 -3px 6px rgba(255, 180, 50, 0.4);
@@ -8806,146 +8806,206 @@ html, body {
 }
 
 /* ==========================================================================
-   ANIMATED FIRE & BONFIRE SMOKE (EVERY CELL SHAKING & BILLOWING)
+   ANIMATED BURNING FLOW FIRE & BONFIRE SMOKE (TOP EMERGES FROM CAVE)
    ========================================================================== */
-/* 1. Fire Cell Wrap & Continuous Shaking - Top emerges above cave rim */
+/* 1. Fire Cell Wrap & Vertical Burning Surge - Top emerges above cave rim */
 .streak-cell-fire-wrap {
-  width: 28px;
-  height: 36px;
+  width: 34px;
+  height: 42px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   position: relative;
   pointer-events: none;
-  margin-top: -8px;
-  transform-origin: center bottom;
+  margin-top: -12px;
+  transform-origin: 50% 92%;
   z-index: 2;
+  overflow: visible;
 }
 
+/* Pure burning & flowing flame animation - No side-to-side dancing */
+.streak-cell-fire-wrap.burning-flow-active,
 .streak-cell-fire-wrap.fire-shaking-active {
-  animation-name: fireEveryCellShake;
-  animation-duration: 1.1s;
+  animation-name: fireBurningFlowSurge;
+  animation-duration: 1.25s;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
 }
 
-@keyframes fireEveryCellShake {
+@keyframes fireBurningFlowSurge {
   0% {
-    transform: translateX(0) rotate(0deg) scale(1);
+    transform: translateY(0) scaleY(1.0) scaleX(1.0) skewX(0deg);
   }
-  15% {
-    transform: translateX(-1.2px) rotate(-1.5deg) scale(1.02);
+  20% {
+    transform: translateY(-1.4px) scaleY(1.07) scaleX(0.96) skewX(-0.8deg);
   }
-  30% {
-    transform: translateX(1.0px) rotate(1.2deg) scale(0.98);
+  40% {
+    transform: translateY(-0.6px) scaleY(0.98) scaleX(1.02) skewX(0.5deg);
   }
-  45% {
-    transform: translateX(-0.8px) rotate(-0.8deg) scale(1.03);
+  65% {
+    transform: translateY(-2.4px) scaleY(1.14) scaleX(0.93) skewX(-1deg);
   }
-  60% {
-    transform: translateX(1.2px) rotate(1.4deg) scale(1.01);
-  }
-  75% {
-    transform: translateX(-0.6px) rotate(-0.5deg) scale(0.99);
-  }
-  90% {
-    transform: translateX(0.8px) rotate(0.8deg) scale(1.02);
+  85% {
+    transform: translateY(-1.0px) scaleY(1.04) scaleX(0.98) skewX(0.6deg);
   }
   100% {
-    transform: translateX(0) rotate(0deg) scale(1);
+    transform: translateY(0) scaleY(1.0) scaleX(1.0) skewX(0deg);
   }
 }
 
-/* 2. Fire Cell Image & Continuous Flame Flickering Glow */
+/* 2. Fire Cell Image & Dynamic Radiant Burning Flame Flickering */
 .streak-cell-fire-img {
-  width: 26px;
-  height: 31px;
+  width: 32px;
+  height: 38px;
   object-fit: contain;
-  transform-origin: center bottom;
-  animation-name: fireEveryCellFlicker;
-  animation-duration: 1.4s;
+  transform-origin: 50% 90%;
+  animation-name: fireBurningFlameLick;
+  animation-duration: 1.15s;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
   animation-direction: alternate;
   pointer-events: none;
 }
 
-@keyframes fireEveryCellFlicker {
+@keyframes fireBurningFlameLick {
   0% {
-    transform: scaleY(0.96) scaleX(1.02);
-    filter: brightness(0.96) drop-shadow(0 0 5px rgba(255, 140, 20, 0.75));
+    transform: scale(1);
+    filter: brightness(1.0) drop-shadow(0 -3px 6px rgba(255, 140, 20, 0.8)) drop-shadow(0 0 10px rgba(255, 70, 0, 0.5));
   }
-  35% {
-    transform: scaleY(1.06) scaleX(0.95);
-    filter: brightness(1.12) drop-shadow(0 0 8px rgba(255, 160, 30, 0.9)) drop-shadow(0 -1px 3px rgba(255, 60, 0, 0.6));
+  25% {
+    transform: scaleY(1.08) scaleX(0.95);
+    filter: brightness(1.15) drop-shadow(0 -5px 10px rgba(255, 175, 30, 0.92)) drop-shadow(0 -2px 5px rgba(255, 50, 0, 0.7));
   }
-  70% {
-    transform: scaleY(0.98) scaleX(1.03);
-    filter: brightness(1.02) drop-shadow(0 0 6px rgba(255, 130, 10, 0.8));
-  }
-  100% {
-    transform: scaleY(1.08) scaleX(0.94);
-    filter: brightness(1.18) drop-shadow(0 0 10px rgba(255, 180, 40, 0.95)) drop-shadow(0 -2px 5px rgba(255, 40, 0, 0.7));
-  }
-}
-
-/* 3. Five Distinct Visual Fire Levels */
-/* Level 1: First Fire (1–9 days) – Gentle continuous shake, subtle warm flicker */
-.streak-cell-fire-wrap.fire-lvl-1.fire-shaking-active {
-  animation-duration: 1.25s;
-}
-.fire-lvl-1-img {
-  filter: drop-shadow(0 0 5px rgba(255, 140, 20, 0.75));
-}
-
-/* Level 2: Second Fire (10–29 days) – Brighter, slightly stronger side-to-side shake */
-.streak-cell-fire-wrap.fire-lvl-2.fire-shaking-active {
-  animation-duration: 1.05s;
-}
-.fire-lvl-2-img {
-  filter: drop-shadow(0 0 7px rgba(255, 160, 20, 0.85)) drop-shadow(0 -1px 3px rgba(255, 80, 0, 0.5));
-}
-
-/* Level 3: Third Fire (30–49 days) – Stronger flame movement, noticeable shake */
-.streak-cell-fire-wrap.fire-lvl-3.fire-shaking-active {
-  animation-duration: 0.92s;
-}
-.fire-lvl-3-img {
-  filter: drop-shadow(0 0 9px rgba(255, 120, 10, 0.9)) drop-shadow(0 -2px 4px rgba(255, 40, 0, 0.65));
-}
-
-/* Level 4: Fourth Fire (50–99 days) – Large, energetic glowing flame shake */
-.streak-cell-fire-wrap.fire-lvl-4.fire-shaking-active {
-  animation-duration: 0.80s;
-}
-.fire-lvl-4-img {
-  filter: drop-shadow(0 0 12px rgba(255, 80, 10, 0.95)) drop-shadow(0 -3px 6px rgba(255, 20, 0, 0.8));
-}
-
-/* Level 5: Final Fire (100–200+ days) – Premium, powerful radiant flame vibration & aura */
-.streak-cell-fire-wrap.fire-lvl-5.fire-shaking-active {
-  animation-duration: 0.68s;
-  animation-name: fireLevel5RadiantShake;
-}
-.fire-lvl-5-img {
-  filter: drop-shadow(0 0 14px rgba(255, 215, 0, 1)) drop-shadow(0 0 22px rgba(255, 60, 0, 0.85));
-}
-
-@keyframes fireLevel5RadiantShake {
-  0%, 100% {
-    transform: translateX(0) scale(1) rotate(0deg);
-  }
-  20% {
-    transform: translateX(-1.8px) scale(1.06) rotate(-2.2deg);
-  }
-  40% {
-    transform: translateX(1.6px) scale(0.97) rotate(2deg);
-  }
-  60% {
-    transform: translateX(-1.4px) scale(1.08) rotate(-1.5deg);
+  55% {
+    transform: scaleY(0.97) scaleX(1.03);
+    filter: brightness(1.05) drop-shadow(0 -2px 6px rgba(255, 130, 10, 0.82)) drop-shadow(0 0 8px rgba(255, 60, 0, 0.55));
   }
   80% {
-    transform: translateX(1.5px) scale(1.02) rotate(1.8deg);
+    transform: scaleY(1.13) scaleX(0.93);
+    filter: brightness(1.22) drop-shadow(0 -7px 14px rgba(255, 200, 40, 0.96)) drop-shadow(0 -3px 7px rgba(255, 40, 0, 0.8));
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1.0) drop-shadow(0 -3px 6px rgba(255, 140, 20, 0.8)) drop-shadow(0 0 10px rgba(255, 70, 0, 0.5));
+  }
+}
+
+/* 3. Flowing Flame Heat Streaks (Upward-streaming flame ribbons) */
+.flowing-flame-streaks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 50% 50% 30% 30%;
+  mix-blend-mode: screen;
+  z-index: 3;
+}
+
+.flame-streak-ribbon {
+  position: absolute;
+  bottom: 0;
+  width: 3.5px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 215, 60, 0.82) 45%, rgba(255, 69, 0, 0) 100%);
+  border-radius: 3px;
+  filter: blur(0.8px);
+  opacity: 0.85;
+}
+
+.flame-streak-ribbon.ribbon-1 {
+  left: 30%;
+  height: 65%;
+  animation: flameRibbonFlow1 0.92s ease-in-out infinite;
+}
+
+.flame-streak-ribbon.ribbon-2 {
+  left: 48%;
+  height: 85%;
+  animation: flameRibbonFlow2 0.78s ease-in-out infinite 0.15s;
+}
+
+.flame-streak-ribbon.ribbon-3 {
+  left: 66%;
+  height: 60%;
+  animation: flameRibbonFlow3 1.05s ease-in-out infinite 0.35s;
+}
+
+@keyframes flameRibbonFlow1 {
+  0% { transform: translateY(6px) scaleY(0.7); opacity: 0.25; }
+  50% { transform: translateY(-5px) scaleY(1.25); opacity: 0.95; }
+  100% { transform: translateY(-16px) scaleY(0.4); opacity: 0; }
+}
+
+@keyframes flameRibbonFlow2 {
+  0% { transform: translateY(5px) scaleY(0.6); opacity: 0.3; }
+  50% { transform: translateY(-7px) scaleY(1.35); opacity: 1; }
+  100% { transform: translateY(-20px) scaleY(0.3); opacity: 0; }
+}
+
+@keyframes flameRibbonFlow3 {
+  0% { transform: translateY(6px) scaleY(0.7); opacity: 0.2; }
+  50% { transform: translateY(-4px) scaleY(1.15); opacity: 0.9; }
+  100% { transform: translateY(-14px) scaleY(0.4); opacity: 0; }
+}
+
+/* 4. Five Distinct Burning Flame Levels */
+/* Level 1: First Fire (1–9 days) – Gentle buoyant burning surge, warm amber flow */
+.streak-cell-fire-wrap.fire-lvl-1.burning-flow-active,
+.streak-cell-fire-wrap.fire-lvl-1.fire-shaking-active {
+  animation-duration: 1.35s;
+}
+.fire-lvl-1-img {
+  filter: drop-shadow(0 -3px 6px rgba(255, 140, 20, 0.8)) drop-shadow(0 0 8px rgba(255, 80, 0, 0.5));
+}
+
+/* Level 2: Second Fire (10–29 days) – Brighter golden burning surge */
+.streak-cell-fire-wrap.fire-lvl-2.burning-flow-active,
+.streak-cell-fire-wrap.fire-lvl-2.fire-shaking-active {
+  animation-duration: 1.15s;
+}
+.fire-lvl-2-img {
+  filter: drop-shadow(0 -4px 9px rgba(255, 160, 20, 0.88)) drop-shadow(0 -1px 4px rgba(255, 80, 0, 0.6));
+}
+
+/* Level 3: Third Fire (30–49 days) – Stronger flame movement, intense heat surge */
+.streak-cell-fire-wrap.fire-lvl-3.burning-flow-active,
+.streak-cell-fire-wrap.fire-lvl-3.fire-shaking-active {
+  animation-duration: 1.00s;
+}
+.fire-lvl-3-img {
+  filter: drop-shadow(0 -5px 11px rgba(255, 120, 10, 0.92)) drop-shadow(0 -2px 5px rgba(255, 40, 0, 0.72));
+}
+
+/* Level 4: Fourth Fire (50–99 days) – Large, energetic burning inferno flow */
+.streak-cell-fire-wrap.fire-lvl-4.burning-flow-active,
+.streak-cell-fire-wrap.fire-lvl-4.fire-shaking-active {
+  animation-duration: 0.88s;
+}
+.fire-lvl-4-img {
+  filter: drop-shadow(0 -6px 14px rgba(255, 90, 10, 0.96)) drop-shadow(0 -3px 7px rgba(255, 20, 0, 0.82));
+}
+
+/* Level 5: Final Fire (100–200+ days) – Radiant golden white-hot burning aura surge */
+.streak-cell-fire-wrap.fire-lvl-5.burning-flow-active,
+.streak-cell-fire-wrap.fire-lvl-5.fire-shaking-active {
+  animation-duration: 0.75s;
+  animation-name: fireLevel5RadiantFlow;
+}
+.fire-lvl-5-img {
+  filter: drop-shadow(0 -7px 16px rgba(255, 215, 0, 1)) drop-shadow(0 0 24px rgba(255, 60, 0, 0.88)) drop-shadow(0 -2px 6px #FFFFFF);
+}
+
+@keyframes fireLevel5RadiantFlow {
+  0%, 100% {
+    transform: translateY(0) scaleY(1.0) scaleX(1.0);
+  }
+  25% {
+    transform: translateY(-1.8px) scaleY(1.10) scaleX(0.95);
+  }
+  50% {
+    transform: translateY(-0.8px) scaleY(0.98) scaleX(1.03);
+  }
+  75% {
+    transform: translateY(-2.8px) scaleY(1.18) scaleX(0.91);
   }
 }
 

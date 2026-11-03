@@ -2529,7 +2529,7 @@
         const delay = ((dayInfo.day * 0.17) % 1.5).toFixed(2);
 
         const fireWrap = document.createElement('div');
-        fireWrap.className = `streak-cell-fire-wrap fire-lvl-${lvl} fire-shaking-active`;
+        fireWrap.className = `streak-cell-fire-wrap fire-lvl-${lvl} burning-flow-active fire-shaking-active`;
         fireWrap.style.animationDelay = `${delay}s`;
 
         const fireImg = document.createElement('img');
@@ -2544,7 +2544,16 @@
           };
         };
 
+        const streaks = document.createElement('div');
+        streaks.className = 'flowing-flame-streaks';
+        streaks.innerHTML = `
+          <span class="flame-streak-ribbon ribbon-1" style="animation-delay: ${delay}s"></span>
+          <span class="flame-streak-ribbon ribbon-2" style="animation-delay: ${(Number(delay) + 0.15).toFixed(2)}s"></span>
+          <span class="flame-streak-ribbon ribbon-3" style="animation-delay: ${(Number(delay) + 0.35).toFixed(2)}s"></span>
+        `;
+
         fireWrap.appendChild(fireImg);
+        fireWrap.appendChild(streaks);
         crater.appendChild(fireWrap);
       } else if (dayInfo.status === 'missed') {
         const delay = ((dayInfo.day * 0.23) % 2.1).toFixed(2);
