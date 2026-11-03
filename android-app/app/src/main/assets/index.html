@@ -407,12 +407,30 @@
                 </svg>
               </button>
             </div>
+
+            <!-- Sérén Studio Right Actions -->
+            <div class="seren-header-right">
+              <button class="seren-icon-btn" onclick="app.goToScreen('profile')" title="User Profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </button>
+            </div>
           </header>
 
           <!-- Real 3D WebGL Studio Viewport -->
           <div class="seren-stage-viewport" id="seren3dContainer">
             <!-- Real Three.js 3D WebGL Canvas -->
             <canvas id="seren3dCanvas" class="seren-3d-canvas"></canvas>
+
+            <!-- Three.js / WebGL Fallback Overlay -->
+            <div class="seren-3d-fallback" id="seren3dFallback" hidden>
+              <div class="seren-3d-fallback__icon">✦</div>
+              <strong>3D Studio Unavailable</strong>
+              <p id="seren3dFallbackMessage">The 3D studio is unavailable offline or without WebGL. You can continue using the rest of your wardrobe.</p>
+              <button type="button" class="btn-seren-retry" onclick="window.retryStudio3D && window.retryStudio3D()">Retry 3D Studio</button>
+            </div>
 
             <!-- Floating Editorial Tagline & Greeting Card (Upper-Right matching Target Reference) -->
             <div class="seren-editorial-tagline-wrap">
@@ -2540,93 +2558,58 @@
         </section>
 
         <!-- ===================================================================
-             SCREEN 25: WEEKLY PLANNING (NEW)
+             SCREEN 25: WEEKLY PLANNING & CALENDAR
              =================================================================== -->
         <section class="phone-screen" id="screen-weekly-planning">
-          <div class="screen-body-padded" style="padding-top: 14px;">
-            <h1 class="screen-headline-serif">Your week, dressed</h1>
-            <p class="screen-caption-sub">Plan your outfits for the days ahead.</p>
+          <div class="screen-sub-header">
+            <button class="nav-back-arrow" onclick="app.weeklyPlannerGoBack()" title="Back to Today">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <span class="sub-header-title">Weekly Planner</span>
+            <button class="btn-today-pill" onclick="app.plannerJumpToToday()" title="Jump to Today">Today</button>
+          </div>
 
-            <div class="weekly-schedule-stream">
-              <!-- Mon -->
-              <div class="day-plan-card" onclick="app.goToScreen('outfit-details')">
-                <div class="dp-day-info">
-                  <strong>Mon</strong>
-                  <span>3 Nov</span>
-                </div>
-                <div class="dp-outfit-preview">
-                  <span class="dp-occ-tag">College</span>
-                  <div class="dp-thumbs-row">
-                    <img src="assets/terracotta_tee.jpg">
-                    <img src="assets/dark_denim.jpg">
-                    <img src="assets/white_sneakers.jpg">
-                  </div>
-                </div>
-                <span class="dp-chevron">›</span>
-              </div>
+          <div class="screen-body-padded" style="padding-top: 10px; padding-bottom: 80px;">
+            <div class="planner-header-intro">
+              <h1 class="screen-headline-serif">Your week, dressed</h1>
+              <p class="screen-caption-sub">Plan outfits for upcoming days, assign looks, and stay effortlessly ready.</p>
+            </div>
 
-              <!-- Tue -->
-              <div class="day-plan-card" onclick="app.goToScreen('outfit-details')">
-                <div class="dp-day-info">
-                  <strong>Tue</strong>
-                  <span>4 Nov</span>
-                </div>
-                <div class="dp-outfit-preview">
-                  <span class="dp-occ-tag">Office</span>
-                  <div class="dp-thumbs-row">
-                    <img src="assets/navy_shirt.jpg">
-                    <img src="assets/beige_chinos.jpg">
-                    <img src="assets/tan_loafers.jpg">
-                  </div>
-                </div>
-                <span class="dp-chevron">›</span>
+            <!-- Week Navigation Controls -->
+            <div class="planner-week-ctrl-bar">
+              <button class="planner-week-btn" onclick="app.plannerChangeWeek(-1)" title="Previous Week">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
+                <span>Prev</span>
+              </button>
+              <div class="planner-week-label-box">
+                <span class="planner-week-title" id="plannerWeekTitle">Nov 2 – Nov 8, 2026</span>
+                <span class="planner-week-sub" id="plannerWeekSub">This Week (Current)</span>
               </div>
+              <button class="planner-week-btn" onclick="app.plannerChangeWeek(1)" title="Next Week">
+                <span>Next</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
 
-              <!-- Wed -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Wed</strong>
-                  <span>5 Nov</span>
-                </div>
-                <span class="dp-empty-text">Choose an outfit</span>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
+            <!-- Interactive Weekly Date Strip (Calendar Ribbon) -->
+            <div class="planner-week-strip" id="plannerWeekStrip">
+              <!-- Dynamically rendered 7 day items (Mon-Sun) with date, status dot, active state -->
+            </div>
 
-              <!-- Thu -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Thu</strong>
-                  <span>6 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
+            <!-- Planning Summary / Progress Bar -->
+            <div class="planner-summary-card" id="plannerSummaryCard">
+              <div class="planner-summary-info">
+                <span class="planner-summary-count" id="plannerSummaryCount"><strong>2 of 7</strong> days planned</span>
+                <span class="planner-selected-date-badge" id="plannerSelectedDateBadge">Selected: Mon, 2 Nov</span>
               </div>
+              <div class="planner-progress-track">
+                <div class="planner-progress-fill" id="plannerProgressFill" style="width: 28.5%;"></div>
+              </div>
+            </div>
 
-              <!-- Fri -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Fri</strong>
-                  <span>7 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
-
-              <!-- Sat -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Sat</strong>
-                  <span>8 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
-
-              <!-- Sun -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Sun</strong>
-                  <span>9 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
+            <!-- Dynamic Day Schedule Cards Stream -->
+            <div class="weekly-schedule-stream" id="weeklyScheduleStream">
+              <!-- Dynamically populated for all 7 days of the selected week -->
             </div>
           </div>
 
@@ -3131,6 +3114,40 @@
   </div><!-- /.desktop-editorial-frame -->
 <!-- /.app-viewport -->
 
+  <!-- Weekly Planner Outfit Selection Modal Sheet -->
+  <div class="planner-modal-backdrop hidden" id="plannerOutfitModal" onclick="if(event.target === this) app.closePlannerOutfitModal()">
+    <div class="planner-modal-sheet" onclick="event.stopPropagation()">
+      <div class="sheet-drag-handle"></div>
+      <div class="planner-modal-header">
+        <div>
+          <span class="planner-modal-sub" id="plannerModalSub">Assign outfit</span>
+          <h3 class="planner-modal-title" id="plannerModalTitle">Choose look for Wednesday, 5 Nov</h3>
+        </div>
+        <button class="sheet-close-btn" onclick="app.closePlannerOutfitModal()" title="Close">✕</button>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="planner-filter-tabs" id="plannerFilterTabs">
+        <button class="planner-filter-tab active" onclick="app.filterPlannerOutfits('All', this)">All</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Work', this)">Work</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Casual', this)">Casual</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Ethnic', this)">Ethnic</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Weekend', this)">Weekend</button>
+      </div>
+
+      <!-- Outfits Catalog Grid / Stream -->
+      <div class="planner-outfits-grid" id="plannerOutfitsGrid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <div style="text-align: center; margin-top: 10px; padding-top: 6px;">
+        <button class="btn-link-simple" style="font-size: 0.78rem; color: var(--olive-primary, #324334);" onclick="app.closePlannerOutfitModal(); app.goToScreen('custom-builder');">
+          ✦ Or build a custom outfit in Style Studio
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Item Condition & Fit Modal Sheet -->
   <div class="condition-modal-backdrop hidden" id="itemConditionModal">
     <div class="condition-modal-sheet">
@@ -3370,29 +3387,17 @@
   <!-- Modal 5: Woobi Streak Calendar & Monthly Fire Animation -->
   <div class="streak-modal-backdrop hidden" id="streakDetailsModal">
     <div class="streak-modal-card streak-details-card streak-calendar-modal-card woobi-calendar-card">
-      <!-- Top Brand Tag & Exit Button -->
-      <div class="cal-header-top-bar">
-        <div class="cal-brand-pill">
-          <svg class="cal-cloud-svg" viewBox="0 0 24 24" width="18" height="18" fill="#7D9AA8">
-            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
-          </svg>
-          <span class="cal-brand-label">Woobi</span>
-        </div>
+      <!-- Exact Scene Header from Reference Image -->
+      <div class="cal-hero-scene-banner">
         <button class="streak-modal-close cal-exit-circle-btn" onclick="app.closeStreakModal()" title="Close Calendar" aria-label="Exit">✕</button>
-      </div>
-
-      <!-- Hero Header: Title, Subtitle, Tier Badge, Mascot -->
-      <div class="cal-hero-section">
-        <div class="cal-hero-details">
+        <!-- Accessible elements for test suites and state synchronization -->
+        <div class="cal-semantic-header-info" style="display: none;">
           <h2 class="cal-main-title">Woobi Streak Calendar</h2>
           <p class="cal-main-subtitle">Keep the flame going ✨</p>
           <div class="cal-streak-badge-pill" id="calHeaderStreakBadge">
             <span class="cal-badge-fire-icon" id="calTierFlameIcon">🔥</span>
             <span id="calTierText">0 Day Streak • Spark Flame</span>
           </div>
-        </div>
-        <div class="cal-mascot-container">
-          <img src="assets/streak/streak_mascot.png" alt="Woobi Flame Mascot" class="cal-mascot-avatar">
         </div>
       </div>
 
@@ -3421,24 +3426,36 @@
           <!-- Rendered dynamically by app.renderStreakCalendar() -->
         </div>
 
-        <!-- Monthly Summary Stats Bar (3 columns matching target design) -->
+        <!-- Monthly Summary Stats Bar (3 columns matching target reference) -->
         <div class="streak-cal-stats-bar stats-pill-card">
           <div class="cal-stat-item">
-            <span class="stat-icon">🔥</span>
-            <span class="stat-val" id="calActiveCount">0</span>
-            <span class="stat-name">Active Days</span>
+            <div class="stat-icon-wrap">
+              <img src="assets/streak/stat_flame_icon.png" class="stat-flame-img" alt="Active Fire" />
+            </div>
+            <div class="stat-text-wrap">
+              <span class="stat-val" id="calActiveCount">0</span>
+              <span class="stat-name">Active Days</span>
+            </div>
           </div>
-          <div class="cal-stat-sep">|</div>
+          <div class="cal-stat-sep"></div>
           <div class="cal-stat-item">
-            <span class="stat-icon">🪵</span>
-            <span class="stat-val" id="calBrokenCount">0</span>
-            <span class="stat-name">Broken Days</span>
+            <div class="stat-icon-wrap">
+              <img src="assets/streak/stat_smoke_icon.png" class="stat-smoke-img" alt="Broken Campfire" />
+            </div>
+            <div class="stat-text-wrap">
+              <span class="stat-val" id="calBrokenCount">0</span>
+              <span class="stat-name">Broken Days</span>
+            </div>
           </div>
-          <div class="cal-stat-sep">|</div>
+          <div class="cal-stat-sep"></div>
           <div class="cal-stat-item">
-            <span class="stat-icon">⚪</span>
-            <span class="stat-val" id="calUpcomingCount">0</span>
-            <span class="stat-name">Inactive / Upcoming</span>
+            <div class="stat-icon-wrap">
+              <div class="stat-crater-circle"></div>
+            </div>
+            <div class="stat-text-wrap">
+              <span class="stat-val" id="calUpcomingCount">0</span>
+              <span class="stat-name">Inactive / Upcoming</span>
+            </div>
           </div>
         </div>
       </div>
@@ -3463,5 +3480,21 @@
   <script src="wardrobe3d.js?v=20261031_9"></script>
   <script src="studio3d.js?v=20261031_9"></script>
   <script src="app.js?v=20261031_9"></script>
+  <script>
+    window.showStudio3DFallback = function (message) {
+      var fallback = document.getElementById('seren3dFallback');
+      var msgEl = document.getElementById('seren3dFallbackMessage');
+      if (msgEl && message) msgEl.textContent = message;
+      if (fallback) fallback.hidden = false;
+    };
+
+    window.retryStudio3D = function () {
+      var fallback = document.getElementById('seren3dFallback');
+      if (fallback) fallback.hidden = true;
+      if (window.Studio3D && typeof window.Studio3D.init === 'function') {
+        window.Studio3D.init('seren3dContainer', 'seren3dCanvas');
+      }
+    };
+  </script>
 </body>
 </html>

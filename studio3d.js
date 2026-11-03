@@ -15,45 +15,52 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  // Camera Presets configured specifically for Portrait Mobile & Desktop Framing
-  const CAMERA_STATES = {
-    STUDIO_OVERVIEW: {
-      position: new THREE.Vector3(0, 1.22, 3.10),
-      target: new THREE.Vector3(-0.08, 1.08, 0),
-      fovLandscape: 42,
-      fovPortrait: 56
-    },
-    WARDROBE_CLOSEUP: {
-      position: new THREE.Vector3(-0.96, 1.20, 2.50),
-      target: new THREE.Vector3(-0.96, 1.20, -0.32),
-      fovLandscape: 38,
-      fovPortrait: 54
-    },
-    AVATAR_FULL_BODY: {
-      position: new THREE.Vector3(0, 1.10, 2.10),
-      target: new THREE.Vector3(0, 1.00, 0),
-      fovLandscape: 36,
-      fovPortrait: 44
-    },
-    AVATAR_DETAIL: {
-      position: new THREE.Vector3(0, 1.44, 1.10),
-      target: new THREE.Vector3(0, 1.38, 0),
-      fovLandscape: 30,
-      fovPortrait: 36
-    },
-    VANITY_VIEW: {
-      position: new THREE.Vector3(0.65, 1.25, 1.55),
-      target: new THREE.Vector3(0.85, 1.20, -0.10),
-      fovLandscape: 38,
-      fovPortrait: 46
-    },
-    MIRROR_VIEW: {
-      position: new THREE.Vector3(0.65, 1.25, 1.55),
-      target: new THREE.Vector3(0.85, 1.20, -0.10),
-      fovLandscape: 38,
-      fovPortrait: 46
-    }
-  };
+  // Camera Presets configured specifically for Portrait Mobile & Desktop Framing.
+  // Instantiated lazily only when Three.js is loaded.
+  let CAMERA_STATES = null;
+
+  function createCameraStates() {
+    if (typeof THREE === 'undefined') return null;
+    CAMERA_STATES = {
+      STUDIO_OVERVIEW: {
+        position: new THREE.Vector3(0, 1.22, 3.10),
+        target: new THREE.Vector3(-0.08, 1.08, 0),
+        fovLandscape: 42,
+        fovPortrait: 56
+      },
+      WARDROBE_CLOSEUP: {
+        position: new THREE.Vector3(-0.96, 1.20, 2.50),
+        target: new THREE.Vector3(-0.96, 1.20, -0.32),
+        fovLandscape: 38,
+        fovPortrait: 54
+      },
+      AVATAR_FULL_BODY: {
+        position: new THREE.Vector3(0, 1.10, 2.10),
+        target: new THREE.Vector3(0, 1.00, 0),
+        fovLandscape: 36,
+        fovPortrait: 44
+      },
+      AVATAR_DETAIL: {
+        position: new THREE.Vector3(0, 1.44, 1.10),
+        target: new THREE.Vector3(0, 1.38, 0),
+        fovLandscape: 30,
+        fovPortrait: 36
+      },
+      VANITY_VIEW: {
+        position: new THREE.Vector3(0.65, 1.25, 1.55),
+        target: new THREE.Vector3(0.85, 1.20, -0.10),
+        fovLandscape: 38,
+        fovPortrait: 46
+      },
+      MIRROR_VIEW: {
+        position: new THREE.Vector3(0.65, 1.25, 1.55),
+        target: new THREE.Vector3(0.85, 1.20, -0.10),
+        fovLandscape: 38,
+        fovPortrait: 46
+      }
+    };
+    return CAMERA_STATES;
+  }
 
   // Color Tokens matching Sérén Design System
   const COLOR_PALETTE = {
@@ -87,9 +94,10 @@
 
       // Camera Animation State
       this.currentCameraState = 'STUDIO_OVERVIEW';
-      this.targetCameraPos = CAMERA_STATES.STUDIO_OVERVIEW.position.clone();
-      this.targetCameraLookAt = CAMERA_STATES.STUDIO_OVERVIEW.target.clone();
-      this.currentCameraLookAt = CAMERA_STATES.STUDIO_OVERVIEW.target.clone();
+      this.cameraStates = null;
+      this.targetCameraPos = null;
+      this.targetCameraLookAt = null;
+      this.currentCameraLookAt = null;
 
       // Zoom & Distance clamping
       this.cameraZoomFactor = 1.0;
@@ -98,8 +106,8 @@
 
       // Interactive 3D Objects for Raycasting
       this.interactiveObjects = [];
-      this.raycaster = new THREE.Raycaster();
-      this.mouse = new THREE.Vector2();
+      this.raycaster = null;
+      this.mouse = null;
 
       // Avatar & Wearable Garment System
       this.avatarRoot = null;
@@ -155,7 +163,7 @@
       this.pinchStartDist = 0;
 
       // Animation Loop & Morphing
-      this.clock = new THREE.Clock();
+      this.clock = null;
       this.animationFrameId = null;
       this.blinkTimer = 0;
       this.nextBlinkTime = 3.2;
@@ -186,9 +194,23 @@
       }
 
       if (typeof THREE === 'undefined') {
-        console.error('Studio3D: THREE.js library is not loaded');
-        return;
+        console.warn('Studio3D: THREE.js library is not loaded');
+        if (typeof window !== 'undefined' && typeof window.showStudio3DFallback === 'function') {
+          window.showStudio3DFallback('The 3D studio is unavailable offline or without WebGL.');
+        }
+        return false;
       }
+
+      // Initialize deferred Three.js state
+      this.cameraStates = createCameraStates();
+      if (!this.targetCameraPos && this.cameraStates) {
+        this.targetCameraPos = this.cameraStates.STUDIO_OVERVIEW.position.clone();
+        this.targetCameraLookAt = this.cameraStates.STUDIO_OVERVIEW.target.clone();
+        this.currentCameraLookAt = this.cameraStates.STUDIO_OVERVIEW.target.clone();
+      }
+      if (!this.raycaster) this.raycaster = new THREE.Raycaster();
+      if (!this.mouse) this.mouse = new THREE.Vector2();
+      if (!this.clock) this.clock = new THREE.Clock();
 
       // Load saved preferences from localStorage if available
       this.loadSavedPreferences();
@@ -245,7 +267,7 @@
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       if (THREE.ACESFilmicToneMapping) {
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.08;
+        this.renderer.toneMappingExposure = 0.95; // Calibrated exposure preserving white garment fabric details
       }
       if (THREE.sRGBEncoding) {
         this.renderer.outputEncoding = THREE.sRGBEncoding;
@@ -283,15 +305,33 @@
      * Creates high-resolution procedural PBR textures for realistic materials
      */
     initProceduralTextures() {
-      // 1. Polished Cream Marble Tile Floor (512x512)
+      // 1. Warm Champagne Travertine Stone Floor Texture (512x512) - Warm Mediterranean Luxury (#D2BEA0)
       const floorCanvas = document.createElement('canvas');
       floorCanvas.width = 512;
       floorCanvas.height = 512;
       const fCtx = floorCanvas.getContext('2d');
-      fCtx.fillStyle = '#F5EFE6';
+      fCtx.fillStyle = '#D2BEA0';
       fCtx.fillRect(0, 0, 512, 512);
 
-      // Delicate warm gold and subtle grey marble veining
+      // Travertine horizontal sedimentary striations and tonal layers
+      for (let y = 0; y < 512; y += 3) {
+        const bandAlpha = 0.08 + Math.sin(y * 0.035) * 0.05 + Math.random() * 0.04;
+        fCtx.fillStyle = y % 6 < 3 ? `rgba(203, 177, 141, ${bandAlpha})` : `rgba(225, 212, 192, ${bandAlpha * 1.1})`;
+        fCtx.fillRect(0, y, 512, 2.5);
+      }
+
+      // Micro-porous travertine voids & mineral grain noise
+      const fImg = fCtx.getImageData(0, 0, 512, 512);
+      const fd = fImg.data;
+      for (let i = 0; i < fd.length; i += 4) {
+        const noise = (Math.random() - 0.5) * 14;
+        fd[i] = Math.min(255, Math.max(0, fd[i] + noise));
+        fd[i + 1] = Math.min(255, Math.max(0, fd[i + 1] + noise * 0.90));
+        fd[i + 2] = Math.min(255, Math.max(0, fd[i + 2] + noise * 0.72));
+      }
+      fCtx.putImageData(fImg, 0, 0);
+
+      // Delicate warm travertine mineral veining with warm taupe and espresso micro-accents
       const drawVein = (ctx, points, color, width) => {
         ctx.save();
         ctx.strokeStyle = color;
@@ -305,53 +345,97 @@
         ctx.stroke();
         ctx.restore();
       };
-      drawVein(fCtx, [{x: 0, y: 120}, {x: 160, y: 220}, {x: 320, y: 190}, {x: 512, y: 380}], 'rgba(216, 195, 168, 0.28)', 16);
-      drawVein(fCtx, [{x: 40, y: 0}, {x: 200, y: 240}, {x: 390, y: 440}, {x: 512, y: 512}], 'rgba(180, 160, 140, 0.20)', 6);
-      drawVein(fCtx, [{x: 180, y: 0}, {x: 310, y: 150}, {x: 480, y: 290}], 'rgba(235, 222, 202, 0.40)', 10);
+      drawVein(fCtx, [{x: 0, y: 120}, {x: 160, y: 135}, {x: 320, y: 125}, {x: 512, y: 140}], 'rgba(180, 155, 125, 0.25)', 8);
+      drawVein(fCtx, [{x: 0, y: 260}, {x: 200, y: 275}, {x: 390, y: 265}, {x: 512, y: 285}], 'rgba(152, 129, 107, 0.20)', 6);
+      drawVein(fCtx, [{x: 0, y: 390}, {x: 220, y: 405}, {x: 380, y: 395}, {x: 512, y: 415}], 'rgba(235, 218, 192, 0.32)', 10);
+      drawVein(fCtx, [{x: 80, y: 260}, {x: 220, y: 270}, {x: 350, y: 265}], 'rgba(64, 49, 38, 0.08)', 2.5);
 
-      // Subtle marble tile seam lines
-      fCtx.strokeStyle = 'rgba(200, 185, 165, 0.35)';
-      fCtx.lineWidth = 2;
+      // Travertine tile joint seam lines
+      fCtx.strokeStyle = 'rgba(152, 129, 107, 0.32)';
+      fCtx.lineWidth = 1.8;
       fCtx.strokeRect(0, 0, 512, 512);
 
       this.textures.creamMarble = new THREE.CanvasTexture(floorCanvas);
       this.textures.creamMarble.wrapS = THREE.RepeatWrapping;
       this.textures.creamMarble.wrapT = THREE.RepeatWrapping;
       this.textures.creamMarble.repeat.set(4, 4);
+      this.textures.champagneStone = this.textures.creamMarble;
 
-      // 2. Woven Circular Bouclé Wool Rug (512x512)
+      // 2. Warm Champagne Travertine Circular Dais Texture (512x512) - Archidea Home Organic Stone Decor
       const rugCanvas = document.createElement('canvas');
       rugCanvas.width = 512;
       rugCanvas.height = 512;
       const rCtx = rugCanvas.getContext('2d');
-      rCtx.fillStyle = '#EBE3D7';
+      rCtx.fillStyle = '#D2BEA0'; // Warm champagne stone base (#D2BEA0)
       rCtx.fillRect(0, 0, 512, 512);
 
-      // Concentric braided spiral stitches
-      rCtx.lineWidth = 4;
-      for (let radius = 10; radius < 256; radius += 9) {
-        rCtx.strokeStyle = radius % 18 === 0 ? 'rgba(210, 198, 182, 0.6)' : 'rgba(245, 239, 230, 0.7)';
+      // Organic travertine clouding and natural tonal patches
+      for (let c = 0; c < 18; c++) {
+        const cx = Math.random() * 512;
+        const cy = Math.random() * 512;
+        const cRad = 60 + Math.random() * 120;
+        const grad = rCtx.createRadialGradient(cx, cy, 5, cx, cy, cRad);
+        const isWarm = Math.random() > 0.45;
+        grad.addColorStop(0, isWarm ? 'rgba(216, 197, 168, 0.45)' : 'rgba(197, 173, 136, 0.40)');
+        grad.addColorStop(1, 'rgba(210, 190, 160, 0)');
+        rCtx.fillStyle = grad;
+        rCtx.beginPath();
+        rCtx.arc(cx, cy, cRad, 0, Math.PI * 2);
+        rCtx.fill();
+      }
+
+      // Circular dais sedimentary stone rings
+      for (let radius = 10; radius < 256; radius += 5) {
+        const rAlpha = radius % 15 === 0 ? 0.35 : 0.16;
+        rCtx.strokeStyle = radius % 10 === 0 ? `rgba(180, 155, 125, ${rAlpha})` : `rgba(228, 215, 195, ${rAlpha * 1.25})`;
+        rCtx.lineWidth = 2.2;
         rCtx.beginPath();
         rCtx.arc(256, 256, radius, 0, Math.PI * 2);
         rCtx.stroke();
       }
-      // Wool fiber flecks
-      for (let i = 0; i < 1800; i++) {
-        rCtx.fillStyle = Math.random() > 0.5 ? 'rgba(205, 192, 175, 0.45)' : 'rgba(255, 252, 246, 0.65)';
-        rCtx.fillRect(Math.random() * 512, Math.random() * 512, Math.random() * 2 + 1, Math.random() * 2 + 1);
+
+      // High-density mineral grain stippling & micro-cavity pores (Archidea Home reference)
+      for (let i = 0; i < 9000; i++) {
+        const rnd = Math.random();
+        if (rnd < 0.45) {
+          rCtx.fillStyle = 'rgba(145, 120, 95, 0.38)'; // Dark warm mineral pores
+        } else if (rnd < 0.80) {
+          rCtx.fillStyle = 'rgba(242, 232, 216, 0.55)'; // Light calcite granules
+        } else {
+          rCtx.fillStyle = 'rgba(190, 165, 130, 0.40)'; // Sandstone mid-tones
+        }
+        const size = Math.random() < 0.85 ? 1.5 : 2.5;
+        rCtx.fillRect(Math.random() * 512, Math.random() * 512, size, size);
       }
       this.textures.wovenRug = new THREE.CanvasTexture(rugCanvas);
 
-      // 3. Natural Honey Oak Grain (256x512)
+      // 2.5. Dedicated Tactile Stone Bump Texture (512x512) for Dais & Stonework
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.width = 512;
+      bumpCanvas.height = 512;
+      const bCtx = bumpCanvas.getContext('2d');
+      bCtx.fillStyle = '#808080';
+      bCtx.fillRect(0, 0, 512, 512);
+
+      // Micro-cavities (dark depressions) and crystalline grains (bright peaks)
+      for (let i = 0; i < 8000; i++) {
+        const isDepression = Math.random() < 0.50;
+        bCtx.fillStyle = isDepression ? 'rgba(40, 40, 40, 0.22)' : 'rgba(220, 220, 220, 0.25)';
+        const bSize = Math.random() < 0.80 ? 1.2 : 2.4;
+        bCtx.fillRect(Math.random() * 512, Math.random() * 512, bSize, bSize);
+      }
+      this.textures.stoneBump = new THREE.CanvasTexture(bumpCanvas);
+
+      // 3. Natural European Oak Wood Grain (256x512) - #B48653
       const oakCanvas = document.createElement('canvas');
       oakCanvas.width = 256;
       oakCanvas.height = 512;
       const oCtx = oakCanvas.getContext('2d');
-      oCtx.fillStyle = '#C89C6A';
+      oCtx.fillStyle = '#B48653';
       oCtx.fillRect(0, 0, 256, 512);
 
-      oCtx.strokeStyle = 'rgba(150, 95, 45, 0.16)';
-      oCtx.lineWidth = 1.8;
+      oCtx.strokeStyle = 'rgba(75, 48, 22, 0.22)';
+      oCtx.lineWidth = 1.6;
       for (let y = 0; y < 512; y += 4) {
         oCtx.beginPath();
         oCtx.moveTo(0, y);
@@ -367,16 +451,64 @@
       this.textures.oak.wrapT = THREE.RepeatWrapping;
       this.textures.oak.repeat.set(1.5, 2.0);
 
-      // 4. Calacatta Gold Marble for Vanity Countertop
+      // 3.5. Mediterranean Desert Sand Plaster Texture (512x512) - #DCC5A3
+      const plasterCanvas = document.createElement('canvas');
+      plasterCanvas.width = 512;
+      plasterCanvas.height = 512;
+      const pCtx = plasterCanvas.getContext('2d');
+      pCtx.fillStyle = '#DCC5A3';
+      pCtx.fillRect(0, 0, 512, 512);
+
+      const pImg = pCtx.getImageData(0, 0, 512, 512);
+      const pd = pImg.data;
+      for (let i = 0; i < pd.length; i += 4) {
+        const noise = (Math.random() - 0.5) * 16;
+        pd[i] = Math.min(255, Math.max(0, pd[i] + noise));
+        pd[i + 1] = Math.min(255, Math.max(0, pd[i + 1] + noise * 0.88));
+        pd[i + 2] = Math.min(255, Math.max(0, pd[i + 2] + noise * 0.72));
+      }
+      pCtx.putImageData(pImg, 0, 0);
+
+      // Warm beige plaster waves
+      pCtx.fillStyle = 'rgba(203, 177, 141, 0.15)';
+      for (let w = 0; w < 6; w++) {
+        pCtx.beginPath();
+        pCtx.ellipse(100 + w * 60, 80 + w * 70, 180, 50, w * 0.4, 0, Math.PI * 2);
+        pCtx.fill();
+      }
+      this.textures.sandPlaster = new THREE.CanvasTexture(plasterCanvas);
+      this.textures.sandPlaster.wrapS = THREE.RepeatWrapping;
+      this.textures.sandPlaster.wrapT = THREE.RepeatWrapping;
+      this.textures.sandPlaster.repeat.set(3, 3);
+
+      // 4. Warm Beige Limestone / Travertine for Vanity Countertop (#CBB18D)
       const mCanvas = document.createElement('canvas');
       mCanvas.width = 512;
       mCanvas.height = 512;
       const mCtx = mCanvas.getContext('2d');
-      mCtx.fillStyle = '#FCFAF6';
+      mCtx.fillStyle = '#CBB18D';
       mCtx.fillRect(0, 0, 512, 512);
-      drawVein(mCtx, [{x: 0, y: 90}, {x: 180, y: 170}, {x: 340, y: 150}, {x: 512, y: 340}], 'rgba(215, 185, 140, 0.30)', 18);
-      drawVein(mCtx, [{x: 60, y: 0}, {x: 230, y: 230}, {x: 430, y: 470}, {x: 512, y: 512}], 'rgba(165, 140, 115, 0.24)', 5);
+
+      // Travertine sedimentary bands
+      for (let y = 0; y < 512; y += 4) {
+        const bandAlpha = 0.12 + Math.sin(y * 0.04) * 0.06;
+        mCtx.fillStyle = y % 8 < 4 ? `rgba(218, 196, 168, ${bandAlpha})` : `rgba(180, 155, 125, ${bandAlpha * 0.9})`;
+        mCtx.fillRect(0, y, 512, 3);
+      }
+
+      // Micro mineral speckling
+      for (let i = 0; i < 4000; i++) {
+        mCtx.fillStyle = Math.random() < 0.5 ? 'rgba(152, 129, 107, 0.28)' : 'rgba(235, 220, 198, 0.35)';
+        mCtx.fillRect(Math.random() * 512, Math.random() * 512, 1.5, 1.5);
+      }
+
+      // Natural limestone veining
+      drawVein(mCtx, [{x: 0, y: 110}, {x: 180, y: 155}, {x: 340, y: 140}, {x: 512, y: 220}], 'rgba(152, 129, 107, 0.28)', 6);
+      drawVein(mCtx, [{x: 50, y: 20}, {x: 220, y: 210}, {x: 390, y: 360}, {x: 512, y: 440}], 'rgba(230, 212, 188, 0.35)', 8);
+      drawVein(mCtx, [{x: 120, y: 400}, {x: 260, y: 430}, {x: 440, y: 410}], 'rgba(64, 49, 38, 0.12)', 2.0);
+
       this.textures.calacatta = new THREE.CanvasTexture(mCanvas);
+      this.textures.limestone = this.textures.calacatta;
 
       // 5. Ribbed Knit Vertical Texture for Crop Tank
       const ribCanvas = document.createElement('canvas');
@@ -429,23 +561,57 @@
       if (typeof window !== 'undefined' && window.WoobiLighting && typeof window.WoobiLighting.createStudioLighting === 'function') {
         this.lightingModel = window.WoobiLighting.createStudioLighting(this.scene, 'luxury-warm', THREE);
         this.lightingController = new window.WoobiLighting.LightingController(this.lightingModel);
+        // Calibrate lighting intensity multiplier to soften harsh highlights on white garments
+        this.lightingController.setIntensityMultiplier(0.82);
+        if (this.lightingModel.ambientLight) {
+          this.lightingModel.ambientLight.color.setHex(0xF6EEDB);
+          this.lightingModel.ambientLight.intensity = 0.42;
+        }
+        if (this.lightingModel.fillLight) {
+          this.lightingModel.fillLight.intensity = 0.28;
+        }
+        if (this.lightingModel.keySunlight) {
+          this.lightingModel.keySunlight.intensity = 1.05;
+        }
+        if (this.lightingModel.vanitySpot) {
+          this.lightingModel.vanitySpot.intensity = 0.42;
+        }
+        if (this.lightingModel.wardrobeSpot) {
+          this.lightingModel.wardrobeSpot.intensity = 0.35;
+        }
+        if (this.lightingModel.keySunlight && this.lightingModel.keySunlight.shadow) {
+          const d = 5.5;
+          this.lightingModel.keySunlight.shadow.camera.left = -d;
+          this.lightingModel.keySunlight.shadow.camera.right = d;
+          this.lightingModel.keySunlight.shadow.camera.top = d;
+          this.lightingModel.keySunlight.shadow.camera.bottom = -d;
+          this.lightingModel.keySunlight.shadow.camera.far = 20.0;
+          this.lightingModel.keySunlight.shadow.bias = -0.0003;
+          this.lightingModel.keySunlight.shadow.normalBias = 0.02;
+          this.lightingModel.keySunlight.shadow.radius = 1.6;
+          if (typeof this.lightingModel.keySunlight.shadow.camera.updateProjectionMatrix === 'function') {
+            this.lightingModel.keySunlight.shadow.camera.updateProjectionMatrix();
+          }
+        }
         return;
       }
 
-      // Warm, serene ambient illumination
-      const ambientLight = new THREE.AmbientLight(0xFFF6EC, 0.68);
+      // Warm, serene ambient illumination (calibrated to provide clear chiaroscuro and depth)
+      const ambientLight = new THREE.AmbientLight(0xF6EEDB, 0.42);
       this.scene.add(ambientLight);
 
       // Primary Key Sunlight (Diagonal morning sunlight streaming from upper right)
-      const keySunlight = new THREE.DirectionalLight(0xFFF7E6, 1.25);
+      const keySunlight = new THREE.DirectionalLight(0xFFF5E4, 1.05);
       keySunlight.position.set(2.8, 4.8, 3.0);
       keySunlight.castShadow = true;
       keySunlight.shadow.mapSize.width = 1024;
       keySunlight.shadow.mapSize.height = 1024;
       keySunlight.shadow.camera.near = 0.5;
-      keySunlight.shadow.camera.far = 10;
-      keySunlight.shadow.bias = -0.0002;
-      const d = 2.4;
+      keySunlight.shadow.camera.far = 20.0;
+      keySunlight.shadow.bias = -0.0003;
+      keySunlight.shadow.normalBias = 0.02;
+      keySunlight.shadow.radius = 1.6;
+      const d = 5.5; // Wide frustum bounds covering stage, wardrobe, and floor without cutoff
       keySunlight.shadow.camera.left = -d;
       keySunlight.shadow.camera.right = d;
       keySunlight.shadow.camera.top = d;
@@ -453,23 +619,23 @@
       this.scene.add(keySunlight);
 
       // Soft Fill Light from left to soften shadows on wardrobe and body
-      const fillLight = new THREE.DirectionalLight(0xFDF1E2, 0.42);
-      fillLight.position.set(-2.6, 3.2, 1.6);
+      const fillLight = new THREE.DirectionalLight(0xFDF1E2, 0.28);
+      fillLight.position.set(-2.6, 2.8, 1.6);
       this.scene.add(fillLight);
 
       // Warm Golden Rim Light for hair and shoulder separation from background
-      const rimLight = new THREE.DirectionalLight(0xFFE5BE, 0.85);
-      rimLight.position.set(0, 3.8, -2.4);
+      const rimLight = new THREE.DirectionalLight(0xFFE5BE, 0.78);
+      rimLight.position.set(0, 3.6, -2.4);
       this.scene.add(rimLight);
 
       // Soft Warm Interior Fill for Wardrobe (Toned down so oak wood does not blow out)
-      const wardrobeSpot = new THREE.SpotLight(0xFFE5BF, 0.50, 4.8, Math.PI / 4, 0.45, 1.2);
+      const wardrobeSpot = new THREE.SpotLight(0xFFF2DE, 0.35, 4.8, Math.PI / 4, 0.45, 1.2);
       wardrobeSpot.position.set(-0.96, 3.2, 0.8);
       wardrobeSpot.target.position.set(-0.96, 1.22, -0.32);
       this.scene.add(wardrobeSpot);
       this.scene.add(wardrobeSpot.target);
 
-      const vanitySpot = new THREE.SpotLight(0xFFE5BF, 0.80, 4.8, Math.PI / 4, 0.45, 1.2);
+      const vanitySpot = new THREE.SpotLight(0xFFF2DE, 0.42, 4.8, Math.PI / 4, 0.45, 1.2);
       vanitySpot.position.set(0.95, 3.4, 0.4);
       vanitySpot.target.position.set(0.90, 1.2, -0.10);
       this.scene.add(vanitySpot);
@@ -483,17 +649,21 @@
     buildRoomArchitecture() {
       // Delegate to modular 3D Studio Theme & Environment submodule if available
       if (typeof window !== 'undefined' && window.WoobiTheme && typeof window.WoobiTheme.createStudioTheme === 'function') {
-        this.themeModel = window.WoobiTheme.createStudioTheme(this.scene, this.textures, 'luxury-cream', THREE);
+        const themePreset = (window.WoobiTheme.THEME_PRESETS && window.WoobiTheme.THEME_PRESETS['mediterranean-luxury'])
+          ? 'mediterranean-luxury'
+          : 'luxury-cream';
+        this.themeModel = window.WoobiTheme.createStudioTheme(this.scene, this.textures, themePreset, THREE);
         return;
       }
 
-      // 1. Polished Cream Marble Tile Flooring
+      // 1. Desert Sand Architectural Flooring (#DCC5A3) fully merged with main walls
       const floorGeo = new THREE.PlaneGeometry(16, 16);
       const floorMat = new THREE.MeshStandardMaterial({
-        map: this.textures.creamMarble,
-        roughness: 0.28,
-        metalness: 0.04,
-        color: 0xFFFFFF
+        map: this.textures.sandPlaster || this.textures.champagneStone,
+        bumpMap: null,
+        roughness: 0.92,
+        metalness: 0.01,
+        color: 0xDCC5A3
       });
       const floor = new THREE.Mesh(floorGeo, floorMat);
       floor.rotation.x = -Math.PI / 2;
@@ -501,17 +671,19 @@
       floor.receiveShadow = true;
       this.scene.add(floor);
 
-      // 2. Smooth Warm Cream Architectural Wall
+      // 2. Desert Sand Architectural Wall Plaster (#DCC5A3)
       const wallMat = new THREE.MeshStandardMaterial({
-        color: 0xF7F2EA, // Serene cream plaster
-        roughness: 0.88,
+        map: this.textures.sandPlaster || null,
+        color: 0xDCC5A3, // Desert sand Mediterranean plaster
+        roughness: 0.92,
         metalness: 0.01,
         side: THREE.BackSide
       });
       const wallGeo = new THREE.CylinderGeometry(6.6, 6.6, 6.8, 48, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
       const backWall = new THREE.Mesh(wallGeo, wallMat);
-      backWall.position.set(0, 3.4, 0);
-      backWall.receiveShadow = true;
+      backWall.position.set(0, 3.4, 5.4);
+      backWall.rotation.y = Math.PI; // Orient curved wall behind avatar towards negative Z
+      backWall.receiveShadow = false; // Prevents directional shadow frustum from cutting off horizontally across the curved back wall
       this.scene.add(backWall);
 
       // 3. Diagonal Window Mullion Sunlight Shadow Projected on Wall/Floor
@@ -520,9 +692,9 @@
       windowShadowGroup.rotation.set(-0.25, 0.45, -0.2);
 
       const shadowBarMat = new THREE.MeshBasicMaterial({
-        color: 0x4A3A2A,
+        color: 0x403126, // Deep espresso contrast accent (#403126)
         transparent: true,
-        opacity: 0.075
+        opacity: 0.085
       });
       // Window frame panes
       for (let w = 0; w < 4; w++) {
@@ -610,10 +782,12 @@
       const rugThickness = 0.080;
       const rugGeo = new THREE.CylinderGeometry(rugRadius, rugRadius + 0.012, rugThickness, 64);
       const rugMat = new THREE.MeshStandardMaterial({
-        map: this.textures.wovenRug,
-        roughness: 0.82,
-        metalness: 0.01,
-        color: 0xF2ECE2
+        map: this.textures.champagneStone || this.textures.wovenRug,
+        bumpMap: this.textures.stoneBump || null,
+        bumpScale: 0.012,
+        roughness: 0.70,
+        metalness: 0.02,
+        color: 0xD2BEA0
       });
       const rug = new THREE.Mesh(rugGeo, rugMat);
       rug.position.y = rugThickness / 2;
@@ -622,7 +796,7 @@
       rugGroup.add(rug);
 
       const trimGeo = new THREE.TorusGeometry(rugRadius + 0.004, 0.012, 16, 64);
-      const trimMat = new THREE.MeshStandardMaterial({ color: 0xDFD6C8, roughness: 0.85 });
+      const trimMat = new THREE.MeshStandardMaterial({ color: 0xCBB18D, roughness: 0.78 });
       const rimTrim = new THREE.Mesh(trimGeo, trimMat);
       rimTrim.rotation.x = Math.PI / 2;
       rimTrim.position.y = rugThickness;
@@ -1025,16 +1199,18 @@
         roughness: 0.22
       });
 
-      // 1. Polished Calacatta Gold Marble Countertop Table
+      // 1. Warm Beige Limestone / Stone Countertop Table (#CBB18D)
       const tableHeight = 0.84;
       const tableWidth = 0.98;
       const tableDepth = 0.46;
 
       const marbleMat = new THREE.MeshStandardMaterial({
-        map: this.textures.calacatta,
-        roughness: 0.22,
+        map: this.textures.calacatta || this.textures.champagneStone,
+        bumpMap: this.textures.stoneBump || null,
+        bumpScale: 0.005,
+        roughness: 0.42,
         metalness: 0.02,
-        color: 0xFCFAF6
+        color: 0xCBB18D
       });
       const topSlab = new THREE.Mesh(new THREE.BoxGeometry(tableWidth, 0.065, tableDepth), marbleMat);
       topSlab.position.set(0, tableHeight, 0);
@@ -1042,7 +1218,12 @@
       topSlab.receiveShadow = true;
       vanityGroup.add(topSlab);
 
-      // Slim Golden Brass Metallic Legs
+      // Deep Espresso Dark Table Legs (#362B22)
+      const legsMat = new THREE.MeshStandardMaterial({
+        color: 0x362B22,
+        roughness: 0.55,
+        metalness: 0.40
+      });
       const legGeo = new THREE.BoxGeometry(0.030, tableHeight - 0.03, 0.030);
       const legPositions = [
         [-tableWidth / 2 + 0.035, -tableDepth / 2 + 0.035],
@@ -1051,7 +1232,7 @@
         [tableWidth / 2 - 0.035, tableDepth / 2 - 0.035]
       ];
       legPositions.forEach(([lx, lz]) => {
-        const leg = new THREE.Mesh(legGeo, brassMat);
+        const leg = new THREE.Mesh(legGeo, legsMat);
         leg.position.set(lx, (tableHeight - 0.03) / 2, lz);
         leg.castShadow = true;
         vanityGroup.add(leg);
@@ -1192,10 +1373,18 @@
       const stoolGroup = new THREE.Group();
       stoolGroup.position.set(0.12, 0, 0.42);
 
-      // Brushed Brass Circular Plinth Base
+      // Cream Bouclé Upholstery Material for Entire Stool
+      const stoolMat = new THREE.MeshStandardMaterial({
+        map: this.textures.wovenRug,
+        color: 0xF5F0E6,
+        roughness: 0.84,
+        metalness: 0.02
+      });
+
+      // Circular Plinth Base matching cream bouclé body
       const stoolPlinth = new THREE.Mesh(
         new THREE.CylinderGeometry(0.24, 0.24, 0.05, 36),
-        brassMat
+        stoolMat
       );
       stoolPlinth.position.y = 0.025;
       stoolPlinth.castShadow = true;
@@ -1204,12 +1393,7 @@
       // Round Cream Bouclé Seat Cushion
       const stoolCushion = new THREE.Mesh(
         new THREE.CylinderGeometry(0.25, 0.24, 0.40, 36),
-        new THREE.MeshStandardMaterial({
-          map: this.textures.wovenRug,
-          color: 0xF5F0E6,
-          roughness: 0.84,
-          metalness: 0.02
-        })
+        stoolMat
       );
       stoolCushion.position.y = 0.25;
       stoolCushion.castShadow = true;
@@ -1414,9 +1598,11 @@
       this.chestGroup = new THREE.Group();
       this.chestGroup.position.set(0, 1.22, 0);
 
-      // 5. WEARABLE OUTFIT: Off-White Ribbed Crop Tank Top
+      // 5. WEARABLE OUTFIT: Off-White Ribbed Crop Tank Top with Tactile Ribbed Depth
       const tankMat = new THREE.MeshStandardMaterial({
         map: this.textures.ribbedKnit,
+        bumpMap: this.textures.ribbedKnit,
+        bumpScale: 0.0025,
         color: COLOR_PALETTE.cropTankIvory,
         roughness: 0.68,
         metalness: 0.02
@@ -1481,9 +1667,11 @@
         this.sculptedAvatarGroup.add(armGroup);
       });
 
-      // 7. HIGH-WAISTED FLUID WIDE-LEG TAILORED TROUSERS IN SAND / BEIGE
+      // 7. HIGH-WAISTED FLUID WIDE-LEG TAILORED TROUSERS WITH TACTILE LINEN WEAVE
       const trouserMat = new THREE.MeshStandardMaterial({
         map: this.textures.linenWeave,
+        bumpMap: this.textures.linenWeave,
+        bumpScale: 0.0020,
         color: COLOR_PALETTE.trousersSand,
         roughness: 0.72,
         metalness: 0.01
@@ -1555,6 +1743,14 @@
         sneaker.add(tongue);
 
         this.sculptedAvatarGroup.add(sneaker);
+      });
+
+      // Enable complete self-shadowing and contact shadow reception across all avatar anatomical and garment meshes
+      this.avatarRoot.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
       });
 
       this.scene.add(this.avatarRoot);
@@ -1692,22 +1888,31 @@
         if (this.vanityModel && this.vanityModel.reflection && this.vanityModel.reflection.renderTarget) {
           this.mirrorRenderTarget = this.vanityModel.reflection.renderTarget;
           this.mirrorCamera = this.vanityModel.reflection.mirrorCamera;
+          const targetMesh = (this.vanityModel && this.vanityModel.mirrorGlassMesh) ? this.vanityModel.mirrorGlassMesh : this.mirrorGlassMesh;
+          if (targetMesh && this.vanityModel.reflection.bindMirrorMesh) {
+            this.vanityModel.reflection.bindMirrorMesh(targetMesh, THREE);
+          }
           return;
         }
 
+        const renderFormat = (typeof THREE.RGBAFormat !== 'undefined') ? THREE.RGBAFormat : (THREE.RGBFormat || 1022);
         this.mirrorRenderTarget = new THREE.WebGLRenderTarget(512, 512, {
-          format: THREE.RGBFormat,
+          format: renderFormat,
           generateMipmaps: false,
           minFilter: THREE.LinearFilter,
           magFilter: THREE.LinearFilter
         });
 
-        this.mirrorCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 20);
+        this.mirrorCamera = new THREE.PerspectiveCamera(24, 0.62, 1.8, 25);
+        this.mirrorCamera.position.set(1.85, 1.25, -2.40);
+        this.mirrorCamera.lookAt(0, 1.15, 0);
         this.scene.add(this.mirrorCamera);
 
         if (this.mirrorGlassMesh) {
-          this.mirrorGlassMesh.material.map = this.mirrorRenderTarget.texture;
-          this.mirrorGlassMesh.material.needsUpdate = true;
+          this.mirrorGlassMesh.material = new THREE.MeshBasicMaterial({
+            map: this.mirrorRenderTarget.texture,
+            toneMapped: false
+          });
         }
       } catch (err) {
         console.warn('Studio3D: Mirror render target fallback active', err);
@@ -1823,7 +2028,7 @@
      * Handles Raycast selection on wardrobe & vanity 3D objects
      */
     handleCanvasClick(clientX, clientY) {
-      if (!this.canvas || !this.camera || !this.scene) return;
+      if (!this.canvas || !this.camera || !this.scene || !this.raycaster || !this.mouse) return;
       if (this.cameraController && typeof this.cameraController.raycastClick === 'function') {
         this.cameraController.raycastClick(clientX, clientY, this.canvas, this.interactiveObjects, (type, userData) => {
           if (typeof this.onObjectClick === 'function') {
@@ -1868,10 +2073,15 @@
           return;
         }
       }
-      if (CAMERA_STATES[stateName]) {
+      const states = this.cameraStates || CAMERA_STATES;
+      if (states && states[stateName]) {
         this.currentCameraState = stateName;
-        this.targetCameraPos.copy(CAMERA_STATES[stateName].position);
-        this.targetCameraLookAt.copy(CAMERA_STATES[stateName].target);
+        if (this.targetCameraPos && states[stateName].position) {
+          this.targetCameraPos.copy(states[stateName].position);
+        }
+        if (this.targetCameraLookAt && states[stateName].target) {
+          this.targetCameraLookAt.copy(states[stateName].target);
+        }
       }
     }
 
@@ -2170,17 +2380,20 @@
         this.camera.updateProjectionMatrix();
       }
 
-      // 6. Real-time Mirror Rendering (Render from mirror perspective)
-      if (this.mirrorRenderTarget && this.mirrorCamera && this.mirrorGlassMesh) {
-        this.mirrorGlassMesh.visible = false;
-        this.mirrorCamera.position.set(0.92, 1.46, -0.02);
-        this.mirrorCamera.lookAt(0, 1.25, 0); // Looking towards avatar
+      // 6. Real-time Mirror Rendering (Render from optical planar reflection perspective)
+      const activeMirrorMesh = (this.vanityModel && this.vanityModel.mirrorGlassMesh) ? this.vanityModel.mirrorGlassMesh : this.mirrorGlassMesh;
+      if (this.vanityModel && this.vanityModel.reflection) {
+        this.vanityModel.reflection.update(this.renderer, this.scene, this.camera);
+      } else if (this.mirrorRenderTarget && this.mirrorCamera && activeMirrorMesh) {
+        activeMirrorMesh.visible = false;
+        this.mirrorCamera.position.set(1.85, 1.25, -2.40);
+        this.mirrorCamera.lookAt(0, 1.15, 0); // Looking towards avatar torso from optical reflection position
 
         this.renderer.setRenderTarget(this.mirrorRenderTarget);
         this.renderer.render(this.scene, this.mirrorCamera);
         this.renderer.setRenderTarget(null);
 
-        this.mirrorGlassMesh.visible = true;
+        activeMirrorMesh.visible = true;
       }
 
       // 7. Render Main Viewport
@@ -2193,6 +2406,7 @@
     destroy() {
       if (this.animationFrameId) {
         cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
       }
       if (this.stageModel) {
         this.stageModel.dispose(this.scene);
@@ -2221,6 +2435,7 @@
       }
       if (this.renderer) {
         this.renderer.dispose();
+        this.renderer = null;
       }
       this.isInitialized = false;
     }
