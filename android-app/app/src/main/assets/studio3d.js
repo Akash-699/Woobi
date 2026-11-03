@@ -2481,8 +2481,9 @@
           const cx = (p0[0] + p1[0] + p2[0]) / 3;
           const cz = (p0[2] + p1[2] + p2[2]) / 3;
           const maxAbsX = Math.max(Math.abs(p0[0]), Math.abs(p1[0]), Math.abs(p2[0]));
-          if (maxAbsX > 0.21) return false;
 
+          // Torso boundary check: strictly exclude resting arms (|X| > 0.165 in chest range)
+          if (maxAbsX > 0.165 && cy <= 1.28) return false;
           const bandBottom = 1.140;
           if (cy < bandBottom) return false;
 
@@ -2493,7 +2494,7 @@
 
           if (cy <= 1.395) {
             const strapDist = Math.abs(Math.abs(cx) - 0.082);
-            return strapDist <= 0.024;
+            return strapDist <= 0.022 && maxAbsX <= 0.115;
           }
 
           return false;
@@ -2521,14 +2522,18 @@
           const cx = (p0[0] + p1[0] + p2[0]) / 3;
           const cz = (p0[2] + p1[2] + p2[2]) / 3;
           const maxAbsX = Math.max(Math.abs(p0[0]), Math.abs(p1[0]), Math.abs(p2[0]));
+
+          // Torso / pelvis only: strictly exclude wrist/hand
+          if (Math.abs(cz) < 0.05 && maxAbsX > 0.180) return false;
           if (maxAbsX > 0.22) return false;
 
           const topLimit = cz < 0 ? 0.965 : 0.945;
           if (cy > topLimit) return false;
 
-          const legCut = cz < -0.05
-            ? 0.765
-            : 0.765 + (Math.abs(cx) / 0.18) * 0.075;
+          // Continuous C^2 leg cut falloff: eliminates any step discontinuity at Gluteus Medius boundary
+          const sideArch = Math.pow(Math.abs(cx) / 0.18, 1.8);
+          const backCoverage = Math.max(0, -cz / 0.14);
+          const legCut = 0.755 + (1.0 - Math.min(1.0, backCoverage)) * sideArch * 0.080;
 
           return cy >= legCut;
         }, 0.0020);
@@ -2553,8 +2558,13 @@
 
         const boxerGeom = extractUndergarmentGeometry((p0, p1, p2) => {
           const cy = (p0[1] + p1[1] + p2[1]) / 3;
+          const cx = (p0[0] + p1[0] + p2[0]) / 3;
+          const cz = (p0[2] + p1[2] + p2[2]) / 3;
           const maxAbsX = Math.max(Math.abs(p0[0]), Math.abs(p1[0]), Math.abs(p2[0]));
-          if (maxAbsX > 0.23) return false;
+
+          // Torso/pelvis only: strictly exclude wrist/hand
+          if (Math.abs(cz) < 0.06 && maxAbsX > 0.185) return false;
+          if (maxAbsX > 0.22) return false;
 
           if (cy > 1.025) return false;
           if (cy < 0.695) return false;
@@ -2707,11 +2717,11 @@
           const thighs = anatomy.thighs ?? 58;
           const glutes = anatomy.glutes ?? 55;
 
-          const pecDisp = organicDisp(pecs, 65, 0.040);
-          const shoulderDisp = organicDisp(shoulders, 72, 0.035);
-          const stomachDisp = organicDisp(stomach, 22, 0.028);
-          const thighDisp = organicDisp(thighs, 58, 0.030);
-          const gluteDisp = organicDisp(glutes, 55, 0.075);
+          const pecDisp = organicDisp(pecs, 65, 0.038);
+          const shoulderDisp = organicDisp(shoulders, 72, 0.032);
+          const stomachDisp = organicDisp(stomach, 22, 0.026);
+          const thighDisp = organicDisp(thighs, 58, 0.028);
+          const gluteDisp = organicDisp(glutes, 55, 0.052);
 
           for (let i = 0; i < pos.length; i += 3) {
             const ox = base[i];
@@ -2722,27 +2732,27 @@
             let dy = 0;
             let dz = 0;
 
-            // 1. Male Pecs (Apex at x=+-0.103, y=1.315, z=0.176 with height lift and cleavage cleft)
+            // 1. Male Pecs (Apex at x=+-0.105, y=1.315, z=0.160; forward projection and defined cleavage cleft)
             if (oz > 0.04 && oy >= 1.18 && oy <= 1.44 && Math.abs(ox) <= 0.22) {
-              const wPecL = compactWeight(ox, oy, oz, -0.103, 1.315, 0.155, 0.11, 0.13, 0.09);
-              const wPecR = compactWeight(ox, oy, oz,  0.103, 1.315, 0.155, 0.11, 0.13, 0.09);
+              const wPecL = compactWeight(ox, oy, oz, -0.105, 1.315, 0.160, 0.115, 0.130, 0.095);
+              const wPecR = compactWeight(ox, oy, oz,  0.105, 1.315, 0.160, 0.115, 0.130, 0.095);
               const wPec = Math.max(wPecL, wPecR);
               if (wPec > 0) {
-                dz += wPec * pecDisp;
-                dy += wPec * pecDisp * 0.35; // Perky upward elevation and upper chest fullness!
+                dz += wPec * pecDisp * 1.10;
+                dy += wPec * pecDisp * 0.10; // Controlled vertical chest definition
                 dx += (ox < 0 ? -1 : 1) * wPec * 0.22 * pecDisp;
               }
             }
 
-            // 2. Male Shoulders / Boulder Deltoids (Cap at x=+-0.33, y=1.37, z=0.0; aligned with arm joint)
-            if (oy >= 1.26 && oy <= 1.48 && Math.abs(ox) >= 0.22 && Math.abs(ox) <= 0.44) {
-              const wShL = compactWeight(ox, oy, oz, -0.33, 1.37, 0.0, 0.11, 0.11, 0.10);
-              const wShR = compactWeight(ox, oy, oz,  0.33, 1.37, 0.0, 0.11, 0.11, 0.10);
+            // 2. Male Shoulders / Boulder Deltoids (Cap at x=+-0.245, y=1.442, z=0.005; aligned with true anatomical clavicle & arm joint)
+            if (oy >= 1.28 && oy <= 1.54 && Math.abs(ox) >= 0.15 && Math.abs(ox) <= 0.35) {
+              const wShL = compactWeight(ox, oy, oz, -0.245, 1.442, 0.005, 0.110, 0.120, 0.100);
+              const wShR = compactWeight(ox, oy, oz,  0.245, 1.442, 0.005, 0.110, 0.120, 0.100);
               const wSh = Math.max(wShL, wShR);
               if (wSh > 0) {
-                dx += (ox < 0 ? -1 : 1) * wSh * shoulderDisp;
-                dy += wSh * 0.18 * shoulderDisp;
-                dz += (oz > 0 ? 0.20 : -0.20) * wSh * shoulderDisp;
+                dx += (ox < 0 ? -1 : 1) * wSh * shoulderDisp * 0.85;
+                dy += wSh * 0.20 * shoulderDisp;
+                dz += (oz > 0 ? 0.25 : -0.20) * wSh * shoulderDisp * 0.50;
               }
             }
 
@@ -2751,15 +2761,15 @@
               const wSt = compactWeight(ox, oy, oz, 0.0, 1.09, 0.10, 0.12, 0.14, 0.09);
               if (wSt > 0) {
                 dz += wSt * stomachDisp;
-                dy += wSt * stomachDisp * 0.30; // Upward abdominal column lift along ribcage!
+                dy += wSt * stomachDisp * 0.25;
                 dx += (ox < 0 ? -1 : 1) * wSt * 0.14 * stomachDisp;
               }
             }
 
-            // 4. Male Glutes (Spherical athletic balloon cheeks with 3D radial expansion)
-            if (oz < -0.05 && oy >= 0.76 && oy <= 1.10 && Math.abs(ox) <= 0.235) {
-              const cxL = -0.099, cxR = 0.099, cyGlute = 0.934, czGlute = -0.155;
-              const rxGl = 0.125, ryGl = 0.165, rzGl = 0.150;
+            // 4. Male Glutes (Isotropic spherical athletic ball cheeks with 3D radial expansion)
+            if (oy >= 0.76 && oy <= 1.10 && Math.abs(ox) <= 0.235) {
+              const cxL = -0.098, cxR = 0.098, cyGlute = 0.935, czGlute = -0.150;
+              const rxGl = 0.130, ryGl = 0.160, rzGl = 0.150;
               const wGlL = compactWeight(ox, oy, oz, cxL, cyGlute, czGlute, rxGl, ryGl, rzGl);
               const wGlR = compactWeight(ox, oy, oz, cxR, cyGlute, czGlute, rxGl, ryGl, rzGl);
               const wGl = Math.max(wGlL, wGlR);
@@ -2770,9 +2780,13 @@
                 const vy = (oy - cyGlute) / ryGl;
                 const vz = (oz - czGlute) / rzGl;
                 const len = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0;
-                dz -= wGl * gluteDisp * (0.65 + 0.35 * Math.max(0, -vz / len));
-                dx += (isLeft ? -1 : 1) * wGl * gluteDisp * (0.30 + 0.18 * Math.max(0, Math.abs(vx) / len));
-                dy += wGl * gluteDisp * (0.20 + 0.15 * (vy / len));
+                const ux = vx / len;
+                const uy = vy / len;
+                const uz = vz / len;
+
+                dx += ux * wGl * gluteDisp * 0.65;
+                dy += uy * wGl * gluteDisp * 0.55;
+                dz += uz * wGl * gluteDisp * 0.85;
               }
             }
 
@@ -2801,10 +2815,10 @@
           const waist = anatomy.waist ?? 72;
           const stomach = anatomy.stomach ?? 25;
 
-          const bustDisp = organicDisp(bust, 55, 0.042);
-          const gluteDisp = organicDisp(glutes, 60, 0.082);
-          const thighDisp = organicDisp(thighs, 48, 0.030);
-          const stomachDisp = organicDisp(stomach, 25, 0.025);
+          const bustDisp = organicDisp(bust, 55, 0.040);
+          const gluteDisp = organicDisp(glutes, 60, 0.055);
+          const thighDisp = organicDisp(thighs, 48, 0.028);
+          const stomachDisp = organicDisp(stomach, 25, 0.024);
           const waistDisp = organicDisp(waist, 72, 0.024);
 
           for (let i = 0; i < pos.length; i += 3) {
@@ -2816,22 +2830,22 @@
             let dy = 0;
             let dz = 0;
 
-            // 1. Female Bust (Apex at x=+-0.079, y=1.215, z=0.183; physical height lift AND projection)
+            // 1. Female Bust (Apex at x=+-0.079, y=1.215, z=0.165; natural forward projection & teardrop settling without upward sliding)
             if (oz > 0.04 && oy >= 1.08 && oy <= 1.36 && Math.abs(ox) <= 0.18) {
-              const wBustL = compactWeight(ox, oy, oz, -0.079, 1.215, 0.165, 0.095, 0.14, 0.10);
-              const wBustR = compactWeight(ox, oy, oz,  0.079, 1.215, 0.165, 0.095, 0.14, 0.10);
+              const wBustL = compactWeight(ox, oy, oz, -0.079, 1.215, 0.165, 0.095, 0.140, 0.100);
+              const wBustR = compactWeight(ox, oy, oz,  0.079, 1.215, 0.165, 0.095, 0.140, 0.100);
               const wBust = Math.max(wBustL, wBustR);
               if (wBust > 0) {
-                dz += wBust * bustDisp;
-                dy += wBust * bustDisp * 0.40; // Perky upward elevation and upper chest fullness!
-                dx += (ox < 0 ? -1 : 1) * wBust * 0.20 * bustDisp;
+                dz += wBust * bustDisp * 1.15;
+                dy -= wBust * bustDisp * 0.05; // Gentle downward natural gravity settling (never slides upward!)
+                dx += (ox < 0 ? -1 : 1) * wBust * 0.22 * bustDisp;
               }
             }
 
-            // 2. Female Glutes / Butt (Spherical balloon bubble curve with 3D radial expansion)
-            if (oz < -0.05 && oy >= 0.70 && oy <= 1.05 && Math.abs(ox) <= 0.235) {
-              const cxL = -0.108, cxR = 0.108, cyGlute = 0.875, czGlute = -0.155;
-              const rxGl = 0.135, ryGl = 0.170, rzGl = 0.155;
+            // 2. Female Glutes / Butt (Isotropic spherical ball cheeks with true 3D radial expansion)
+            if (oy >= 0.70 && oy <= 1.05 && Math.abs(ox) <= 0.235) {
+              const cxL = -0.105, cxR = 0.105, cyGlute = 0.880, czGlute = -0.140;
+              const rxGl = 0.140, ryGl = 0.170, rzGl = 0.160;
               const wGlL = compactWeight(ox, oy, oz, cxL, cyGlute, czGlute, rxGl, ryGl, rzGl);
               const wGlR = compactWeight(ox, oy, oz, cxR, cyGlute, czGlute, rxGl, ryGl, rzGl);
               const wGl = Math.max(wGlL, wGlR);
@@ -2842,13 +2856,28 @@
                 const vy = (oy - cyGlute) / ryGl;
                 const vz = (oz - czGlute) / rzGl;
                 const len = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0;
-                dz -= wGl * gluteDisp * (0.65 + 0.35 * Math.max(0, -vz / len));
-                dx += (isLeft ? -1 : 1) * wGl * gluteDisp * (0.32 + 0.20 * Math.max(0, Math.abs(vx) / len));
-                dy += wGl * gluteDisp * (0.22 + 0.18 * (vy / len));
+                const ux = vx / len;
+                const uy = vy / len;
+                const uz = vz / len;
+
+                dx += ux * wGl * gluteDisp * 0.65;
+                dy += uy * wGl * gluteDisp * 0.60;
+                dz += uz * wGl * gluteDisp * 0.85;
               }
             }
 
-            // 3. Female Lateral Hips & Thighs (Bounded to PELVIS ONLY: |ox| <= 0.235, NEVER touches hands/arms!)
+            // 3. Female TFL (Tensor fasciae latae) & Gluteus Medius Seamless Pelvic Blend
+            if (oy >= 0.75 && oy <= 1.00 && Math.abs(ox) >= 0.08 && Math.abs(ox) <= 0.245) {
+              const wTflL = compactWeight(ox, oy, oz, -0.165, 0.890, -0.030, 0.090, 0.130, 0.120);
+              const wTflR = compactWeight(ox, oy, oz,  0.165, 0.890, -0.030, 0.090, 0.130, 0.120);
+              const wTfl = Math.max(wTflL, wTflR);
+              if (wTfl > 0) {
+                dx += Math.sign(ox) * wTfl * thighDisp * 0.70;
+                dz += (oz < 0 ? -0.40 : 0.25) * wTfl * thighDisp * 0.50;
+              }
+            }
+
+            // 4. Female Lateral Hips & Thighs (Bounded to PELVIS ONLY: |ox| <= 0.235, NEVER touches hands/arms!)
             if (Math.abs(ox) >= 0.09 && Math.abs(ox) <= 0.235 && oy >= 0.72 && oy <= 0.94 && Math.abs(oz) <= 0.15) {
               const dyHip = (oy - 0.83) / 0.11;
               const dxHip = (Math.abs(ox) - 0.17) / 0.07;
@@ -2860,16 +2889,16 @@
               }
             }
 
-            // 4. Female Abdominal Core & Tummy (Full vertical height lift and flat toned definition)
+            // 5. Female Abdominal Core & Tummy (Full vertical height lift and flat toned definition)
             if (oz > 0.04 && oy >= 0.94 && oy <= 1.22 && Math.abs(ox) <= 0.14) {
               const wCore = compactWeight(ox, oy, oz, 0.0, 1.08, 0.10, 0.11, 0.14, 0.08);
               if (wCore > 0) {
                 dz += wCore * stomachDisp;
-                dy += wCore * stomachDisp * 0.30; // Physical height lift along the abdominal wall!
+                dy += wCore * stomachDisp * 0.25;
               }
             }
 
-            // 5. Female Waist Cinch (Deep hourglass contour preserving natural spine)
+            // 6. Female Waist Cinch (Deep hourglass contour preserving natural spine)
             if (oy >= 0.98 && oy <= 1.14 && Math.abs(ox) <= 0.18) {
               const wWst = compactWeight(ox, oy, oz, 0.0, 1.06, 0.0, 0.16, 0.09, 0.12);
               if (wWst > 0) {
