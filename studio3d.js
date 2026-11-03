@@ -15,45 +15,52 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  // Camera Presets configured specifically for Portrait Mobile & Desktop Framing
-  const CAMERA_STATES = {
-    STUDIO_OVERVIEW: {
-      position: new THREE.Vector3(0, 1.22, 3.10),
-      target: new THREE.Vector3(-0.08, 1.08, 0),
-      fovLandscape: 42,
-      fovPortrait: 56
-    },
-    WARDROBE_CLOSEUP: {
-      position: new THREE.Vector3(-0.96, 1.20, 2.50),
-      target: new THREE.Vector3(-0.96, 1.20, -0.32),
-      fovLandscape: 38,
-      fovPortrait: 54
-    },
-    AVATAR_FULL_BODY: {
-      position: new THREE.Vector3(0, 1.10, 2.10),
-      target: new THREE.Vector3(0, 1.00, 0),
-      fovLandscape: 36,
-      fovPortrait: 44
-    },
-    AVATAR_DETAIL: {
-      position: new THREE.Vector3(0, 1.44, 1.10),
-      target: new THREE.Vector3(0, 1.38, 0),
-      fovLandscape: 30,
-      fovPortrait: 36
-    },
-    VANITY_VIEW: {
-      position: new THREE.Vector3(0.65, 1.25, 1.55),
-      target: new THREE.Vector3(0.85, 1.20, -0.10),
-      fovLandscape: 38,
-      fovPortrait: 46
-    },
-    MIRROR_VIEW: {
-      position: new THREE.Vector3(0.65, 1.25, 1.55),
-      target: new THREE.Vector3(0.85, 1.20, -0.10),
-      fovLandscape: 38,
-      fovPortrait: 46
-    }
-  };
+  // Camera Presets configured specifically for Portrait Mobile & Desktop Framing.
+  // Instantiated lazily only when Three.js is loaded.
+  let CAMERA_STATES = null;
+
+  function createCameraStates() {
+    if (typeof THREE === 'undefined') return null;
+    CAMERA_STATES = {
+      STUDIO_OVERVIEW: {
+        position: new THREE.Vector3(0, 1.22, 3.10),
+        target: new THREE.Vector3(-0.08, 1.08, 0),
+        fovLandscape: 42,
+        fovPortrait: 56
+      },
+      WARDROBE_CLOSEUP: {
+        position: new THREE.Vector3(-0.96, 1.20, 2.50),
+        target: new THREE.Vector3(-0.96, 1.20, -0.32),
+        fovLandscape: 38,
+        fovPortrait: 54
+      },
+      AVATAR_FULL_BODY: {
+        position: new THREE.Vector3(0, 1.10, 2.10),
+        target: new THREE.Vector3(0, 1.00, 0),
+        fovLandscape: 36,
+        fovPortrait: 44
+      },
+      AVATAR_DETAIL: {
+        position: new THREE.Vector3(0, 1.44, 1.10),
+        target: new THREE.Vector3(0, 1.38, 0),
+        fovLandscape: 30,
+        fovPortrait: 36
+      },
+      VANITY_VIEW: {
+        position: new THREE.Vector3(0.65, 1.25, 1.55),
+        target: new THREE.Vector3(0.85, 1.20, -0.10),
+        fovLandscape: 38,
+        fovPortrait: 46
+      },
+      MIRROR_VIEW: {
+        position: new THREE.Vector3(0.65, 1.25, 1.55),
+        target: new THREE.Vector3(0.85, 1.20, -0.10),
+        fovLandscape: 38,
+        fovPortrait: 46
+      }
+    };
+    return CAMERA_STATES;
+  }
 
   // Color Tokens matching Sérén Design System
   const COLOR_PALETTE = {
@@ -87,9 +94,10 @@
 
       // Camera Animation State
       this.currentCameraState = 'STUDIO_OVERVIEW';
-      this.targetCameraPos = CAMERA_STATES.STUDIO_OVERVIEW.position.clone();
-      this.targetCameraLookAt = CAMERA_STATES.STUDIO_OVERVIEW.target.clone();
-      this.currentCameraLookAt = CAMERA_STATES.STUDIO_OVERVIEW.target.clone();
+      this.cameraStates = null;
+      this.targetCameraPos = null;
+      this.targetCameraLookAt = null;
+      this.currentCameraLookAt = null;
 
       // Zoom & Distance clamping
       this.cameraZoomFactor = 1.0;
@@ -98,8 +106,8 @@
 
       // Interactive 3D Objects for Raycasting
       this.interactiveObjects = [];
-      this.raycaster = new THREE.Raycaster();
-      this.mouse = new THREE.Vector2();
+      this.raycaster = null;
+      this.mouse = null;
 
       // Avatar & Wearable Garment System
       this.avatarRoot = null;
@@ -155,7 +163,7 @@
       this.pinchStartDist = 0;
 
       // Animation Loop & Morphing
-      this.clock = new THREE.Clock();
+      this.clock = null;
       this.animationFrameId = null;
       this.blinkTimer = 0;
       this.nextBlinkTime = 3.2;
@@ -186,9 +194,23 @@
       }
 
       if (typeof THREE === 'undefined') {
-        console.error('Studio3D: THREE.js library is not loaded');
-        return;
+        console.warn('Studio3D: THREE.js library is not loaded');
+        if (typeof window !== 'undefined' && typeof window.showStudio3DFallback === 'function') {
+          window.showStudio3DFallback('The 3D studio is unavailable offline or without WebGL.');
+        }
+        return false;
       }
+
+      // Initialize deferred Three.js state
+      this.cameraStates = createCameraStates();
+      if (!this.targetCameraPos && this.cameraStates) {
+        this.targetCameraPos = this.cameraStates.STUDIO_OVERVIEW.position.clone();
+        this.targetCameraLookAt = this.cameraStates.STUDIO_OVERVIEW.target.clone();
+        this.currentCameraLookAt = this.cameraStates.STUDIO_OVERVIEW.target.clone();
+      }
+      if (!this.raycaster) this.raycaster = new THREE.Raycaster();
+      if (!this.mouse) this.mouse = new THREE.Vector2();
+      if (!this.clock) this.clock = new THREE.Clock();
 
       // Load saved preferences from localStorage if available
       this.loadSavedPreferences();
@@ -2006,7 +2028,7 @@
      * Handles Raycast selection on wardrobe & vanity 3D objects
      */
     handleCanvasClick(clientX, clientY) {
-      if (!this.canvas || !this.camera || !this.scene) return;
+      if (!this.canvas || !this.camera || !this.scene || !this.raycaster || !this.mouse) return;
       if (this.cameraController && typeof this.cameraController.raycastClick === 'function') {
         this.cameraController.raycastClick(clientX, clientY, this.canvas, this.interactiveObjects, (type, userData) => {
           if (typeof this.onObjectClick === 'function') {
@@ -2051,10 +2073,15 @@
           return;
         }
       }
-      if (CAMERA_STATES[stateName]) {
+      const states = this.cameraStates || CAMERA_STATES;
+      if (states && states[stateName]) {
         this.currentCameraState = stateName;
-        this.targetCameraPos.copy(CAMERA_STATES[stateName].position);
-        this.targetCameraLookAt.copy(CAMERA_STATES[stateName].target);
+        if (this.targetCameraPos && states[stateName].position) {
+          this.targetCameraPos.copy(states[stateName].position);
+        }
+        if (this.targetCameraLookAt && states[stateName].target) {
+          this.targetCameraLookAt.copy(states[stateName].target);
+        }
       }
     }
 
@@ -2379,6 +2406,7 @@
     destroy() {
       if (this.animationFrameId) {
         cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
       }
       if (this.stageModel) {
         this.stageModel.dispose(this.scene);
@@ -2407,6 +2435,7 @@
       }
       if (this.renderer) {
         this.renderer.dispose();
+        this.renderer = null;
       }
       this.isInitialized = false;
     }
