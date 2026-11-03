@@ -2167,49 +2167,56 @@
       if (num < 30) desc = 'Petite';
       else if (num < 70) desc = 'Natural Sculpted';
       else if (num < 110) desc = 'Full Sculpted';
-      else desc = 'Voluptuous Runway';
+      else if (num < 155) desc = 'Voluptuous Runway';
+      else desc = 'High-Glamour Curvature';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'glutes') {
       let desc = 'Contoured';
       if (num < 35) desc = isMale ? 'Toned Athletic' : 'Toned / Subtle';
       else if (num < 70) desc = isMale ? 'Athletic Contoured' : 'Contoured Peach';
       else if (num < 110) desc = isMale ? 'Muscular Glutes' : 'Full Sculpted';
-      else desc = isMale ? 'Power Athletic Glutes' : 'Voluptuous Brazilian Curve';
+      else if (num < 155) desc = isMale ? 'Power Athletic Glutes' : 'Voluptuous Brazilian Curve';
+      else desc = isMale ? 'Max Bodybuilder Glutes' : 'Ultra Brazilian Hourglass';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'thighs') {
       let desc = isMale ? 'Athletic' : 'Balanced';
       if (num < 35) desc = isMale ? 'Lean / Runner' : 'Slender';
       else if (num < 70) desc = isMale ? 'Athletic Quads' : 'Balanced Curve';
       else if (num < 110) desc = isMale ? 'Power Muscular' : 'Curvaceous Hips';
-      else desc = isMale ? 'Heavy Power Quads' : 'Brazilian Hourglass Flare';
+      else if (num < 155) desc = isMale ? 'Heavy Power Quads' : 'Brazilian Hourglass Flare';
+      else desc = isMale ? 'Max Pro Bodybuilder Quads' : 'Ultra Curvaceous Flare';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'pecs') {
       let desc = 'Athletic';
       if (num < 30) desc = 'Lean Athletic';
       else if (num < 70) desc = 'Athletic Build';
       else if (num < 110) desc = 'Broad Armor Pecs';
-      else desc = 'Bodybuilder Chest';
+      else if (num < 155) desc = 'Bodybuilder Chest';
+      else desc = 'Max Pro Bodybuilder Pecs';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'shoulders') {
       let desc = 'Athletic';
       if (num < 35) desc = 'Standard Width';
       else if (num < 75) desc = 'Broad V-Taper';
       else if (num < 110) desc = 'Athletic Deltoids';
-      else desc = 'Boulder Deltoids';
+      else if (num < 155) desc = 'Boulder Deltoids';
+      else desc = 'Ultra Broad Heroic Deltoids';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'stomach') {
       let desc = 'Natural Core';
       if (num < 25) desc = 'Flat / 8-Pack Core';
       else if (num < 65) desc = 'Natural Athletic';
       else if (num < 110) desc = 'Full Midsection';
-      else desc = 'Heavy Core';
+      else if (num < 155) desc = 'Heavy Core';
+      else desc = 'Heavy Power Core';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'waist') {
       let desc = 'Cinched';
       if (num < 30) desc = 'Straight / Natural';
       else if (num < 65) desc = 'Tapered';
       else if (num < 110) desc = 'Hourglass Cinch';
-      else desc = 'Ultra Hourglass Cinch';
+      else if (num < 155) desc = 'Ultra Hourglass Cinch';
+      else desc = 'Extreme Hourglass Cinch';
       text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'height') {
       const cm = Math.round(num > 3 ? num : num * 100);
