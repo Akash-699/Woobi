@@ -2126,9 +2126,16 @@
   function initStreakState() {
     const engine = getStreakEngine();
     if (engine) {
-      if (!engine.userId && (!engine.state.currentStreak || engine.state.currentStreak < 100)) {
-        if (typeof engine.seedStreakJun21ToToday === 'function') {
-          engine.seedStreakJun21ToToday();
+      const userMode = (typeof localStorage !== 'undefined') ? localStorage.getItem('woobi_streak_user_mode') : null;
+      if (userMode !== 'real') {
+        if (typeof engine.loadTestUserStreak136 === 'function') {
+          engine.loadTestUserStreak136();
+        } else if (typeof engine.seedTestUserStreak136 === 'function') {
+          engine.seedTestUserStreak136();
+        }
+      } else if (!engine.userId) {
+        if (typeof engine.switchToRealUser === 'function') {
+          engine.switchToRealUser('user_real');
         }
       }
       state.streak = getStreakStatusSafe(engine);
@@ -2454,6 +2461,27 @@
     if (activeEl) activeEl.textContent = calData.stats.activeDays;
     if (brokenEl) brokenEl.textContent = calData.stats.brokenDays;
     if (upcomingEl) upcomingEl.textContent = calData.stats.upcomingDays;
+
+    // Update Streak Test Mode Banner
+    const testPillEl = document.getElementById('testModeStatusPill');
+    const testTagEl = document.getElementById('testUserTag');
+    const btnToggleEl = document.getElementById('btnToggleUserMode');
+    const btnResetEl = document.getElementById('btnResetTestData');
+    const isTest = engine && typeof engine.isTestUser === 'function' ? engine.isTestUser() : false;
+
+    if (testPillEl) {
+      testPillEl.textContent = isTest ? 'TEST MODE • 136-DAY PREVIEW' : 'REAL USER MODE • AUTHENTIC';
+      testPillEl.style.color = isTest ? '#C05621' : '#2E7D32';
+    }
+    if (testTagEl) {
+      testTagEl.textContent = isTest ? `User: ${engine.userId || 'test_user_136'}` : `User: ${engine.userId || 'real_user'}`;
+    }
+    if (btnToggleEl) {
+      btnToggleEl.textContent = isTest ? 'Switch to Real' : 'Switch to Test (136 Days)';
+    }
+    if (btnResetEl) {
+      btnResetEl.style.display = isTest ? 'inline-block' : 'none';
+    }
 
     if (!gridEl) return;
     gridEl.innerHTML = '';
@@ -3107,11 +3135,41 @@
       engine.state.lastUploadDateStr = null;
       engine.state.lastRestoredCycleKey = null;
       engine.memories = [];
-      engine._seedReferenceMemories();
       engine.save();
     }
     initStreakState();
     showToast('🗑️ Reset streak to fresh starter state (0 days, no lost streak).');
+  }
+
+  function resetTestData() {
+    const engine = getStreakEngine();
+    if (engine && typeof engine.resetTestData === 'function') {
+      engine.resetTestData();
+    }
+    state.streak = getStreakStatusSafe(engine);
+    updateStreakUI();
+    renderStreakCalendar();
+    showToast('🔥 Reset 136-day test data (June 21 – Today) with Level 5 fire!');
+  }
+
+  function toggleTestUserMode() {
+    const engine = getStreakEngine();
+    if (!engine) return;
+    const isTest = typeof engine.isTestUser === 'function' ? engine.isTestUser() : false;
+    if (isTest) {
+      if (typeof engine.switchToRealUser === 'function') {
+        engine.switchToRealUser('user_real');
+      }
+      showToast('Switched to Real User mode (Authentic streaks).');
+    } else {
+      if (typeof engine.loadTestUserStreak136 === 'function') {
+        engine.loadTestUserStreak136();
+      }
+      showToast('Switched to Test User (136-day streak with Level 5 fire)!');
+    }
+    state.streak = getStreakStatusSafe(engine);
+    updateStreakUI();
+    renderStreakCalendar();
   }
 
   // Legacy compatibility helpers
@@ -3788,6 +3846,24 @@
     devSimulateStreakBreak,
     devToggleRestoreToken,
     devResetStreak,
+    resetTestData,
+    toggleTestUserMode,
+    loadTestUserStreak136: () => {
+      const eng = getStreakEngine();
+      if (eng && typeof eng.loadTestUserStreak136 === 'function') {
+        eng.loadTestUserStreak136();
+      }
+      renderStreakCalendar();
+      updateStreakUI();
+    },
+    switchToRealUser: (id) => {
+      const eng = getStreakEngine();
+      if (eng && typeof eng.switchToRealUser === 'function') {
+        eng.switchToRealUser(id);
+      }
+      renderStreakCalendar();
+      updateStreakUI();
+    },
 
     // Interactive Weekly Calendar & Outfit Planner API
     renderWeeklyCalendar,

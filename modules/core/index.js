@@ -1,7 +1,7 @@
 import { AppBootstrap, appBootstrap } from './app/AppBootstrap.js';
 import { NavigationRouter, navigationRouter } from './navigation/NavigationRouter.js';
 import { Store, store } from './state/Store.js';
-import { StreakState, streakState, createStreakState, STREAK_EVENTS } from './state/StreakState.js';
+import { StreakState, streakState, createStreakState, STREAK_EVENTS, TEST_USER_ID } from './state/StreakState.js';
 import { toastService } from './shared-ui/ToastService.js';
 import { modalService } from './shared-ui/ModalService.js';
 import { GlobalErrorHandler, globalErrorHandler } from './errors/GlobalErrorHandler.js';
@@ -19,6 +19,7 @@ export {
   streakState,
   createStreakState,
   STREAK_EVENTS,
+  TEST_USER_ID,
   toastService,
   modalService,
   GlobalErrorHandler,

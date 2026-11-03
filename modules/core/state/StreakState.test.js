@@ -1,6 +1,6 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { StreakState, STREAK_EVENTS } from './StreakState.js';
+import { StreakState, STREAK_EVENTS, TEST_USER_ID } from './StreakState.js';
 
 describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
   let streakState;
@@ -278,6 +278,50 @@ describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
     assert.strictEqual(streakState.getFireLevel(100), 5);
     assert.strictEqual(streakState.getFireLevel(200), 5);
     assert.strictEqual(streakState.getFireLevel(250), 5);
+  });
+
+  it('20. generates 136-day test user dataset with Level 5 fire and marked test memories', () => {
+    streakState.setUserId(TEST_USER_ID);
+    const res = streakState.seedTestUserStreak136();
+    assert.strictEqual(res.success, true);
+    assert.strictEqual(res.streak, 136);
+    assert.strictEqual(streakState.state.currentStreak, 136);
+    assert.strictEqual(streakState.state.bestStreak, 136);
+    assert.strictEqual(streakState.state.isTestUser, true);
+    assert.strictEqual(streakState.isTestUser(), true);
+
+    const status = streakState.getStreakStatus();
+    assert.strictEqual(status.currentStreak, 136);
+    assert.strictEqual(status.fireLevel, 5, '136-day streak must display Level 5 fire');
+    assert.strictEqual(status.fireLevelName, 'Final Fire');
+
+    assert.strictEqual(streakState.memories.length, 136);
+    assert.strictEqual(streakState.memories[0].date, '2026-06-21');
+    assert.strictEqual(streakState.memories[135].date, '2026-11-03');
+    assert.strictEqual(streakState.memories[0].isTestData, true);
+    assert.ok(streakState.memories[0].note.startsWith('[TEST DATA]'));
+  });
+
+  it('21. strictly isolates 136-day test data from real users', () => {
+    streakState.loadTestUserStreak136();
+    assert.strictEqual(streakState.state.currentStreak, 136);
+    assert.strictEqual(streakState.isTestUser(), true);
+
+    // Switch to a new real user
+    streakState.switchToRealUser('real_user_789');
+    assert.strictEqual(streakState.isTestUser(), false);
+    assert.strictEqual(streakState.state.currentStreak, 0, 'Real user must have 0 initial streak');
+    assert.strictEqual(streakState.memories.length, 0, 'Real user must have zero test memories');
+  });
+
+  it('22. allows resetting test data cleanly without corrupting other users', () => {
+    streakState.loadTestUserStreak136();
+    assert.strictEqual(streakState.state.currentStreak, 136);
+
+    const resetRes = streakState.resetTestData();
+    assert.strictEqual(resetRes.success, true);
+    assert.strictEqual(streakState.state.currentStreak, 136);
+    assert.strictEqual(streakState.memories.length, 136);
   });
 });
 

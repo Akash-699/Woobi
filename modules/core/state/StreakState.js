@@ -12,6 +12,8 @@ export const STREAK_EVENTS = {
   MEMORY_ADDED: 'memory:added'
 };
 
+export const TEST_USER_ID = 'test_user_136';
+
 export const STREAK_STORAGE_KEYS = {
   STATE: 'woobi_outfit_streak_v2',
   MEMORIES: 'woobi_outfit_memories_v1',
@@ -157,25 +159,106 @@ export class StreakState {
     if (rawMemories) {
       try {
         const parsed = JSON.parse(rawMemories);
-        if (Array.isArray(parsed) && parsed.length >= 100) {
+        if (Array.isArray(parsed)) {
           this.memories = parsed;
-        } else if (!this.userId) {
-          this._seedReferenceMemories();
         }
       } catch (e) {
         console.warn('[StreakState] Could not parse stored memories:', e);
       }
-    } else if (!this.userId) {
-      // Seed initial June 21 to today reference streak for guest
-      this._seedReferenceMemories();
+    } else if (this.userId === TEST_USER_ID) {
+      // Seed isolated 136-day streak test data for test user
+      this.seedTestUserStreak136();
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Test User & Isolation System (136-Day Preview Mode)
+  // ---------------------------------------------------------------------------
+  isTestUser() {
+    return this.userId === TEST_USER_ID || Boolean(this.state.isTestUser);
+  }
+
+  loadTestUserStreak136() {
+    this.setUserId(TEST_USER_ID);
+    if (!this.memories || this.memories.length < 136 || this.state.currentStreak !== 136) {
+      this.seedTestUserStreak136();
+    }
+    this.state.isTestUser = true;
+    this.state.isTestData = true;
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('woobi_streak_user_mode', 'test');
+      } catch (e) {}
+    }
+    this._emit(STREAK_EVENTS.UPDATED, this.getStatus());
+    return this.getStatus();
+  }
+
+  resetTestData() {
+    this.setUserId(TEST_USER_ID);
+    return this.seedTestUserStreak136();
+  }
+
+  clearTestData() {
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.removeItem(`woobi_outfit_streak_${TEST_USER_ID}`);
+        localStorage.removeItem(`woobi_outfit_memories_${TEST_USER_ID}`);
+        localStorage.removeItem('woobi_streak_user_mode');
+      } catch (e) {}
+    }
+    if (this._memoryStore) {
+      this._memoryStore.delete(`woobi_outfit_streak_${TEST_USER_ID}`);
+      this._memoryStore.delete(`woobi_outfit_memories_${TEST_USER_ID}`);
+    }
+    if (this.userId === TEST_USER_ID) {
+      this.state = {
+        currentStreak: 0,
+        bestStreak: 0,
+        savedPreviousStreak: 0,
+        isStreakBroken: false,
+        deadline: Date.now() + this.options.deadlineDurationMs,
+        lastUploadTimestamp: null,
+        lastUploadDateStr: null,
+        lastRestoredCycleKey: null,
+        hasEarnedStreak: false,
+        uploadedToday: false,
+        morningReminderSent: false,
+        urgentReminderSent: false,
+        isTestUser: false,
+        isTestData: false
+      };
+      this.memories = [];
+      this.userId = null;
+      this.options.storageKey = STREAK_STORAGE_KEYS.STATE;
+      this.options.memoriesKey = STREAK_STORAGE_KEYS.MEMORIES;
+    }
+    this._emit(STREAK_EVENTS.RESET, { streak: 0 });
+    return { success: true };
+  }
+
+  switchToRealUser(realUserId = 'user_real') {
+    this.setUserId(realUserId);
+    this.state.isTestUser = false;
+    this.state.isTestData = false;
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('woobi_streak_user_mode', 'real');
+      } catch (e) {}
+    }
+    this._emit(STREAK_EVENTS.UPDATED, this.getStatus());
+    return this.getStatus();
+  }
+
   _seedReferenceMemories() {
-    this.seedStreakJun21ToToday();
+    this.seedTestUserStreak136();
   }
 
   seedStreakJun21ToToday() {
+    return this.seedTestUserStreak136();
+  }
+
+  seedTestUserStreak136() {
     this.memories = [];
     const demoGarments = [
       { name: 'Navy Tailored Oxford & Sand Chinos', img: 'assets/navy_shirt.jpg' },
@@ -200,12 +283,13 @@ export class StreakState {
       const garment = demoGarments[(streakCounter - 1) % demoGarments.length];
 
       this.memories.push({
-        id: `mem_streak_${dateKey.replace(/-/g, '')}`,
+        id: `mem_test_streak_${dateKey.replace(/-/g, '')}`,
         date: dateKey,
         timestamp: new Date(`${dateKey}T10:30:00Z`).getTime(),
         photoUrl: garment.img,
-        note: `Day ${streakCounter} • ${garment.name}`,
-        streakDay: streakCounter
+        note: `[TEST DATA] Day ${streakCounter} • ${garment.name}`,
+        streakDay: streakCounter,
+        isTestData: true
       });
 
       streakCounter++;
@@ -222,9 +306,12 @@ export class StreakState {
     this.state.lastUploadTimestamp = new Date('2026-11-03T10:30:00Z').getTime();
     this.state.lastUploadDateStr = '2026-11-03';
     this.state.deadline = new Date('2026-11-04T23:59:59Z').getTime();
+    this.state.isTestUser = true;
+    this.state.isTestData = true;
 
     this.save();
     this._emit(STREAK_EVENTS.UPDATED, this.getStatus());
+    return { success: true, streak: totalDays, totalMemories: this.memories.length };
   }
 
   getFirstMemoryDateStr() {
@@ -342,7 +429,8 @@ export class StreakState {
       deadline: this.state.deadline,
       msRemaining,
       isRestoreAvailable: this.isMonthlyRestoreAvailable(),
-      nextRefreshDate: this.getNextRestoreRefreshDateStr()
+      nextRefreshDate: this.getNextRestoreRefreshDateStr(),
+      isTestUser: this.isTestUser()
     };
   }
 
@@ -563,7 +651,8 @@ export class StreakState {
         fireLevel: status === 'completed' ? fireLevel : 0,
         fireLevelName: status === 'completed' ? this.getFireLevelName(streakOnDay) : '',
         streakOnDay,
-        memory: memory || null
+        memory: memory || null,
+        isTestData: Boolean(memory && memory.isTestData)
       });
     }
 

@@ -8612,6 +8612,78 @@ html, body {
   border-color: rgba(200, 90, 23, 0.5);
 }
 
+/* ==========================================================================
+   STREAK TEST MODE BANNER & CONTROLS (136-DAY PREVIEW)
+   ========================================================================== */
+.streak-test-mode-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  margin: 6px 10px 8px 10px;
+  background: #FDF5E9;
+  border: 1px solid #ECC99B;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(76, 59, 48, 0.08);
+  font-family: inherit;
+  z-index: 8;
+  gap: 8px;
+}
+
+.test-mode-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.test-mode-pill {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #C05621;
+}
+
+.test-user-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6D4C41;
+}
+
+.test-mode-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-test-action {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid #D69E2E;
+  background: #FFF8E7;
+  color: #7B341E;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.btn-test-action:hover {
+  background: #FEEBC8;
+  transform: translateY(-1px);
+}
+
+.btn-test-action.btn-toggle-mode {
+  border-color: #8D6E63;
+  background: #EFEBE9;
+  color: #4E342E;
+}
+
+.btn-test-action.btn-toggle-mode:hover {
+  background: #D7CCC8;
+}
+
 /* White Inner Card Container */
 .streak-calendar-card.recessed-theme-calendar {
   background: #FFFFFF;
@@ -8743,46 +8815,51 @@ html, body {
   position: relative;
   overflow: visible;
   padding-bottom: 2px;
-  background: linear-gradient(180deg, #E9DFD4 0%, #F5ECE3 100%);
-  box-shadow: inset 0 2.5px 5px rgba(110, 85, 65, 0.35),
-              inset 0 1px 2px rgba(80, 50, 30, 0.40),
-              inset 0 -2px 3px rgba(255, 255, 255, 0.9);
+  background: radial-gradient(circle at 50% 75%, #241A13 0%, #16100B 55%, #0C0806 100%);
+  border: 1px solid rgba(50, 34, 25, 0.75);
+  box-shadow: inset 0 3.5px 7px rgba(0, 0, 0, 0.88),
+              inset 0 1.5px 3px rgba(10, 5, 2, 0.95),
+              inset 0 -2px 4px rgba(230, 110, 20, 0.18),
+              0 1px 1px rgba(255, 255, 255, 0.75);
   transition: all 0.22s ease;
 }
 
 /* Socket Variants */
 .crater-socket.completed-crater {
-  background: radial-gradient(circle at 50% 70%, #F8E2C8 0%, #EBD5BE 50%, #DCBEA2 100%);
-  box-shadow: inset 0 3px 6px rgba(160, 60, 10, 0.45),
-              0 0 14px rgba(255, 140, 20, 0.55),
-              inset 0 -3px 6px rgba(255, 180, 50, 0.4);
+  background: radial-gradient(circle at 50% 80%, #351A0E 0%, #1E1007 50%, #0F0704 100%);
+  border: 1px solid rgba(85, 42, 18, 0.75);
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.92),
+              inset 0 1px 3px rgba(0, 0, 0, 0.95),
+              inset 0 -3px 6px rgba(235, 100, 15, 0.38),
+              0 0 6px rgba(235, 110, 20, 0.18);
 }
 
 .crater-socket.missed-crater {
-  background: radial-gradient(circle at 50% 75%, #F0E6DC 0%, #D8CCC0 55%, #C2B3A3 100%);
-  box-shadow: inset 0 3px 6px rgba(55, 45, 40, 0.42),
-              inset 0 1px 2px rgba(40, 30, 25, 0.35),
-              inset 0 -2px 3px rgba(255, 255, 255, 0.7);
+  background: radial-gradient(circle at 50% 75%, #231C18 0%, #171310 55%, #0D0A08 100%);
+  border: 1px solid rgba(48, 38, 32, 0.85);
+  box-shadow: inset 0 3.5px 7px rgba(0, 0, 0, 0.90),
+              inset 0 1px 2px rgba(10, 8, 6, 0.95),
+              inset 0 -2px 3px rgba(255, 100, 20, 0.15);
   animation: missedCraterEmbers 2.4s ease-in-out infinite alternate;
 }
 
 @keyframes missedCraterEmbers {
   0% {
-    box-shadow: inset 0 3px 6px rgba(55, 45, 40, 0.42),
-                inset 0 1px 2px rgba(40, 30, 25, 0.35),
-                inset 0 -2px 3px rgba(255, 120, 30, 0.25);
+    box-shadow: inset 0 3.5px 7px rgba(0, 0, 0, 0.90),
+                inset 0 1px 2px rgba(10, 8, 6, 0.95),
+                inset 0 -2px 3px rgba(255, 100, 20, 0.12);
   }
   100% {
-    box-shadow: inset 0 3px 6px rgba(55, 45, 40, 0.42),
-                inset 0 1px 2px rgba(40, 30, 25, 0.35),
-                inset 0 -3px 5px rgba(255, 80, 10, 0.5);
+    box-shadow: inset 0 3.5px 7px rgba(0, 0, 0, 0.90),
+                inset 0 1px 2px rgba(10, 8, 6, 0.95),
+                inset 0 -3px 5px rgba(255, 75, 10, 0.35);
   }
 }
 
 .crater-socket.today-crater {
-  background: #FFFBF4;
-  border: 1.5px dashed #E67E22;
-  box-shadow: 0 0 8px rgba(230, 126, 34, 0.35), inset 0 2px 4px rgba(230, 126, 34, 0.15);
+  background: radial-gradient(circle at 50% 75%, #2A1A10 0%, #180F09 60%, #0D0805 100%);
+  border: 1.5px dashed #FF8A00;
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.9), 0 0 8px rgba(255, 138, 0, 0.40);
   animation: todayCraterPulse 1.8s ease-in-out infinite;
 }
 
@@ -8802,7 +8879,10 @@ html, body {
 }
 
 .crater-socket.upcoming-crater {
-  opacity: 0.78;
+  background: radial-gradient(circle at 50% 75%, #281E17 0%, #19130E 60%, #0E0A07 100%);
+  border: 1px solid rgba(42, 30, 22, 0.75);
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.85), inset 0 1px 2px rgba(0, 0, 0, 0.90);
+  opacity: 0.88;
 }
 
 /* ==========================================================================
@@ -8823,33 +8903,39 @@ html, body {
   overflow: visible;
 }
 
-/* Pure burning & flowing flame animation - No side-to-side dancing */
+/* Pure burning & flowing flame animation with continuous smooth shaking */
 .streak-cell-fire-wrap.burning-flow-active,
 .streak-cell-fire-wrap.fire-shaking-active {
-  animation-name: fireBurningFlowSurge;
+  animation-name: fireSmoothContinuousShake;
   animation-duration: 1.25s;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
 }
 
-@keyframes fireBurningFlowSurge {
+@keyframes fireSmoothContinuousShake {
   0% {
-    transform: translateY(0) scaleY(1.0) scaleX(1.0) skewX(0deg);
+    transform: translateY(0) rotate(0deg) scale(1.0);
   }
-  20% {
-    transform: translateY(-1.4px) scaleY(1.07) scaleX(0.96) skewX(-0.8deg);
+  15% {
+    transform: translateY(-1.2px) rotate(-0.8deg) scaleY(1.04) scaleX(0.97);
   }
-  40% {
-    transform: translateY(-0.6px) scaleY(0.98) scaleX(1.02) skewX(0.5deg);
+  30% {
+    transform: translateY(-0.5px) rotate(0.6deg) scaleY(0.98) scaleX(1.01);
   }
-  65% {
-    transform: translateY(-2.4px) scaleY(1.14) scaleX(0.93) skewX(-1deg);
+  45% {
+    transform: translateY(-2.0px) rotate(-1.0deg) scaleY(1.08) scaleX(0.95);
   }
-  85% {
-    transform: translateY(-1.0px) scaleY(1.04) scaleX(0.98) skewX(0.6deg);
+  60% {
+    transform: translateY(-1.0px) rotate(0.8deg) scaleY(1.02) scaleX(0.99);
+  }
+  75% {
+    transform: translateY(-2.4px) rotate(-0.5deg) scaleY(1.10) scaleX(0.94);
+  }
+  90% {
+    transform: translateY(-0.8px) rotate(0.5deg) scaleY(1.01) scaleX(0.99);
   }
   100% {
-    transform: translateY(0) scaleY(1.0) scaleX(1.0) skewX(0deg);
+    transform: translateY(0) rotate(0deg) scale(1.0);
   }
 }
 
@@ -8859,7 +8945,7 @@ html, body {
   height: 38px;
   object-fit: contain;
   transform-origin: 50% 90%;
-  animation-name: fireBurningFlameLick;
+  animation-name: fireSmoothContinuousFlicker;
   animation-duration: 1.15s;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
@@ -8867,26 +8953,18 @@ html, body {
   pointer-events: none;
 }
 
-@keyframes fireBurningFlameLick {
+@keyframes fireSmoothContinuousFlicker {
   0% {
-    transform: scale(1);
-    filter: brightness(1.0) drop-shadow(0 -3px 6px rgba(255, 140, 20, 0.8)) drop-shadow(0 0 10px rgba(255, 70, 0, 0.5));
+    filter: brightness(1.04) saturate(1.18) drop-shadow(0 -2px 5px rgba(255, 120, 15, 0.58)) drop-shadow(0 0 5px rgba(230, 90, 10, 0.28));
   }
-  25% {
-    transform: scaleY(1.08) scaleX(0.95);
-    filter: brightness(1.15) drop-shadow(0 -5px 10px rgba(255, 175, 30, 0.92)) drop-shadow(0 -2px 5px rgba(255, 50, 0, 0.7));
+  35% {
+    filter: brightness(1.12) saturate(1.24) drop-shadow(0 -3px 7px rgba(255, 140, 20, 0.68)) drop-shadow(0 0 6px rgba(255, 95, 10, 0.35));
   }
-  55% {
-    transform: scaleY(0.97) scaleX(1.03);
-    filter: brightness(1.05) drop-shadow(0 -2px 6px rgba(255, 130, 10, 0.82)) drop-shadow(0 0 8px rgba(255, 60, 0, 0.55));
-  }
-  80% {
-    transform: scaleY(1.13) scaleX(0.93);
-    filter: brightness(1.22) drop-shadow(0 -7px 14px rgba(255, 200, 40, 0.96)) drop-shadow(0 -3px 7px rgba(255, 40, 0, 0.8));
+  70% {
+    filter: brightness(1.06) saturate(1.16) drop-shadow(0 -2px 4px rgba(255, 110, 15, 0.52)) drop-shadow(0 0 4px rgba(220, 80, 10, 0.25));
   }
   100% {
-    transform: scale(1);
-    filter: brightness(1.0) drop-shadow(0 -3px 6px rgba(255, 140, 20, 0.8)) drop-shadow(0 0 10px rgba(255, 70, 0, 0.5));
+    filter: brightness(1.15) saturate(1.26) drop-shadow(0 -3.5px 8px rgba(255, 150, 25, 0.72)) drop-shadow(0 0 7px rgba(255, 105, 15, 0.38));
   }
 }
 
@@ -8954,7 +9032,7 @@ html, body {
   animation-duration: 1.35s;
 }
 .fire-lvl-1-img {
-  filter: drop-shadow(0 -3px 6px rgba(255, 140, 20, 0.8)) drop-shadow(0 0 8px rgba(255, 80, 0, 0.5));
+  filter: brightness(1.04) saturate(1.18) drop-shadow(0 -2px 5px rgba(255, 120, 15, 0.58)) drop-shadow(0 0 5px rgba(230, 90, 10, 0.28));
 }
 
 /* Level 2: Second Fire (10–29 days) – Brighter golden burning surge */
@@ -8963,7 +9041,7 @@ html, body {
   animation-duration: 1.15s;
 }
 .fire-lvl-2-img {
-  filter: drop-shadow(0 -4px 9px rgba(255, 160, 20, 0.88)) drop-shadow(0 -1px 4px rgba(255, 80, 0, 0.6));
+  filter: brightness(1.05) saturate(1.20) drop-shadow(0 -2.5px 6px rgba(255, 130, 15, 0.62)) drop-shadow(0 0 5px rgba(230, 90, 10, 0.30));
 }
 
 /* Level 3: Third Fire (30–49 days) – Stronger flame movement, intense heat surge */
@@ -8972,7 +9050,7 @@ html, body {
   animation-duration: 1.00s;
 }
 .fire-lvl-3-img {
-  filter: drop-shadow(0 -5px 11px rgba(255, 120, 10, 0.92)) drop-shadow(0 -2px 5px rgba(255, 40, 0, 0.72));
+  filter: brightness(1.06) saturate(1.22) drop-shadow(0 -3px 6px rgba(255, 135, 15, 0.65)) drop-shadow(0 0 5px rgba(230, 85, 10, 0.32));
 }
 
 /* Level 4: Fourth Fire (50–99 days) – Large, energetic burning inferno flow */
@@ -8981,31 +9059,31 @@ html, body {
   animation-duration: 0.88s;
 }
 .fire-lvl-4-img {
-  filter: drop-shadow(0 -6px 14px rgba(255, 90, 10, 0.96)) drop-shadow(0 -3px 7px rgba(255, 20, 0, 0.82));
+  filter: brightness(1.07) saturate(1.22) drop-shadow(0 -3px 6px rgba(255, 138, 18, 0.68)) drop-shadow(0 0 6px rgba(240, 95, 10, 0.34));
 }
 
-/* Level 5: Final Fire (100–200+ days) – Radiant golden white-hot burning aura surge */
+/* Level 5: Final Fire (100–200+ days) – Controlled soft orange glow, vibrant white-gold flame, no neon spreading */
 .streak-cell-fire-wrap.fire-lvl-5.burning-flow-active,
 .streak-cell-fire-wrap.fire-lvl-5.fire-shaking-active {
-  animation-duration: 0.75s;
+  animation-duration: 0.82s;
   animation-name: fireLevel5RadiantFlow;
 }
 .fire-lvl-5-img {
-  filter: drop-shadow(0 -7px 16px rgba(255, 215, 0, 1)) drop-shadow(0 0 24px rgba(255, 60, 0, 0.88)) drop-shadow(0 -2px 6px #FFFFFF);
+  filter: brightness(1.08) saturate(1.24) drop-shadow(0 -3.5px 7px rgba(255, 140, 20, 0.70)) drop-shadow(0 0 6px rgba(255, 100, 10, 0.35)) drop-shadow(0 -1px 3px rgba(255, 220, 120, 0.45));
 }
 
 @keyframes fireLevel5RadiantFlow {
   0%, 100% {
-    transform: translateY(0) scaleY(1.0) scaleX(1.0);
+    transform: translateY(0) rotate(0deg) scale(1.0);
   }
   25% {
-    transform: translateY(-1.8px) scaleY(1.10) scaleX(0.95);
+    transform: translateY(-1.8px) rotate(-0.8deg) scaleY(1.08) scaleX(0.95);
   }
   50% {
-    transform: translateY(-0.8px) scaleY(0.98) scaleX(1.03);
+    transform: translateY(-0.8px) rotate(0.6deg) scaleY(0.98) scaleX(1.02);
   }
   75% {
-    transform: translateY(-2.8px) scaleY(1.18) scaleX(0.91);
+    transform: translateY(-2.8px) rotate(-1.0deg) scaleY(1.14) scaleX(0.92);
   }
 }
 
