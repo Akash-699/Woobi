@@ -136,7 +136,9 @@
         skinTone: '#F3D5C6',
         hairStyle: 'bun',
         hairColor: '#1E120A',
-        proportions: 'regular',
+        proportions: 'slim_fit',
+        bodyFat: 25,
+        waistDefinition: 70,
         top: 'tank',
         bottom: 'wide_linen',
         shoes: 'sneakers',
@@ -2150,43 +2152,99 @@
     }
 
     /**
-     * Avatar Customization API: Body Proportions
+     * Avatar Customization API: Body Proportions & Silhouette
      */
     setBodyProportions(preset) {
       this.avatarConfig.proportions = preset;
       if (this.avatarController && typeof this.avatarController.setBodyProportions === 'function') {
         this.avatarController.setBodyProportions(preset);
-        return;
       }
-      let scaleX = 1.0;
-      let scaleY = 1.0;
+      this.updateBodyMeshScale();
+      this.savePreferences();
+    }
+
+    /**
+     * Avatar Customization API: Body Fat & Composition Adjustment
+     * Adjusts body cross-sectional girth (X & Z) smoothly while maintaining elevation
+     */
+    setBodyFat(val) {
+      const num = Math.max(0, Math.min(100, parseFloat(val) || 0));
+      this.avatarConfig.bodyFat = num;
+      if (this.avatarController && typeof this.avatarController.setBodyComposition === 'function') {
+        this.avatarController.setBodyComposition({ bodyFat: num });
+      }
+      this.updateBodyMeshScale();
+      this.savePreferences();
+      return num;
+    }
+
+    setWaistDefinition(val) {
+      const num = Math.max(0, Math.min(100, parseFloat(val) || 0));
+      this.avatarConfig.waistDefinition = num;
+      if (this.avatarController && typeof this.avatarController.setBodyComposition === 'function') {
+        this.avatarController.setBodyComposition({ waistDefinition: num });
+      }
+      this.updateBodyMeshScale();
+      this.savePreferences();
+      return num;
+    }
+
+    updateBodyMeshScale() {
+      const preset = this.avatarConfig.proportions || 'slim_fit';
+      let baseScaleX = 1.0;
+      let baseScaleY = 1.0;
+      let baseScaleZ = 1.0;
 
       switch (preset) {
+        case 'slim_fit':
+          baseScaleX = 0.92;
+          baseScaleY = 1.02;
+          baseScaleZ = 0.90;
+          break;
         case 'petite':
-          scaleX = 0.94;
-          scaleY = 0.94;
+          baseScaleX = 0.94;
+          baseScaleY = 0.94;
+          baseScaleZ = 0.94;
           break;
         case 'tall':
-          scaleX = 0.98;
-          scaleY = 1.06;
+          baseScaleX = 0.98;
+          baseScaleY = 1.06;
+          baseScaleZ = 0.98;
           break;
         case 'athletic':
-          scaleX = 1.05;
-          scaleY = 1.02;
+          baseScaleX = 1.05;
+          baseScaleY = 1.02;
+          baseScaleZ = 1.04;
           break;
         case 'curvy':
-          scaleX = 1.08;
-          scaleY = 1.00;
+          baseScaleX = 1.08;
+          baseScaleY = 1.00;
+          baseScaleZ = 1.08;
           break;
         default:
-          scaleX = 1.0;
-          scaleY = 1.0;
+          baseScaleX = 1.00;
+          baseScaleY = 1.00;
+          baseScaleZ = 1.00;
       }
 
+      const fat = typeof this.avatarConfig.bodyFat === 'number' ? this.avatarConfig.bodyFat : 25;
+      const fatMultiplier = 0.86 + (fat / 100) * 0.36;
+
+      const waist = typeof this.avatarConfig.waistDefinition === 'number' ? this.avatarConfig.waistDefinition : 70;
+      const waistMultiplier = 1.08 - (waist / 100) * 0.16;
+
+      const finalScaleX = baseScaleX * fatMultiplier * waistMultiplier;
+      const finalScaleZ = baseScaleZ * fatMultiplier * (waistMultiplier * 0.95);
+      const finalScaleY = baseScaleY;
+
       if (this.avatarRoot) {
-        this.avatarRoot.scale.set(scaleX, scaleY, scaleX);
+        this.avatarRoot.scale.set(finalScaleX, finalScaleY, finalScaleZ);
+        this.avatarRoot.position.y = 0.080;
       }
-      this.savePreferences();
+
+      if (this.gltfAvatarGroup) {
+        this.gltfAvatarGroup.position.set(0, 0.080, 0);
+      }
     }
 
     /**
@@ -2332,6 +2390,7 @@
         if (saved) {
           const parsed = JSON.parse(saved);
           this.avatarConfig = Object.assign(this.avatarConfig, parsed);
+          this.updateBodyMeshScale();
         }
       } catch (e) {
         console.warn('Studio3D: Could not read avatar prefs from storage', e);

@@ -639,13 +639,49 @@
 
                 <!-- Body Proportions & Silhouette -->
                 <div class="vanity-section">
-                  <label class="vanity-sec-label">Body Silhouette & Height</label>
+                  <label class="vanity-sec-label">Body Silhouette & Proportions</label>
                   <div class="vanity-pill-group" id="proportionChips">
-                    <button class="vanity-chip" data-prop="petite" onclick="app.serenSetProportions('petite', this)">Petite</button>
-                    <button class="vanity-chip active" data-prop="regular" onclick="app.serenSetProportions('regular', this)">Balanced (Regular)</button>
+                    <button class="vanity-chip active" data-prop="slim_fit" onclick="app.serenSetProportions('slim_fit', this)">✨ Slim & Fit</button>
+                    <button class="vanity-chip" data-prop="regular" onclick="app.serenSetProportions('regular', this)">Balanced (Regular)</button>
+                    <button class="vanity-chip" data-prop="athletic" onclick="app.serenSetProportions('athletic', this)">Athletic Sculpted</button>
                     <button class="vanity-chip" data-prop="tall" onclick="app.serenSetProportions('tall', this)">Tall & Slender</button>
-                    <button class="vanity-chip" data-prop="athletic" onclick="app.serenSetProportions('athletic', this)">Athletic</button>
+                    <button class="vanity-chip" data-prop="petite" onclick="app.serenSetProportions('petite', this)">Petite</button>
                     <button class="vanity-chip" data-prop="curvy" onclick="app.serenSetProportions('curvy', this)">Curvy</button>
+                  </div>
+                </div>
+
+                <!-- Body Composition & Body Fat Adjustment -->
+                <div class="vanity-section body-comp-section">
+                  <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                    <label class="vanity-sec-label" style="margin-bottom: 0;">Body Fullness & Body Fat</label>
+                    <span class="body-comp-val" id="bodyFatVal">Slim & Fit (25%)</span>
+                  </div>
+                  <div class="slider-container">
+                    <input type="range" class="seren-range-slider" id="bodyFatSlider" min="0" max="100" value="25"
+                      oninput="app.serenSetBodyFat(this.value)">
+                    <div class="slider-ticks-row">
+                      <span>Lean / Cut</span>
+                      <span>Slim & Fit</span>
+                      <span>Natural</span>
+                      <span>Full</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Waist Definition & Taper -->
+                <div class="vanity-section body-comp-section">
+                  <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                    <label class="vanity-sec-label" style="margin-bottom: 0;">Waist Definition & Taper</label>
+                    <span class="body-comp-val" id="waistDefVal">Cinched / Tailored (70%)</span>
+                  </div>
+                  <div class="slider-container">
+                    <input type="range" class="seren-range-slider" id="waistDefSlider" min="0" max="100" value="70"
+                      oninput="app.serenSetWaistDefinition(this.value)">
+                    <div class="slider-ticks-row">
+                      <span>Straight</span>
+                      <span>Natural</span>
+                      <span>Cinched / Fit</span>
+                    </div>
                   </div>
                 </div>
 

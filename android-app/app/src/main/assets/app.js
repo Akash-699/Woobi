@@ -2002,6 +2002,37 @@
     showToast(`Body proportions adjusted to ${preset}.`);
   }
 
+  function serenSetBodyFat(val) {
+    const num = Math.max(0, Math.min(100, parseFloat(val) || 0));
+    if (window.Studio3D && typeof window.Studio3D.setBodyFat === 'function') {
+      window.Studio3D.setBodyFat(num);
+    }
+    const labelEl = document.getElementById('bodyFatVal');
+    if (labelEl) {
+      let desc = 'Fit & Toned (15%)';
+      if (num < 15) desc = `Ultra Lean (${num}%)`;
+      else if (num < 35) desc = `Slim & Fit (${num}%)`;
+      else if (num < 65) desc = `Natural (${num}%)`;
+      else desc = `Full (${num}%)`;
+      labelEl.textContent = desc;
+    }
+  }
+
+  function serenSetWaistDefinition(val) {
+    const num = Math.max(0, Math.min(100, parseFloat(val) || 0));
+    if (window.Studio3D && typeof window.Studio3D.setWaistDefinition === 'function') {
+      window.Studio3D.setWaistDefinition(num);
+    }
+    const labelEl = document.getElementById('waistDefVal');
+    if (labelEl) {
+      let desc = 'Cinched (70%)';
+      if (num < 30) desc = `Straight (${num}%)`;
+      else if (num < 60) desc = `Natural (${num}%)`;
+      else desc = `Cinched / Tailored (${num}%)`;
+      labelEl.textContent = desc;
+    }
+  }
+
   function serenToggleAccessory(name, btn) {
     if (btn) {
       btn.classList.toggle('active');
@@ -3597,6 +3628,8 @@
     serenSetHairStyle,
     serenSetHairColor,
     serenSetProportions,
+    serenSetBodyFat,
+    serenSetWaistDefinition,
     serenToggleAccessory,
     serenSaveAvatarCustomization,
     serenHandlePhotoUpload,

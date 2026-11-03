@@ -307,6 +307,11 @@
 
     <div class="separator"></div>
 
+    <button class="ctrl-btn active" id="silhouetteFitBtn" onclick="toggleMannequinFit()">✨ Slim & Fit</button>
+    <button class="ctrl-btn" id="fullnessBtn" onclick="cycleFullness()">Body Fullness: Slim & Fit (25%)</button>
+
+    <div class="separator"></div>
+
     <button class="ctrl-btn active" id="autoRotateBtn">⟳ Auto-Rotate</button>
     <button class="ctrl-btn" id="resetCamBtn">Reset Camera</button>
   </div>
@@ -620,11 +625,52 @@
         // Animate camera to default pose for this mode
         targetCameraPos.copy(config.camPos);
         targetCameraLook.copy(config.camLook);
+        applyInspectorFullness();
       } catch (err) {
         console.error("Error loading asset:", err);
       } finally {
         loadingOverlay.classList.remove('visible');
       }
+    }
+
+    let currentFullness = 25;
+    let isSlimFit = true;
+
+    function applyInspectorFullness() {
+      if (['avatar', 'mannequin-female', 'mannequin-male', 'all'].includes(currentMode)) {
+        activeGroup.children.forEach(child => {
+          // If not the circular stage, apply scaling
+          if (child && !child.name.includes('stage') && child.position.y >= 0.07) {
+            const baseScaleX = isSlimFit ? 0.92 : 1.00;
+            const baseScaleY = isSlimFit ? 1.02 : 1.00;
+            const baseScaleZ = isSlimFit ? 0.90 : 1.00;
+            const fatMult = 0.86 + (currentFullness / 100) * 0.36;
+            child.scale.set(baseScaleX * fatMult, baseScaleY, baseScaleZ * fatMult);
+            child.position.y = 0.080;
+          }
+        });
+      }
+    }
+
+    function toggleMannequinFit() {
+      isSlimFit = !isSlimFit;
+      const btn = document.getElementById('silhouetteFitBtn');
+      if (btn) {
+        btn.classList.toggle('active', isSlimFit);
+        btn.textContent = isSlimFit ? '✨ Slim & Fit' : 'Classic Proportions';
+      }
+      applyInspectorFullness();
+    }
+
+    function cycleFullness() {
+      const levels = [15, 25, 50, 75];
+      const names = ['Ultra Lean (15%)', 'Slim & Fit (25%)', 'Natural (50%)', 'Full (75%)'];
+      const idx = levels.indexOf(currentFullness);
+      const nextIdx = (idx + 1) % levels.length;
+      currentFullness = levels[nextIdx];
+      const btn = document.getElementById('fullnessBtn');
+      if (btn) btn.textContent = `Body Fullness: ${names[nextIdx]}`;
+      applyInspectorFullness();
     }
 
     const targetCameraPos = new THREE.Vector3(0, 1.15, 2.5);

@@ -30,6 +30,7 @@ export const HAIR_STYLES = [
 ];
 
 export const BODY_PROPORTIONS = [
+  { id: 'slim_fit', name: 'Slim & Fit', scaleX: 0.92, scaleY: 1.02, scaleZ: 0.90 },
   { id: 'regular', name: 'Classic Balanced', scaleX: 1.00, scaleY: 1.00 },
   { id: 'petite', name: 'Petite Slender', scaleX: 0.94, scaleY: 0.94 },
   { id: 'tall', name: 'Tall Runway', scaleX: 0.98, scaleY: 1.06 },
