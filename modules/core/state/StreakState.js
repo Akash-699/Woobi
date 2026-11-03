@@ -254,26 +254,27 @@ export class StreakState {
   }
 
   // ---------------------------------------------------------------------------
-  // Streak Levels & Tier Calculation (5 Fire Levels)
+  // Streak Levels & Tier Calculation (5 Fire Levels: 1-9, 10-29, 30-49, 50-99, 100+)
   // ---------------------------------------------------------------------------
   getFireLevel(streakCount) {
     const s = typeof streakCount === 'number' ? streakCount : 0;
-    if (s >= 30) return 5;
-    if (s >= 14) return 4;
-    if (s >= 7) return 3;
-    if (s >= 3) return 2;
+    if (s <= 0) return 0;
+    if (s >= 100) return 5;
+    if (s >= 50) return 4;
+    if (s >= 30) return 3;
+    if (s >= 10) return 2;
     return 1;
   }
 
   getFireLevelName(streakCount) {
     const level = this.getFireLevel(streakCount);
     switch (level) {
-      case 5: return 'Ultra Astral Aura';
-      case 4: return 'Inferno Dash';
-      case 3: return 'Power Flame';
-      case 2: return 'Cool Blaze';
+      case 5: return 'Final Fire';
+      case 4: return 'Fourth Fire';
+      case 3: return 'Third Fire';
+      case 2: return 'Second Fire';
       case 1:
-      default: return 'Spark Flame';
+      default: return 'First Fire';
     }
   }
 

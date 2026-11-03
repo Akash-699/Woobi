@@ -264,5 +264,20 @@ describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
     const decDate = new Date('2026-12-10');
     assert.strictEqual(streakState.isMonthlyRestoreAvailable(decDate), true, 'Available in next month cycle');
   });
+
+  it('19. accurately computes 5 fire levels at boundaries (1, 9, 10, 29, 30, 49, 50, 99, 100, 200)', () => {
+    assert.strictEqual(streakState.getFireLevel(0), 0);
+    assert.strictEqual(streakState.getFireLevel(1), 1);
+    assert.strictEqual(streakState.getFireLevel(9), 1);
+    assert.strictEqual(streakState.getFireLevel(10), 2);
+    assert.strictEqual(streakState.getFireLevel(29), 2);
+    assert.strictEqual(streakState.getFireLevel(30), 3);
+    assert.strictEqual(streakState.getFireLevel(49), 3);
+    assert.strictEqual(streakState.getFireLevel(50), 4);
+    assert.strictEqual(streakState.getFireLevel(99), 4);
+    assert.strictEqual(streakState.getFireLevel(100), 5);
+    assert.strictEqual(streakState.getFireLevel(200), 5);
+    assert.strictEqual(streakState.getFireLevel(250), 5);
+  });
 });
 

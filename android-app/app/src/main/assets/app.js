@@ -2283,10 +2283,11 @@
     if (engine && typeof engine.getFireLevel === 'function') {
       headerLevel = engine.getFireLevel(count);
     } else {
-      if (count >= 30) headerLevel = 5;
-      else if (count >= 14) headerLevel = 4;
-      else if (count >= 7) headerLevel = 3;
-      else if (count >= 3) headerLevel = 2;
+      if (count >= 100) headerLevel = 5;
+      else if (count >= 50) headerLevel = 4;
+      else if (count >= 30) headerLevel = 3;
+      else if (count >= 10) headerLevel = 2;
+      else headerLevel = 1;
     }
 
     // Only show broken streak (wood & rising smoke) if user had previously earned a streak!
@@ -2366,15 +2367,16 @@
     const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
 
     let tierLevel = 1;
-    let tierName = 'Spark Flame';
+    let tierName = 'First Fire';
     if (engine && typeof engine.getFireLevel === 'function') {
       tierLevel = engine.getFireLevel(curStreak);
       tierName = engine.getFireLevelName(curStreak);
     } else {
-      if (curStreak >= 30) { tierLevel = 5; tierName = 'Ultra Astral Aura'; }
-      else if (curStreak >= 14) { tierLevel = 4; tierName = 'Inferno Dash'; }
-      else if (curStreak >= 7) { tierLevel = 3; tierName = 'Power Flame'; }
-      else if (curStreak >= 3) { tierLevel = 2; tierName = 'Cool Blaze'; }
+      if (curStreak >= 100) { tierLevel = 5; tierName = 'Final Fire'; }
+      else if (curStreak >= 50) { tierLevel = 4; tierName = 'Fourth Fire'; }
+      else if (curStreak >= 30) { tierLevel = 3; tierName = 'Third Fire'; }
+      else if (curStreak >= 10) { tierLevel = 2; tierName = 'Second Fire'; }
+      else { tierLevel = 1; tierName = 'First Fire'; }
     }
 
     const tierTextEl = document.getElementById('calTierText');
@@ -2412,10 +2414,11 @@
           status = 'completed';
           activeDays++;
           runningStreak++;
-          if (runningStreak >= 30) fireLvl = 5;
-          else if (runningStreak >= 14) fireLvl = 4;
-          else if (runningStreak >= 7) fireLvl = 3;
-          else if (runningStreak >= 3) fireLvl = 2;
+          if (runningStreak >= 100) fireLvl = 5;
+          else if (runningStreak >= 50) fireLvl = 4;
+          else if (runningStreak >= 30) fireLvl = 3;
+          else if (runningStreak >= 10) fireLvl = 2;
+          else fireLvl = 1;
         } else {
           upcomingDays++;
         }
@@ -2518,15 +2521,44 @@
 
       if (dayInfo.status === 'completed') {
         const lvl = dayInfo.fireLevel || 1;
-        const fireEl = createFlowingFireElement(lvl);
-        crater.appendChild(fireEl);
+        const delay = ((dayInfo.day * 0.17) % 1.5).toFixed(2);
+
+        const fireWrap = document.createElement('div');
+        fireWrap.className = `streak-cell-fire-wrap fire-lvl-${lvl} fire-shaking-active`;
+        fireWrap.style.animationDelay = `${delay}s`;
+
+        const fireImg = document.createElement('img');
+        fireImg.src = `assets/streak/fire_level_${lvl}.png`;
+        fireImg.alt = `Streak Fire Level ${lvl}`;
+        fireImg.className = `streak-cell-fire-img fire-lvl-${lvl}-img`;
+        fireImg.style.animationDelay = `${delay}s`;
+        fireImg.onerror = () => {
+          fireImg.src = 'assets/streak/realistic_fire.png';
+          fireImg.onerror = () => {
+            fireImg.src = 'assets/streak/reference_flame_sample.png';
+          };
+        };
+
+        fireWrap.appendChild(fireImg);
+        crater.appendChild(fireWrap);
       } else if (dayInfo.status === 'missed') {
-        const smokeImg = document.createElement('img');
-        smokeImg.src = 'assets/streak/stat_smoke_icon.png';
-        smokeImg.alt = 'Missed Bonfire Smoke';
-        smokeImg.className = 'crater-smoke-img';
-        smokeImg.onerror = () => { smokeImg.src = 'assets/streak/bonfire_smoke.png'; };
-        crater.appendChild(smokeImg);
+        const delay = ((dayInfo.day * 0.23) % 2.1).toFixed(2);
+
+        const bonfireWrap = document.createElement('div');
+        bonfireWrap.className = 'streak-cell-bonfire-wrap bonfire-smoke-active';
+        bonfireWrap.style.animationDelay = `${delay}s`;
+
+        const bonfireImg = document.createElement('img');
+        bonfireImg.src = 'assets/streak/bonfire_smoke.png';
+        bonfireImg.alt = 'Missed Bonfire Smoke';
+        bonfireImg.className = 'crater-bonfire-img animated-bonfire-smoke';
+        bonfireImg.style.animationDelay = `${delay}s`;
+        bonfireImg.onerror = () => {
+          bonfireImg.src = 'assets/streak_bonfire_smoke.png';
+        };
+
+        bonfireWrap.appendChild(bonfireImg);
+        crater.appendChild(bonfireWrap);
       } else if (dayInfo.status === 'today') {
         const dot = document.createElement('div');
         dot.className = 'today-pulse-dot';
