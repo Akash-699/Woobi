@@ -3385,8 +3385,8 @@
   </div>
 
   <!-- Modal 5: Woobi Streak Calendar & Monthly Fire Animation -->
-  <div class="streak-modal-backdrop hidden" id="streakDetailsModal">
-    <div class="streak-modal-card streak-details-card streak-calendar-modal-card woobi-calendar-card">
+  <div class="streak-modal-backdrop hidden" id="streakDetailsModal" onclick="if(event.target === this) app.closeStreakModal()">
+    <div class="streak-modal-card streak-details-card streak-calendar-modal-card woobi-calendar-card" onclick="event.stopPropagation()">
       <!-- Exact Scene Header from Reference Image -->
       <div class="cal-hero-scene-banner">
         <button class="streak-modal-close cal-exit-circle-btn" onclick="app.closeStreakModal()" title="Close Calendar" aria-label="Exit">✕</button>
