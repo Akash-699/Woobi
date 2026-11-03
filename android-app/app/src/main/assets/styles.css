@@ -8344,16 +8344,18 @@ html, body {
 
 /* Header Icon Mini Fire & Smoke */
 .streak-header-icon-img {
-  width: 22px;
-  height: 22px;
-  object-fit: cover;
-  border-radius: 50%;
-  box-shadow: 0 0 8px rgba(255, 110, 0, 0.7);
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(255, 110, 0, 0.75));
   animation: realisticFlameFlicker 2.2s ease-in-out infinite alternate;
 }
 
 #streakHeaderSmokeImg.streak-header-icon-img {
-  box-shadow: 0 0 6px rgba(70, 60, 50, 0.5);
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 5px rgba(70, 60, 50, 0.5));
   animation: realisticWoodSmoke 3.2s ease-in-out infinite alternate;
 }
 
@@ -8692,18 +8694,20 @@ html, body {
   font-weight: 700;
   color: #4C3B30;
   line-height: 1;
+  z-index: 5;
 }
 
 /* Circular Recessed Cave / Crater Socket */
 .crater-socket {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   position: relative;
   overflow: visible;
+  padding-bottom: 2px;
   background: linear-gradient(180deg, #E9DFD4 0%, #F5ECE3 100%);
   box-shadow: inset 0 3px 6px rgba(110, 85, 65, 0.32),
               inset 0 1px 2px rgba(80, 50, 30, 0.38),
@@ -8759,6 +8763,7 @@ html, body {
   border-radius: 50%;
   background: #E67E22;
   box-shadow: 0 0 6px rgba(230, 126, 34, 0.8);
+  margin-bottom: 10px;
 }
 
 .crater-socket.upcoming-crater {
@@ -8768,16 +8773,18 @@ html, body {
 /* ==========================================================================
    ANIMATED FIRE & BONFIRE SMOKE (EVERY CELL SHAKING & BILLOWING)
    ========================================================================== */
-/* 1. Fire Cell Wrap & Continuous Shaking */
+/* 1. Fire Cell Wrap & Continuous Shaking - Top emerges above cave rim */
 .streak-cell-fire-wrap {
-  width: 28px;
-  height: 30px;
+  width: 32px;
+  height: 40px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   position: relative;
   pointer-events: none;
+  margin-top: -10px;
   transform-origin: center bottom;
+  z-index: 2;
 }
 
 .streak-cell-fire-wrap.fire-shaking-active {
@@ -8816,8 +8823,8 @@ html, body {
 
 /* 2. Fire Cell Image & Continuous Flame Flickering Glow */
 .streak-cell-fire-img {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 35px;
   object-fit: contain;
   transform-origin: center bottom;
   animation-name: fireEveryCellFlicker;
@@ -8907,17 +8914,18 @@ html, body {
   }
 }
 
-/* 4. Bonfire & Natural Rising Smoke Animation (User Uploaded Bonfire Image) */
+/* 4. Bonfire & Natural Rising Smoke Animation (User Uploaded Bonfire Image) - Smoke emerges out of cave */
 .streak-cell-bonfire-wrap {
-  width: 32px;
-  height: 38px;
+  width: 36px;
+  height: 46px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   position: relative;
   pointer-events: none;
-  margin-top: -6px;
+  margin-top: -14px;
   transform-origin: center bottom;
+  z-index: 2;
 }
 
 .streak-cell-bonfire-wrap.bonfire-smoke-active {
@@ -8937,11 +8945,11 @@ html, body {
 }
 
 .crater-bonfire-img.animated-bonfire-smoke {
-  width: 32px;
-  height: 36px;
+  width: 36px;
+  height: 46px;
   object-fit: contain;
   transform-origin: 50% 85%;
-  filter: drop-shadow(0 1px 3px rgba(45, 38, 30, 0.45));
+  filter: drop-shadow(0 2px 4px rgba(45, 38, 30, 0.45));
   animation: smokeWaftCurling 2.8s ease-in-out infinite;
   pointer-events: none;
 }
