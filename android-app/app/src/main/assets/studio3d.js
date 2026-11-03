@@ -2380,6 +2380,197 @@
     }
 
     /**
+     * Builds and attaches chic tailored undergarments for Astra Mannequins:
+     * - Male Mannequin: Athletic fitted boxer briefs in stylish charcoal heather.
+     * - Female Mannequin: Sophisticated demi-cup brassiere and matching chic hipster panty in noir espresso.
+     * Form-fitted directly to the mannequin mesh with micro-offset and polygonOffset to guarantee zero z-fighting.
+     * Undergarment meshes inherit basePositions and morph dynamically & synchronously with all anatomy sliders.
+     */
+    buildMannequinUndergarments(targetGender = 'female') {
+      if (!this.gltfAvatarGroup) return;
+
+      const isMale = (targetGender === 'male' || targetGender === 'masculine');
+
+      // 1. Remove previous undergarments to guarantee clean state
+      const toRemove = [];
+      this.gltfAvatarGroup.traverse((child) => {
+        if (child.isMesh && (child.name === 'Woobi_Female_Panty' || child.name === 'Woobi_Female_Brassiere' || child.name === 'Woobi_Male_Underwear')) {
+          toRemove.push(child);
+        }
+      });
+      toRemove.forEach((child) => {
+        if (child.parent) child.parent.remove(child);
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+          else child.material.dispose();
+        }
+      });
+
+      // 2. Locate mannequin body mesh
+      let bodyMesh = null;
+      this.gltfAvatarGroup.traverse((child) => {
+        if (!bodyMesh && child.isMesh && child.geometry && child.geometry.attributes && child.geometry.attributes.position && child.geometry.index) {
+          bodyMesh = child;
+        }
+      });
+      if (!bodyMesh) return;
+
+      const geom = bodyMesh.geometry;
+      const basePos = geom.userData.basePositions || geom.attributes.position.array;
+      const indices = geom.index.array;
+      if (!geom.attributes.normal) geom.computeVertexNormals();
+      const normals = geom.attributes.normal.array;
+
+      function extractUndergarmentGeometry(filterFn, offsetDistance = 0.0022) {
+        const used = new Map();
+        const newPos = [];
+        const newNorm = [];
+        const newIdx = [];
+
+        for (let t = 0; t < indices.length; t += 3) {
+          const i0 = indices[t], i1 = indices[t + 1], i2 = indices[t + 2];
+          const p0 = [basePos[i0 * 3], basePos[i0 * 3 + 1], basePos[i0 * 3 + 2]];
+          const p1 = [basePos[i1 * 3], basePos[i1 * 3 + 1], basePos[i1 * 3 + 2]];
+          const p2 = [basePos[i2 * 3], basePos[i2 * 3 + 1], basePos[i2 * 3 + 2]];
+
+          if (filterFn(p0, p1, p2)) {
+            [i0, i1, i2].forEach(oldIdx => {
+              if (!used.has(oldIdx)) {
+                const nIdx = newPos.length / 3;
+                used.set(oldIdx, nIdx);
+                const nx = normals[oldIdx * 3] || 0;
+                const ny = normals[oldIdx * 3 + 1] || 0;
+                const nz = normals[oldIdx * 3 + 2] || 0;
+                newPos.push(
+                  basePos[oldIdx * 3] + nx * offsetDistance,
+                  basePos[oldIdx * 3 + 1] + ny * offsetDistance,
+                  basePos[oldIdx * 3 + 2] + nz * offsetDistance
+                );
+                newNorm.push(nx, ny, nz);
+              }
+              newIdx.push(used.get(oldIdx));
+            });
+          }
+        }
+
+        const subGeom = new THREE.BufferGeometry();
+        subGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPos, 3));
+        subGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNorm, 3));
+        subGeom.setIndex(new THREE.Uint16BufferAttribute(newIdx, 1));
+        subGeom.userData.basePositions = new Float32Array(newPos);
+        return subGeom;
+      }
+
+      const parentNode = bodyMesh.parent || this.gltfAvatarGroup;
+
+      if (!isMale) {
+        // Female Brassiere (Bra) - Demi-cups, underbust band, elegant shoulder straps
+        const braMat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(0x282321), // Chic Noir Espresso
+          roughness: 0.82,
+          metalness: 0.04,
+          side: THREE.DoubleSide,
+          polygonOffset: true,
+          polygonOffsetFactor: -1.5,
+          polygonOffsetUnits: -1.5
+        });
+
+        const braGeom = extractUndergarmentGeometry((p0, p1, p2) => {
+          const cy = (p0[1] + p1[1] + p2[1]) / 3;
+          const cx = (p0[0] + p1[0] + p2[0]) / 3;
+          const cz = (p0[2] + p1[2] + p2[2]) / 3;
+          const maxAbsX = Math.max(Math.abs(p0[0]), Math.abs(p1[0]), Math.abs(p2[0]));
+          if (maxAbsX > 0.21) return false;
+
+          const bandBottom = 1.140;
+          if (cy < bandBottom) return false;
+
+          if (cy <= 1.275) {
+            if (cz < -0.02) return cy <= 1.235;
+            return true;
+          }
+
+          if (cy <= 1.395) {
+            const strapDist = Math.abs(Math.abs(cx) - 0.082);
+            return strapDist <= 0.024;
+          }
+
+          return false;
+        }, 0.0022);
+
+        const braMesh = new THREE.Mesh(braGeom, braMat);
+        braMesh.name = 'Woobi_Female_Brassiere';
+        braMesh.castShadow = true;
+        braMesh.receiveShadow = true;
+        parentNode.add(braMesh);
+
+        // Female Panties - Chic hipster brief wrapping pelvis and balloon glutes
+        const pantyMat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(0x282321), // Chic Noir Espresso
+          roughness: 0.82,
+          metalness: 0.04,
+          side: THREE.DoubleSide,
+          polygonOffset: true,
+          polygonOffsetFactor: -1.5,
+          polygonOffsetUnits: -1.5
+        });
+
+        const pantyGeom = extractUndergarmentGeometry((p0, p1, p2) => {
+          const cy = (p0[1] + p1[1] + p2[1]) / 3;
+          const cx = (p0[0] + p1[0] + p2[0]) / 3;
+          const cz = (p0[2] + p1[2] + p2[2]) / 3;
+          const maxAbsX = Math.max(Math.abs(p0[0]), Math.abs(p1[0]), Math.abs(p2[0]));
+          if (maxAbsX > 0.22) return false;
+
+          const topLimit = cz < 0 ? 0.965 : 0.945;
+          if (cy > topLimit) return false;
+
+          const legCut = cz < -0.05
+            ? 0.765
+            : 0.765 + (Math.abs(cx) / 0.18) * 0.075;
+
+          return cy >= legCut;
+        }, 0.0020);
+
+        const pantyMesh = new THREE.Mesh(pantyGeom, pantyMat);
+        pantyMesh.name = 'Woobi_Female_Panty';
+        pantyMesh.castShadow = true;
+        pantyMesh.receiveShadow = true;
+        parentNode.add(pantyMesh);
+
+      } else {
+        // Male Boxer Briefs / Underwear - Athletic fitted trunks
+        const boxerMat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(0x2A2726), // Athletic Charcoal
+          roughness: 0.84,
+          metalness: 0.03,
+          side: THREE.DoubleSide,
+          polygonOffset: true,
+          polygonOffsetFactor: -1.5,
+          polygonOffsetUnits: -1.5
+        });
+
+        const boxerGeom = extractUndergarmentGeometry((p0, p1, p2) => {
+          const cy = (p0[1] + p1[1] + p2[1]) / 3;
+          const maxAbsX = Math.max(Math.abs(p0[0]), Math.abs(p1[0]), Math.abs(p2[0]));
+          if (maxAbsX > 0.23) return false;
+
+          if (cy > 1.025) return false;
+          if (cy < 0.695) return false;
+
+          return true;
+        }, 0.0020);
+
+        const boxerMesh = new THREE.Mesh(boxerGeom, boxerMat);
+        boxerMesh.name = 'Woobi_Male_Underwear';
+        boxerMesh.castShadow = true;
+        boxerMesh.receiveShadow = true;
+        parentNode.add(boxerMesh);
+      }
+    }
+
+    /**
      * Builds and attaches anatomically sculpted features.
      * When using Astra Mannequin GLBs, the anatomical contours (bust, glutes, hip flares, pecs,
      * shoulders, stomach) are natively integrated into the single manifold mesh to eliminate
@@ -2405,6 +2596,11 @@
         });
         this.anatomicalGroup = null;
         this.anatomicalMeshes = {};
+      }
+
+      // If Astra Mannequin GLB is active, attach tailored undergarments
+      if (this.gltfAvatarGroup) {
+        this.buildMannequinUndergarments(targetGender);
       }
 
       // If procedural fallback avatar is active, create clean non-interfering contours
