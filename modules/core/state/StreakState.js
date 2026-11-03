@@ -122,6 +122,11 @@ export class StreakState {
   }
 
   _loadFromStorage() {
+    if (this.options.storageKey === null || this.options.memoriesKey === null) {
+      // Ephemeral test mode - preserve pristine state for isolated unit testing
+      return;
+    }
+
     let rawState = null;
     let rawMemories = null;
 
@@ -152,44 +157,85 @@ export class StreakState {
     if (rawMemories) {
       try {
         const parsed = JSON.parse(rawMemories);
-        if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed) && parsed.length >= 100) {
           this.memories = parsed;
+        } else if (!this.userId) {
+          this._seedReferenceMemories();
         }
       } catch (e) {
         console.warn('[StreakState] Could not parse stored memories:', e);
       }
     } else if (!this.userId) {
-      // Seed initial October reference memories matching Ember and Smoke Calendar for guest
+      // Seed initial June 21 to today reference streak for guest
       this._seedReferenceMemories();
     }
   }
 
   _seedReferenceMemories() {
-    const demoOctDays = [1, 3, 6, 7, 9, 11, 12, 14, 15, 17, 18, 20, 21, 23, 25, 26, 28, 29, 31];
+    this.seedStreakJun21ToToday();
+  }
+
+  seedStreakJun21ToToday() {
+    this.memories = [];
     const demoGarments = [
-      { name: 'Navy Tailored Shirt', img: 'assets/navy_shirt.jpg' },
-      { name: 'White Linen Classic', img: 'assets/white_linen_shirt.jpg' },
-      { name: 'Smart Autumn Blazer', img: 'assets/smart_blazer.jpg' },
-      { name: 'Casual Terracotta Tee', img: 'assets/terracotta_tee.jpg' },
-      { name: 'Minimalist Indigo Kurti', img: 'assets/indigo_kurti.jpg' },
+      { name: 'Navy Tailored Oxford & Sand Chinos', img: 'assets/navy_shirt.jpg' },
+      { name: 'White Linen Classic Ensemble', img: 'assets/white_linen_shirt.jpg' },
+      { name: 'Structured Autumn Blazer & Slacks', img: 'assets/smart_blazer.jpg' },
+      { name: 'Casual Earth Tone Terracotta Look', img: 'assets/terracotta_tee.jpg' },
+      { name: 'Minimalist Indigo Kurti & Trousers', img: 'assets/indigo_kurti.jpg' },
       { name: 'Festive Olive Ensemble', img: 'assets/olive_kurta.jpg' }
     ];
 
+    const startDate = new Date(2026, 5, 21); // June 21, 2026 (0-indexed month: 5 = June)
+    const endDate = new Date(2026, 10, 3);   // November 3, 2026 (10 = November)
+
     let streakCounter = 1;
-    demoOctDays.forEach((d, idx) => {
-      const garment = demoGarments[idx % demoGarments.length];
-      const dayStr = String(d).padStart(2, '0');
+    const cur = new Date(startDate.getTime());
+
+    while (cur <= endDate) {
+      const y = cur.getFullYear();
+      const m = String(cur.getMonth() + 1).padStart(2, '0');
+      const d = String(cur.getDate()).padStart(2, '0');
+      const dateKey = `${y}-${m}-${d}`;
+      const garment = demoGarments[(streakCounter - 1) % demoGarments.length];
+
       this.memories.push({
-        id: `mem_seed_202610${dayStr}`,
-        date: `2026-10-${dayStr}`,
-        timestamp: new Date(`2026-10-${dayStr}T10:30:00Z`).getTime(),
+        id: `mem_streak_${dateKey.replace(/-/g, '')}`,
+        date: dateKey,
+        timestamp: new Date(`${dateKey}T10:30:00Z`).getTime(),
         photoUrl: garment.img,
-        note: garment.name,
-        streakDay: streakCounter++
+        note: `Day ${streakCounter} • ${garment.name}`,
+        streakDay: streakCounter
       });
-    });
+
+      streakCounter++;
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    const totalDays = streakCounter - 1; // 136 days
+    this.state.currentStreak = totalDays;
+    this.state.bestStreak = totalDays;
+    this.state.savedPreviousStreak = 0;
+    this.state.isStreakBroken = false;
+    this.state.hasEarnedStreak = true;
+    this.state.uploadedToday = true;
+    this.state.lastUploadTimestamp = new Date('2026-11-03T10:30:00Z').getTime();
+    this.state.lastUploadDateStr = '2026-11-03';
+    this.state.deadline = new Date('2026-11-04T23:59:59Z').getTime();
 
     this.save();
+    this._emit(STREAK_EVENTS.UPDATED, this.getStatus());
+  }
+
+  getFirstMemoryDateStr() {
+    if (!this.memories || this.memories.length === 0) return null;
+    let earliest = this.memories[0].date;
+    for (let i = 1; i < this.memories.length; i++) {
+      if (this.memories[i].date && this.memories[i].date < earliest) {
+        earliest = this.memories[i].date;
+      }
+    }
+    return earliest;
   }
 
   save() {
@@ -460,6 +506,7 @@ export class StreakState {
     const daysInMonth = new Date(y, m + 1, 0).getDate();
 
     const todayStr = this.formatDateKey(now);
+    const firstMemoryDate = this.getFirstMemoryDateStr();
     const days = [];
 
     let activeDays = 0;
@@ -486,6 +533,10 @@ export class StreakState {
         status = this.state.uploadedToday ? 'completed' : 'today';
         if (status === 'completed') activeDays++;
         else upcomingDays++;
+      } else if (firstMemoryDate && dateKey < firstMemoryDate) {
+        // Sunken crater socket before streak started
+        status = 'upcoming';
+        upcomingDays++;
       } else if (isPast) {
         status = 'missed';
         brokenDays++;
@@ -498,8 +549,8 @@ export class StreakState {
       let streakOnDay = 0;
       if (status === 'completed') {
         runningStreak++;
-        streakOnDay = runningStreak;
-        fireLevel = this.getFireLevel(runningStreak);
+        streakOnDay = (memory && memory.streakDay) ? memory.streakDay : (this.state.currentStreak || runningStreak);
+        fireLevel = this.getFireLevel(streakOnDay);
       } else if (status === 'missed') {
         runningStreak = 0;
       }

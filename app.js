@@ -2126,6 +2126,11 @@
   function initStreakState() {
     const engine = getStreakEngine();
     if (engine) {
+      if (!engine.userId && (!engine.state.currentStreak || engine.state.currentStreak < 100)) {
+        if (typeof engine.seedStreakJun21ToToday === 'function') {
+          engine.seedStreakJun21ToToday();
+        }
+      }
       state.streak = getStreakStatusSafe(engine);
       if (typeof engine.on === 'function') {
         engine.on('streak:updated', (data) => {
@@ -3739,6 +3744,14 @@
     prevCalendarMonth,
     nextCalendarMonth,
     renderStreakCalendar,
+    seedStreakJun21ToToday: () => {
+      const eng = getStreakEngine();
+      if (eng && typeof eng.seedStreakJun21ToToday === 'function') {
+        eng.seedStreakJun21ToToday();
+      }
+      renderStreakCalendar();
+      updateStreakUI();
+    },
     openCameraModal,
     closeCameraModal,
     captureCameraSnapshot,
