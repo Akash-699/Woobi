@@ -31,7 +31,7 @@
   
   <!-- Woobi Core Shared Design Tokens -->
   <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
-  <link rel="stylesheet" href="styles.css?v=20261031_2">
+  <link rel="stylesheet" href="styles.css?v=20261103_final">
 </head>
 <body>
 
@@ -387,20 +387,6 @@
                   <circle cx="12" cy="13" r="4"/>
                 </svg>
               </button>
-              <button class="seren-icon-btn" onclick="app.goToScreen('weekly-planning')" title="Weekly Outfit Planning">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/>
-                  <line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-              </button>
-              <button class="seren-icon-btn" onclick="app.goToScreen('profile')" title="User Profile">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-              </button>
 
               <!-- 2. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when broken) -->
               <button type="button" class="streak-trio-btn streak-flame-btn" id="streakHeaderPill" onclick="app.handleStreakIconClick()" title="Daily Outfit Streak">
@@ -418,6 +404,24 @@
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                   <circle cx="8.5" cy="8.5" r="1.5"/>
                   <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Header Right: Planning & Profile Action Buttons -->
+            <div class="seren-header-right">
+              <button class="seren-icon-btn" onclick="app.goToScreen('weekly-planning')" title="Weekly Outfit Planning">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </button>
+              <button class="seren-icon-btn" onclick="app.goToScreen('profile')" title="User Profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
                 </svg>
               </button>
             </div>
@@ -4052,9 +4056,9 @@
   <script type="module" src="modules/3d-studio/camera/index.js"></script>
   <script type="module" src="modules/3d-studio-features/index.js"></script>
   <script type="module" src="modules/settings/index.js"></script>
-  <script src="wardrobe-astra-material.js?v=20261031_9"></script>
-  <script src="wardrobe3d.js?v=20261031_9"></script>
-  <script src="studio3d.js?v=20261031_9"></script>
-  <script src="app.js?v=20261031_9"></script>
+  <script src="wardrobe-astra-material.js?v=20261103_final"></script>
+  <script src="wardrobe3d.js?v=20261103_final"></script>
+  <script src="studio3d.js?v=20261103_final"></script>
+  <script src="app.js?v=20261103_final"></script>
 </body>
 </html>
