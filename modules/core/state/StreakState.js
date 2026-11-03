@@ -149,7 +149,22 @@ export class StreakState {
       try {
         const parsed = JSON.parse(rawState);
         if (parsed && typeof parsed === 'object') {
-          this.state = Object.assign(this.state, parsed);
+          // If stored state is marked test data or has 136 days from previous test sessions on default user, sanitize it to 0
+          if (!this.userId && (parsed.isTestUser || parsed.isTestData || parsed.currentStreak === 136)) {
+            this.state.currentStreak = 0;
+            this.state.bestStreak = 0;
+            this.state.savedPreviousStreak = 0;
+            this.state.isStreakBroken = false;
+            this.state.hasEarnedStreak = false;
+            this.state.uploadedToday = false;
+            this.state.lastUploadDateStr = null;
+            this.state.lastUploadTimestamp = null;
+            this.state.isTestUser = false;
+            this.state.isTestData = false;
+            this.save();
+          } else {
+            this.state = Object.assign(this.state, parsed);
+          }
         }
       } catch (e) {
         console.warn('[StreakState] Could not parse stored state:', e);
@@ -160,7 +175,19 @@ export class StreakState {
       try {
         const parsed = JSON.parse(rawMemories);
         if (Array.isArray(parsed)) {
-          this.memories = parsed;
+          // If default user has test data memories, do not load them into real user
+          if (!this.userId && parsed.some(m => m.isTestData || (m.note && m.note.includes('[TEST DATA]')) || (m.id && m.id.startsWith('mem_test_')))) {
+            this.memories = [];
+            this.state.currentStreak = 0;
+            this.state.bestStreak = 0;
+            this.state.savedPreviousStreak = 0;
+            this.state.hasEarnedStreak = false;
+            this.state.uploadedToday = false;
+            this.state.isStreakBroken = false;
+            this.save();
+          } else {
+            this.memories = parsed;
+          }
         }
       } catch (e) {
         console.warn('[StreakState] Could not parse stored memories:', e);
@@ -237,13 +264,34 @@ export class StreakState {
     return { success: true };
   }
 
-  switchToRealUser(realUserId = 'user_real') {
-    this.setUserId(realUserId);
+  switchToRealUser(realUserId = null) {
+    this.userId = realUserId;
+    this.options.storageKey = realUserId ? `woobi_outfit_streak_${realUserId}` : STREAK_STORAGE_KEYS.STATE;
+    this.options.memoriesKey = realUserId ? `woobi_outfit_memories_${realUserId}` : STREAK_STORAGE_KEYS.MEMORIES;
+    this.state = {
+      currentStreak: 0,
+      bestStreak: 0,
+      savedPreviousStreak: 0,
+      isStreakBroken: false,
+      deadline: Date.now() + this.options.deadlineDurationMs,
+      lastUploadTimestamp: null,
+      lastUploadDateStr: null,
+      lastRestoredCycleKey: null,
+      hasEarnedStreak: false,
+      uploadedToday: false,
+      morningReminderSent: false,
+      urgentReminderSent: false,
+      isTestUser: false,
+      isTestData: false
+    };
+    this.memories = [];
+    this._loadFromStorage();
+    this._checkDailyStatus();
     this.state.isTestUser = false;
     this.state.isTestData = false;
     if (typeof localStorage !== 'undefined') {
       try {
-        localStorage.setItem('woobi_streak_user_mode', 'real');
+        localStorage.removeItem('woobi_streak_user_mode');
       } catch (e) {}
     }
     this._emit(STREAK_EVENTS.UPDATED, this.getStatus());
@@ -406,8 +454,8 @@ export class StreakState {
       case 4: return 'Fourth Fire';
       case 3: return 'Third Fire';
       case 2: return 'Second Fire';
-      case 1:
-      default: return 'First Fire';
+      case 1: return 'First Fire';
+      default: return 'Spark Flame';
     }
   }
 
@@ -621,8 +669,8 @@ export class StreakState {
         status = this.state.uploadedToday ? 'completed' : 'today';
         if (status === 'completed') activeDays++;
         else upcomingDays++;
-      } else if (firstMemoryDate && dateKey < firstMemoryDate) {
-        // Sunken crater socket before streak started
+      } else if (!this.state.hasEarnedStreak || !firstMemoryDate || dateKey < firstMemoryDate) {
+        // Sunken crater socket before streak started or for new user
         status = 'upcoming';
         upcomingDays++;
       } else if (isPast) {

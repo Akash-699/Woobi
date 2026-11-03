@@ -323,5 +323,36 @@ describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
     assert.strictEqual(streakState.state.currentStreak, 136);
     assert.strictEqual(streakState.memories.length, 136);
   });
+
+  it('23. executes real user lifecycle: starts at 0, increments to 1 on day 1, 2 on day 2, and resets to 0 on break', () => {
+    // 1. Initial streak is 0
+    assert.strictEqual(streakState.state.currentStreak, 0);
+
+    // 2. Day 1 upload: streak becomes 1
+    const day1Res = streakState.recordDailyOutfitUpload({
+      photoUrl: 'assets/navy_shirt.jpg',
+      customDate: '2026-11-01'
+    });
+    assert.strictEqual(day1Res.success, true);
+    assert.strictEqual(day1Res.streak, 1);
+    assert.strictEqual(streakState.state.currentStreak, 1);
+
+    // 3. Day 2 (consecutive) upload: streak increments to 2
+    const day2Res = streakState.recordDailyOutfitUpload({
+      photoUrl: 'assets/white_linen_shirt.jpg',
+      customDate: '2026-11-02'
+    });
+    assert.strictEqual(day2Res.success, true);
+    assert.strictEqual(day2Res.streak, 2);
+    assert.strictEqual(streakState.state.currentStreak, 2);
+
+    // 4. Streak break: deadline expires without upload on day 3 -> streak becomes 0
+    streakState.state.deadline = Date.now() - 1000;
+    streakState.state.uploadedToday = false;
+    const brokenStatus = streakState.getStreakStatus();
+    assert.strictEqual(brokenStatus.isStreakBroken, true);
+    assert.strictEqual(brokenStatus.currentStreak, 0, 'Streak must become 0 on break');
+    assert.strictEqual(brokenStatus.savedPreviousStreak, 2);
+  });
 });
 

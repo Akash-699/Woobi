@@ -2126,16 +2126,16 @@
   function initStreakState() {
     const engine = getStreakEngine();
     if (engine) {
-      const userMode = (typeof localStorage !== 'undefined') ? localStorage.getItem('woobi_streak_user_mode') : null;
-      if (userMode !== 'real') {
-        if (typeof engine.loadTestUserStreak136 === 'function') {
-          engine.loadTestUserStreak136();
-        } else if (typeof engine.seedTestUserStreak136 === 'function') {
-          engine.seedTestUserStreak136();
-        }
-      } else if (!engine.userId) {
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.removeItem('woobi_streak_user_mode');
+        } catch (e) {}
+      }
+      if (engine.userId === 'test_user_136' || (engine.state && (engine.state.isTestUser || engine.state.isTestData || engine.state.currentStreak === 136))) {
         if (typeof engine.switchToRealUser === 'function') {
-          engine.switchToRealUser('user_real');
+          engine.switchToRealUser(null);
+        } else {
+          engine.userId = null;
         }
       }
       state.streak = getStreakStatusSafe(engine);
@@ -2461,27 +2461,6 @@
     if (activeEl) activeEl.textContent = calData.stats.activeDays;
     if (brokenEl) brokenEl.textContent = calData.stats.brokenDays;
     if (upcomingEl) upcomingEl.textContent = calData.stats.upcomingDays;
-
-    // Update Streak Test Mode Banner
-    const testPillEl = document.getElementById('testModeStatusPill');
-    const testTagEl = document.getElementById('testUserTag');
-    const btnToggleEl = document.getElementById('btnToggleUserMode');
-    const btnResetEl = document.getElementById('btnResetTestData');
-    const isTest = engine && typeof engine.isTestUser === 'function' ? engine.isTestUser() : false;
-
-    if (testPillEl) {
-      testPillEl.textContent = isTest ? 'TEST MODE • 136-DAY PREVIEW' : 'REAL USER MODE • AUTHENTIC';
-      testPillEl.style.color = isTest ? '#C05621' : '#2E7D32';
-    }
-    if (testTagEl) {
-      testTagEl.textContent = isTest ? `User: ${engine.userId || 'test_user_136'}` : `User: ${engine.userId || 'real_user'}`;
-    }
-    if (btnToggleEl) {
-      btnToggleEl.textContent = isTest ? 'Switch to Real' : 'Switch to Test (136 Days)';
-    }
-    if (btnResetEl) {
-      btnResetEl.style.display = isTest ? 'inline-block' : 'none';
-    }
 
     if (!gridEl) return;
     gridEl.innerHTML = '';
