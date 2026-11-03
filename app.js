@@ -1966,20 +1966,74 @@
     showToast(`Display model set to ${label}.`);
   }
 
+  function toggleTestingDock(forceOpen) {
+    const dock = document.getElementById('desktopTestingDock');
+    const launcher = document.getElementById('dockMiniLauncher');
+    if (!dock) return;
+
+    if (forceOpen === true) {
+      dock.classList.remove('collapsed');
+      if (launcher) launcher.classList.add('hidden');
+    } else if (forceOpen === false) {
+      dock.classList.add('collapsed');
+      if (launcher) launcher.classList.remove('hidden');
+    } else {
+      dock.classList.toggle('collapsed');
+      if (launcher) {
+        if (dock.classList.contains('collapsed')) launcher.classList.remove('hidden');
+        else launcher.classList.add('hidden');
+      }
+    }
+  }
+
+  function setStudioMannequinAngle(deg, btn) {
+    const rad = (parseFloat(deg) || 0) * (Math.PI / 180);
+    if (window.Studio3D && typeof window.Studio3D.setAvatarRotation === 'function') {
+      window.Studio3D.setAvatarRotation(rad);
+    }
+    if (btn) {
+      document.querySelectorAll('.dock-angle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    showToast(`Inspecting mannequin at ${deg}° angle.`);
+  }
+
+  function resetMannequinToStandards() {
+    const isMale = (window.Studio3D && window.Studio3D.avatarConfig && window.Studio3D.avatarConfig.gender === 'male');
+    if (isMale) {
+      serenSetAnatomy('pecs', 65, 'male');
+      serenSetAnatomy('shoulders', 72, 'male');
+      serenSetAnatomy('stomach', 22, 'male');
+      serenSetAnatomy('thighs', 58, 'male');
+      serenSetAnatomy('height', 1.80, 'male');
+      serenSetAnatomy('weight', 78, 'male');
+      serenSetBodyFat(20);
+    } else {
+      serenSetAnatomy('bust', 55, 'female');
+      serenSetAnatomy('glutes', 60, 'female');
+      serenSetAnatomy('thighs', 48, 'female');
+      serenSetAnatomy('waist', 72, 'female');
+      serenSetAnatomy('height', 1.70, 'female');
+      serenSetAnatomy('weight', 58, 'female');
+      serenSetBodyFat(25);
+    }
+    showToast('Mannequin proportions reset to authentic Astra tailoring standards.');
+  }
+
   function serenQuickSwitchGender(gender, btn) {
     const isMale = (gender === 'male' || gender === 'masculine');
     const targetGender = isMale ? 'male' : 'female';
 
-    // Update top toggle buttons
-    const fBtn = document.getElementById('testerFemaleBtn');
-    const mBtn = document.getElementById('testerMaleBtn');
-    if (fBtn && mBtn) {
+    // Update Desktop Dock gender buttons
+    const dockFBtn = document.getElementById('dockFemaleBtn');
+    const dockMBtn = document.getElementById('dockMaleBtn');
+    if (dockFBtn && dockMBtn) {
       if (isMale) {
-        fBtn.classList.remove('active');
-        mBtn.classList.add('active');
+        dockFBtn.classList.remove('active');
+        dockMBtn.classList.add('active');
       } else {
-        fBtn.classList.add('active');
-        mBtn.classList.remove('active');
+        dockFBtn.classList.add('active');
+        dockMBtn.classList.remove('active');
       }
     }
 
@@ -2020,24 +2074,54 @@
 
   function serenSyncAnatomyPanel(gender) {
     const isMale = (gender === 'male' || gender === 'masculine');
+
+    // Sync Vanity drawer panels (if open)
     const fPanel = document.getElementById('femaleAnatomyPanel');
     const mPanel = document.getElementById('maleAnatomyPanel');
-
     if (fPanel) fPanel.style.display = isMale ? 'none' : 'block';
     if (mPanel) mPanel.style.display = isMale ? 'block' : 'none';
+
+    // Sync Desktop Dock panels (in free space)
+    const dockF = document.getElementById('dockFemaleAnatomy');
+    const dockM = document.getElementById('dockMaleAnatomy');
+    if (dockF) dockF.style.display = isMale ? 'none' : 'block';
+    if (dockM) dockM.style.display = isMale ? 'block' : 'none';
 
     if (window.Studio3D && window.Studio3D.avatarConfig && window.Studio3D.avatarConfig.anatomy) {
       const data = isMale ? window.Studio3D.avatarConfig.anatomy.male : window.Studio3D.avatarConfig.anatomy.female;
       if (data) {
         const prefix = isMale ? 'male' : 'female';
         Object.keys(data).forEach(k => {
-          const sliderId = `${prefix}${k.charAt(0).toUpperCase() + k.slice(1)}Slider`;
-          const slider = document.getElementById(sliderId);
-          if (slider) {
-            slider.value = k === 'height' ? Math.round(data[k] * 100) : data[k];
-          }
-          serenUpdateAnatomyLabel(k, slider ? slider.value : data[k], prefix);
+          const val = data[k];
+          const rawVal = k === 'height' ? Math.round(val * 100) : val;
+
+          // Sync drawer slider
+          const drawerSlider = document.getElementById(`${prefix}${k.charAt(0).toUpperCase() + k.slice(1)}Slider`);
+          if (drawerSlider) drawerSlider.value = rawVal;
+
+          // Sync dock slider
+          const dockPrefix = isMale ? 'dockMale' : 'dockFemale';
+          const dockSlider = document.getElementById(`${dockPrefix}${k.charAt(0).toUpperCase() + k.slice(1)}Slider`);
+          if (dockSlider) dockSlider.value = rawVal;
+
+          serenUpdateAnatomyLabel(k, rawVal, prefix);
         });
+      }
+    }
+
+    // Sync body fat slider
+    if (window.Studio3D && window.Studio3D.avatarConfig) {
+      const fat = window.Studio3D.avatarConfig.bodyFat ?? (isMale ? 20 : 25);
+      const dockFatSlider = document.getElementById('dockBodyFatSlider');
+      if (dockFatSlider) dockFatSlider.value = fat;
+      const dockFatVal = document.getElementById('dockBodyFatVal');
+      if (dockFatVal) {
+        let desc = 'Fit & Toned (15%)';
+        if (fat < 15) desc = `Ultra Lean (${fat}%)`;
+        else if (fat < 35) desc = `Slim & Fit (${fat}%)`;
+        else if (fat < 65) desc = `Natural (${fat}%)`;
+        else desc = `Full (${fat}%)`;
+        dockFatVal.textContent = desc;
       }
     }
   }
@@ -2045,56 +2129,69 @@
   function serenUpdateAnatomyLabel(key, val, gender) {
     const isMale = (gender === 'male' || gender === 'masculine');
     const prefix = isMale ? 'male' : 'female';
-    const labelId = `${prefix}${key.charAt(0).toUpperCase() + key.slice(1)}Val`;
-    const el = document.getElementById(labelId);
-    if (!el) return;
-
     const num = parseFloat(val);
+
+    let text = '';
     if (key === 'bust') {
       let desc = 'Natural';
       if (num < 30) desc = 'Petite';
       else if (num < 70) desc = 'Natural Sculpted';
       else desc = 'Full / Sculpted';
-      el.textContent = `${desc} (${Math.round(num)}%)`;
+      text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'glutes') {
       let desc = 'Contoured';
       if (num < 35) desc = 'Subtle';
       else if (num < 70) desc = 'Athletic Contoured';
       else desc = 'Full Sculpted';
-      el.textContent = `${desc} (${Math.round(num)}%)`;
+      text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'thighs') {
       let desc = isMale ? 'Athletic' : 'Balanced';
       if (num < 35) desc = isMale ? 'Lean / Runner' : 'Slender';
       else if (num < 70) desc = isMale ? 'Athletic Quads' : 'Balanced Curve';
       else desc = isMale ? 'Power Muscular' : 'Curvaceous';
-      el.textContent = `${desc} (${Math.round(num)}%)`;
+      text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'pecs') {
       let desc = 'Athletic';
       if (num < 30) desc = 'Lean Athletic';
       else if (num < 70) desc = 'Athletic Build';
       else desc = 'Broad Pectorals';
-      el.textContent = `${desc} (${Math.round(num)}%)`;
+      text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'shoulders') {
       let desc = 'Athletic';
       if (num < 35) desc = 'Balanced Width';
       else if (num < 75) desc = 'Broad V-Taper';
       else desc = 'Maximum Deltoids';
-      el.textContent = `${desc} (${Math.round(num)}%)`;
+      text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'stomach') {
       let desc = 'Natural Core';
       if (num < 30) desc = 'Chiseled Core / Flat';
       else if (num < 65) desc = 'Natural Athletic';
       else desc = 'Full Midsection';
-      el.textContent = `${desc} (${Math.round(num)}%)`;
+      text = `${desc} (${Math.round(num)}%)`;
+    } else if (key === 'waist') {
+      let desc = 'Cinched';
+      if (num < 30) desc = 'Straight';
+      else if (num < 65) desc = 'Natural';
+      else desc = 'Hourglass';
+      text = `${desc} (${Math.round(num)}%)`;
     } else if (key === 'height') {
       const cm = Math.round(num > 3 ? num : num * 100);
       const totalInches = cm / 2.54;
       const ft = Math.floor(totalInches / 12);
       const inches = Math.round(totalInches % 12);
-      el.textContent = `${cm} cm (${ft}'${inches}")`;
+      text = `${cm} cm (${ft}'${inches}")`;
     } else if (key === 'weight') {
-      el.textContent = `${Math.round(num)} kg`;
+      text = `${Math.round(num)} kg`;
     }
+
+    // Update Drawer label
+    const drawerLabel = document.getElementById(`${prefix}${key.charAt(0).toUpperCase() + key.slice(1)}Val`);
+    if (drawerLabel) drawerLabel.textContent = text;
+
+    // Update Dock label
+    const dockPrefix = isMale ? 'dockMale' : 'dockFemale';
+    const dockLabel = document.getElementById(`${dockPrefix}${key.charAt(0).toUpperCase() + key.slice(1)}Val`);
+    if (dockLabel) dockLabel.textContent = text;
   }
 
   function serenUpdateTesterPills() {
@@ -2107,13 +2204,25 @@
     const weightVal = data.weight ? Math.round(data.weight) : (isMale ? 78 : 58);
     const fatVal = Math.round(cfg.bodyFat ?? (isMale ? 20 : 25));
 
-    const heightPill = document.getElementById('testerHeightPill');
-    const weightPill = document.getElementById('testerWeightPill');
-    const fatPill = document.getElementById('testerFatPill');
+    // Update Dock Badges (in free space)
+    const dockHeight = document.getElementById('dockHeightBadge');
+    const dockWeight = document.getElementById('dockWeightBadge');
+    const dockFat = document.getElementById('dockFatBadge');
 
-    if (heightPill) heightPill.textContent = `📏 ${heightVal} cm`;
-    if (weightPill) weightPill.textContent = `⚖️ ${weightVal} kg`;
-    if (fatPill) fatPill.textContent = `💧 ${fatVal}% Fat`;
+    if (dockHeight) dockHeight.textContent = `${heightVal} cm`;
+    if (dockWeight) dockWeight.textContent = `${weightVal} kg`;
+    if (dockFat) dockFat.textContent = `${fatVal}%`;
+
+    // Also update dock body fat label if present
+    const dockFatVal = document.getElementById('dockBodyFatVal');
+    if (dockFatVal) {
+      let desc = 'Fit & Toned (15%)';
+      if (fatVal < 15) desc = `Ultra Lean (${fatVal}%)`;
+      else if (fatVal < 35) desc = `Slim & Fit (${fatVal}%)`;
+      else if (fatVal < 65) desc = `Natural (${fatVal}%)`;
+      else desc = `Full (${fatVal}%)`;
+      dockFatVal.textContent = desc;
+    }
   }
 
   function serenSetGender(gender, btn) {
@@ -3667,6 +3776,13 @@
     renderWardrobeGrid();
     updateWardrobeCounts();
 
+    // Initialize 3D Mannequin Testing Dock with current avatar preferences
+    setTimeout(() => {
+      const g = (window.Studio3D && window.Studio3D.avatarConfig && window.Studio3D.avatarConfig.gender) || 'female';
+      serenSyncAnatomyPanel(g);
+      serenUpdateTesterPills();
+    }, 200);
+
     // Check URL parameters for direct screen access
     const params = new URLSearchParams(window.location.search);
     const requestedScreen = params.get('screen');
@@ -3781,6 +3897,9 @@
     serenSetAnatomy,
     serenSyncAnatomyPanel,
     serenUpdateTesterPills,
+    toggleTestingDock,
+    setStudioMannequinAngle,
+    resetMannequinToStandards,
     serenSetSkinTone,
     serenSetHairStyle,
     serenSetHairColor,

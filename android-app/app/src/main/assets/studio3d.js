@@ -2344,6 +2344,13 @@
     }
 
     /**
+     * Smoothly rotates the active avatar/mannequin to an exact target yaw angle (in radians)
+     */
+    setAvatarRotation(rad) {
+      this.targetRotationY = Number(rad) || 0;
+    }
+
+    /**
      * Creates matching warm porcelain PBR material for seamless anatomical blending
      */
     createPorcelainAnatomyMaterial() {

@@ -426,25 +426,6 @@
             <!-- Real Three.js 3D WebGL Canvas -->
             <canvas id="seren3dCanvas" class="seren-3d-canvas"></canvas>
 
-            <!-- Floating Top Mannequin Tester Bar (Instant Gender Switch & Live Metrics) -->
-            <div class="seren-top-tester-bar" id="serenTopTesterBar">
-              <div class="tester-gender-toggle">
-                <button class="tester-gender-btn active" id="testerFemaleBtn" onclick="app.serenQuickSwitchGender('female', this)">
-                  <span class="tester-icon">🧍‍♀️</span>
-                  <span class="tester-text">Female Mannequin</span>
-                </button>
-                <button class="tester-gender-btn" id="testerMaleBtn" onclick="app.serenQuickSwitchGender('male', this)">
-                  <span class="tester-icon">🧍‍♂️</span>
-                  <span class="tester-text">Male Mannequin</span>
-                </button>
-              </div>
-              <div class="tester-live-metrics" id="testerLiveMetrics">
-                <span class="tester-metric-pill" id="testerHeightPill" title="Stature / Height">📏 170 cm</span>
-                <span class="tester-metric-pill" id="testerWeightPill" title="Volumetric Weight">⚖️ 58 kg</span>
-                <span class="tester-metric-pill" id="testerFatPill" title="Body Fat Composition">💧 25% Fat</span>
-              </div>
-            </div>
-
             <!-- Floating Editorial Tagline & Greeting Card (Upper-Right matching Target Reference) -->
             <div class="seren-editorial-tagline-wrap">
               <span class="seren-editorial-tagline">Style a kinder you</span>
@@ -3367,6 +3348,309 @@
 
       </div><!-- /.phone-screen-container -->
   </main>
+
+    <!-- =========================================================================
+         DESKTOP 3D MANNEQUIN TESTING & INSPECTION SUITE (OUTSIDE MOBILE LAYOUT)
+         ========================================================================= -->
+    <aside class="desktop-testing-dock" id="desktopTestingDock">
+      <div class="dock-header">
+        <div class="dock-title-group">
+          <div class="dock-badge">ASTRA LAB</div>
+          <h3 class="dock-title">Mannequin Testing Suite</h3>
+          <p class="dock-sub">Real-time anatomy, curves & composition inspector</p>
+        </div>
+        <button class="dock-toggle-btn" onclick="app.toggleTestingDock()" id="dockToggleBtn" title="Collapse / Expand Panel">
+          <span class="dock-toggle-icon">−</span>
+        </button>
+      </div>
+
+      <div class="dock-body" id="dockBody">
+        <!-- 1. Gender Presentation Quick Switcher -->
+        <div class="dock-section">
+          <label class="dock-sec-label">Model Presentation</label>
+          <div class="dock-gender-grid">
+            <button class="dock-gender-btn active" id="dockFemaleBtn" onclick="app.serenQuickSwitchGender('female', this)">
+              <span class="dock-gender-icon">🧍‍♀️</span>
+              <div class="dock-gender-meta">
+                <strong>Female</strong>
+                <span>Astra Mannequin</span>
+              </div>
+            </button>
+            <button class="dock-gender-btn" id="dockMaleBtn" onclick="app.serenQuickSwitchGender('male', this)">
+              <span class="dock-gender-icon">🧍‍♂️</span>
+              <div class="dock-gender-meta">
+                <strong>Male</strong>
+                <span>Astra Mannequin</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Live Metrics Status Bar -->
+        <div class="dock-section">
+          <label class="dock-sec-label">Live Biometrics</label>
+          <div class="dock-metrics-row">
+            <div class="dock-metric-card">
+              <span class="metric-icon">📏</span>
+              <div class="metric-info">
+                <span class="metric-kicker">Stature</span>
+                <strong id="dockHeightBadge">170 cm</strong>
+              </div>
+            </div>
+            <div class="dock-metric-card">
+              <span class="metric-icon">⚖️</span>
+              <div class="metric-info">
+                <span class="metric-kicker">Weight</span>
+                <strong id="dockWeightBadge">58 kg</strong>
+              </div>
+            </div>
+            <div class="dock-metric-card">
+              <span class="metric-icon">💧</span>
+              <div class="metric-info">
+                <span class="metric-kicker">Body Fat</span>
+                <strong id="dockFatBadge">25%</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Turn & Angle Inspection Controls -->
+        <div class="dock-section">
+          <label class="dock-sec-label">Inspect Angle</label>
+          <div class="dock-angle-pills">
+            <button class="dock-angle-btn active" id="angleBtn0" onclick="app.setStudioMannequinAngle(0, this)">Front</button>
+            <button class="dock-angle-btn" id="angleBtn45" onclick="app.setStudioMannequinAngle(45, this)">¾ View</button>
+            <button class="dock-angle-btn" id="angleBtn90" onclick="app.setStudioMannequinAngle(90, this)">Side Profile</button>
+            <button class="dock-angle-btn" id="angleBtn180" onclick="app.setStudioMannequinAngle(180, this)">Back / Glutes</button>
+          </div>
+        </div>
+
+        <!-- 4. Female Anatomy Contours (Bust, Glutes, Thighs, Waist, Height, Weight) -->
+        <div id="dockFemaleAnatomy" class="dock-anatomy-view">
+          <div class="dock-section-divider">
+            <span>Female Silhouette Curves</span>
+          </div>
+
+          <!-- Bust / Breasts -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Bust Projection & Size</span>
+              <span class="dock-ctrl-val" id="dockFemaleBustVal">Natural (55%)</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockFemaleBustSlider" min="0" max="100" value="55"
+              oninput="app.serenSetAnatomy('bust', this.value, 'female')">
+            <div class="dock-ticks-row">
+              <span>Petite</span>
+              <span>Natural</span>
+              <span>Full Sculpted</span>
+            </div>
+          </div>
+
+          <!-- Glutes / Butt -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Glutes & Butt Curvature</span>
+              <span class="dock-ctrl-val" id="dockFemaleGlutesVal">Contoured (60%)</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockFemaleGlutesSlider" min="0" max="100" value="60"
+              oninput="app.serenSetAnatomy('glutes', this.value, 'female')">
+            <div class="dock-ticks-row">
+              <span>Subtle</span>
+              <span>Athletic</span>
+              <span>Full Curves</span>
+            </div>
+          </div>
+
+          <!-- Hips & Thighs -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Hips & Thighs Flare</span>
+              <span class="dock-ctrl-val" id="dockFemaleThighsVal">Tapered (48%)</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockFemaleThighsSlider" min="0" max="100" value="48"
+              oninput="app.serenSetAnatomy('thighs', this.value, 'female')">
+            <div class="dock-ticks-row">
+              <span>Slender</span>
+              <span>Balanced</span>
+              <span>Curvaceous</span>
+            </div>
+          </div>
+
+          <!-- Waist Cinch (Hourglass) -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Waist Cinch (Hourglass)</span>
+              <span class="dock-ctrl-val" id="dockFemaleWaistVal">Cinched (72%)</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockFemaleWaistSlider" min="0" max="100" value="72"
+              oninput="app.serenSetAnatomy('waist', this.value, 'female')">
+            <div class="dock-ticks-row">
+              <span>Straight</span>
+              <span>Natural</span>
+              <span>Hourglass</span>
+            </div>
+          </div>
+
+          <!-- Female Height -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Height / Stature</span>
+              <span class="dock-ctrl-val" id="dockFemaleHeightVal">170 cm (5'7")</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockFemaleHeightSlider" min="150" max="190" value="170"
+              oninput="app.serenSetAnatomy('height', this.value / 100, 'female')">
+            <div class="dock-ticks-row">
+              <span>150 cm</span>
+              <span>170 cm</span>
+              <span>190 cm</span>
+            </div>
+          </div>
+
+          <!-- Female Weight -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Volumetric Weight</span>
+              <span class="dock-ctrl-val" id="dockFemaleWeightVal">58 kg</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockFemaleWeightSlider" min="45" max="95" value="58"
+              oninput="app.serenSetAnatomy('weight', this.value, 'female')">
+            <div class="dock-ticks-row">
+              <span>45 kg</span>
+              <span>58 kg</span>
+              <span>95 kg</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Male Anatomy Contours (Pecs, Deltoids, Stomach, Quads, Height, Weight) -->
+        <div id="dockMaleAnatomy" class="dock-anatomy-view" style="display: none;">
+          <div class="dock-section-divider">
+            <span>Male Muscular Contours</span>
+          </div>
+
+          <!-- Chest / Pecs -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Chest & Pecs Definition</span>
+              <span class="dock-ctrl-val" id="dockMalePecsVal">Athletic (65%)</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockMalePecsSlider" min="0" max="100" value="65"
+              oninput="app.serenSetAnatomy('pecs', this.value, 'male')">
+            <div class="dock-ticks-row">
+              <span>Lean</span>
+              <span>Athletic</span>
+              <span>Broad Pecs</span>
+            </div>
+          </div>
+
+          <!-- Deltoids / Shoulders V-Taper -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Shoulders & V-Taper</span>
+              <span class="dock-ctrl-val" id="dockMaleShouldersVal">Broad (72%)</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockMaleShouldersSlider" min="0" max="100" value="72"
+              oninput="app.serenSetAnatomy('shoulders', this.value, 'male')">
+            <div class="dock-ticks-row">
+              <span>Standard</span>
+              <span>Athletic</span>
+              <span>Broad V-Taper</span>
+            </div>
+          </div>
+
+          <!-- Stomach & Core -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Stomach & Abdominal Core</span>
+              <span class="dock-ctrl-val" id="dockMaleStomachVal">Chiseled (22%)</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockMaleStomachSlider" min="0" max="100" value="22"
+              oninput="app.serenSetAnatomy('stomach', this.value, 'male')">
+            <div class="dock-ticks-row">
+              <span>Flat / Cut</span>
+              <span>Natural</span>
+              <span>Fuller Core</span>
+            </div>
+          </div>
+
+          <!-- Quads / Muscular Thighs -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Muscular Quads & Thighs</span>
+              <span class="dock-ctrl-val" id="dockMaleThighsVal">Athletic (58%)</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockMaleThighsSlider" min="0" max="100" value="58"
+              oninput="app.serenSetAnatomy('thighs', this.value, 'male')">
+            <div class="dock-ticks-row">
+              <span>Lean</span>
+              <span>Athletic</span>
+              <span>Power Quads</span>
+            </div>
+          </div>
+
+          <!-- Male Height -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Height / Stature</span>
+              <span class="dock-ctrl-val" id="dockMaleHeightVal">180 cm (5'11")</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockMaleHeightSlider" min="160" max="205" value="180"
+              oninput="app.serenSetAnatomy('height', this.value / 100, 'male')">
+            <div class="dock-ticks-row">
+              <span>160 cm</span>
+              <span>180 cm</span>
+              <span>205 cm</span>
+            </div>
+          </div>
+
+          <!-- Male Weight -->
+          <div class="dock-control-group">
+            <div class="dock-label-row">
+              <span class="dock-ctrl-name">Volumetric Weight</span>
+              <span class="dock-ctrl-val" id="dockMaleWeightVal">78 kg</span>
+            </div>
+            <input type="range" class="dock-range-slider" id="dockMaleWeightSlider" min="55" max="125" value="78"
+              oninput="app.serenSetAnatomy('weight', this.value, 'male')">
+            <div class="dock-ticks-row">
+              <span>55 kg</span>
+              <span>78 kg</span>
+              <span>125 kg</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Shared Body Fat Slider -->
+        <div class="dock-section-divider">
+          <span>Overall Composition</span>
+        </div>
+        <div class="dock-control-group">
+          <div class="dock-label-row">
+            <span class="dock-ctrl-name">Body Fullness & Body Fat</span>
+            <span class="dock-ctrl-val" id="dockBodyFatVal">Slim & Fit (25%)</span>
+          </div>
+          <input type="range" class="dock-range-slider" id="dockBodyFatSlider" min="0" max="100" value="25"
+            oninput="app.serenSetBodyFat(this.value)">
+          <div class="dock-ticks-row">
+            <span>Lean / Cut</span>
+            <span>Slim & Fit</span>
+            <span>Natural</span>
+            <span>Full</span>
+          </div>
+        </div>
+
+        <!-- 7. Reset to Standards Action -->
+        <div class="dock-actions-row">
+          <button class="dock-reset-btn" onclick="app.resetMannequinToStandards()">
+            ↺ Reset to Astra Standards
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Floating Mini Launcher if Dock is collapsed -->
+    <button class="dock-mini-launcher hidden" id="dockMiniLauncher" onclick="app.toggleTestingDock(true)" title="Open 3D Mannequin Testing Lab">
+      <span>🛠️ Mannequin Lab</span>
+    </button>
   </div><!-- /.desktop-editorial-frame -->
 <!-- /.app-viewport -->
 
