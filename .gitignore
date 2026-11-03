@@ -54,3 +54,6 @@ scratch_*.ps1
 # Security & Keystores
 *.jks
 *.keystore
+
+# Local Firebase project configuration
+/login/firebase-config.js
