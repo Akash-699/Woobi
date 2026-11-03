@@ -1925,6 +1925,12 @@
       sheet.classList.add('hidden');
       if (window.Studio3D) window.Studio3D.setCameraState('STUDIO_OVERVIEW');
     }
+
+    if (!sheet.classList.contains('hidden')) {
+      const currentGender = (window.Studio3D && window.Studio3D.avatarConfig && window.Studio3D.avatarConfig.gender) || 'female';
+      serenSyncAnatomyPanel(currentGender);
+      serenUpdateTesterPills();
+    }
   }
 
   function serenCloseVanity() {
@@ -1960,13 +1966,158 @@
     showToast(`Display model set to ${label}.`);
   }
 
-  function serenSetGender(gender, btn) {
-    if (btn) {
-      btn.parentElement.querySelectorAll('.vanity-chip').forEach(c => c.classList.remove('active'));
-      btn.classList.add('active');
+  function serenQuickSwitchGender(gender, btn) {
+    const isMale = (gender === 'male' || gender === 'masculine');
+    const targetGender = isMale ? 'male' : 'female';
+
+    // Update top toggle buttons
+    const fBtn = document.getElementById('testerFemaleBtn');
+    const mBtn = document.getElementById('testerMaleBtn');
+    if (fBtn && mBtn) {
+      if (isMale) {
+        fBtn.classList.remove('active');
+        mBtn.classList.add('active');
+      } else {
+        fBtn.classList.add('active');
+        mBtn.classList.remove('active');
+      }
     }
-    if (window.Studio3D) window.Studio3D.setGenderPresentation(gender);
-    showToast(`Gender presentation set to ${gender}.`);
+
+    // Update vanity chips if present
+    document.querySelectorAll('#vanityAppearanceView [data-gender]').forEach(c => {
+      if (c.getAttribute('data-gender') === targetGender) c.classList.add('active');
+      else c.classList.remove('active');
+    });
+
+    // Update model type chips if present
+    document.querySelectorAll('#vanityAppearanceView [data-model]').forEach(c => {
+      const m = c.getAttribute('data-model');
+      if (m === `mannequin_${targetGender}`) c.classList.add('active');
+      else c.classList.remove('active');
+    });
+
+    if (window.Studio3D && typeof window.Studio3D.setGenderPresentation === 'function') {
+      window.Studio3D.setGenderPresentation(targetGender);
+    }
+
+    serenSyncAnatomyPanel(targetGender);
+    serenUpdateTesterPills();
+
+    showToast(`Switched to Astra ${isMale ? 'Male' : 'Female'} Mannequin.`);
+  }
+
+  function serenSetAnatomy(key, val, gender = null) {
+    const activeGender = gender || (window.Studio3D && window.Studio3D.avatarConfig.gender === 'male' ? 'male' : 'female');
+    const num = parseFloat(val);
+
+    if (window.Studio3D && typeof window.Studio3D.setAnatomy === 'function') {
+      window.Studio3D.setAnatomy(key, num, activeGender);
+    }
+
+    serenUpdateAnatomyLabel(key, num, activeGender);
+    serenUpdateTesterPills();
+  }
+
+  function serenSyncAnatomyPanel(gender) {
+    const isMale = (gender === 'male' || gender === 'masculine');
+    const fPanel = document.getElementById('femaleAnatomyPanel');
+    const mPanel = document.getElementById('maleAnatomyPanel');
+
+    if (fPanel) fPanel.style.display = isMale ? 'none' : 'block';
+    if (mPanel) mPanel.style.display = isMale ? 'block' : 'none';
+
+    if (window.Studio3D && window.Studio3D.avatarConfig && window.Studio3D.avatarConfig.anatomy) {
+      const data = isMale ? window.Studio3D.avatarConfig.anatomy.male : window.Studio3D.avatarConfig.anatomy.female;
+      if (data) {
+        const prefix = isMale ? 'male' : 'female';
+        Object.keys(data).forEach(k => {
+          const sliderId = `${prefix}${k.charAt(0).toUpperCase() + k.slice(1)}Slider`;
+          const slider = document.getElementById(sliderId);
+          if (slider) {
+            slider.value = k === 'height' ? Math.round(data[k] * 100) : data[k];
+          }
+          serenUpdateAnatomyLabel(k, slider ? slider.value : data[k], prefix);
+        });
+      }
+    }
+  }
+
+  function serenUpdateAnatomyLabel(key, val, gender) {
+    const isMale = (gender === 'male' || gender === 'masculine');
+    const prefix = isMale ? 'male' : 'female';
+    const labelId = `${prefix}${key.charAt(0).toUpperCase() + key.slice(1)}Val`;
+    const el = document.getElementById(labelId);
+    if (!el) return;
+
+    const num = parseFloat(val);
+    if (key === 'bust') {
+      let desc = 'Natural';
+      if (num < 30) desc = 'Petite';
+      else if (num < 70) desc = 'Natural Sculpted';
+      else desc = 'Full / Sculpted';
+      el.textContent = `${desc} (${Math.round(num)}%)`;
+    } else if (key === 'glutes') {
+      let desc = 'Contoured';
+      if (num < 35) desc = 'Subtle';
+      else if (num < 70) desc = 'Athletic Contoured';
+      else desc = 'Full Sculpted';
+      el.textContent = `${desc} (${Math.round(num)}%)`;
+    } else if (key === 'thighs') {
+      let desc = isMale ? 'Athletic' : 'Balanced';
+      if (num < 35) desc = isMale ? 'Lean / Runner' : 'Slender';
+      else if (num < 70) desc = isMale ? 'Athletic Quads' : 'Balanced Curve';
+      else desc = isMale ? 'Power Muscular' : 'Curvaceous';
+      el.textContent = `${desc} (${Math.round(num)}%)`;
+    } else if (key === 'pecs') {
+      let desc = 'Athletic';
+      if (num < 30) desc = 'Lean Athletic';
+      else if (num < 70) desc = 'Athletic Build';
+      else desc = 'Broad Pectorals';
+      el.textContent = `${desc} (${Math.round(num)}%)`;
+    } else if (key === 'shoulders') {
+      let desc = 'Athletic';
+      if (num < 35) desc = 'Balanced Width';
+      else if (num < 75) desc = 'Broad V-Taper';
+      else desc = 'Maximum Deltoids';
+      el.textContent = `${desc} (${Math.round(num)}%)`;
+    } else if (key === 'stomach') {
+      let desc = 'Natural Core';
+      if (num < 30) desc = 'Chiseled Core / Flat';
+      else if (num < 65) desc = 'Natural Athletic';
+      else desc = 'Full Midsection';
+      el.textContent = `${desc} (${Math.round(num)}%)`;
+    } else if (key === 'height') {
+      const cm = Math.round(num > 3 ? num : num * 100);
+      const totalInches = cm / 2.54;
+      const ft = Math.floor(totalInches / 12);
+      const inches = Math.round(totalInches % 12);
+      el.textContent = `${cm} cm (${ft}'${inches}")`;
+    } else if (key === 'weight') {
+      el.textContent = `${Math.round(num)} kg`;
+    }
+  }
+
+  function serenUpdateTesterPills() {
+    if (!window.Studio3D || !window.Studio3D.avatarConfig) return;
+    const cfg = window.Studio3D.avatarConfig;
+    const isMale = (cfg.gender === 'male' || cfg.gender === 'masculine');
+    const data = (cfg.anatomy && (isMale ? cfg.anatomy.male : cfg.anatomy.female)) || {};
+
+    const heightVal = data.height ? Math.round(data.height * 100) : (isMale ? 180 : 170);
+    const weightVal = data.weight ? Math.round(data.weight) : (isMale ? 78 : 58);
+    const fatVal = Math.round(cfg.bodyFat ?? (isMale ? 20 : 25));
+
+    const heightPill = document.getElementById('testerHeightPill');
+    const weightPill = document.getElementById('testerWeightPill');
+    const fatPill = document.getElementById('testerFatPill');
+
+    if (heightPill) heightPill.textContent = `📏 ${heightVal} cm`;
+    if (weightPill) weightPill.textContent = `⚖️ ${weightVal} kg`;
+    if (fatPill) fatPill.textContent = `💧 ${fatVal}% Fat`;
+  }
+
+  function serenSetGender(gender, btn) {
+    serenQuickSwitchGender(gender, btn);
   }
 
   function serenSetSkinTone(hex, btn) {
@@ -2016,6 +2167,7 @@
       else desc = `Full (${num}%)`;
       labelEl.textContent = desc;
     }
+    serenUpdateTesterPills();
   }
 
   function serenSetWaistDefinition(val) {
@@ -2031,6 +2183,7 @@
       else desc = `Cinched / Tailored (${num}%)`;
       labelEl.textContent = desc;
     }
+    serenUpdateTesterPills();
   }
 
   function serenToggleAccessory(name, btn) {
@@ -3624,6 +3777,10 @@
     serenSwitchVanityTab,
     serenSetModelType,
     serenSetGender,
+    serenQuickSwitchGender,
+    serenSetAnatomy,
+    serenSyncAnatomyPanel,
+    serenUpdateTesterPills,
     serenSetSkinTone,
     serenSetHairStyle,
     serenSetHairColor,

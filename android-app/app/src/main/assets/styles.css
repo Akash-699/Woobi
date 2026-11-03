@@ -6379,6 +6379,103 @@ html, body {
 }
 
 /* ===================================================================
+   FLOATING TOP MANNEQUIN TESTER BAR (GENDER TOGGLE & LIVE METRICS)
+   =================================================================== */
+.seren-top-tester-bar {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 14px;
+  background: rgba(255, 252, 248, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(220, 204, 186, 0.75);
+  border-radius: 9999px;
+  box-shadow: 0 8px 24px rgba(44, 34, 24, 0.10), 0 2px 6px rgba(44, 34, 24, 0.05);
+  pointer-events: auto;
+  user-select: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.seren-top-tester-bar:hover {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(188, 168, 146, 0.9);
+  box-shadow: 0 10px 28px rgba(44, 34, 24, 0.14);
+}
+
+.tester-gender-toggle {
+  display: flex;
+  align-items: center;
+  background: rgba(238, 230, 220, 0.75);
+  padding: 3px;
+  border-radius: 9999px;
+  border: 1px solid rgba(210, 194, 176, 0.55);
+  gap: 2px;
+}
+
+.tester-gender-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  color: #6C5A49;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tester-gender-btn:hover {
+  color: #2C2218;
+}
+
+.tester-gender-btn.active {
+  background: #FFFFFF;
+  color: #2C2218;
+  box-shadow: 0 2px 8px rgba(44, 34, 24, 0.14);
+}
+
+.tester-gender-btn .tester-icon {
+  font-size: 0.95rem;
+}
+
+.tester-live-metrics {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tester-metric-pill {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #7A6956;
+  background: rgba(245, 239, 230, 0.9);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(220, 204, 186, 0.45);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.anatomy-panel {
+  animation: fadeInPanel 0.25s ease-out;
+}
+
+@keyframes fadeInPanel {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===================================================================
    SÉRÉN FLOATING EDITORIAL TAGLINE & GREETING CARD (UPPER RIGHT)
    =================================================================== */
 .seren-editorial-tagline-wrap {

@@ -139,6 +139,24 @@
         proportions: 'slim_fit',
         bodyFat: 25,
         waistDefinition: 70,
+        anatomy: {
+          female: {
+            bust: 55,
+            glutes: 60,
+            thighs: 48,
+            waist: 72,
+            height: 1.70,
+            weight: 58
+          },
+          male: {
+            pecs: 65,
+            stomach: 22,
+            shoulders: 72,
+            thighs: 58,
+            height: 1.80,
+            weight: 78
+          }
+        },
         top: 'tank',
         bottom: 'wide_linen',
         shoes: 'sneakers',
@@ -148,6 +166,10 @@
           necklace: false
         }
       };
+
+      // Anatomical Feature Meshes (Breasts, Glutes, Pecs, Shoulders, Stomach)
+      this.anatomicalGroup = null;
+      this.anatomicalMeshes = {};
 
       // Pointer / Drag State
       this.isPointerDown = false;
@@ -1827,9 +1849,13 @@
             console.log('Studio3D: Rigged 3D avatar loaded successfully from', url);
             this.gltfAvatarGroup = this.avatarModel.gltfAvatarGroup;
             this.activeAvatarType = this.avatarModel.activeAvatarType;
+            this.buildAnatomicalFeatures(this.avatarConfig.gender || 'female');
+            this.updateBodyMeshScale();
           },
           (err) => {
             console.log('Studio3D: Using high-definition sculpted avatar.');
+            this.buildAnatomicalFeatures(this.avatarConfig.gender || 'female');
+            this.updateBodyMeshScale();
           }
         );
         return;
@@ -1889,6 +1915,8 @@
             this.avatarRoot.add(this.gltfAvatarGroup);
             this.sculptedAvatarGroup.visible = false;
             this.activeAvatarType = 'glb';
+            this.buildAnatomicalFeatures(this.avatarConfig.gender || 'female');
+            this.updateBodyMeshScale();
           },
           undefined,
           (err) => {
@@ -2190,7 +2218,18 @@
     }
 
     updateBodyMeshScale() {
-      const preset = this.avatarConfig.proportions || 'slim_fit';
+      const isMale = (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male');
+      const anatomy = this.avatarConfig.anatomy ? (isMale ? this.avatarConfig.anatomy.male : this.avatarConfig.anatomy.female) : null;
+
+      const baseHeight = isMale ? 1.80 : 1.70;
+      const baseWeight = isMale ? 78 : 58;
+      const height = (anatomy && typeof anatomy.height === 'number') ? anatomy.height : baseHeight;
+      const weight = (anatomy && typeof anatomy.weight === 'number') ? anatomy.weight : baseWeight;
+
+      const scaleY = height / baseHeight;
+      const scaleXZ = Math.sqrt(weight / (baseWeight * Math.max(0.5, scaleY)));
+
+      const preset = this.avatarConfig.proportions || (isMale ? 'athletic' : 'slim_fit');
       let baseScaleX = 1.0;
       let baseScaleY = 1.0;
       let baseScaleZ = 1.0;
@@ -2227,15 +2266,17 @@
           baseScaleZ = 1.00;
       }
 
-      const fat = typeof this.avatarConfig.bodyFat === 'number' ? this.avatarConfig.bodyFat : 25;
-      const fatMultiplier = 0.86 + (fat / 100) * 0.36;
+      const fat = typeof this.avatarConfig.bodyFat === 'number' ? this.avatarConfig.bodyFat : (isMale ? 20 : 25);
+      const fatMultiplier = 0.88 + (fat / 100) * 0.32;
 
-      const waist = typeof this.avatarConfig.waistDefinition === 'number' ? this.avatarConfig.waistDefinition : 70;
-      const waistMultiplier = 1.08 - (waist / 100) * 0.16;
+      const waist = (anatomy && typeof anatomy.waist === 'number')
+        ? anatomy.waist
+        : (typeof this.avatarConfig.waistDefinition === 'number' ? this.avatarConfig.waistDefinition : 70);
+      const waistMultiplier = isMale ? 1.0 : (1.08 - (waist / 100) * 0.16);
 
-      const finalScaleX = baseScaleX * fatMultiplier * waistMultiplier;
-      const finalScaleZ = baseScaleZ * fatMultiplier * (waistMultiplier * 0.95);
-      const finalScaleY = baseScaleY;
+      const finalScaleX = baseScaleX * scaleXZ * fatMultiplier * waistMultiplier;
+      const finalScaleZ = baseScaleZ * scaleXZ * fatMultiplier * (waistMultiplier * 0.95);
+      const finalScaleY = baseScaleY * scaleY;
 
       if (this.avatarRoot) {
         this.avatarRoot.scale.set(finalScaleX, finalScaleY, finalScaleZ);
@@ -2245,23 +2286,34 @@
       if (this.gltfAvatarGroup) {
         this.gltfAvatarGroup.position.set(0, 0.080, 0);
       }
+
+      if (this.anatomicalGroup) {
+        this.updateAnatomy();
+      }
     }
 
     /**
      * Avatar Customization API: Gender Presentation (Swaps Female / Male Mannequin)
      */
     setGenderPresentation(gender) {
-      this.avatarConfig.gender = gender;
-      if (gender === 'masculine' || gender === 'male') {
+      const isMale = (gender === 'masculine' || gender === 'male');
+      const targetGender = isMale ? 'male' : 'female';
+      this.avatarConfig.gender = targetGender;
+
+      if (isMale) {
         this.loadMannequin('male');
         this.setBodyProportions('athletic');
       } else {
         this.loadMannequin('female');
-        this.setBodyProportions('regular');
+        this.setBodyProportions('slim_fit');
       }
+
       if (this.avatarController && typeof this.avatarController.setGenderPresentation === 'function') {
         this.avatarController.setGenderPresentation(gender);
       }
+
+      this.buildAnatomicalFeatures(targetGender);
+      this.updateBodyMeshScale();
       this.savePreferences();
     }
 
@@ -2286,8 +2338,297 @@
         this.activeAvatarType = 'sculpted';
         this.avatarConfig.modelType = 'avatar';
         this.loadRiggedAvatarGLB();
+        this.buildAnatomicalFeatures(this.avatarConfig.gender || 'female');
         this.savePreferences();
       }
+    }
+
+    /**
+     * Creates matching warm porcelain PBR material for seamless anatomical blending
+     */
+    createPorcelainAnatomyMaterial() {
+      const mat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(0xD9CDBC), // Warm Ivory matching Astra
+        roughness: 0.74,
+        metalness: 0.02,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1
+      });
+
+      if (this.gltfAvatarGroup) {
+        this.gltfAvatarGroup.traverse((child) => {
+          if (child.isMesh && child.material && !child.material.map) {
+            mat.color.copy(child.material.color);
+            mat.roughness = child.material.roughness;
+            mat.metalness = child.material.metalness;
+          }
+        });
+      }
+      return mat;
+    }
+
+    /**
+     * Builds and attaches anatomically sculpted features:
+     * - Female: natural teardrop bust/breasts, sculpted glutes/butt, hips & thighs curvature, hourglass waist
+     * - Male: broad chiseled chest/pectorals, shoulder deltoids (V-taper), stomach/core, athletic quads
+     */
+    buildAnatomicalFeatures(gender = 'female') {
+      const isMale = (gender === 'male' || gender === 'masculine');
+      const targetGender = isMale ? 'male' : 'female';
+
+      // Remove existing anatomical group
+      if (this.anatomicalGroup) {
+        if (this.avatarRoot) {
+          this.avatarRoot.remove(this.anatomicalGroup);
+        }
+        this.anatomicalGroup.traverse((child) => {
+          if (child.isMesh) {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+              if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+              else child.material.dispose();
+            }
+          }
+        });
+      }
+
+      this.anatomicalGroup = new THREE.Group();
+      this.anatomicalGroup.name = `WoobiAnatomy_${targetGender}`;
+      this.anatomicalMeshes = {};
+
+      const mat = this.createPorcelainAnatomyMaterial();
+
+      if (isMale) {
+        // === MALE ANATOMICAL SCULPTING ===
+        // 1. Chiseled Pectoral Plates (Chest)
+        const pecGeo = new THREE.SphereGeometry(0.125, 32, 24);
+        pecGeo.scale(1.18, 0.78, 0.68);
+
+        const leftPec = new THREE.Mesh(pecGeo, mat);
+        leftPec.position.set(-0.098, 1.28, 0.100);
+        leftPec.rotation.set(-0.06, -0.06, -0.05);
+        leftPec.castShadow = true;
+        leftPec.receiveShadow = true;
+        this.anatomicalGroup.add(leftPec);
+        this.anatomicalMeshes.leftPec = leftPec;
+
+        const rightPec = new THREE.Mesh(pecGeo, mat);
+        rightPec.position.set(0.098, 1.28, 0.100);
+        rightPec.rotation.set(-0.06, 0.06, 0.05);
+        rightPec.castShadow = true;
+        rightPec.receiveShadow = true;
+        this.anatomicalGroup.add(rightPec);
+        this.anatomicalMeshes.rightPec = rightPec;
+
+        // 2. Broad Deltoid Shoulders (V-Taper)
+        const deltoidGeo = new THREE.SphereGeometry(0.095, 28, 20);
+        deltoidGeo.scale(1.18, 1.02, 0.96);
+
+        const leftDeltoid = new THREE.Mesh(deltoidGeo, mat);
+        leftDeltoid.position.set(-0.262, 1.40, 0.0);
+        leftDeltoid.castShadow = true;
+        this.anatomicalGroup.add(leftDeltoid);
+        this.anatomicalMeshes.leftDeltoid = leftDeltoid;
+
+        const rightDeltoid = new THREE.Mesh(deltoidGeo, mat);
+        rightDeltoid.position.set(0.262, 1.40, 0.0);
+        rightDeltoid.castShadow = true;
+        this.anatomicalGroup.add(rightDeltoid);
+        this.anatomicalMeshes.rightDeltoid = rightDeltoid;
+
+        // 3. Stomach & Abdominal Core
+        const stomachGeo = new THREE.CylinderGeometry(0.128, 0.140, 0.22, 28, 1, false, -Math.PI / 2, Math.PI);
+        stomachGeo.scale(1.0, 1.0, 0.75);
+        const stomachMesh = new THREE.Mesh(stomachGeo, mat);
+        stomachMesh.position.set(0, 1.07, 0.050);
+        stomachMesh.rotation.set(-0.04, 0, 0);
+        stomachMesh.castShadow = true;
+        this.anatomicalGroup.add(stomachMesh);
+        this.anatomicalMeshes.stomach = stomachMesh;
+
+        // 4. Muscular Athletic Quads
+        const quadGeo = new THREE.CylinderGeometry(0.102, 0.082, 0.40, 24);
+        quadGeo.scale(1.06, 1.0, 1.15);
+
+        const leftQuad = new THREE.Mesh(quadGeo, mat);
+        leftQuad.position.set(-0.118, 0.68, 0.020);
+        leftQuad.castShadow = true;
+        this.anatomicalGroup.add(leftQuad);
+        this.anatomicalMeshes.leftQuad = leftQuad;
+
+        const rightQuad = new THREE.Mesh(quadGeo, mat);
+        rightQuad.position.set(0.118, 0.68, 0.020);
+        rightQuad.castShadow = true;
+        this.anatomicalGroup.add(rightQuad);
+        this.anatomicalMeshes.rightQuad = rightQuad;
+
+      } else {
+        // === FEMALE ANATOMICAL SCULPTING ===
+        // 1. Natural Teardrop Bust / Breasts
+        const breastGeo = new THREE.SphereGeometry(0.096, 32, 24);
+        breastGeo.scale(1.0, 1.12, 1.30); // Teardrop projection
+
+        const leftBreast = new THREE.Mesh(breastGeo, mat);
+        leftBreast.position.set(-0.092, 1.20, 0.105);
+        leftBreast.rotation.set(-0.16, -0.09, -0.05);
+        leftBreast.castShadow = true;
+        leftBreast.receiveShadow = true;
+        this.anatomicalGroup.add(leftBreast);
+        this.anatomicalMeshes.leftBreast = leftBreast;
+
+        const rightBreast = new THREE.Mesh(breastGeo, mat);
+        rightBreast.position.set(0.092, 1.20, 0.105);
+        rightBreast.rotation.set(-0.16, 0.09, 0.05);
+        rightBreast.castShadow = true;
+        rightBreast.receiveShadow = true;
+        this.anatomicalGroup.add(rightBreast);
+        this.anatomicalMeshes.rightBreast = rightBreast;
+
+        // 2. Sculpted Glutes / Buttocks
+        const gluteGeo = new THREE.SphereGeometry(0.122, 32, 24);
+        gluteGeo.scale(1.06, 1.18, 1.15);
+
+        const leftGlute = new THREE.Mesh(gluteGeo, mat);
+        leftGlute.position.set(-0.088, 0.84, -0.068);
+        leftGlute.rotation.set(0.12, 0.06, 0.03);
+        leftGlute.castShadow = true;
+        leftGlute.receiveShadow = true;
+        this.anatomicalGroup.add(leftGlute);
+        this.anatomicalMeshes.leftGlute = leftGlute;
+
+        const rightGlute = new THREE.Mesh(gluteGeo, mat);
+        rightGlute.position.set(0.088, 0.84, -0.068);
+        rightGlute.rotation.set(0.12, -0.06, -0.03);
+        rightGlute.castShadow = true;
+        rightGlute.receiveShadow = true;
+        this.anatomicalGroup.add(rightGlute);
+        this.anatomicalMeshes.rightGlute = rightGlute;
+
+        // 3. Feminine Outer Hips & Thighs Flare
+        const thighGeo = new THREE.CylinderGeometry(0.098, 0.076, 0.40, 28);
+        thighGeo.scale(1.15, 1.0, 1.06);
+
+        const leftThigh = new THREE.Mesh(thighGeo, mat);
+        leftThigh.position.set(-0.126, 0.65, 0.002);
+        leftThigh.rotation.set(0, 0, 0.06);
+        leftThigh.castShadow = true;
+        this.anatomicalGroup.add(leftThigh);
+        this.anatomicalMeshes.leftThigh = leftThigh;
+
+        const rightThigh = new THREE.Mesh(thighGeo, mat);
+        rightThigh.position.set(0.126, 0.65, 0.002);
+        rightThigh.rotation.set(0, 0, -0.06);
+        rightThigh.castShadow = true;
+        this.anatomicalGroup.add(rightThigh);
+        this.anatomicalMeshes.rightThigh = rightThigh;
+      }
+
+      if (this.avatarRoot) {
+        this.avatarRoot.add(this.anatomicalGroup);
+      }
+
+      this.updateAnatomy();
+    }
+
+    /**
+     * Updates individual anatomical scales, projection, and stature/weight proportions
+     */
+    updateAnatomy() {
+      const isMale = (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male');
+      const data = (this.avatarConfig.anatomy && (isMale ? this.avatarConfig.anatomy.male : this.avatarConfig.anatomy.female)) || {};
+      const meshes = this.anatomicalMeshes || {};
+
+      if (isMale) {
+        // Male Pectorals (Chest)
+        const pecsVal = typeof data.pecs === 'number' ? data.pecs : 65;
+        const pecScale = 0.60 + (pecsVal / 100) * 0.80;
+        if (meshes.leftPec && meshes.rightPec) {
+          meshes.leftPec.scale.set(pecScale * 1.05, pecScale * 0.95, pecScale * 1.15);
+          meshes.rightPec.scale.set(pecScale * 1.05, pecScale * 0.95, pecScale * 1.15);
+          meshes.leftPec.position.z = 0.075 + (pecsVal / 100) * 0.045;
+          meshes.rightPec.position.z = 0.075 + (pecsVal / 100) * 0.045;
+        }
+
+        // Male Shoulders / Deltoids V-Taper
+        const shoulderVal = typeof data.shoulders === 'number' ? data.shoulders : 72;
+        const shoulderScale = 0.65 + (shoulderVal / 100) * 0.70;
+        const shoulderSpan = 0.240 + (shoulderVal / 100) * 0.035;
+        if (meshes.leftDeltoid && meshes.rightDeltoid) {
+          meshes.leftDeltoid.scale.set(shoulderScale * 1.1, shoulderScale, shoulderScale);
+          meshes.rightDeltoid.scale.set(shoulderScale * 1.1, shoulderScale, shoulderScale);
+          meshes.leftDeltoid.position.x = -shoulderSpan;
+          meshes.rightDeltoid.position.x = shoulderSpan;
+        }
+
+        // Male Stomach & Core
+        const stomachVal = typeof data.stomach === 'number' ? data.stomach : 22;
+        const stomachScale = 0.50 + (stomachVal / 100) * 0.90;
+        if (meshes.stomach) {
+          meshes.stomach.scale.set(stomachScale * 1.05, 1.0, stomachScale * 1.20);
+          meshes.stomach.position.z = 0.038 + (stomachVal / 100) * 0.035;
+        }
+
+        // Male Quads / Muscular Thighs
+        const quadVal = typeof data.thighs === 'number' ? data.thighs : 58;
+        const quadScale = 0.70 + (quadVal / 100) * 0.65;
+        if (meshes.leftQuad && meshes.rightQuad) {
+          meshes.leftQuad.scale.set(quadScale, 1.0, quadScale * 1.08);
+          meshes.rightQuad.scale.set(quadScale, 1.0, quadScale * 1.08);
+        }
+
+      } else {
+        // Female Bust / Breasts
+        const bustVal = typeof data.bust === 'number' ? data.bust : 55;
+        const bustScale = 0.55 + (bustVal / 100) * 0.95;
+        if (meshes.leftBreast && meshes.rightBreast) {
+          meshes.leftBreast.scale.set(bustScale * 0.95, bustScale * 1.05, bustScale * 1.25);
+          meshes.rightBreast.scale.set(bustScale * 0.95, bustScale * 1.05, bustScale * 1.25);
+          meshes.leftBreast.position.z = 0.078 + (bustVal / 100) * 0.055;
+          meshes.rightBreast.position.z = 0.078 + (bustVal / 100) * 0.055;
+        }
+
+        // Female Glutes / Buttocks
+        const gluteVal = typeof data.glutes === 'number' ? data.glutes : 60;
+        const gluteScale = 0.60 + (gluteVal / 100) * 0.85;
+        if (meshes.leftGlute && meshes.rightGlute) {
+          meshes.leftGlute.scale.set(gluteScale * 1.05, gluteScale * 1.15, gluteScale * 1.12);
+          meshes.rightGlute.scale.set(gluteScale * 1.05, gluteScale * 1.15, gluteScale * 1.12);
+          meshes.leftGlute.position.z = -0.048 - (gluteVal / 100) * 0.045;
+          meshes.rightGlute.position.z = -0.048 - (gluteVal / 100) * 0.045;
+        }
+
+        // Female Thighs & Hips Contour
+        const thighVal = typeof data.thighs === 'number' ? data.thighs : 48;
+        const thighScale = 0.65 + (thighVal / 100) * 0.75;
+        const hipSpan = 0.118 + (thighVal / 100) * 0.022;
+        if (meshes.leftThigh && meshes.rightThigh) {
+          meshes.leftThigh.scale.set(thighScale * 1.10, 1.0, thighScale);
+          meshes.rightThigh.scale.set(thighScale * 1.10, 1.0, thighScale);
+          meshes.leftThigh.position.x = -hipSpan;
+          meshes.rightThigh.position.x = hipSpan;
+        }
+      }
+    }
+
+    /**
+     * Sets specific anatomical parameter and recalculates models
+     */
+    setAnatomy(key, val, gender = null) {
+      const g = gender || (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male' ? 'male' : 'female');
+      if (!this.avatarConfig.anatomy) {
+        this.avatarConfig.anatomy = {
+          female: { bust: 55, glutes: 60, thighs: 48, waist: 72, height: 1.70, weight: 58 },
+          male: { pecs: 65, stomach: 22, shoulders: 72, thighs: 58, height: 1.80, weight: 78 }
+        };
+      }
+      if (!this.avatarConfig.anatomy[g]) {
+        this.avatarConfig.anatomy[g] = {};
+      }
+      this.avatarConfig.anatomy[g][key] = parseFloat(val);
+      this.updateAnatomy();
+      this.updateBodyMeshScale();
+      this.savePreferences();
     }
 
     /**
@@ -2296,8 +2637,12 @@
     loadMannequin(gender = 'female') {
       if (typeof THREE.GLTFLoader === 'undefined') return;
 
+      const isMale = (gender === 'male' || gender === 'masculine');
+      const targetGender = isMale ? 'male' : 'female';
+      this.avatarConfig.gender = targetGender;
+
       const loader = new THREE.GLTFLoader();
-      const urls = gender === 'male'
+      const urls = isMale
         ? [
             '3D - Mannequin By Astra/Woobi_Male_Mannequin.glb',
             '3D - Mannequin By Astra/male/Woobi_Male_Mannequin.glb',
@@ -2315,7 +2660,7 @@
         loader.load(
           url,
           (gltf) => {
-            console.log(`Studio3D: Astra ${gender} mannequin loaded successfully from`, url);
+            console.log(`Studio3D: Astra ${targetGender} mannequin loaded successfully from`, url);
             const model = gltf.scene;
 
             // Remove existing gltfAvatarGroup if present
@@ -2341,7 +2686,12 @@
               this.sculptedAvatarGroup.visible = false;
             }
             this.activeAvatarType = 'mannequin';
-            this.avatarConfig.modelType = `mannequin_${gender}`;
+            this.avatarConfig.modelType = `mannequin_${targetGender}`;
+
+            // Build distinct anatomical contours
+            this.buildAnatomicalFeatures(targetGender);
+
+            this.updateBodyMeshScale();
             this.savePreferences();
           },
           undefined,
