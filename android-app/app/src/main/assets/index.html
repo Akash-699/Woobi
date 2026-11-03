@@ -3348,6 +3348,28 @@
                 </div>
               </div>
             </div>
+
+            <!-- Bottom Navigation Bar Matching Target Screenshot (Home, Habits, Streak, Me) -->
+            <nav class="cal-card-bottom-nav">
+              <button class="cal-nav-btn" onclick="app.closeStreakModal()" title="Home">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span>Home</span>
+              </button>
+              <button class="cal-nav-btn" onclick="app.closeStreakModal()" title="Habits">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                <span>Habits</span>
+              </button>
+              <button class="cal-nav-btn active" title="Streak Calendar">
+                <div class="cal-nav-pill">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C85A17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M12 14c-.6 0-1 .4-1 1s.4 1 1 1 1-.4 1-1-.4-1-1-1z"/></svg>
+                  <span>Streak</span>
+                </div>
+              </button>
+              <button class="cal-nav-btn" onclick="app.closeStreakModal(); app.goToScreen('profile')" title="Me">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                <span>Me</span>
+              </button>
+            </nav>
           </div>
         </div>
       </div>
