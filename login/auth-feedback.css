@@ -12,9 +12,6 @@
 .feedback-action:hover{background:#90704d}
 .feedback-dialog button:focus-visible{outline:2px solid #8a6c43;outline-offset:3px}
 .feedback-success .feedback-icon{border-color:#bdcbb0;background:#eef4e7;color:#5e7e50}
-.feedback-atelier{border-color:#c5ad81;background:linear-gradient(135deg,#fffdf5,#f2e9d9);border-radius:24px}
-.feedback-atelier .feedback-action{background:#544332;border-color:#544332}
-.feedback-atelier .feedback-action:hover{background:#725739}
 @keyframes feedback-appear{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
 @media(max-height:450px){.feedback-dialog{padding:20px 26px}.feedback-icon{width:34px;height:34px;margin-bottom:10px;font-size:19px}.feedback-dialog #feedback-title{font-size:26px;margin-bottom:10px}.feedback-dialog #feedback-description{margin-bottom:16px;font-size:11px}}
 @media(prefers-reduced-motion:reduce){.feedback-dialog[open]{animation:none}}

@@ -1,2 +1,38 @@
-# Initial code owner; replace/add @Troyz-Solutions/admins when the team exists and has write access.
-* @04suriya07-spec
+# ==============================================================================
+# WOOBI CORPORATE MONOREPO - CODEOWNERS
+# ==============================================================================
+# Syntax: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Rules:
+# - Default fallback: Repository owner & Global admin reviewers oversight required
+# - Core infrastructure: Requires approvals including Admin
+# - Team boundaries: Respective module teams own their submodules
+
+# Global fallback: Repository Owner and Organization Admins
+*                            @04suriya07-spec @Troyz-Solutions/admin-reviewers @Troyz-Solutions/admins
+
+# Application Entry Points
+/apps/web/                   @Troyz-Solutions/frontend-team @Troyz-Solutions/admin-reviewers
+/apps/android/               @Troyz-Solutions/mobile-team @Troyz-Solutions/admin-reviewers
+
+# Module 1: 3D Studio (Physical World, Models, Dais, Lights, Camera)
+/modules/3d-studio/          @Troyz-Solutions/3d-team @Troyz-Solutions/admin-reviewers
+
+# Module 2: 3D Studio Features (Try-on, Interactions, Recommendations)
+/modules/3d-studio-features/ @Troyz-Solutions/fashion-team @Troyz-Solutions/frontend-team
+
+# Module 3: Settings (Preferences, Account, Privacy)
+/modules/settings/           @Troyz-Solutions/frontend-team
+
+# Module 4: Backend (API, Auth, Storage, Security)
+/modules/backend/            @Troyz-Solutions/backend-team @Troyz-Solutions/admin-reviewers
+
+# Module 5: Core (Foundation, Contracts, State, Error Handling)
+/modules/core/               @04suriya07-spec @Troyz-Solutions/admin-reviewers
+
+# Canonical 3D Assets & Blender Pipeline
+/assets/                     @Troyz-Solutions/3d-team
+
+# DevOps, CI/CD & Governance
+/.github/                    @04suriya07-spec @Troyz-Solutions/admin-reviewers
+/scripts/                    @04suriya07-spec @Troyz-Solutions/admin-reviewers

@@ -1,8 +1,8 @@
 # User account storage — code-only handoff
 
 No Firebase panel changes or rule deployments were performed for this feature.
-`WOOBI_USER_PROFILES_ENABLED` is **false** in `firebase-config.js`. All three login
-designs keep their current authentication/redirect behavior while it is false.
+`WOOBI_USER_PROFILES_ENABLED` is **false** in `firebase-config.js`. The selected login
+page keeps its current authentication/redirect behavior while it is false.
 
 ## Where credentials belong
 
@@ -41,8 +41,7 @@ from client-writable profile fields. Other users' profiles are not readable.
 - `login/user-profile.js`: builds an explicit allowlist of profile fields and
   transactionally creates/updates a document after successful authentication.
   A transaction preserves createdAt if two login sessions create the same profile.
-- `login/auth.js`: optional profile save before the homepage redirect, shared by
-  all three designs. Password reset does not write a profile. Profile errors do
+- `login/auth.js`: optional profile save before the homepage redirect. Password reset does not write a profile. Profile errors do
   not undo successful Auth sign-in; a pop-up offers Continue to wardrobe.
 - `firestore.rules`: requires ownership for individual reads/writes, validates
   field names/types, forbids listing and deletion, preserves createdAt, and

@@ -30,7 +30,7 @@
  *    };
  *
  * 7. Start the site with npm start, then open http://localhost:5050/login/.
- *    All three designs load this shared file; only configure it once.
+ *    The selected login design loads this file; only configure it once.
  * 8. Follow TESTING.md for local UI checks and live authentication checks.
  *
  * Do not put Admin SDK credentials, service account keys, private keys, OAuth

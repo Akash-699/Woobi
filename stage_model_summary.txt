@@ -1,0 +1,38 @@
+============================================================
+SÉRÉN STUDIO — 3D CIRCULAR ELEVATED STAGE SUMMARY (STEP 3)
+============================================================
+
+Asset: Luxury Cream Woven Circular Elevated Dais / Avatar Stage
+Origin: Floor-Level Center (0, 0, 0) | Up: +Z
+Diameter: 1.90 m | Height / Thickness: 0.080 m (8.0 cm) | Radius: 0.95 m
+Total Mesh Objects: 6
+Total Vertices:     6,914
+Total Polygons:     6,817
+
+COLLECTION HIERARCHY:
+
+[Stage_Base] (1 objects):
+  • Stage_Base [MESH] (1 polys, 96 verts)
+
+[Rug_Surface] (1 objects):
+  • Rug_Surface [MESH] (2976 polys, 2978 verts)
+
+[Rug_Edge] (1 objects):
+  • Rug_Edge [MESH] (1536 polys, 1536 verts)
+
+[Rug_Detail] (3 objects):
+  • Rug_Detail_Ring_1 [MESH] (768 polys, 768 verts)
+  • Rug_Detail_Ring_2 [MESH] (768 polys, 768 verts)
+  • Rug_Detail_Ring_3 [MESH] (768 polys, 768 verts)
+
+MATERIALS:
+  • M_Floor_Travertine
+  • M_Rug_Cream_Woven
+  • M_Rug_Edge_Bouclé
+  • M_Studio_Wall_Cream
+
+THREE.JS INTEGRATION NOTES:
+  • Elevated stage has a proud 8.0 cm height with upholstered side profile.
+  • Rug_Surface mesh uses woven cream fabric material.
+  • Rug_Edge + Rug_Detail use slightly deeper edge fabric.
+  • Base is at Z=0; avatar is positioned at Z=0.080m (top surface of stage).

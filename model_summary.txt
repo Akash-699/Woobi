@@ -1,0 +1,241 @@
+============================================================
+SÉRÉN STUDIO — 3D LUXURY WARDROBE MODEL SUMMARY (1:1 REFERENCE)
+============================================================
+
+Total Mesh Objects: 182
+Total Vertices: 5,420
+Total Polygons/Faces: 3,256
+
+COLLECTION HIERARCHY & OBJECT COUNTS:
+
+[Wardrobe_Structure] (15 objects):
+  • Drawer_Left_Front [MESH] (30 polys)
+  • Drawer_Left_Handle [MESH] (26 polys)
+  • Drawer_Right_Front [MESH] (30 polys)
+  • Drawer_Right_Handle [MESH] (26 polys)
+  • Wardrobe_Back_Board [MESH] (6 polys)
+  • Wardrobe_Base_Shelf [MESH] (30 polys)
+  • Wardrobe_Bottom_Plinth [MESH] (6 polys)
+  • Wardrobe_Shelf_Above_Shoes [MESH] (30 polys)
+  • Wardrobe_Shelf_Drawer_Top [MESH] (30 polys)
+  • Wardrobe_Shelf_Low [MESH] (30 polys)
+  • Wardrobe_Shelf_Mid [MESH] (30 polys)
+  • Wardrobe_Shelf_Top [MESH] (30 polys)
+  • Wardrobe_Side_Left [MESH] (30 polys)
+  • Wardrobe_Side_Right [MESH] (30 polys)
+  • Wardrobe_Top_Cap [MESH] (30 polys)
+
+[Hanging_Rail] (3 objects):
+  • Brass_Hanging_Rail [MESH] (26 polys)
+  • Rail_Flange_Left [MESH] (26 polys)
+  • Rail_Flange_Right [MESH] (26 polys)
+
+[Hangers] (28 objects):
+  • Hanger_1 [MESH] (10 polys)
+  • Hanger_1_Bar [MESH] (18 polys)
+  • Hanger_1_Hook_Stem [MESH] (14 polys)
+  • Hanger_1_Hook_Top [MESH] (14 polys)
+  • Hanger_2 [MESH] (10 polys)
+  • Hanger_2_Bar [MESH] (18 polys)
+  • Hanger_2_Hook_Stem [MESH] (14 polys)
+  • Hanger_2_Hook_Top [MESH] (14 polys)
+  • Hanger_3 [MESH] (10 polys)
+  • Hanger_3_Bar [MESH] (18 polys)
+  • Hanger_3_Hook_Stem [MESH] (14 polys)
+  • Hanger_3_Hook_Top [MESH] (14 polys)
+  • Hanger_4 [MESH] (10 polys)
+  • Hanger_4_Bar [MESH] (18 polys)
+  • Hanger_4_Hook_Stem [MESH] (14 polys)
+  • Hanger_4_Hook_Top [MESH] (14 polys)
+  • Hanger_5 [MESH] (10 polys)
+  • Hanger_5_Bar [MESH] (18 polys)
+  • Hanger_5_Hook_Stem [MESH] (14 polys)
+  • Hanger_5_Hook_Top [MESH] (14 polys)
+  • Hanger_6 [MESH] (10 polys)
+  • Hanger_6_Bar [MESH] (18 polys)
+  • Hanger_6_Hook_Stem [MESH] (14 polys)
+  • Hanger_6_Hook_Top [MESH] (14 polys)
+  • Hanger_7 [MESH] (10 polys)
+  • Hanger_7_Bar [MESH] (18 polys)
+  • Hanger_7_Hook_Stem [MESH] (14 polys)
+  • Hanger_7_Hook_Top [MESH] (14 polys)
+
+[Hanging_Garments] (47 objects):
+  • Garment_1_White_Shirt [MESH] (66 polys)
+  • Garment_1_White_Shirt_Btn_1 [MESH] (14 polys)
+  • Garment_1_White_Shirt_Btn_2 [MESH] (14 polys)
+  • Garment_1_White_Shirt_Btn_3 [MESH] (14 polys)
+  • Garment_1_White_Shirt_Btn_4 [MESH] (14 polys)
+  • Garment_1_White_Shirt_Btn_5 [MESH] (14 polys)
+  • Garment_1_White_Shirt_Collar [MESH] (18 polys)
+  • Garment_1_White_Shirt_Cuff_Front [MESH] (18 polys)
+  • Garment_1_White_Shirt_Placket [MESH] (6 polys)
+  • Garment_1_White_Shirt_Sleeve_Back [MESH] (18 polys)
+  • Garment_1_White_Shirt_Sleeve_Front [MESH] (18 polys)
+  • Garment_2_Cream_Blouse [MESH] (66 polys)
+  • Garment_2_Cream_Blouse_Cuff_Front [MESH] (18 polys)
+  • Garment_2_Cream_Blouse_Sleeve_Back [MESH] (18 polys)
+  • Garment_2_Cream_Blouse_Sleeve_Front [MESH] (18 polys)
+  • Garment_2_Cream_Blouse_VNeck [MESH] (18 polys)
+  • Garment_3_Beige_Jacket [MESH] (66 polys)
+  • Garment_3_Beige_Jacket_Cuff_Front [MESH] (18 polys)
+  • Garment_3_Beige_Jacket_Lapel_L [MESH] (30 polys)
+  • Garment_3_Beige_Jacket_Lapel_R [MESH] (30 polys)
+  • Garment_3_Beige_Jacket_Sleeve_Back [MESH] (18 polys)
+  • Garment_3_Beige_Jacket_Sleeve_Front [MESH] (18 polys)
+  • Garment_4_Charcoal_Blazer [MESH] (66 polys)
+  • Garment_4_Charcoal_Blazer_Cuff_Front [MESH] (18 polys)
+  • Garment_4_Charcoal_Blazer_Lapel_L [MESH] (30 polys)
+  • Garment_4_Charcoal_Blazer_Lapel_R [MESH] (30 polys)
+  • Garment_4_Charcoal_Blazer_Sleeve_Back [MESH] (18 polys)
+  • Garment_4_Charcoal_Blazer_Sleeve_Front [MESH] (18 polys)
+  • Garment_5_Ivory_Knitwear [MESH] (66 polys)
+  • Garment_5_Ivory_Knitwear_CrewRib [MESH] (22 polys)
+  • Garment_5_Ivory_Knitwear_Cuff_Front [MESH] (18 polys)
+  • Garment_5_Ivory_Knitwear_Sleeve_Back [MESH] (18 polys)
+  • Garment_5_Ivory_Knitwear_Sleeve_Front [MESH] (18 polys)
+  • Garment_7_Striped_Shirt [MESH] (66 polys)
+  • Garment_7_Striped_Shirt_Btn_1 [MESH] (14 polys)
+  • Garment_7_Striped_Shirt_Btn_2 [MESH] (14 polys)
+  • Garment_7_Striped_Shirt_Btn_3 [MESH] (14 polys)
+  • Garment_7_Striped_Shirt_Btn_4 [MESH] (14 polys)
+  • Garment_7_Striped_Shirt_Btn_5 [MESH] (14 polys)
+  • Garment_7_Striped_Shirt_Collar [MESH] (18 polys)
+  • Garment_7_Striped_Shirt_Cuff_Front [MESH] (18 polys)
+  • Garment_7_Striped_Shirt_Placket [MESH] (6 polys)
+  • Garment_7_Striped_Shirt_Sleeve_Back [MESH] (18 polys)
+  • Garment_7_Striped_Shirt_Sleeve_Front [MESH] (18 polys)
+  • Trousers_Fold_Top [MESH] (18 polys)
+  • Trousers_Leg_Back [MESH] (30 polys)
+  • Trousers_Leg_Front [MESH] (30 polys)
+
+[Folded_Clothing] (4 objects):
+  • Folded_Linen_Stack [MESH] (30 polys)
+  • Folded_Sweater_1_Grey [MESH] (30 polys)
+  • Folded_Sweater_2_Oatmeal [MESH] (30 polys)
+  • Folded_Sweater_3_White [MESH] (30 polys)
+
+[Shoes] (16 objects):
+  • Shoe_Pair1_L_Sole [MESH] (30 polys)
+  • Shoe_Pair1_L_Upper [MESH] (30 polys)
+  • Shoe_Pair1_R_Sole [MESH] (30 polys)
+  • Shoe_Pair1_R_Upper [MESH] (30 polys)
+  • Shoe_Pair2_L_Sole [MESH] (30 polys)
+  • Shoe_Pair2_L_Upper [MESH] (30 polys)
+  • Shoe_Pair2_R_Sole [MESH] (30 polys)
+  • Shoe_Pair2_R_Upper [MESH] (30 polys)
+  • Shoe_Pair3_L_Sole [MESH] (30 polys)
+  • Shoe_Pair3_L_Upper [MESH] (30 polys)
+  • Shoe_Pair3_R_Sole [MESH] (30 polys)
+  • Shoe_Pair3_R_Upper [MESH] (30 polys)
+  • Shoe_Pair4_L_Sole [MESH] (30 polys)
+  • Shoe_Pair4_L_Upper [MESH] (30 polys)
+  • Shoe_Pair4_R_Sole [MESH] (30 polys)
+  • Shoe_Pair4_R_Upper [MESH] (30 polys)
+
+[Accessories] (8 objects):
+  • Accessories_Tray [MESH] (30 polys)
+  • Box_Brass_Ring [MESH] (26 polys)
+  • Folded_Silk_Scarf [MESH] (30 polys)
+  • Handbag_Flap [MESH] (30 polys)
+  • Handbag_Gold_Lock [MESH] (26 polys)
+  • Handbag_Handle_Arc [MESH] (26 polys)
+  • Leather_Handbag_Body [MESH] (30 polys)
+  • Storage_Box_Top_Left [MESH] (30 polys)
+
+[Plants] (57 objects):
+  • Ivy_Leaf_1_1 [MESH] (6 polys)
+  • Ivy_Leaf_1_10 [MESH] (6 polys)
+  • Ivy_Leaf_1_2 [MESH] (6 polys)
+  • Ivy_Leaf_1_3 [MESH] (6 polys)
+  • Ivy_Leaf_1_4 [MESH] (6 polys)
+  • Ivy_Leaf_1_5 [MESH] (6 polys)
+  • Ivy_Leaf_1_6 [MESH] (6 polys)
+  • Ivy_Leaf_1_7 [MESH] (6 polys)
+  • Ivy_Leaf_1_8 [MESH] (6 polys)
+  • Ivy_Leaf_1_9 [MESH] (6 polys)
+  • Ivy_Leaf_2_1 [MESH] (6 polys)
+  • Ivy_Leaf_2_10 [MESH] (6 polys)
+  • Ivy_Leaf_2_11 [MESH] (6 polys)
+  • Ivy_Leaf_2_12 [MESH] (6 polys)
+  • Ivy_Leaf_2_2 [MESH] (6 polys)
+  • Ivy_Leaf_2_3 [MESH] (6 polys)
+  • Ivy_Leaf_2_4 [MESH] (6 polys)
+  • Ivy_Leaf_2_5 [MESH] (6 polys)
+  • Ivy_Leaf_2_6 [MESH] (6 polys)
+  • Ivy_Leaf_2_7 [MESH] (6 polys)
+  • Ivy_Leaf_2_8 [MESH] (6 polys)
+  • Ivy_Leaf_2_9 [MESH] (6 polys)
+  • Ivy_Leaf_3_1 [MESH] (6 polys)
+  • Ivy_Leaf_3_2 [MESH] (6 polys)
+  • Ivy_Leaf_3_3 [MESH] (6 polys)
+  • Ivy_Leaf_3_4 [MESH] (6 polys)
+  • Ivy_Leaf_3_5 [MESH] (6 polys)
+  • Ivy_Leaf_3_6 [MESH] (6 polys)
+  • Ivy_Leaf_3_7 [MESH] (6 polys)
+  • Ivy_Leaf_4_1 [MESH] (6 polys)
+  • Ivy_Leaf_4_10 [MESH] (6 polys)
+  • Ivy_Leaf_4_11 [MESH] (6 polys)
+  • Ivy_Leaf_4_12 [MESH] (6 polys)
+  • Ivy_Leaf_4_13 [MESH] (6 polys)
+  • Ivy_Leaf_4_14 [MESH] (6 polys)
+  • Ivy_Leaf_4_15 [MESH] (6 polys)
+  • Ivy_Leaf_4_2 [MESH] (6 polys)
+  • Ivy_Leaf_4_3 [MESH] (6 polys)
+  • Ivy_Leaf_4_4 [MESH] (6 polys)
+  • Ivy_Leaf_4_5 [MESH] (6 polys)
+  • Ivy_Leaf_4_6 [MESH] (6 polys)
+  • Ivy_Leaf_4_7 [MESH] (6 polys)
+  • Ivy_Leaf_4_8 [MESH] (6 polys)
+  • Ivy_Leaf_4_9 [MESH] (6 polys)
+  • Ivy_Leaf_5_1 [MESH] (6 polys)
+  • Ivy_Leaf_5_2 [MESH] (6 polys)
+  • Ivy_Leaf_5_3 [MESH] (6 polys)
+  • Ivy_Leaf_5_4 [MESH] (6 polys)
+  • Ivy_Leaf_5_5 [MESH] (6 polys)
+  • Ivy_Leaf_5_6 [MESH] (6 polys)
+  • Ivy_Stem_1 [MESH] (10 polys)
+  • Ivy_Stem_2 [MESH] (10 polys)
+  • Ivy_Stem_3 [MESH] (10 polys)
+  • Ivy_Stem_4 [MESH] (10 polys)
+  • Ivy_Stem_5 [MESH] (10 polys)
+  • Plant_Pot [MESH] (26 polys)
+  • Plant_Soil [MESH] (18 polys)
+
+[Lighting] (7 objects):
+  • LED_Strip_Low [MESH] (6 polys)
+  • LED_Strip_Mid [MESH] (6 polys)
+  • LED_Strip_Shoes [MESH] (6 polys)
+  • LED_Strip_Top [MESH] (6 polys)
+  • Studio_Fill_Light [LIGHT]
+  • Studio_Key_Light [LIGHT]
+  • Studio_Top_Bounce [LIGHT]
+
+[Cameras] (3 objects):
+  • Camera_Closeup [CAMERA]
+  • Camera_Front [CAMERA]
+  • Camera_Perspective [CAMERA]
+
+MATERIALS INCLUDED:
+  • Mat_BeigeLinenJacket
+  • Mat_BoxLinen
+  • Mat_BrushedBrass
+  • Mat_CeramicWhite
+  • Mat_CharcoalWool
+  • Mat_CreamLeatherBag
+  • Mat_CreamSilk
+  • Mat_FoldedGrey
+  • Mat_FoldedIvory
+  • Mat_FoldedOatmeal
+  • Mat_FoliageGreen
+  • Mat_HangerWood
+  • Mat_IvoryCashmere
+  • Mat_NaturalLightOak
+  • Mat_NeutralTrousers
+  • Mat_SneakerSole
+  • Mat_SneakerWhiteLeather
+  • Mat_StripedPoplin
+  • Mat_TaupeSuede
+  • Mat_VineWood
+  • Mat_WarmLED_3000K
+  • Mat_WhitePoplin

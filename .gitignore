@@ -1,6 +1,27 @@
 # Dependencies
 node_modules/
 
+# Local Quarantine Backup (Outside Git)
+_local_quarantine_backup/
+.quarantine/
+
+# Heavy External Tools & Archives (Quarantined)
+blender.zip
+blender-*/
+*.zip
+*.tar.gz
+
+# Compiled Binaries & Packages
+*.exe
+*.dll
+*.pdb
+*.apk
+*.aab
+
+# 3D Auto-save & Backup Files
+*.blend1
+*.blend@
+
 # Android build & cache
 .gradle/
 android-app/.gradle/
@@ -11,10 +32,22 @@ android-app/.kotlin/
 *.iml
 .idea/
 
-# OS and temporary files
+# External Dashboard Files (Separate Project)
+TaskFlowServer.*
+taskflow_server.*
+run_server_writer.ps1
+check_title.ps1
+update_admin_html.ps1
+
+# OS, Logs & Temporary Scratch Files
 .DS_Store
 Thumbs.db
 *.log
+err.txt
+out.txt
+out_dom.txt
+pr-4.patch
+scratch_*.ps1
 
 # Local Firebase project configuration (copy the tracked example to set up)
 /login/firebase-config.js

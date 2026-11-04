@@ -4,7 +4,7 @@
   const config = window.WOOBI_FIREBASE_CONFIG;
   const copy = window.WOOBI_AUTH_COPY || {};
   const feedback = document.createElement('dialog');
-  feedback.className = 'feedback-dialog' + (location.pathname.endsWith('model-3.html') ? ' feedback-atelier' : '');
+  feedback.className = 'feedback-dialog';
   feedback.setAttribute('role', 'alertdialog');
   feedback.setAttribute('aria-labelledby', 'feedback-title');
   feedback.setAttribute('aria-describedby', 'feedback-description');
