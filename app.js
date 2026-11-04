@@ -2566,7 +2566,7 @@
         fireWrap.style.animationDelay = `${delay}s`;
 
         const fireImg = document.createElement('img');
-        fireImg.src = `assets/streak/fire_level_${lvl}.png?v=20261104_1`;
+        fireImg.src = `assets/streak/fire_level_${lvl}.png?v=20261104_3`;
         fireImg.alt = `Streak Fire Level ${lvl}`;
         fireImg.className = `streak-cell-fire-img fire-lvl-${lvl}-img`;
         fireImg.style.animationDelay = `${delay}s`;
