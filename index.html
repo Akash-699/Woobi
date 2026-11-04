@@ -432,12 +432,20 @@
             <!-- Real Three.js 3D WebGL Canvas -->
             <canvas id="seren3dCanvas" class="seren-3d-canvas"></canvas>
 
-            <!-- Floating Editorial Tagline & Greeting Card (Upper-Right matching Target Reference) -->
-            <div class="seren-editorial-tagline-wrap">
+            <!-- Three.js / WebGL Fallback Overlay -->
+            <div class="seren-3d-fallback" id="seren3dFallback" hidden>
+              <div class="seren-3d-fallback__icon">✦</div>
+              <strong>3D Studio Unavailable</strong>
+              <p id="seren3dFallbackMessage">The 3D studio is unavailable offline or without WebGL. You can continue using the rest of your wardrobe.</p>
+              <button type="button" class="btn-seren-retry" onclick="window.retryStudio3D && window.retryStudio3D()">Retry 3D Studio</button>
+            </div>
+
+            <!-- Floating Editorial Tagline & Greeting Card (Hidden to remove unwanted floating popups) -->
+            <div class="seren-editorial-tagline-wrap" style="display: none;" hidden>
               <span class="seren-editorial-tagline">Style a kinder you</span>
               <span class="seren-editorial-heart">♡</span>
             </div>
-            <div class="seren-floating-greeting" id="serenFloatingGreeting">
+            <div class="seren-floating-greeting" id="serenFloatingGreeting" style="display: none;" hidden>
               <div class="greeting-sun-icon">☀️</div>
               <div class="greeting-content">
                 <span class="greeting-time-tag" id="greetingTimeTag">Good morning!</span>
@@ -445,14 +453,14 @@
               </div>
             </div>
 
-            <!-- 3D Spatial Floating Interactive Hotspots matching Target Reference -->
-            <button class="spatial-3d-hint wardrobe-hint" onclick="app.serenInteract('wardrobe')" title="Explore Wardrobe">
+            <!-- 3D Spatial Floating Interactive Hotspots (Wardrobe & Vanity popups hidden to eliminate clutter) -->
+            <button class="spatial-3d-hint wardrobe-hint" onclick="app.serenInteract('wardrobe')" title="Explore Wardrobe" style="display: none;" hidden>
               <span class="hint-icon">👕</span>
               <span class="hint-text">Wardrobe</span>
               <span class="hint-arrow">›</span>
             </button>
 
-            <button class="spatial-3d-hint mirror-hint" onclick="app.serenInteract('vanity')" title="Vanity & Grooming">
+            <button class="spatial-3d-hint mirror-hint" onclick="app.serenInteract('vanity')" title="Vanity & Grooming" style="display: none;" hidden>
               <span class="hint-icon">🪞</span>
               <span class="hint-text">Vanity</span>
               <span class="hint-arrow">›</span>
@@ -4110,6 +4118,306 @@
     </div>
   </div>
 
+  <!-- =========================================================================
+       CLOTHING CAPTURE & SILHOUETTE DIGITIZATION SYSTEM (MODALS)
+       ========================================================================= -->
+
+  <!-- Hidden File Input for Native File Upload / Device Fallback -->
+  <input type="file" id="clothingFileInput" accept="image/*" capture="environment" style="display:none;" onchange="app.handleClothingFileSelected(event)">
+
+  <!-- 1. Category Selection Action Sheet (Step 1) -->
+  <div class="clothing-menu-modal hidden" id="clothingCaptureMenuModal" onclick="if(event.target === this) app.closeClothingCaptureMenu()">
+    <div class="clothing-menu-sheet">
+      <div class="clothing-menu-header">
+        <div>
+          <h3 class="clothing-menu-title">Add to Wardrobe</h3>
+          <p class="clothing-menu-sub">Position clothes inside the silhouette guide</p>
+        </div>
+        <button class="clothing-menu-close" onclick="app.closeClothingCaptureMenu()" title="Close">✕</button>
+      </div>
+
+      <div class="clothing-options-list">
+        <!-- 1. Shirt 👕 (Max 7) -->
+        <button type="button" class="clothing-option-card" id="clothingOptShirt" onclick="app.openClothingCamera('shirt')">
+          <div class="clothing-opt-icon">👕</div>
+          <div class="clothing-opt-info">
+            <div class="clothing-opt-name">
+              <span>Shirt</span>
+            </div>
+            <div class="clothing-opt-desc">Tops • Shirts, T-shirts, Kurtas, Tops</div>
+          </div>
+          <span class="clothing-opt-badge" id="menuShirtSlots">0 / 7</span>
+        </button>
+
+        <!-- 2. Pant 👖 (Max 7) -->
+        <button type="button" class="clothing-option-card" id="clothingOptPant" onclick="app.openClothingCamera('pant')">
+          <div class="clothing-opt-icon">👖</div>
+          <div class="clothing-opt-info">
+            <div class="clothing-opt-name">
+              <span>Pant</span>
+            </div>
+            <div class="clothing-opt-desc">Bottoms • Trousers, Jeans, Chinos, Skirts</div>
+          </div>
+          <span class="clothing-opt-badge" id="menuPantSlots">0 / 7</span>
+        </button>
+
+        <!-- 3. Shoe 👟 (Max 2) -->
+        <button type="button" class="clothing-option-card" id="clothingOptShoe" onclick="app.openClothingCamera('shoe')">
+          <div class="clothing-opt-icon">👟</div>
+          <div class="clothing-opt-info">
+            <div class="clothing-opt-name">
+              <span>Shoe</span>
+            </div>
+            <div class="clothing-opt-desc">Footwear • Sneakers, Loafers, Sandals</div>
+          </div>
+          <span class="clothing-opt-badge" id="menuShoeSlots">0 / 2</span>
+        </button>
+      </div>
+
+      <div class="clothing-menu-actions">
+        <button type="button" class="clothing-menu-review-btn" id="menuReviewBtn" onclick="app.openClothingReview()" disabled>
+          <span>📋</span>
+          <span id="menuReviewBtnText">Review Captured (0 / 16)</span>
+        </button>
+        <button type="button" class="clothing-menu-wardrobe-link" onclick="app.closeClothingCaptureMenu(); app.serenToggleWardrobe(true);">
+          Explore 3D Wardrobe Closet instead
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Clothing Silhouette Camera Modal (Steps 2, 3, 4, 5) -->
+  <div class="clothing-cam-modal hidden" id="clothingCaptureCameraModal">
+    <!-- Camera Top Bar: Switcher Tabs + Close + Review Quick Access -->
+    <div class="clothing-cam-header">
+      <button type="button" class="clothing-cam-close-btn" onclick="app.closeClothingCamera()" title="Exit Camera">✕</button>
+
+      <!-- Category Switcher Tabs (Seamless switching without losing confirmed items) -->
+      <div class="clothing-cam-tabs">
+        <button type="button" class="clothing-cam-tab active" id="camTabShirt" onclick="app.switchClothingCategory('shirt')">
+          <span>👕 Shirt</span>
+          <span class="clothing-cam-tab-badge" id="camBadgeShirt">0/7</span>
+        </button>
+        <button type="button" class="clothing-cam-tab" id="camTabPant" onclick="app.switchClothingCategory('pant')">
+          <span>👖 Pant</span>
+          <span class="clothing-cam-tab-badge" id="camBadgePant">0/7</span>
+        </button>
+        <button type="button" class="clothing-cam-tab" id="camTabShoe" onclick="app.switchClothingCategory('shoe')">
+          <span>👟 Shoe</span>
+          <span class="clothing-cam-tab-badge" id="camBadgeShoe">0/2</span>
+        </button>
+      </div>
+
+      <button type="button" class="clothing-cam-review-pill" onclick="app.openClothingReview()" title="View Final Review">
+        <span>📋</span>
+        <span id="camReviewCountBadge">0</span>
+      </button>
+    </div>
+
+    <!-- Live Viewfinder / Silhouette Guide -->
+    <div class="clothing-viewfinder-wrap" id="clothingViewfinderContainer">
+      <video id="clothingCameraVideo" class="clothing-camera-video" autoplay playsinline muted></video>
+      <canvas id="clothingCameraCanvas" class="hidden"></canvas>
+      <img id="clothingCapturedPreview" class="clothing-captured-preview hidden" alt="Captured Garment Preview" />
+
+      <!-- Silhouette Overlay Frame (POINTER-EVENTS NONE - NEVER INCLUDED IN SAVED PHOTO) -->
+      <div class="clothing-silhouette-frame" id="clothingSilhouetteFrame">
+        <!-- Live slot badge -->
+        <div class="clothing-slot-pill" id="clothingSlotStatusPill">
+          👕 Shirt: 1 of 7 (6 remaining)
+        </div>
+
+        <!-- 1. Shirt Silhouette Vector Overlay -->
+        <svg id="silhouetteShirt" class="clothing-silhouette-svg" viewBox="0 0 300 400" fill="none" stroke="currentColor">
+          <!-- Collar / Neckline -->
+          <path d="M120 70 C135 90, 165 90, 180 70" stroke-width="2.5" stroke-linecap="round" />
+          <path d="M115 70 C130 55, 170 55, 185 70" stroke-width="2" stroke-dasharray="4 3" opacity="0.8" />
+          <!-- Shoulders, Sleeves & Torso -->
+          <path d="M120 70 L65 105 L45 155 L85 175 L95 140 L95 320 C95 330, 205 330, 205 320 L205 140 L215 175 L255 155 L235 105 L180 70 Z" 
+                stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+          <!-- Guidelines: Center & Chest -->
+          <line x1="150" y1="90" x2="150" y2="310" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.5" />
+          <line x1="95" y1="130" x2="205" y2="130" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.5" />
+          <text x="150" y="46" text-anchor="middle" font-size="11" fill="currentColor" letter-spacing="1.2">ALIGN SHOULDERS HERE</text>
+          <line x1="60" y1="55" x2="240" y2="55" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.5" />
+        </svg>
+
+        <!-- 2. Pant Silhouette Vector Overlay -->
+        <svg id="silhouettePant" class="clothing-silhouette-svg hidden" viewBox="0 0 300 400" fill="none" stroke="currentColor">
+          <!-- Waistband -->
+          <path d="M85 60 C125 56, 175 56, 215 60 L218 80 C175 76, 125 76, 82 80 Z" stroke-width="2.5" stroke-linejoin="round" />
+          <!-- Trousers / Legs Outline -->
+          <path d="M82 80 L75 140 L90 350 L132 350 L145 170 L155 170 L168 350 L210 350 L225 140 L218 80" 
+                stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+          <!-- Crease Guidelines -->
+          <line x1="111" y1="140" x2="111" y2="340" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.5" />
+          <line x1="189" y1="140" x2="189" y2="340" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.5" />
+          <text x="150" y="42" text-anchor="middle" font-size="11" fill="currentColor" letter-spacing="1.2">ALIGN WAISTBAND HERE</text>
+          <line x1="75" y1="50" x2="225" y2="50" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.5" />
+        </svg>
+
+        <!-- 3. Shoe Silhouette Vector Overlay -->
+        <svg id="silhouetteShoe" class="clothing-silhouette-svg hidden" viewBox="0 0 300 400" fill="none" stroke="currentColor">
+          <!-- Left Shoe Outline -->
+          <path d="M85 85 C65 110, 60 170, 62 230 C64 280, 75 320, 95 325 C115 325, 125 285, 126 230 C127 170, 122 110, 105 85 C98 75, 92 75, 85 85 Z" 
+                stroke-width="2.6" stroke-linejoin="round" />
+          <ellipse cx="94" cy="180" rx="16" ry="32" stroke-width="1.6" stroke-dasharray="4 3" opacity="0.6" />
+          <line x1="82" y1="140" x2="106" y2="140" stroke-width="1.4" opacity="0.5" />
+          <line x1="84" y1="155" x2="104" y2="155" stroke-width="1.4" opacity="0.5" />
+
+          <!-- Right Shoe Outline -->
+          <path d="M215 85 C235 110, 240 170, 238 230 C236 280, 225 320, 205 325 C185 325, 175 285, 174 230 C173 170, 178 110, 195 85 C202 75, 208 75, 215 85 Z" 
+                stroke-width="2.6" stroke-linejoin="round" />
+          <ellipse cx="206" cy="180" rx="16" ry="32" stroke-width="1.6" stroke-dasharray="4 3" opacity="0.6" />
+          <line x1="194" y1="140" x2="218" y2="140" stroke-width="1.4" opacity="0.5" />
+          <line x1="196" y1="155" x2="216" y2="155" stroke-width="1.4" opacity="0.5" />
+
+          <text x="150" y="52" text-anchor="middle" font-size="11" fill="currentColor" letter-spacing="1.2">ALIGN FOOTWEAR PAIR</text>
+          <line x1="50" y1="340" x2="250" y2="340" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.5" />
+        </svg>
+
+        <!-- Positioning Guideline Banner -->
+        <div class="clothing-guide-banner" id="clothingGuideText">
+          👕 Lay shirt flat and align shoulders &amp; torso inside the outline
+        </div>
+      </div>
+
+      <!-- Camera Status & Permission Fallback Card -->
+      <div class="clothing-fallback-card hidden" id="clothingCameraFallback">
+        <span class="clothing-fallback-icon">📷</span>
+        <h4 style="margin: 0 0 6px 0; font-size: 1.1rem;">Camera Viewfinder Ready</h4>
+        <p style="margin: 0 0 16px 0; font-size: 0.8rem; color: #BFB5A9;">
+          Take a photo or choose an existing garment file to position.
+        </p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+          <button type="button" class="btn-outline-white" style="font-size: 0.82rem; padding: 8px 14px;" onclick="app.triggerClothingFileInput()">
+            Upload Garment File 📁
+          </button>
+          <button type="button" class="btn-outline-white" style="font-size: 0.82rem; padding: 8px 14px;" onclick="app.loadSampleClothingPhoto()">
+            Use Sample Photo 🖼️
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Camera Bottom Controls -->
+    <div class="clothing-cam-controls">
+      <!-- Live Shutter Controls (before capture) -->
+      <div class="clothing-live-controls" id="clothingCameraLiveControls">
+        <button type="button" class="clothing-control-tool-btn" onclick="app.triggerClothingFileInput()" title="Choose Photo from Device">
+          📁
+        </button>
+        
+        <button type="button" class="clothing-shutter-btn" id="clothingShutterBtn" onclick="app.captureClothingSnapshot()" title="Take Photo">
+          <div class="clothing-shutter-inner"></div>
+        </button>
+
+        <button type="button" class="clothing-control-tool-btn" onclick="app.flipClothingCamera()" title="Switch Front/Rear Camera">
+          🔄
+        </button>
+      </div>
+
+      <!-- Review & Confirm Controls (after capture) -->
+      <div class="clothing-review-controls hidden" id="clothingCameraReviewControls">
+        <button type="button" class="clothing-btn-retake" onclick="app.retakeClothingPhoto()">
+          ↺ Retake
+        </button>
+        <button type="button" class="clothing-btn-confirm" id="btnConfirmClothingPhoto" onclick="app.confirmClothingPhoto()">
+          ✓ Confirm &amp; Save Photo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Final Review Page (Step 6) -->
+  <div class="clothing-review-modal hidden" id="clothingCaptureReviewModal">
+    <div class="clothing-review-header">
+      <button type="button" class="clothing-review-back-btn" onclick="app.closeClothingReview()" title="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="clothing-review-title-box">
+        <h3 class="clothing-review-main-title">Review Clothes</h3>
+        <span class="clothing-review-total-badge" id="reviewTotalBadge">0 of 16 Selected</span>
+      </div>
+      <div style="width: 36px;"></div>
+    </div>
+
+    <div class="clothing-review-body">
+      <!-- Section 1: Shirts (Max 7) -->
+      <section class="clothing-category-section">
+        <div class="clothing-sec-header">
+          <div class="clothing-sec-title">
+            <span>👕</span>
+            <span>Shirts</span>
+          </div>
+          <span class="clothing-sec-count-pill" id="reviewShirtCountPill">0 / 7</span>
+        </div>
+        <div class="clothing-cards-grid" id="reviewShirtsGrid">
+          <!-- Rendered dynamically via app.renderClothingReviewGrid() -->
+        </div>
+      </section>
+
+      <!-- Section 2: Pants (Max 7) -->
+      <section class="clothing-category-section">
+        <div class="clothing-sec-header">
+          <div class="clothing-sec-title">
+            <span>👖</span>
+            <span>Pants</span>
+          </div>
+          <span class="clothing-sec-count-pill" id="reviewPantCountPill">0 / 7</span>
+        </div>
+        <div class="clothing-cards-grid" id="reviewPantsGrid">
+          <!-- Rendered dynamically via app.renderClothingReviewGrid() -->
+        </div>
+      </section>
+
+      <!-- Section 3: Shoes (Max 2) -->
+      <section class="clothing-category-section">
+        <div class="clothing-sec-header">
+          <div class="clothing-sec-title">
+            <span>👟</span>
+            <span>Shoes</span>
+          </div>
+          <span class="clothing-sec-count-pill" id="reviewShoeCountPill">0 / 2</span>
+        </div>
+        <div class="clothing-cards-grid" id="reviewShoesGrid">
+          <!-- Rendered dynamically via app.renderClothingReviewGrid() -->
+        </div>
+      </section>
+    </div>
+
+    <!-- Review Footer CTA -->
+    <div class="clothing-review-footer">
+      <div class="clothing-review-tally" id="reviewTallySummary">
+        0 Shirts • 0 Pants • 0 Shoes confirmed
+      </div>
+      <button type="button" class="clothing-btn-save-all" id="btnSaveWardrobeSelection" onclick="app.saveCapturedClothingToWardrobe()" disabled>
+        Finish &amp; Save to Wardrobe ✨
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. Photo Preview Lightbox Modal -->
+  <div class="clothing-lightbox-modal hidden" id="clothingPreviewLightbox" onclick="if(event.target === this) app.closeClothingLightbox()">
+    <div class="clothing-lightbox-card">
+      <div class="clothing-lightbox-header">
+        <h4 class="clothing-lightbox-title" id="lightboxTitle">Garment Preview</h4>
+        <button type="button" class="clothing-lightbox-close" onclick="app.closeClothingLightbox()">✕</button>
+      </div>
+      <div class="clothing-lightbox-img-wrap">
+        <img id="lightboxImg" class="clothing-lightbox-img" src="" alt="Enlarged Garment" />
+      </div>
+      <div class="clothing-lightbox-actions">
+        <button type="button" class="btn-outline-white" style="font-size: 0.8rem; padding: 8px 14px;" onclick="app.closeClothingLightbox()">
+          Back
+        </button>
+        <button type="button" class="btn-outline-white" style="font-size: 0.8rem; padding: 8px 14px; color: #FF6B6B; border-color: rgba(255, 107, 107, 0.4);" id="lightboxRemoveBtn">
+          Remove Photo 🗑️
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notification Toast -->
   <div class="toast-popup" id="toastPopup"></div>
 
@@ -4128,5 +4436,21 @@
   <script src="wardrobe3d.js?v=20261104_v6"></script>
   <script src="studio3d.js?v=20261104_v6"></script>
   <script src="app.js?v=20261104_v6"></script>
+  <script>
+    window.showStudio3DFallback = function (message) {
+      var fallback = document.getElementById('seren3dFallback');
+      var msgEl = document.getElementById('seren3dFallbackMessage');
+      if (msgEl && message) msgEl.textContent = message;
+      if (fallback) fallback.hidden = false;
+    };
+
+    window.retryStudio3D = function () {
+      var fallback = document.getElementById('seren3dFallback');
+      if (fallback) fallback.hidden = true;
+      if (window.Studio3D && typeof window.Studio3D.init === 'function') {
+        window.Studio3D.init('seren3dContainer', 'seren3dCanvas');
+      }
+    };
+  </script>
 </body>
 </html>

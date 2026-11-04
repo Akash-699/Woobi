@@ -238,26 +238,26 @@ test('Scene background and fog match luxury-cream preset (0xF7F3ED, 9-24m)', () 
   assert.strictEqual(scene.fog.far, 24.0);
 });
 
-test('Floor geometry is exactly 16m x 16m plane with receiveShadow = true', () => {
+test('Floor geometry is exactly 28m x 28m plane with receiveShadow = true', () => {
   const scene = new MockScene();
   const theme = createStudioTheme(scene, {}, 'luxury-cream', MockTHREE);
 
   assert.ok(theme.floor);
-  assert.strictEqual(theme.floor.geometry.width, 16);
-  assert.strictEqual(theme.floor.geometry.height, 16);
+  assert.strictEqual(theme.floor.geometry.width, 28);
+  assert.strictEqual(theme.floor.geometry.height, 28);
   assert.strictEqual(theme.floor.position.y, 0);
   assert.strictEqual(theme.floor.receiveShadow, true);
 });
 
-test('Curved back wall radius is 6.6m and height is 6.8m', () => {
+test('Curved back wall radius is 12.0m and height is 8.0m', () => {
   const scene = new MockScene();
   const theme = createStudioTheme(scene, {}, 'luxury-cream', MockTHREE);
 
   assert.ok(theme.backWall);
-  assert.strictEqual(theme.backWall.geometry.radiusTop, 6.6);
-  assert.strictEqual(theme.backWall.geometry.radiusBottom, 6.6);
-  assert.strictEqual(theme.backWall.geometry.height, 6.8);
-  assert.strictEqual(theme.backWall.position.y, 3.4);
+  assert.strictEqual(theme.backWall.geometry.radiusTop, 12.0);
+  assert.strictEqual(theme.backWall.geometry.radiusBottom, 12.0);
+  assert.strictEqual(theme.backWall.geometry.height, 8.0);
+  assert.strictEqual(theme.backWall.position.y, 4.0);
 });
 
 test('Back wall material uses BackSide and serene cream plaster (0xF7F2EA)', () => {
@@ -269,15 +269,15 @@ test('Back wall material uses BackSide and serene cream plaster (0xF7F2EA)', () 
   assert.strictEqual(theme.backWall.material.roughness, 0.88);
 });
 
-test('Window shadow group contains 4 panes at (0.8, 1.8, -1.2)', () => {
+test('Window shadow group contains 4 panes at (1.4, 2.1, -1.8)', () => {
   const scene = new MockScene();
   const theme = createStudioTheme(scene, {}, 'luxury-cream', MockTHREE);
 
   assert.ok(theme.windowShadowGroup);
   assert.strictEqual(theme.windowShadowGroup.children.length, 4);
-  assert.strictEqual(theme.windowShadowGroup.position.x, 0.8);
-  assert.strictEqual(theme.windowShadowGroup.position.y, 1.8);
-  assert.strictEqual(theme.windowShadowGroup.position.z, -1.2);
+  assert.strictEqual(theme.windowShadowGroup.position.x, 1.4);
+  assert.strictEqual(theme.windowShadowGroup.position.y, 2.1);
+  assert.strictEqual(theme.windowShadowGroup.position.z, -1.8);
 });
 
 test('Window shadow material is transparent with opacity 0.075', () => {
@@ -289,14 +289,14 @@ test('Window shadow material is transparent with opacity 0.075', () => {
   assert.strictEqual(pane.material.opacity, 0.075);
 });
 
-test('Overhead softbox fixture positioned at (-1.12, 2.65, 0.88)', () => {
+test('Overhead softbox fixture positioned at (-2.15, 2.95, 1.10)', () => {
   const scene = new MockScene();
   const theme = createStudioTheme(scene, {}, 'luxury-cream', MockTHREE);
 
   assert.ok(theme.softboxGroup);
-  assert.strictEqual(theme.softboxGroup.position.x, -1.12);
-  assert.strictEqual(theme.softboxGroup.position.y, 2.65);
-  assert.strictEqual(theme.softboxGroup.position.z, 0.88);
+  assert.strictEqual(theme.softboxGroup.position.x, -2.15);
+  assert.strictEqual(theme.softboxGroup.position.y, 2.95);
+  assert.strictEqual(theme.softboxGroup.position.z, 1.10);
 });
 
 test('Softbox includes local glow point light (0xFFF9EE, 0.90, 3.8m)', () => {
@@ -315,8 +315,8 @@ test('Foreground framing foliage contains 4 leaf spheres for depth-of-field', ()
 
   assert.ok(theme.foliageGroup);
   assert.strictEqual(theme.foliageGroup.children.length, 4);
-  assert.strictEqual(theme.foliageGroup.position.x, -0.95);
-  assert.strictEqual(theme.foliageGroup.position.z, 1.85);
+  assert.strictEqual(theme.foliageGroup.position.x, -1.85);
+  assert.strictEqual(theme.foliageGroup.position.z, 2.40);
 });
 
 console.log('\n==================================================');

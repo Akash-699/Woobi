@@ -38,8 +38,8 @@ export const THEME_PRESETS = {
       far: 24.0
     },
     wall: {
-      color: 0xDCC5A3, // Desert sand
-      roughness: 0.92,
+      color: 0xDCC5A3, // Desert sand limewash plaster
+      roughness: 0.90,
       metalness: 0.01
     },
     architectural: {
@@ -48,14 +48,14 @@ export const THEME_PRESETS = {
       metalness: 0.01
     },
     wood: {
-      color: 0xB48653, // European oak
-      roughness: 0.50,
+      color: 0xA27443, // European natural honey oak (#A27443)
+      roughness: 0.48,
       metalness: 0.02
     },
     floor: {
-      color: 0xDCC5A3, // Desert sand floor fully merged with main walls (#DCC5A3)
-      roughness: 0.92,
-      metalness: 0.01
+      color: 0xCDB594, // Grounded champagne stone floor with distinct horizon depth (#CDB594)
+      roughness: 0.68,
+      metalness: 0.02
     },
     accent: {
       color: 0x98816B // Warm taupe
@@ -66,8 +66,8 @@ export const THEME_PRESETS = {
       metalness: 0.75
     },
     windowShadow: {
-      color: 0x403126, // Deep espresso
-      opacity: 0.085
+      color: 0x3D2B1E, // Deep espresso shadow accent
+      opacity: 0.10
     },
     foliage: {
       color: 0x2A4526,

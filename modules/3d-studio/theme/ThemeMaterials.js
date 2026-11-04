@@ -20,24 +20,26 @@ export class ThemeMaterials {
 
     const preset = THEME_PRESETS[presetName] || THEME_PRESETS[DEFAULT_THEME_PRESET];
 
-    // 1. Flooring Material (Merged with main walls in Mediterranean Luxury)
+    // 1. Flooring Material (Rich champagne stone ground plane with tactile relief)
     const floorTexture = (presetName === 'mediterranean-luxury')
-      ? (this.textures.sandPlaster || this.textures.champagneStone || null)
+      ? (this.textures.champagneStone || this.textures.sandPlaster || null)
       : (this.textures.champagneStone || this.textures.creamMarble || null);
 
     this.floorMat = new THREE.MeshStandardMaterial({
       map: floorTexture,
-      bumpMap: (presetName === 'mediterranean-luxury' ? null : (this.textures.stoneBump || null)),
-      bumpScale: 0.008,
+      bumpMap: this.textures.stoneBump || null,
+      bumpScale: 0.007,
       roughness: preset.floor.roughness,
       metalness: preset.floor.metalness,
       color: preset.floor.color
     });
     this.disposables.push(this.floorMat);
 
-    // 2. Smooth Architectural Wall Plaster Material
+    // 2. Smooth Architectural Wall Plaster Material (Warm limewash plaster with micro-relief)
     this.wallMat = new THREE.MeshStandardMaterial({
       map: this.textures.sandPlaster || null,
+      bumpMap: this.textures.stoneBump || null,
+      bumpScale: 0.0025,
       color: preset.wall.color,
       roughness: preset.wall.roughness,
       metalness: preset.wall.metalness,

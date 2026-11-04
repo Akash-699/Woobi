@@ -15,49 +15,54 @@
 }(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const v3 = (x, y, z) => (typeof THREE !== 'undefined' && typeof THREE.Vector3 === 'function')
-    ? new THREE.Vector3(x, y, z)
-    : { x, y, z, clone() { return v3(x, y, z); }, copy(src) { this.x = src.x; this.y = src.y; this.z = src.z; return this; } };
+  // Camera Presets configured specifically for Portrait Mobile & Desktop Framing.
+  // Instantiated lazily only when Three.js is loaded.
+  let CAMERA_STATES = null;
 
-  // Camera Presets configured specifically for Portrait Mobile & Desktop Framing
-  const CAMERA_STATES = {
-    STUDIO_OVERVIEW: {
-      position: v3(0, 1.22, 3.10),
-      target: v3(-0.08, 1.08, 0),
-      fovLandscape: 42,
-      fovPortrait: 56
-    },
-    WARDROBE_CLOSEUP: {
-      position: v3(-0.96, 1.20, 2.50),
-      target: v3(-0.96, 1.20, -0.32),
-      fovLandscape: 38,
-      fovPortrait: 54
-    },
-    AVATAR_FULL_BODY: {
-      position: v3(0, 1.10, 2.10),
-      target: v3(0, 1.00, 0),
-      fovLandscape: 36,
-      fovPortrait: 44
-    },
-    AVATAR_DETAIL: {
-      position: v3(0, 1.44, 1.10),
-      target: v3(0, 1.38, 0),
-      fovLandscape: 30,
-      fovPortrait: 36
-    },
-    VANITY_VIEW: {
-      position: v3(0.65, 1.25, 1.55),
-      target: v3(0.85, 1.20, -0.10),
-      fovLandscape: 38,
-      fovPortrait: 46
-    },
-    MIRROR_VIEW: {
-      position: v3(0.65, 1.25, 1.55),
-      target: v3(0.85, 1.20, -0.10),
-      fovLandscape: 38,
-      fovPortrait: 46
-    }
-  };
+  function createCameraStates() {
+    if (typeof THREE === 'undefined') return null;
+
+    CAMERA_STATES = {
+      STUDIO_OVERVIEW: {
+        position: new THREE.Vector3(-0.10, 1.35, 4.60),
+        target: new THREE.Vector3(-0.10, 1.08, -0.15),
+        fovLandscape: 42,
+        fovPortrait: 56
+      },
+      WARDROBE_CLOSEUP: {
+        position: new THREE.Vector3(-1.20, 1.25, -0.20),
+        target: new THREE.Vector3(-1.20, 1.20, -2.40),
+        fovLandscape: 38,
+        fovPortrait: 54
+      },
+      AVATAR_FULL_BODY: {
+        position: new THREE.Vector3(0, 1.10, 2.10),
+        target: new THREE.Vector3(0, 1.00, 0),
+        fovLandscape: 36,
+        fovPortrait: 44
+      },
+      AVATAR_DETAIL: {
+        position: new THREE.Vector3(0, 1.44, 1.10),
+        target: new THREE.Vector3(0, 1.38, 0),
+        fovLandscape: 30,
+        fovPortrait: 36
+      },
+      VANITY_VIEW: {
+        position: new THREE.Vector3(0.95, 1.25, -0.65),
+        target: new THREE.Vector3(1.15, 1.20, -2.20),
+        fovLandscape: 38,
+        fovPortrait: 46
+      },
+      MIRROR_VIEW: {
+        position: new THREE.Vector3(0.95, 1.25, -0.65),
+        target: new THREE.Vector3(1.15, 1.20, -2.20),
+        fovLandscape: 38,
+        fovPortrait: 46
+      }
+    };
+
+    return CAMERA_STATES;
+  }
 
   // Color Tokens matching Sérén Design System
   const COLOR_PALETTE = {
@@ -91,9 +96,10 @@
 
       // Camera Animation State
       this.currentCameraState = 'STUDIO_OVERVIEW';
-      this.targetCameraPos = CAMERA_STATES.STUDIO_OVERVIEW.position.clone();
-      this.targetCameraLookAt = CAMERA_STATES.STUDIO_OVERVIEW.target.clone();
-      this.currentCameraLookAt = CAMERA_STATES.STUDIO_OVERVIEW.target.clone();
+      this.cameraStates = null;
+      this.targetCameraPos = null;
+      this.targetCameraLookAt = null;
+      this.currentCameraLookAt = null;
 
       // Zoom & Distance clamping
       this.cameraZoomFactor = 1.0;
@@ -102,8 +108,8 @@
 
       // Interactive 3D Objects for Raycasting
       this.interactiveObjects = [];
-      this.raycaster = new THREE.Raycaster();
-      this.mouse = new THREE.Vector2();
+      this.raycaster = null;
+      this.mouse = null;
 
       // Avatar & Wearable Garment System
       this.avatarRoot = null;
@@ -183,7 +189,7 @@
       this.pinchStartDist = 0;
 
       // Animation Loop & Morphing
-      this.clock = new THREE.Clock();
+      this.clock = null;
       this.animationFrameId = null;
       this.blinkTimer = 0;
       this.nextBlinkTime = 3.2;
@@ -214,9 +220,23 @@
       }
 
       if (typeof THREE === 'undefined') {
-        console.error('Studio3D: THREE.js library is not loaded');
-        return;
+        console.warn('Studio3D: THREE.js library is not loaded');
+        if (typeof window !== 'undefined' && typeof window.showStudio3DFallback === 'function') {
+          window.showStudio3DFallback('The 3D studio is unavailable offline or without WebGL.');
+        }
+        return false;
       }
+
+      // Initialize deferred Three.js state
+      this.cameraStates = createCameraStates();
+      if (!this.targetCameraPos && this.cameraStates) {
+        this.targetCameraPos = this.cameraStates.STUDIO_OVERVIEW.position.clone();
+        this.targetCameraLookAt = this.cameraStates.STUDIO_OVERVIEW.target.clone();
+        this.currentCameraLookAt = this.cameraStates.STUDIO_OVERVIEW.target.clone();
+      }
+      if (!this.raycaster) this.raycaster = new THREE.Raycaster();
+      if (!this.mouse) this.mouse = new THREE.Vector2();
+      if (!this.clock) this.clock = new THREE.Clock();
 
       // Load saved preferences from localStorage if available
       this.loadSavedPreferences();
@@ -237,6 +257,7 @@
           width,
           height,
           initialPreset: 'STUDIO_OVERVIEW',
+          maxZoomFactor: 1.0,
           onRotate: (delta) => {
             this.targetRotationY += delta;
           },
@@ -273,7 +294,7 @@
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       if (THREE.ACESFilmicToneMapping) {
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 0.95; // Calibrated exposure preserving white garment fabric details
+        this.renderer.toneMappingExposure = 0.88; // Calibrated exposure preventing washed-out overly bright appearance and preserving rich contrast
       }
       if (THREE.sRGBEncoding) {
         this.renderer.outputEncoding = THREE.sRGBEncoding;
@@ -351,10 +372,10 @@
         ctx.stroke();
         ctx.restore();
       };
-      drawVein(fCtx, [{x: 0, y: 120}, {x: 160, y: 135}, {x: 320, y: 125}, {x: 512, y: 140}], 'rgba(180, 155, 125, 0.25)', 8);
-      drawVein(fCtx, [{x: 0, y: 260}, {x: 200, y: 275}, {x: 390, y: 265}, {x: 512, y: 285}], 'rgba(152, 129, 107, 0.20)', 6);
-      drawVein(fCtx, [{x: 0, y: 390}, {x: 220, y: 405}, {x: 380, y: 395}, {x: 512, y: 415}], 'rgba(235, 218, 192, 0.32)', 10);
-      drawVein(fCtx, [{x: 80, y: 260}, {x: 220, y: 270}, {x: 350, y: 265}], 'rgba(64, 49, 38, 0.08)', 2.5);
+      drawVein(fCtx, [{ x: 0, y: 120 }, { x: 160, y: 135 }, { x: 320, y: 125 }, { x: 512, y: 140 }], 'rgba(180, 155, 125, 0.25)', 8);
+      drawVein(fCtx, [{ x: 0, y: 260 }, { x: 200, y: 275 }, { x: 390, y: 265 }, { x: 512, y: 285 }], 'rgba(152, 129, 107, 0.20)', 6);
+      drawVein(fCtx, [{ x: 0, y: 390 }, { x: 220, y: 405 }, { x: 380, y: 395 }, { x: 512, y: 415 }], 'rgba(235, 218, 192, 0.32)', 10);
+      drawVein(fCtx, [{ x: 80, y: 260 }, { x: 220, y: 270 }, { x: 350, y: 265 }], 'rgba(64, 49, 38, 0.08)', 2.5);
 
       // Travertine tile joint seam lines
       fCtx.strokeStyle = 'rgba(152, 129, 107, 0.32)';
@@ -432,30 +453,73 @@
       }
       this.textures.stoneBump = new THREE.CanvasTexture(bumpCanvas);
 
-      // 3. Natural European Oak Wood Grain (256x512) - #B48653
+      // 3. Natural European Oak Wood Grain (512x1024) - Natural Vertical Timber Grain
       const oakCanvas = document.createElement('canvas');
-      oakCanvas.width = 256;
-      oakCanvas.height = 512;
+      oakCanvas.width = 512;
+      oakCanvas.height = 1024;
       const oCtx = oakCanvas.getContext('2d');
-      oCtx.fillStyle = '#B48653';
-      oCtx.fillRect(0, 0, 256, 512);
+      const oGrad = oCtx.createLinearGradient(0, 0, 512, 0);
+      oGrad.addColorStop(0.00, '#A67644');
+      oGrad.addColorStop(0.28, '#B88652');
+      oGrad.addColorStop(0.62, '#9A6B3A');
+      oGrad.addColorStop(1.00, '#A67644');
+      oCtx.fillStyle = oGrad;
+      oCtx.fillRect(0, 0, 512, 1024);
 
-      oCtx.strokeStyle = 'rgba(75, 48, 22, 0.22)';
-      oCtx.lineWidth = 1.6;
-      for (let y = 0; y < 512; y += 4) {
+      // Vertical fibrous striations and longitudinal pores
+      for (let i = 0; i < 480; i++) {
+        const x = Math.random() * 512;
+        const alpha = 0.06 + Math.random() * 0.16;
+        oCtx.strokeStyle = Math.random() > 0.35
+          ? `rgba(75, 46, 20, ${alpha})`
+          : `rgba(215, 175, 130, ${alpha * 0.75})`;
+        oCtx.lineWidth = 0.6 + Math.random() * 2.2;
         oCtx.beginPath();
-        oCtx.moveTo(0, y);
+        oCtx.moveTo(x, 0);
         oCtx.bezierCurveTo(
-          64, y + Math.sin(y * 0.05) * 8,
-          192, y - Math.sin(y * 0.03) * 6,
-          256, y
+          x + (Math.random() - 0.5) * 14, 340,
+          x + (Math.random() - 0.5) * 14, 680,
+          x + (Math.random() - 0.5) * 8, 1024
         );
         oCtx.stroke();
       }
+
+      // Natural timber pores & medullary flecks
+      const oImg = oCtx.getImageData(0, 0, 512, 1024);
+      const od = oImg.data;
+      for (let i = 0; i < od.length; i += 4) {
+        const noise = (Math.random() - 0.5) * 12;
+        od[i] = Math.min(255, Math.max(0, od[i] + noise));
+        od[i + 1] = Math.min(255, Math.max(0, od[i + 1] + noise * 0.85));
+        od[i + 2] = Math.min(255, Math.max(0, od[i + 2] + noise * 0.65));
+      }
+      oCtx.putImageData(oImg, 0, 0);
+
       this.textures.oak = new THREE.CanvasTexture(oakCanvas);
       this.textures.oak.wrapS = THREE.RepeatWrapping;
       this.textures.oak.wrapT = THREE.RepeatWrapping;
       this.textures.oak.repeat.set(1.5, 2.0);
+
+      // 3.1 Dedicated Oak Timber Bump Map (256x512)
+      const oakBumpCanvas = document.createElement('canvas');
+      oakBumpCanvas.width = 256;
+      oakBumpCanvas.height = 512;
+      const obCtx = oakBumpCanvas.getContext('2d');
+      obCtx.fillStyle = '#808080';
+      obCtx.fillRect(0, 0, 256, 512);
+      for (let i = 0; i < 300; i++) {
+        const x = Math.random() * 256;
+        obCtx.strokeStyle = Math.random() > 0.5 ? 'rgba(220, 220, 220, 0.16)' : 'rgba(35, 35, 35, 0.16)';
+        obCtx.lineWidth = 0.5 + Math.random() * 1.8;
+        obCtx.beginPath();
+        obCtx.moveTo(x, 0);
+        obCtx.lineTo(x + (Math.random() - 0.5) * 6, 512);
+        obCtx.stroke();
+      }
+      this.textures.oakBump = new THREE.CanvasTexture(oakBumpCanvas);
+      this.textures.oakBump.wrapS = THREE.RepeatWrapping;
+      this.textures.oakBump.wrapT = THREE.RepeatWrapping;
+      this.textures.oakBump.repeat.set(1.5, 2.0);
 
       // 3.5. Mediterranean Desert Sand Plaster Texture (512x512) - #DCC5A3
       const plasterCanvas = document.createElement('canvas');
@@ -509,9 +573,9 @@
       }
 
       // Natural limestone veining
-      drawVein(mCtx, [{x: 0, y: 110}, {x: 180, y: 155}, {x: 340, y: 140}, {x: 512, y: 220}], 'rgba(152, 129, 107, 0.28)', 6);
-      drawVein(mCtx, [{x: 50, y: 20}, {x: 220, y: 210}, {x: 390, y: 360}, {x: 512, y: 440}], 'rgba(230, 212, 188, 0.35)', 8);
-      drawVein(mCtx, [{x: 120, y: 400}, {x: 260, y: 430}, {x: 440, y: 410}], 'rgba(64, 49, 38, 0.12)', 2.0);
+      drawVein(mCtx, [{ x: 0, y: 110 }, { x: 180, y: 155 }, { x: 340, y: 140 }, { x: 512, y: 220 }], 'rgba(152, 129, 107, 0.28)', 6);
+      drawVein(mCtx, [{ x: 50, y: 20 }, { x: 220, y: 210 }, { x: 390, y: 360 }, { x: 512, y: 440 }], 'rgba(230, 212, 188, 0.35)', 8);
+      drawVein(mCtx, [{ x: 120, y: 400 }, { x: 260, y: 430 }, { x: 440, y: 410 }], 'rgba(64, 49, 38, 0.12)', 2.0);
 
       this.textures.calacatta = new THREE.CanvasTexture(mCanvas);
       this.textures.limestone = this.textures.calacatta;
@@ -567,23 +631,29 @@
       if (typeof window !== 'undefined' && window.WoobiLighting && typeof window.WoobiLighting.createStudioLighting === 'function') {
         this.lightingModel = window.WoobiLighting.createStudioLighting(this.scene, 'luxury-warm', THREE);
         this.lightingController = new window.WoobiLighting.LightingController(this.lightingModel);
-        // Calibrate lighting intensity multiplier to soften harsh highlights on white garments
-        this.lightingController.setIntensityMultiplier(0.82);
+        // Calibrate lighting intensity multiplier to soften harsh highlights and prevent washed-out appearance
+        this.lightingController.setIntensityMultiplier(0.78);
         if (this.lightingModel.ambientLight) {
-          this.lightingModel.ambientLight.color.setHex(0xF6EEDB);
-          this.lightingModel.ambientLight.intensity = 0.42;
+          this.lightingModel.ambientLight.color.setHex(0xEAD8C2);
+          this.lightingModel.ambientLight.intensity = 0.32;
         }
         if (this.lightingModel.fillLight) {
-          this.lightingModel.fillLight.intensity = 0.28;
+          this.lightingModel.fillLight.color.setHex(0xE8D5C0);
+          this.lightingModel.fillLight.intensity = 0.22;
         }
         if (this.lightingModel.keySunlight) {
-          this.lightingModel.keySunlight.intensity = 1.05;
+          this.lightingModel.keySunlight.color.setHex(0xFFEED4);
+          this.lightingModel.keySunlight.intensity = 0.88;
+        }
+        if (this.lightingModel.rimLight) {
+          this.lightingModel.rimLight.color.setHex(0xF5D6A8);
+          this.lightingModel.rimLight.intensity = 0.65;
         }
         if (this.lightingModel.vanitySpot) {
-          this.lightingModel.vanitySpot.intensity = 0.42;
+          this.lightingModel.vanitySpot.intensity = 0.38;
         }
         if (this.lightingModel.wardrobeSpot) {
-          this.lightingModel.wardrobeSpot.intensity = 0.35;
+          this.lightingModel.wardrobeSpot.intensity = 0.30;
         }
         if (this.lightingModel.keySunlight && this.lightingModel.keySunlight.shadow) {
           const d = 5.5;
@@ -603,11 +673,11 @@
       }
 
       // Warm, serene ambient illumination (calibrated to provide clear chiaroscuro and depth)
-      const ambientLight = new THREE.AmbientLight(0xF6EEDB, 0.42);
+      const ambientLight = new THREE.AmbientLight(0xEAD8C2, 0.32);
       this.scene.add(ambientLight);
 
       // Primary Key Sunlight (Diagonal morning sunlight streaming from upper right)
-      const keySunlight = new THREE.DirectionalLight(0xFFF5E4, 1.05);
+      const keySunlight = new THREE.DirectionalLight(0xFFEED4, 0.88);
       keySunlight.position.set(2.8, 4.8, 3.0);
       keySunlight.castShadow = true;
       keySunlight.shadow.mapSize.width = 1024;
@@ -625,25 +695,25 @@
       this.scene.add(keySunlight);
 
       // Soft Fill Light from left to soften shadows on wardrobe and body
-      const fillLight = new THREE.DirectionalLight(0xFDF1E2, 0.28);
+      const fillLight = new THREE.DirectionalLight(0xE8D5C0, 0.22);
       fillLight.position.set(-2.6, 2.8, 1.6);
       this.scene.add(fillLight);
 
       // Warm Golden Rim Light for hair and shoulder separation from background
-      const rimLight = new THREE.DirectionalLight(0xFFE5BE, 0.78);
+      const rimLight = new THREE.DirectionalLight(0xF5D6A8, 0.65);
       rimLight.position.set(0, 3.6, -2.4);
       this.scene.add(rimLight);
 
       // Soft Warm Interior Fill for Wardrobe (Toned down so oak wood does not blow out)
-      const wardrobeSpot = new THREE.SpotLight(0xFFF2DE, 0.35, 4.8, Math.PI / 4, 0.45, 1.2);
-      wardrobeSpot.position.set(-0.96, 3.2, 0.8);
-      wardrobeSpot.target.position.set(-0.96, 1.22, -0.32);
+      const wardrobeSpot = new THREE.SpotLight(0xFFF2DE, 0.30, 4.8, Math.PI / 4, 0.45, 1.2);
+      wardrobeSpot.position.set(-1.20, 3.4, -1.00);
+      wardrobeSpot.target.position.set(-1.20, 1.22, -2.40);
       this.scene.add(wardrobeSpot);
       this.scene.add(wardrobeSpot.target);
 
-      const vanitySpot = new THREE.SpotLight(0xFFF2DE, 0.42, 4.8, Math.PI / 4, 0.45, 1.2);
-      vanitySpot.position.set(0.95, 3.4, 0.4);
-      vanitySpot.target.position.set(0.90, 1.2, -0.10);
+      const vanitySpot = new THREE.SpotLight(0xFFF2DE, 0.38, 4.8, Math.PI / 4, 0.45, 1.2);
+      vanitySpot.position.set(1.15, 3.5, -0.90);
+      vanitySpot.target.position.set(1.15, 1.20, -2.20);
       this.scene.add(vanitySpot);
       this.scene.add(vanitySpot.target);
     }
@@ -662,14 +732,15 @@
         return;
       }
 
-      // 1. Desert Sand Architectural Flooring (#DCC5A3) fully merged with main walls
-      const floorGeo = new THREE.PlaneGeometry(16, 16);
+      // 1. Champagne Stone Architectural Ground Plane (#CDB594) with Tactile Relief
+      const floorGeo = new THREE.PlaneGeometry(28, 28);
       const floorMat = new THREE.MeshStandardMaterial({
-        map: this.textures.sandPlaster || this.textures.champagneStone,
-        bumpMap: null,
-        roughness: 0.92,
-        metalness: 0.01,
-        color: 0xDCC5A3
+        map: this.textures.champagneStone || this.textures.sandPlaster,
+        bumpMap: this.textures.stoneBump || null,
+        bumpScale: 0.007,
+        roughness: 0.68,
+        metalness: 0.02,
+        color: 0xCDB594
       });
       const floor = new THREE.Mesh(floorGeo, floorMat);
       floor.rotation.x = -Math.PI / 2;
@@ -677,30 +748,32 @@
       floor.receiveShadow = true;
       this.scene.add(floor);
 
-      // 2. Desert Sand Architectural Wall Plaster (#DCC5A3)
+      // 2. Desert Sand Architectural Wall Plaster with Micro-Relief (#DCC5A3)
       const wallMat = new THREE.MeshStandardMaterial({
         map: this.textures.sandPlaster || null,
-        color: 0xDCC5A3, // Desert sand Mediterranean plaster
-        roughness: 0.92,
+        bumpMap: this.textures.stoneBump || null,
+        bumpScale: 0.0025,
+        color: 0xDCC5A3, // Desert sand Mediterranean limewash plaster
+        roughness: 0.90,
         metalness: 0.01,
         side: THREE.BackSide
       });
-      const wallGeo = new THREE.CylinderGeometry(6.6, 6.6, 6.8, 48, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
+      const wallGeo = new THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
       const backWall = new THREE.Mesh(wallGeo, wallMat);
-      backWall.position.set(0, 3.4, 5.4);
+      backWall.position.set(0, 4.0, 8.2);
       backWall.rotation.y = Math.PI; // Orient curved wall behind avatar towards negative Z
       backWall.receiveShadow = false; // Prevents directional shadow frustum from cutting off horizontally across the curved back wall
       this.scene.add(backWall);
 
       // 3. Diagonal Window Mullion Sunlight Shadow Projected on Wall/Floor
       const windowShadowGroup = new THREE.Group();
-      windowShadowGroup.position.set(0.8, 1.8, -1.2);
+      windowShadowGroup.position.set(1.4, 2.1, -1.8);
       windowShadowGroup.rotation.set(-0.25, 0.45, -0.2);
 
       const shadowBarMat = new THREE.MeshBasicMaterial({
-        color: 0x403126, // Deep espresso contrast accent (#403126)
+        color: 0x3D2B1E, // Deep espresso contrast accent (#3D2B1E)
         transparent: true,
-        opacity: 0.085
+        opacity: 0.10
       });
       // Window frame panes
       for (let w = 0; w < 4; w++) {
@@ -712,7 +785,7 @@
 
       // 4. Overhead Studio Softbox Light Fixture on Arm (Top Left matching reference)
       const studioLightGroup = new THREE.Group();
-      studioLightGroup.position.set(-1.12, 2.65, 0.88);
+      studioLightGroup.position.set(-2.15, 2.95, 1.10);
       studioLightGroup.rotation.set(0.38, 0.46, -0.24);
 
       const softboxHousing = new THREE.Mesh(
@@ -743,9 +816,10 @@
       this.scene.add(studioLightGroup);
 
       // 5. Cinematic Foreground Framing Foliage (Bottom Left Camera View)
-      // Creates the photographic depth-of-field effect seen in the reference image
+      // Hidden to eliminate dark strip artifacts on floor when zooming out fully
       const fgFoliageGroup = new THREE.Group();
-      fgFoliageGroup.position.set(-0.95, 0.15, 1.85);
+      fgFoliageGroup.position.set(-1.85, 0.15, 2.40);
+      fgFoliageGroup.visible = false;
 
       const fgLeafMat = new THREE.MeshStandardMaterial({
         color: 0x2A4526,
@@ -757,6 +831,7 @@
         fgLeaf.scale.set(1.6, 0.18, 0.85);
         fgLeaf.rotation.set(-0.3 + l * 0.2, 0.5 + l * 0.3, -0.4);
         fgLeaf.position.set(l * 0.08, l * 0.12, -l * 0.06);
+        fgLeaf.visible = false;
         fgFoliageGroup.add(fgLeaf);
       }
       this.scene.add(fgFoliageGroup);
@@ -776,6 +851,7 @@
       // Procedural fallback if module has not loaded
       const rugGroup = new THREE.Group();
       rugGroup.position.set(0, 0, 0);
+      rugGroup.scale.set(0.88, 1.0, 0.88);
 
       const shadowGeo = new THREE.CircleGeometry(1.18, 64);
       const shadowMat = new THREE.MeshBasicMaterial({ color: 0x22180F, transparent: true, opacity: 0.30 });
@@ -795,6 +871,15 @@
         metalness: 0.02,
         color: 0xD2BEA0
       });
+
+      // Complete concentric architectural base circle beneath dais
+      const baseCircle = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.12, 1.132, 0.008, 64),
+        rugMat
+      );
+      baseCircle.position.set(0, 0.004, 0);
+      baseCircle.receiveShadow = true;
+      rugGroup.add(baseCircle);
       const rug = new THREE.Mesh(rugGeo, rugMat);
       rug.position.y = rugThickness / 2;
       rug.receiveShadow = true;
@@ -828,8 +913,8 @@
 
       const wardrobeGroup = new THREE.Group();
       // Position naturally on left wall with angled perspective matching Reference D
-      wardrobeGroup.position.set(-0.96, 0, -0.32);
-      wardrobeGroup.rotation.y = 0.30;
+      wardrobeGroup.position.set(-1.20, 0, -2.40);
+      wardrobeGroup.rotation.y = 0.35;
 
       const scale = 2.40 / 3.00;
       const width = 2.20 * scale;
@@ -1196,7 +1281,7 @@
       }
 
       const vanityGroup = new THREE.Group();
-      vanityGroup.position.set(0.92, 0, -0.05);
+      vanityGroup.position.set(1.15, 0, -2.20);
       vanityGroup.rotation.y = -0.32; // Angled gracefully towards stage
 
       const brassMat = new THREE.MeshStandardMaterial({
@@ -1379,29 +1464,42 @@
       const stoolGroup = new THREE.Group();
       stoolGroup.position.set(0.12, 0, 0.42);
 
-      // Cream Bouclé Upholstery Material for Entire Stool
+      // Cream Bouclé Upholstery Material
       const stoolMat = new THREE.MeshStandardMaterial({
-        map: this.textures.wovenRug,
-        color: 0xF5F0E6,
-        roughness: 0.84,
+        color: 0xEEE6DC,
+        roughness: 0.85,
         metalness: 0.02
       });
 
-      // Circular Plinth Base matching cream bouclé body
+      // Warm Champagne Brass Plinth Base Ring
       const stoolPlinth = new THREE.Mesh(
         new THREE.CylinderGeometry(0.24, 0.24, 0.05, 36),
-        stoolMat
+        brassMat
       );
       stoolPlinth.position.y = 0.025;
       stoolPlinth.castShadow = true;
       stoolGroup.add(stoolPlinth);
 
-      // Round Cream Bouclé Seat Cushion
-      const stoolCushion = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.25, 0.24, 0.40, 36),
+      // Soft Upholstered Ottoman Drum Body
+      const stoolBody = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.245, 0.238, 0.33, 36),
         stoolMat
       );
-      stoolCushion.position.y = 0.25;
+      stoolBody.position.y = 0.215;
+      stoolBody.castShadow = true;
+      stoolGroup.add(stoolBody);
+
+      // Plush Cream Cushion Seat
+      const cushionMat = new THREE.MeshStandardMaterial({
+        color: 0xF8F4EE,
+        roughness: 0.80,
+        metalness: 0.02
+      });
+      const stoolCushion = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.25, 0.245, 0.07, 36),
+        cushionMat
+      );
+      stoolCushion.position.y = 0.415;
       stoolCushion.castShadow = true;
       stoolGroup.add(stoolCushion);
 
@@ -1729,10 +1827,11 @@
       button.position.set(0, 1.01, 0.115);
       this.sculptedAvatarGroup.add(button);
 
-      // Fluid Wide Legs with Crisp Front Creases
+      // Fluid Wide Legs with Front Creases and Natural Fashion Stance
       [-1, 1].forEach((side) => {
         const legGroup = new THREE.Group();
-        legGroup.position.set(side * 0.076, 0.86, 0);
+        legGroup.position.set(side * 0.088, 0.86, 0);
+        legGroup.rotation.y = side * -0.06;
 
         // Fluid wide-leg cylinder draping naturally to shoe level
         const pantLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.098, 0.78, 28), trouserMat);
@@ -1748,20 +1847,21 @@
         this.sculptedAvatarGroup.add(legGroup);
       });
 
-      // 8. MINIMALIST CHUNKY WHITE PLATFORM SNEAKERS (Matching Reference)
+      // 8. MINIMALIST CHUNKY WHITE PLATFORM SNEAKERS WITH NATURAL OUTWARD TOE FLARE
       const sneakerMat = new THREE.MeshStandardMaterial({
         color: COLOR_PALETTE.sneakersWhite,
-        roughness: 0.32,
+        roughness: 0.28,
         metalness: 0.02
       });
       const soleMat = new THREE.MeshStandardMaterial({
-        color: 0xF8F8F8,
-        roughness: 0.45
+        color: 0xEDE8DF,
+        roughness: 0.58
       });
 
       [-1, 1].forEach((side) => {
         const sneaker = new THREE.Group();
-        sneaker.position.set(side * 0.085, 0.018, 0.035);
+        sneaker.position.set(side * 0.092, 0.018, 0.032);
+        sneaker.rotation.y = side * -0.10;
 
         // Chunky Platform Rubber Sole with Tread
         const sole = new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.036, 0.22), soleMat);
@@ -1783,6 +1883,23 @@
         sneaker.add(tongue);
 
         this.sculptedAvatarGroup.add(sneaker);
+      });
+
+      // 9. LOCALIZED HIGH-FIDELITY FOOT CONTACT SHADOWS DIRECTLY ON STAGE DAIS
+      [-1, 1].forEach((side) => {
+        const shadowGeo = new THREE.CircleGeometry(0.062, 32);
+        const shadowMat = new THREE.MeshBasicMaterial({
+          color: 0x1A140E,
+          transparent: true,
+          opacity: 0.42,
+          depthWrite: false
+        });
+        const footShadow = new THREE.Mesh(shadowGeo, shadowMat);
+        footShadow.rotation.x = -Math.PI / 2;
+        footShadow.rotation.z = side * 0.10;
+        footShadow.scale.set(0.70, 1.55, 1.0);
+        footShadow.position.set(side * 0.092, 0.001, 0.032);
+        this.avatarRoot.add(footShadow);
       });
 
       // Enable complete self-shadowing and contact shadow reception across all avatar anatomical and garment meshes
@@ -2053,7 +2170,7 @@
           const dist = Math.hypot(dx, dy);
           const diff = dist - this.pinchStartDist;
 
-          this.cameraZoomFactor = Math.max(0.7, Math.min(1.4, this.cameraZoomFactor - diff * 0.002));
+          this.cameraZoomFactor = Math.max(0.7, Math.min(1.0, this.cameraZoomFactor - diff * 0.002));
           this.pinchStartDist = dist;
         }
       }, { passive: true });
@@ -2070,7 +2187,7 @@
       el.addEventListener('wheel', (e) => {
         e.preventDefault();
         const zoomDelta = e.deltaY * 0.001;
-        this.cameraZoomFactor = Math.max(0.7, Math.min(1.4, this.cameraZoomFactor + zoomDelta));
+        this.cameraZoomFactor = Math.max(0.7, Math.min(1.0, this.cameraZoomFactor + zoomDelta));
       }, { passive: false });
 
       // Resize Listener
@@ -2083,7 +2200,7 @@
      * Handles Raycast selection on wardrobe & vanity 3D objects
      */
     handleCanvasClick(clientX, clientY) {
-      if (!this.canvas || !this.camera || !this.scene) return;
+      if (!this.canvas || !this.camera || !this.scene || !this.raycaster || !this.mouse) return;
       if (this.cameraController && typeof this.cameraController.raycastClick === 'function') {
         this.cameraController.raycastClick(clientX, clientY, this.canvas, this.interactiveObjects, (type, userData) => {
           if (typeof this.onObjectClick === 'function') {
@@ -2128,10 +2245,15 @@
           return;
         }
       }
-      if (CAMERA_STATES[stateName]) {
+      const states = this.cameraStates || CAMERA_STATES;
+      if (states && states[stateName]) {
         this.currentCameraState = stateName;
-        this.targetCameraPos.copy(CAMERA_STATES[stateName].position);
-        this.targetCameraLookAt.copy(CAMERA_STATES[stateName].target);
+        if (this.targetCameraPos && states[stateName].position) {
+          this.targetCameraPos.copy(states[stateName].position);
+        }
+        if (this.targetCameraLookAt && states[stateName].target) {
+          this.targetCameraLookAt.copy(states[stateName].target);
+        }
       }
     }
 
@@ -3321,8 +3443,8 @@
         this.camera.aspect = aspect;
         const isPortrait = aspect < 0.75;
         const baseFov = isPortrait ?
-          CAMERA_STATES[this.currentCameraState].fovPortrait :
-          CAMERA_STATES[this.currentCameraState].fovLandscape;
+          this.cameraStates[this.currentCameraState].fovPortrait :
+          this.cameraStates[this.currentCameraState].fovLandscape;
 
         this.camera.fov = Math.max(this.minFov, Math.min(this.maxFov, baseFov * this.cameraZoomFactor));
         this.camera.updateProjectionMatrix();
@@ -3394,7 +3516,21 @@
         this.cameraController.update(delta);
         this.cameraZoomFactor = this.cameraController.zoomFactor;
       } else {
-        this.camera.position.lerp(this.targetCameraPos, 0.075);
+        let effectivePos = this.targetCameraPos;
+        if (this.cameraZoomFactor < 1.0 && this.targetCameraPos && this.currentCameraLookAt) {
+          const zoomDelta = this.cameraZoomFactor - 1.0;
+          const dollyOffset = zoomDelta * 3.5;
+          const dx = this.targetCameraPos.x - this.currentCameraLookAt.x;
+          const dy = this.targetCameraPos.y - this.currentCameraLookAt.y;
+          const dz = this.targetCameraPos.z - this.currentCameraLookAt.z;
+          const len = Math.hypot(dx, dy, dz) || 1.0;
+          effectivePos = new THREE.Vector3(
+            this.targetCameraPos.x + (dx / len) * dollyOffset,
+            this.targetCameraPos.y + (dy / len) * dollyOffset,
+            this.targetCameraPos.z + (dz / len) * dollyOffset
+          );
+        }
+        this.camera.position.lerp(effectivePos, 0.075);
         this.currentCameraLookAt.lerp(this.targetCameraLookAt, 0.075);
         this.camera.lookAt(this.currentCameraLookAt);
 
@@ -3402,9 +3538,10 @@
         const aspect = this.camera.aspect;
         const isPortrait = aspect < 0.75;
         const baseFov = isPortrait ?
-          CAMERA_STATES[this.currentCameraState].fovPortrait :
-          CAMERA_STATES[this.currentCameraState].fovLandscape;
-        const targetFov = Math.max(this.minFov, Math.min(this.maxFov, baseFov * this.cameraZoomFactor));
+          this.cameraStates[this.currentCameraState].fovPortrait :
+          this.cameraStates[this.currentCameraState].fovLandscape;
+        const effectiveZoom = this.currentCameraState === 'STUDIO_OVERVIEW' ? Math.min(1.0, this.cameraZoomFactor) : this.cameraZoomFactor;
+        const targetFov = Math.max(this.minFov, Math.min(this.maxFov, baseFov * effectiveZoom));
         this.camera.fov += (targetFov - this.camera.fov) * 0.1;
         this.camera.updateProjectionMatrix();
       }
@@ -3435,6 +3572,7 @@
     destroy() {
       if (this.animationFrameId) {
         cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
       }
       if (this.stageModel) {
         this.stageModel.dispose(this.scene);
@@ -3463,6 +3601,7 @@
       }
       if (this.renderer) {
         this.renderer.dispose();
+        this.renderer = null;
       }
       this.isInitialized = false;
     }

@@ -6888,6 +6888,13 @@ html, body {
 /* ===================================================================
    SÉRÉN FLOATING EDITORIAL TAGLINE & GREETING CARD (UPPER RIGHT)
    =================================================================== */
+.seren-editorial-tagline-wrap,
+.seren-floating-greeting,
+.wardrobe-hint,
+.mirror-hint {
+  display: none !important;
+}
+
 .seren-editorial-tagline-wrap {
   position: absolute;
   top: 60px;
