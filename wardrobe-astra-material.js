@@ -315,8 +315,255 @@
       }
     });
 
+    // Reorganize wardrobe structure to balance shirts, hanging trousers, and footwear
+    reorganizeWardrobe(model, mats, THREE);
+
     // Attach authentic warm 3000K internal shelf illumination
     addShelfLights(model);
+  }
+
+  /**
+   * Restructures wardrobe model:
+   * 1. Moves shirts section slightly upwards, moderately sized on hangers (not dominant)
+   * 2. Introduces horizontal brass hanging rod directly below shirts
+   * 3. Hangs trousers vertically from clip hangers on this rod (replaces folded clothes)
+   * 4. Creates dedicated footwear area below trousers with shoes, sneakers, and sandals
+   * 5. Maintains balanced spacing without cramped overlapping
+   */
+  function reorganizeWardrobe(model, mats, THREE) {
+    if (!model || typeof THREE === 'undefined') return;
+    if (model.userData && model.userData.hasReorganized) return;
+    model.userData = model.userData || {};
+    model.userData.hasReorganized = true;
+
+    // 1. Slightly move shirts section upwards and moderate vertical scale
+    const shirtDeltaY = 0.08;
+    model.traverse((child) => {
+      const name = child.name || '';
+      // Upper hanging rail & mounting flanges
+      if (name.startsWith('Brass_Hanging_Rail') || name.startsWith('Rail_Flange')) {
+        child.position.y += shirtDeltaY;
+      }
+      // Upper hangers (Hanger 6 was the draped trouser hanger)
+      if (name.startsWith('Hanger_') && !name.startsWith('Hanger_6')) {
+        child.position.y += shirtDeltaY;
+      }
+      // Shirts, blouses, jackets on upper rail
+      if (name.startsWith('Garment_1_') || name.startsWith('Garment_2_') || 
+          name.startsWith('Garment_3_') || name.startsWith('Garment_4_') || 
+          name.startsWith('Garment_5_') || name.startsWith('Garment_7_')) {
+        child.position.y += shirtDeltaY;
+        if (child.isMesh && (name.includes('Shirt') || name.includes('Blouse') || name.includes('Jacket') || name.includes('Blazer') || name.includes('Knitwear'))) {
+          child.scale.y *= 0.88; // Balanced length so shirts section is not dominant
+        }
+      }
+      // Hide old folded items and old draped trousers
+      if (name.startsWith('Folded_') || name.startsWith('Trousers_Fold_Top') || 
+          name.startsWith('Trousers_Leg_') || name.startsWith('Hanger_6')) {
+        child.visible = false;
+      }
+      // Hide cluttering mid shelves / drawers that block vertical trouser hanging
+      if (name === 'Wardrobe_Shelf_Mid' || name === 'Wardrobe_Shelf_Low' || 
+          name === 'Wardrobe_Shelf_Drawer_Top' || name.startsWith('Drawer_') ||
+          name === 'LED_Strip_Mid' || name === 'LED_Strip_Low') {
+        child.visible = false;
+      }
+    });
+
+    // 2. Introduce horizontal hanging rod directly below shirts section
+    const trouserRailY = 1.54;
+    const railWidth = 1.74; // Matches interior width
+    const trouserRailGroup = new THREE.Group();
+    trouserRailGroup.name = 'Trouser_Hanging_Section';
+
+    // Solid Brushed Brass Rod
+    const rodGeo = new THREE.CylinderGeometry(0.013, 0.013, railWidth, 24);
+    const rod = new THREE.Mesh(rodGeo, mats.brass);
+    rod.rotation.z = Math.PI / 2;
+    rod.position.set(0, trouserRailY, 0);
+    rod.castShadow = true;
+    trouserRailGroup.add(rod);
+
+    // Left and Right Flanges
+    [-railWidth / 2, railWidth / 2].forEach((fx) => {
+      const flange = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.030, 0.030, 0.014, 24),
+        mats.brass
+      );
+      flange.rotation.z = Math.PI / 2;
+      flange.position.set(fx, trouserRailY, 0);
+      trouserRailGroup.add(flange);
+    });
+
+    // 3. Display trousers hanging vertically from hangers on this rod
+    const trouserConfigs = [
+      { x: -0.62, color: 0x1E2A3A, name: 'Navy Tailored Trousers', len: 0.50 },
+      { x: -0.31, color: 0x3A3A3C, name: 'Charcoal Wool Trousers', len: 0.52 },
+      { x: 0.00,  color: 0xC4AA78, name: 'Khaki Chinos', len: 0.48 },
+      { x: 0.31,  color: 0x5C6B4A, name: 'Olive Slim Trousers', len: 0.49 },
+      { x: 0.62,  color: 0xD4B896, name: 'Tan Linen Trousers', len: 0.48 }
+    ];
+
+    trouserConfigs.forEach((tc, idx) => {
+      const trGroup = new THREE.Group();
+      trGroup.name = `Vertical_Trouser_${idx}`;
+      trGroup.position.set(tc.x, trouserRailY, 0);
+
+      // Wooden Clip Hanger Bar
+      const hBar = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.007, 0.007, 0.32, 16),
+        mats.hangerWood
+      );
+      hBar.rotation.z = Math.PI / 2;
+      hBar.position.y = -0.040;
+      hBar.castShadow = true;
+      trGroup.add(hBar);
+
+      // Brass Hook
+      const hook = new THREE.Mesh(
+        new THREE.TorusGeometry(0.022, 0.003, 8, 16, Math.PI * 1.35),
+        mats.brass
+      );
+      hook.position.set(0, 0.012, 0);
+      trGroup.add(hook);
+
+      // Brass Clips
+      [-0.12, 0.12].forEach((cx) => {
+        const clip = new THREE.Mesh(
+          new THREE.BoxGeometry(0.016, 0.020, 0.012),
+          mats.brass
+        );
+        clip.position.set(cx, -0.050, 0);
+        trGroup.add(clip);
+      });
+
+      const trMat = new THREE.MeshStandardMaterial({
+        color: tc.color,
+        roughness: 0.72,
+        metalness: 0.01
+      });
+
+      // Waistband
+      const waistband = new THREE.Mesh(
+        new THREE.BoxGeometry(0.28, 0.032, 0.065),
+        trMat
+      );
+      waistband.position.set(0, -0.062, 0);
+      waistband.castShadow = true;
+      trGroup.add(waistband);
+
+      // Two Vertical Hanging Trouser Legs
+      const legLen = tc.len;
+      [-0.056, 0.056].forEach((lx) => {
+        const legGeo = new THREE.CylinderGeometry(0.044, 0.034, legLen, 16);
+        legGeo.scale(0.65, 1.0, 1.0);
+        const leg = new THREE.Mesh(legGeo, trMat);
+        leg.position.set(lx, -0.078 - legLen / 2, 0);
+        leg.castShadow = true;
+        trGroup.add(leg);
+
+        // Front Crease Line
+        const crease = new THREE.Mesh(
+          new THREE.BoxGeometry(0.003, legLen * 0.90, 0.002),
+          new THREE.MeshStandardMaterial({ color: tc.color, roughness: 0.55 })
+        );
+        crease.position.set(lx, -0.078 - legLen * 0.45, 0.026);
+        trGroup.add(crease);
+      });
+
+      trouserRailGroup.add(trGroup);
+    });
+
+    model.add(trouserRailGroup);
+
+    // 4. Dedicated Footwear Area below trousers
+    // Add stylish leather sandals to complete the shoes, sneakers, and sandals collection!
+    const footwearGroup = new THREE.Group();
+    footwearGroup.name = 'Dedicated_Footwear_Area';
+    const shoeY = 0.14; // Matches footwear shelf height
+
+    // Reposition existing shoes across the shelf with neat, balanced spacing
+    const shoeXMapping = {
+      'Shoe_Pair1': -0.66, // Sneakers
+      'Shoe_Pair2': -0.38, // Loafers / Shoes
+      'Shoe_Pair3': 0.38,  // Neutral Shoes
+      'Shoe_Pair4': 0.66   // Sneakers
+    };
+
+    model.traverse((child) => {
+      for (const [prefix, targetX] of Object.entries(shoeXMapping)) {
+        if (child.name && child.name.startsWith(prefix)) {
+          const isRight = child.name.includes('_R_');
+          const isLeft = child.name.includes('_L_');
+          if (isRight) {
+            child.position.x = targetX + 0.048;
+          } else if (isLeft) {
+            child.position.x = targetX - 0.048;
+          }
+          child.position.y = shoeY;
+        }
+      }
+    });
+
+    // Add 2 pairs of neatly crafted sandals in the center slots (X = -0.12 and X = +0.12)
+    const sandalConfigs = [
+      { x: -0.12, color: 0xC49E6C, name: 'Tan Leather Slide Sandals' },
+      { x: 0.12,  color: 0x4A3A28, name: 'Dark Leather Strap Sandals' }
+    ];
+
+    sandalConfigs.forEach((sc) => {
+      const sandalPair = new THREE.Group();
+      sandalPair.name = sc.name;
+
+      const footbedMat = new THREE.MeshStandardMaterial({ color: 0xBA986E, roughness: 0.60 });
+      const strapMat = new THREE.MeshStandardMaterial({ color: sc.color, roughness: 0.45, metalness: 0.02 });
+
+      [-0.044, 0.044].forEach((sx) => {
+        const sandal = new THREE.Group();
+        sandal.position.set(sc.x + sx, shoeY, 0.01);
+
+        // Contoured Footbed Sole
+        const sole = new THREE.Mesh(
+          new THREE.BoxGeometry(0.062, 0.015, 0.22),
+          footbedMat
+        );
+        sole.position.y = 0.007;
+        sole.castShadow = true;
+        sandal.add(sole);
+
+        // Front Strap
+        const fStrap = new THREE.Mesh(
+          new THREE.BoxGeometry(0.064, 0.020, 0.044),
+          strapMat
+        );
+        fStrap.position.set(0, 0.020, 0.040);
+        fStrap.castShadow = true;
+        sandal.add(fStrap);
+
+        // Instep Arch Strap
+        const aStrap = new THREE.Mesh(
+          new THREE.BoxGeometry(0.064, 0.026, 0.038),
+          strapMat
+        );
+        aStrap.position.set(0, 0.024, -0.025);
+        aStrap.castShadow = true;
+        sandal.add(aStrap);
+
+        // Miniature Brass Buckle
+        const buckle = new THREE.Mesh(
+          new THREE.BoxGeometry(0.010, 0.014, 0.005),
+          mats.brass
+        );
+        buckle.position.set(0.033, 0.024, -0.025);
+        sandal.add(buckle);
+
+        sandalPair.add(sandal);
+      });
+
+      footwearGroup.add(sandalPair);
+    });
+
+    model.add(footwearGroup);
   }
 
   function addShelfLights(model) {
