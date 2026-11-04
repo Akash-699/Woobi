@@ -35,12 +35,12 @@ export class ThemeMaterials {
     });
     this.disposables.push(this.floorMat);
 
-    // 2. Smooth Architectural Wall Plaster Material (Warm limewash plaster with micro-relief)
+    // 2. Smooth Architectural Wall Material (Authentic Red-Brown Brick Wall with Plaster Fallback)
     this.wallMat = new THREE.MeshStandardMaterial({
-      map: this.textures.sandPlaster || null,
+      map: this.textures.brickWall || this.textures.sandPlaster || null,
       bumpMap: this.textures.wallBump || this.textures.stoneBump || null,
       bumpScale: 0.0020,
-      color: preset.wall.color,
+      color: this.textures.brickWall ? 0xFFFFFF : preset.wall.color,
       roughness: preset.wall.roughness,
       metalness: preset.wall.metalness,
       side: THREE.BackSide

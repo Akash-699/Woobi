@@ -38,8 +38,8 @@ export const THEME_PRESETS = {
       far: 24.0
     },
     wall: {
-      color: 0xDCC5A3, // Desert sand limewash plaster
-      roughness: 0.90,
+      color: 0xFFFFFF, // Full texture fidelity for custom wall map (authentic red-brown brick wall)
+      roughness: 0.85,
       metalness: 0.01
     },
     architectural: {

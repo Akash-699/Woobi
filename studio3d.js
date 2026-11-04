@@ -608,6 +608,46 @@
       this.textures.wallBump.wrapT = THREE.ClampToEdgeWrapping;
       this.textures.wallBump.repeat.set(2, 1);
 
+      // 3.7. Authentic Red-Brown Brick Wall Texture (Screenshot 2 reference)
+      if (typeof THREE.TextureLoader !== 'undefined') {
+        const textureLoader = new THREE.TextureLoader();
+        const brickTex = textureLoader.load(
+          'assets/brick_wall.jpg',
+          (loadedTex) => {
+            loadedTex.wrapS = THREE.RepeatWrapping;
+            loadedTex.wrapT = THREE.RepeatWrapping;
+            // Cylindrical wall is 34m wide x 8m high; repeat 8 horizontally and 2 vertically
+            loadedTex.repeat.set(8, 2);
+            if (THREE.sRGBEncoding) {
+              loadedTex.encoding = THREE.sRGBEncoding;
+            }
+            if (this.themeModel && this.themeModel.materials && this.themeModel.materials.wallMat) {
+              this.themeModel.materials.wallMat.map = loadedTex;
+              this.themeModel.materials.wallMat.color.setHex(0xFFFFFF);
+              this.themeModel.materials.wallMat.needsUpdate = true;
+            }
+            if (this.themeModel && this.themeModel.backWall && this.themeModel.backWall.material) {
+              this.themeModel.backWall.material.map = loadedTex;
+              this.themeModel.backWall.material.color.setHex(0xFFFFFF);
+              this.themeModel.backWall.material.needsUpdate = true;
+            }
+            if (this.fallbackWallMat) {
+              this.fallbackWallMat.map = loadedTex;
+              this.fallbackWallMat.color.setHex(0xFFFFFF);
+              this.fallbackWallMat.needsUpdate = true;
+            }
+          },
+          undefined,
+          (err) => {
+            console.warn('Studio3D: Could not load assets/brick_wall.jpg, falling back to procedural wall texture.', err);
+          }
+        );
+        brickTex.wrapS = THREE.RepeatWrapping;
+        brickTex.wrapT = THREE.RepeatWrapping;
+        brickTex.repeat.set(8, 2);
+        this.textures.brickWall = brickTex;
+      }
+
       // 4. Warm Beige Limestone / Travertine for Vanity Countertop (#CBB18D)
       const mCanvas = document.createElement('canvas');
       mCanvas.width = 512;
@@ -805,16 +845,17 @@
       floor.receiveShadow = true;
       this.scene.add(floor);
 
-      // 2. Architectural Wall Limewash Plaster with Micro-Relief (#DCC5A3)
-      const wallMat = new THREE.MeshStandardMaterial({
-        map: this.textures.sandPlaster || null,
+      // 2. Architectural Wall Material (Authentic Brick Wall with Plaster Fallback)
+      this.fallbackWallMat = new THREE.MeshStandardMaterial({
+        map: this.textures.brickWall || this.textures.sandPlaster || null,
         bumpMap: this.textures.wallBump || this.textures.stoneBump || null,
         bumpScale: 0.0020,
-        color: 0xDCC5A3, // Desert sand Mediterranean limewash plaster
-        roughness: 0.90,
+        color: this.textures.brickWall ? 0xFFFFFF : 0xDCC5A3,
+        roughness: 0.85,
         metalness: 0.01,
         side: THREE.BackSide
       });
+      const wallMat = this.fallbackWallMat;
       const wallGeo = new THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
       const backWall = new THREE.Mesh(wallGeo, wallMat);
       backWall.position.set(0, 4.0, 8.2);
