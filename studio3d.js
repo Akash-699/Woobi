@@ -2523,16 +2523,16 @@
           const cz = (p0[2] + p1[2] + p2[2]) / 3;
           const maxAbsX = Math.max(Math.abs(p0[0]), Math.abs(p1[0]), Math.abs(p2[0]));
 
-          // Torso / pelvis only: strictly exclude resting arms (arms start at X >= 0.276 with |Z| <= 0.05)
-          if (maxAbsX > 0.265) return false;
+          // Torso / pelvis only: strictly exclude resting arms
+          if (maxAbsX > 0.220) return false;
 
           // High-waisted elegant fit covering iliac crest, hips, and full pelvis
           const topLimit = cz < 0 ? 0.985 : 0.965;
           if (cy > topLimit) return false;
 
           // Full coverage of hips, groin, and glutes without exposing the lateral pelvis
-          const backCoverage = Math.max(0, -cz / 0.15);
-          const sideArch = Math.pow(Math.abs(cx) / 0.24, 1.6);
+          const backCoverage = Math.max(0, -cz / 0.12);
+          const sideArch = Math.pow(Math.abs(cx) / 0.18, 1.6);
           const legCut = 0.745 + (1.0 - Math.min(1.0, backCoverage)) * sideArch * 0.075;
 
           return cy >= legCut;
@@ -2830,10 +2830,10 @@
             let dy = 0;
             let dz = 0;
 
-            // 1. Female Bust (Apex at x=+-0.079, y=1.215, z=0.165; natural forward projection & teardrop settling without upward sliding)
-            if (oz > 0.04 && oy >= 1.08 && oy <= 1.36 && Math.abs(ox) <= 0.18) {
-              const wBustL = compactWeight(ox, oy, oz, -0.079, 1.215, 0.165, 0.095, 0.140, 0.100);
-              const wBustR = compactWeight(ox, oy, oz,  0.079, 1.215, 0.165, 0.095, 0.140, 0.100);
+            // 1. Female Bust (Apex at x=+-0.068, y=1.215, z=0.125; natural forward projection & teardrop settling without upward sliding)
+            if (oz > 0.02 && oy >= 1.08 && oy <= 1.36 && Math.abs(ox) <= 0.18) {
+              const wBustL = compactWeight(ox, oy, oz, -0.068, 1.215, 0.125, 0.090, 0.135, 0.095);
+              const wBustR = compactWeight(ox, oy, oz,  0.068, 1.215, 0.125, 0.090, 0.135, 0.095);
               const wBust = Math.max(wBustL, wBustR);
               if (wBust > 0) {
                 dz += wBust * bustDisp * 1.15;
@@ -2843,9 +2843,9 @@
             }
 
             // 2. Female Glutes / Butt (Isotropic spherical ball cheeks with true 3D radial expansion)
-            if (oy >= 0.70 && oy <= 1.05 && Math.abs(ox) <= 0.235) {
-              const cxL = -0.105, cxR = 0.105, cyGlute = 0.880, czGlute = -0.140;
-              const rxGl = 0.140, ryGl = 0.170, rzGl = 0.160;
+            if (oy >= 0.70 && oy <= 1.05 && Math.abs(ox) <= 0.220) {
+              const cxL = -0.078, cxR = 0.078, cyGlute = 0.880, czGlute = -0.115;
+              const rxGl = 0.125, ryGl = 0.155, rzGl = 0.140;
               const wGlL = compactWeight(ox, oy, oz, cxL, cyGlute, czGlute, rxGl, ryGl, rzGl);
               const wGlR = compactWeight(ox, oy, oz, cxR, cyGlute, czGlute, rxGl, ryGl, rzGl);
               const wGl = Math.max(wGlL, wGlR);
@@ -2867,10 +2867,10 @@
             }
 
             // 3. Female Lateral Hips & Thighs (Smooth, sleek feminine hourglass curve without artificial muscle lumps)
-            if (Math.abs(ox) >= 0.09 && Math.abs(ox) <= 0.245 && oy >= 0.72 && oy <= 0.94 && Math.abs(oz) <= 0.15) {
+            if (Math.abs(ox) >= 0.08 && Math.abs(ox) <= 0.210 && oy >= 0.72 && oy <= 0.94 && Math.abs(oz) <= 0.14) {
               const dyHip = (oy - 0.83) / 0.11;
-              const dxHip = (Math.abs(ox) - 0.17) / 0.075;
-              const dzHip = oz / 0.14;
+              const dxHip = (Math.abs(ox) - 0.15) / 0.065;
+              const dzHip = oz / 0.13;
               const d2Hip = dyHip * dyHip + dxHip * dxHip + dzHip * dzHip;
               if (d2Hip < 1.0) {
                 const wHip = (1.0 - d2Hip) * (1.0 - d2Hip);
