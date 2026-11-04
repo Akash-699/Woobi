@@ -31,7 +31,7 @@
   
   <!-- Woobi Core Shared Design Tokens -->
   <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
-  <link rel="stylesheet" href="styles.css?v=20261104_3">
+  <link rel="stylesheet" href="styles.css?v=20261104_4">
 </head>
 <body>
 
@@ -3280,14 +3280,14 @@
           <!-- Exact Scene Header from Reference Image -->
           <div class="cal-hero-scene-banner">
             <button class="streak-modal-close cal-exit-circle-btn" onclick="app.closeStreakModal()" title="Close Calendar" aria-label="Exit">✕</button>
+            <div class="cal-streak-badge-pill" id="calHeaderStreakBadge">
+              <span class="cal-badge-fire-icon" id="calTierFlameIcon"><img src="assets/streak/fire_level_1.png" class="cal-pill-fire-img" alt="Flame" /></span>
+              <span id="calTierText">0 Day Streak • First Fire</span>
+            </div>
             <!-- Accessible elements for test suites and state synchronization -->
             <div class="cal-semantic-header-info" style="display: none;">
               <h2 class="cal-main-title">Woobi Streak Calendar</h2>
               <p class="cal-main-subtitle">Keep the flame going ✨</p>
-              <div class="cal-streak-badge-pill" id="calHeaderStreakBadge">
-                <span class="cal-badge-fire-icon" id="calTierFlameIcon">🔥</span>
-                <span id="calTierText">0 Day Streak • Spark Flame</span>
-              </div>
             </div>
           </div>
 

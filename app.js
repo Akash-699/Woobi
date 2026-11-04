@@ -2421,6 +2421,10 @@
     if (tierTextEl) {
       tierTextEl.textContent = `${curStreak} ${curStreak === 1 ? 'Day' : 'Days'} Streak • ${tierName}`;
     }
+    const tierFlameIconEl = document.getElementById('calTierFlameIcon');
+    if (tierFlameIconEl) {
+      tierFlameIconEl.innerHTML = `<img src="assets/streak/fire_level_${tierLevel}.png?v=20261104_4" class="cal-pill-fire-img" alt="Flame" />`;
+    }
     const badge = document.getElementById('calHeaderStreakBadge');
     if (badge && !tierTextEl) {
       badge.textContent = `🔥 Current Streak: ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}`;
