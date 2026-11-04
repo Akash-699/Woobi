@@ -2131,18 +2131,16 @@
           localStorage.removeItem('woobi_streak_user_mode');
         } catch (e) {}
       }
-      if (engine.userId === 'test_user_136' || (engine.state && (engine.state.isTestUser || engine.state.isTestData || engine.state.currentStreak === 136))) {
-        if (typeof engine.switchToRealUser === 'function') {
-          engine.switchToRealUser(null);
-        } else {
-          engine.userId = null;
-        }
-      }
+
       state.streak = getStreakStatusSafe(engine);
       if (typeof engine.on === 'function') {
         engine.on('streak:updated', (data) => {
           state.streak = getStreakStatusSafe(engine);
           updateStreakUI();
+          const modal = document.getElementById('streakDetailsModal');
+          if (modal && !modal.classList.contains('hidden')) {
+            renderStreakCalendar();
+          }
         });
         engine.on('streak:broken', (data) => {
           state.streak = getStreakStatusSafe(engine);
@@ -2155,10 +2153,14 @@
         engine.on('streak:restored', () => {
           state.streak = getStreakStatusSafe(engine);
           updateStreakUI();
+          const modal = document.getElementById('streakDetailsModal');
+          if (modal && !modal.classList.contains('hidden')) {
+            renderStreakCalendar();
+          }
         });
       }
     } else {
-      // Local fallback state
+      // Local fallback state while waiting for core engine
       if (!state.streak) {
         state.streak = {
           currentStreak: 0,
@@ -2169,6 +2171,24 @@
           uploadedToday: false,
           deadline: Date.now() + 24 * 3600 * 1000
         };
+      }
+
+      // Automatically hook into core engine as soon as module mounts
+      if (typeof window !== 'undefined' && !window._coreStreakHookAttached) {
+        window._coreStreakHookAttached = true;
+        window.addEventListener('woobi:core:ready', () => {
+          initStreakState();
+        });
+        let pollCount = 0;
+        const poller = setInterval(() => {
+          pollCount++;
+          if (getStreakEngine()) {
+            clearInterval(poller);
+            initStreakState();
+          } else if (pollCount > 40) {
+            clearInterval(poller);
+          }
+        }, 50);
       }
     }
 
@@ -2346,6 +2366,12 @@
   function openStreakModal() {
     const modal = document.getElementById('streakDetailsModal');
     if (!modal) return;
+    const engine = getStreakEngine();
+    // Default to reference October 2026 if user has not yet uploaded in November 2026
+    if (engine && !engine.hasUploadedToday() && (!engine.memories || !engine.memories.some(m => m.date && m.date.startsWith('2026-11')))) {
+      currentCalYear = 2026;
+      currentCalMonth = 9; // October (0-indexed)
+    }
     renderStreakCalendar();
     modal.classList.remove('hidden');
   }
@@ -2532,35 +2558,23 @@
       crater.className = `crater-socket ${dayInfo.status}-crater`;
 
       if (dayInfo.status === 'completed') {
-        const lvl = dayInfo.fireLevel || 1;
-        const delay = ((dayInfo.day * 0.17) % 1.5).toFixed(2);
+        const lvl = Math.min(5, Math.max(1, dayInfo.fireLevel || 1));
+        const delay = ((dayInfo.day * 0.19) % 1.6).toFixed(2);
 
         const fireWrap = document.createElement('div');
         fireWrap.className = `streak-cell-fire-wrap fire-lvl-${lvl} burning-flow-active fire-shaking-active`;
         fireWrap.style.animationDelay = `${delay}s`;
 
         const fireImg = document.createElement('img');
-        fireImg.src = `assets/streak/fire_level_${lvl}.png`;
+        fireImg.src = `assets/streak/fire_level_${lvl}.png?v=20261104_1`;
         fireImg.alt = `Streak Fire Level ${lvl}`;
         fireImg.className = `streak-cell-fire-img fire-lvl-${lvl}-img`;
         fireImg.style.animationDelay = `${delay}s`;
         fireImg.onerror = () => {
-          fireImg.src = 'assets/streak/realistic_fire.png';
-          fireImg.onerror = () => {
-            fireImg.src = 'assets/streak/reference_flame_sample.png';
-          };
+          fireImg.src = 'assets/streak/reference_flame_sample.png';
         };
 
-        const streaks = document.createElement('div');
-        streaks.className = 'flowing-flame-streaks';
-        streaks.innerHTML = `
-          <span class="flame-streak-ribbon ribbon-1" style="animation-delay: ${delay}s"></span>
-          <span class="flame-streak-ribbon ribbon-2" style="animation-delay: ${(Number(delay) + 0.15).toFixed(2)}s"></span>
-          <span class="flame-streak-ribbon ribbon-3" style="animation-delay: ${(Number(delay) + 0.35).toFixed(2)}s"></span>
-        `;
-
         fireWrap.appendChild(fireImg);
-        fireWrap.appendChild(streaks);
         crater.appendChild(fireWrap);
       } else if (dayInfo.status === 'missed') {
         const delay = ((dayInfo.day * 0.23) % 2.1).toFixed(2);
@@ -2570,12 +2584,12 @@
         bonfireWrap.style.animationDelay = `${delay}s`;
 
         const bonfireImg = document.createElement('img');
-        bonfireImg.src = 'assets/streak/bonfire_smoke.png';
+        bonfireImg.src = `assets/streak/bonfire_smoke.png?v=20261104_1`;
         bonfireImg.alt = 'Missed Bonfire Smoke';
         bonfireImg.className = 'crater-bonfire-img animated-bonfire-smoke';
         bonfireImg.style.animationDelay = `${delay}s`;
         bonfireImg.onerror = () => {
-          bonfireImg.src = 'assets/streak_bonfire_smoke.png';
+          bonfireImg.src = 'assets/streak/reference_campfire_sample.png';
         };
 
         bonfireWrap.appendChild(bonfireImg);

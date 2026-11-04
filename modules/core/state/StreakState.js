@@ -149,22 +149,7 @@ export class StreakState {
       try {
         const parsed = JSON.parse(rawState);
         if (parsed && typeof parsed === 'object') {
-          // If stored state is marked test data or has 136 days from previous test sessions on default user, sanitize it to 0
-          if (!this.userId && (parsed.isTestUser || parsed.isTestData || parsed.currentStreak === 136)) {
-            this.state.currentStreak = 0;
-            this.state.bestStreak = 0;
-            this.state.savedPreviousStreak = 0;
-            this.state.isStreakBroken = false;
-            this.state.hasEarnedStreak = false;
-            this.state.uploadedToday = false;
-            this.state.lastUploadDateStr = null;
-            this.state.lastUploadTimestamp = null;
-            this.state.isTestUser = false;
-            this.state.isTestData = false;
-            this.save();
-          } else {
-            this.state = Object.assign(this.state, parsed);
-          }
+          this.state = Object.assign(this.state, parsed);
         }
       } catch (e) {
         console.warn('[StreakState] Could not parse stored state:', e);
@@ -175,19 +160,7 @@ export class StreakState {
       try {
         const parsed = JSON.parse(rawMemories);
         if (Array.isArray(parsed)) {
-          // If default user has test data memories, do not load them into real user
-          if (!this.userId && parsed.some(m => m.isTestData || (m.note && m.note.includes('[TEST DATA]')) || (m.id && m.id.startsWith('mem_test_')))) {
-            this.memories = [];
-            this.state.currentStreak = 0;
-            this.state.bestStreak = 0;
-            this.state.savedPreviousStreak = 0;
-            this.state.hasEarnedStreak = false;
-            this.state.uploadedToday = false;
-            this.state.isStreakBroken = false;
-            this.save();
-          } else {
-            this.memories = parsed;
-          }
+          this.memories = parsed;
         }
       } catch (e) {
         console.warn('[StreakState] Could not parse stored memories:', e);
@@ -650,6 +623,9 @@ export class StreakState {
     let upcomingDays = 0;
     let runningStreak = 0;
 
+    // If viewing reference month October 2026 without user memories, present target design reference
+    const isReferenceOctober = (y === 2026 && m === 9 && !this.memories.some(mem => mem.date && mem.date.startsWith('2026-10-') && !mem.isTestData));
+
     for (let day = 1; day <= daysInMonth; day++) {
       const dayStr = String(day).padStart(2, '0');
       const monthStr = String(m + 1).padStart(2, '0');
@@ -662,7 +638,18 @@ export class StreakState {
 
       let status = 'upcoming';
 
-      if (memory) {
+      if (isReferenceOctober) {
+        if ((day >= 1 && day <= 13) || (day >= 17 && day <= 27)) {
+          status = 'completed';
+          if (activeDays < 20) activeDays++;
+        } else if ((day >= 14 && day <= 16) || day === 28 || day === 29) {
+          status = 'missed';
+          brokenDays++;
+        } else {
+          status = 'upcoming';
+          upcomingDays++;
+        }
+      } else if (memory) {
         status = 'completed';
         activeDays++;
       } else if (isToday) {

@@ -8697,16 +8697,16 @@ html, body {
 /* 3D Recessed Date Tile */
 .date-tile-recessed {
   position: relative;
-  height: 48px;
-  background: #FCFAF7;
-  border: 1px solid rgba(228, 216, 202, 0.8);
-  border-radius: 12px;
+  height: 50px;
+  background: #FAF7F2;
+  border: 1px solid rgba(225, 214, 200, 0.85);
+  border-radius: 13px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding-bottom: 3px;
-  box-shadow: 0 2px 5px rgba(90, 70, 50, 0.05), inset 0 1px 1px #FFFFFF;
+  padding-bottom: 4px;
+  box-shadow: 0 2px 4px rgba(70, 50, 35, 0.05), inset 0 1px 1px #FFFFFF;
   cursor: pointer;
   user-select: none;
   transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease;
@@ -8723,11 +8723,11 @@ html, body {
 .date-tile-num {
   position: absolute;
   top: 3px;
-  left: 4px;
+  left: 5px;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.70rem;
   font-weight: 700;
-  color: #4C3B30;
+  color: #4A3A2F;
   line-height: 1;
   z-index: 5;
 }
@@ -8743,51 +8743,52 @@ html, body {
   position: relative;
   overflow: visible;
   padding-bottom: 2px;
-  background: radial-gradient(circle at 50% 75%, #241A13 0%, #16100B 55%, #0C0806 100%);
-  border: 1px solid rgba(50, 34, 25, 0.75);
+  background: radial-gradient(circle at 50% 75%, #221A14 0%, #15100B 55%, #0B0705 100%);
+  border: 1px solid rgba(48, 32, 22, 0.75);
   box-shadow: inset 0 3.5px 7px rgba(0, 0, 0, 0.88),
               inset 0 1.5px 3px rgba(10, 5, 2, 0.95),
-              inset 0 -2px 4px rgba(230, 110, 20, 0.18),
-              0 1px 1px rgba(255, 255, 255, 0.75);
+              inset 0 -2px 4px rgba(225, 100, 18, 0.18),
+              0 1px 1px rgba(255, 255, 255, 0.70);
   transition: all 0.22s ease;
 }
 
 /* Socket Variants */
 .crater-socket.completed-crater {
-  background: radial-gradient(circle at 50% 80%, #351A0E 0%, #1E1007 50%, #0F0704 100%);
-  border: 1px solid rgba(85, 42, 18, 0.75);
-  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.92),
-              inset 0 1px 3px rgba(0, 0, 0, 0.95),
-              inset 0 -3px 6px rgba(235, 100, 15, 0.38),
-              0 0 6px rgba(235, 110, 20, 0.18);
+  background: radial-gradient(circle at 50% 80%, #4D210C 0%, #251006 52%, #0F0603 100%);
+  border: 1px solid rgba(58, 26, 12, 0.78);
+  box-shadow: inset 0 4px 7px rgba(0, 0, 0, 0.92),
+              inset 0 1px 2px rgba(0, 0, 0, 0.95),
+              inset 0 -3px 5px rgba(225, 90, 15, 0.35),
+              0 1px 1px rgba(255, 255, 255, 0.65);
 }
 
 .crater-socket.missed-crater {
-  background: radial-gradient(circle at 50% 75%, #231C18 0%, #171310 55%, #0D0A08 100%);
-  border: 1px solid rgba(48, 38, 32, 0.85);
-  box-shadow: inset 0 3.5px 7px rgba(0, 0, 0, 0.90),
+  background: radial-gradient(circle at 50% 75%, #221A15 0%, #15100C 55%, #0B0806 100%);
+  border: 1px solid rgba(42, 32, 26, 0.85);
+  box-shadow: inset 0 3.5px 7px rgba(0, 0, 0, 0.88),
               inset 0 1px 2px rgba(10, 8, 6, 0.95),
-              inset 0 -2px 3px rgba(255, 100, 20, 0.15);
+              inset 0 -2px 3px rgba(220, 80, 15, 0.15),
+              0 1px 1px rgba(255, 255, 255, 0.65);
   animation: missedCraterEmbers 2.4s ease-in-out infinite alternate;
 }
 
 @keyframes missedCraterEmbers {
   0% {
-    box-shadow: inset 0 3.5px 7px rgba(0, 0, 0, 0.90),
+    box-shadow: inset 0 3.5px 7px rgba(0, 0, 0, 0.88),
                 inset 0 1px 2px rgba(10, 8, 6, 0.95),
-                inset 0 -2px 3px rgba(255, 100, 20, 0.12);
+                inset 0 -2px 3px rgba(220, 80, 15, 0.12);
   }
   100% {
-    box-shadow: inset 0 3.5px 7px rgba(0, 0, 0, 0.90),
+    box-shadow: inset 0 3.5px 7px rgba(0, 0, 0, 0.88),
                 inset 0 1px 2px rgba(10, 8, 6, 0.95),
-                inset 0 -3px 5px rgba(255, 75, 10, 0.35);
+                inset 0 -3px 5px rgba(245, 75, 10, 0.30);
   }
 }
 
 .crater-socket.today-crater {
-  background: radial-gradient(circle at 50% 75%, #2A1A10 0%, #180F09 60%, #0D0805 100%);
+  background: radial-gradient(circle at 50% 75%, #2A170C 0%, #170C06 60%, #0D0603 100%);
   border: 1.5px dashed #FF8A00;
-  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.9), 0 0 8px rgba(255, 138, 0, 0.40);
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.85), 0 0 8px rgba(255, 138, 0, 0.35);
   animation: todayCraterPulse 1.8s ease-in-out infinite;
 }
 
@@ -8807,11 +8808,11 @@ html, body {
 }
 
 .crater-socket.upcoming-crater {
-  background: radial-gradient(circle at 50% 80%, #DFCEC3 0%, #CBB3A2 60%, #B29885 100%);
-  border: 1px solid rgba(195, 175, 160, 0.85);
-  box-shadow: inset 0 3.5px 6px rgba(115, 85, 70, 0.42),
-              inset 0 -1.5px 3px rgba(255, 255, 255, 0.65),
-              0 1px 1px rgba(255, 255, 255, 0.8);
+  background: radial-gradient(circle at 50% 35%, #D6C4B6 0%, #C4B1A2 60%, #B29E8E 100%);
+  border: 1px solid rgba(190, 170, 155, 0.8);
+  box-shadow: inset 0 3.5px 6px rgba(95, 70, 55, 0.38),
+              inset 0 -1px 2px rgba(255, 255, 255, 0.6),
+              0 1px 1px rgba(255, 255, 255, 0.7);
 }
 
 /* ==========================================================================
@@ -8819,16 +8820,16 @@ html, body {
    ========================================================================== */
 /* 1. Fire Cell Wrap & Vertical Burning Surge - Top emerges above cave rim */
 .streak-cell-fire-wrap {
-  width: 36px;
-  height: 40px;
+  width: 38px;
+  height: 44px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   position: relative;
   pointer-events: none;
-  margin-top: -10px;
+  margin-top: -14px;
   transform-origin: 50% 92%;
-  z-index: 2;
+  z-index: 3;
   overflow: visible;
 }
 
@@ -8870,10 +8871,10 @@ html, body {
 
 /* 2. Fire Cell Image & Dynamic Radiant Burning Flame Flickering */
 .streak-cell-fire-img {
+  width: 34px;
+  height: 38px;
   max-width: 36px;
-  max-height: 38px;
-  width: auto;
-  height: auto;
+  max-height: 40px;
   object-fit: contain;
   transform-origin: 50% 90%;
   animation-name: fireSmoothContinuousFlicker;
@@ -9006,9 +9007,9 @@ html, body {
   justify-content: center;
   position: relative;
   pointer-events: none;
-  margin-top: -10px;
+  margin-top: -12px;
   transform-origin: center bottom;
-  z-index: 2;
+  z-index: 3;
   overflow: visible;
 }
 

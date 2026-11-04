@@ -80,6 +80,14 @@ export const CoreContract = {
 
 if (typeof window !== 'undefined') {
   window.WoobiCore = CoreContract;
+  try {
+    window.dispatchEvent(new CustomEvent('woobi:core:ready', { detail: CoreContract }));
+  } catch (e) {
+    // Fallback for older environments
+    const evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('woobi:core:ready', false, false, CoreContract);
+    window.dispatchEvent(evt);
+  }
 }
 
 export default CoreContract;
