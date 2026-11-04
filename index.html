@@ -1862,52 +1862,32 @@
               <button class="cat-pill">Traditional</button>
             </div>
 
-            <div class="saved-looks-grid">
-              <div class="saved-look-tile" onclick="app.goToScreen('outfit-details')">
-                <div class="saved-preview-box single-img">
-                  <img src="assets/welcome_hero.jpg" alt="Easy everyday">
-                  <div class="saved-ribbon-flag">🔖</div>
-                </div>
-                <div class="saved-tile-footer">
-                  <span>Easy everyday</span>
-                  <button class="w-dots">⋮</button>
-                </div>
-              </div>
+    <div class="category-filter-bar" style="margin-top: 10px;">
+      <button class="cat-pill active">All</button>
+      <button class="cat-pill">Casual</button>
+      <button class="cat-pill">Office</button>
+      <button class="cat-pill">Traditional</button>
+    </div>
 
-              <div class="saved-look-tile">
-                <div class="saved-preview-box single-img">
-                  <img src="assets/office_ready.jpg" alt="Office ready">
-                  <div class="saved-ribbon-flag">🔖</div>
-                </div>
-                <div class="saved-tile-footer">
-                  <span>Office ready</span>
-                  <button class="w-dots">⋮</button>
-                </div>
-              </div>
+    <div class="saved-looks-grid" id="savedLooksGrid">
+      <!-- Saved looks will be rendered dynamically by app.js -->
+    </div>
+  </div>
 
-              <div class="saved-look-tile">
-                <div class="saved-preview-box single-img">
-                  <img src="assets/traditional_kurta.jpg" alt="Weekend casual">
-                  <div class="saved-ribbon-flag">🔖</div>
-                </div>
-                <div class="saved-tile-footer">
-                  <span>Weekend casual</span>
-                  <button class="w-dots">⋮</button>
-                </div>
-              </div>
+  <nav class="phone-bottom-nav">
+    <button class="nav-tab" onclick="app.goToScreen('today')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+      </svg>
+      <span>Today</span>
+    </button>
 
-              <div class="saved-look-tile">
-                <div class="saved-preview-box single-img">
-                  <img src="assets/festive_look.jpg" alt="Festive favorite">
-                  <div class="saved-ribbon-flag">🔖</div>
-                </div>
-                <div class="saved-tile-footer">
-                  <span>Festive favorite</span>
-                  <button class="w-dots">⋮</button>
-                </div>
-              </div>
-            </div>
-          </div>
+    <button class="nav-tab" onclick="app.goToScreen('wardrobe')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+      </svg>
+      <span>Wardrobe</span>
+    </button>
 
           <nav class="phone-bottom-nav">
             <button class="nav-tab" onclick="app.goToScreen('today')">
@@ -4610,6 +4590,7 @@
   <script src="wardrobe-astra-material.js?v=20261105_v1"></script>
   <script src="wardrobe3d.js?v=20261105_v1"></script>
   <script src="studio3d.js?v=20261106_v13"></script>
+  <script src="modules/core/state/StorageService.js"></script>
   <script src="app.js?v=20261106_v12"></script>
   <script>
     window.showStudio3DFallback = function (message) {
