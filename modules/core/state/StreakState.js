@@ -672,7 +672,7 @@ export class StreakState {
       let streakOnDay = 0;
       if (status === 'completed') {
         runningStreak++;
-        streakOnDay = (memory && memory.streakDay) ? memory.streakDay : (this.state.currentStreak || runningStreak);
+        streakOnDay = (memory && typeof memory.streakDay === 'number' && memory.streakDay > 0) ? memory.streakDay : runningStreak;
         fireLevel = this.getFireLevel(streakOnDay);
       } else if (status === 'missed') {
         runningStreak = 0;
