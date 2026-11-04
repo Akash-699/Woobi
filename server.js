@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORTS = [8080, 5000, 8085, 3000];
+const PORTS = [8085, 8080, 5000, 3000];
 const BASE_DIR = __dirname;
 
 const MIME_TYPES = {
