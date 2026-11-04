@@ -38,8 +38,8 @@ export class ThemeMaterials {
     // 2. Smooth Architectural Wall Plaster Material (Warm limewash plaster with micro-relief)
     this.wallMat = new THREE.MeshStandardMaterial({
       map: this.textures.sandPlaster || null,
-      bumpMap: this.textures.stoneBump || null,
-      bumpScale: 0.0025,
+      bumpMap: this.textures.wallBump || this.textures.stoneBump || null,
+      bumpScale: 0.0020,
       color: preset.wall.color,
       roughness: preset.wall.roughness,
       metalness: preset.wall.metalness,
