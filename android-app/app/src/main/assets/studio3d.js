@@ -2523,17 +2523,17 @@
           const cz = (p0[2] + p1[2] + p2[2]) / 3;
           const maxAbsX = Math.max(Math.abs(p0[0]), Math.abs(p1[0]), Math.abs(p2[0]));
 
-          // Torso / pelvis only: strictly exclude wrist/hand
-          if (Math.abs(cz) < 0.05 && maxAbsX > 0.180) return false;
-          if (maxAbsX > 0.22) return false;
+          // Torso / pelvis only: strictly exclude resting arms (arms start at X >= 0.276 with |Z| <= 0.05)
+          if (maxAbsX > 0.265) return false;
 
-          const topLimit = cz < 0 ? 0.965 : 0.945;
+          // High-waisted elegant fit covering iliac crest, hips, and full pelvis
+          const topLimit = cz < 0 ? 0.985 : 0.965;
           if (cy > topLimit) return false;
 
-          // Continuous C^2 leg cut falloff: eliminates any step discontinuity at Gluteus Medius boundary
-          const sideArch = Math.pow(Math.abs(cx) / 0.18, 1.8);
-          const backCoverage = Math.max(0, -cz / 0.14);
-          const legCut = 0.755 + (1.0 - Math.min(1.0, backCoverage)) * sideArch * 0.080;
+          // Full coverage of hips, groin, and glutes without exposing the lateral pelvis
+          const backCoverage = Math.max(0, -cz / 0.15);
+          const sideArch = Math.pow(Math.abs(cx) / 0.24, 1.6);
+          const legCut = 0.745 + (1.0 - Math.min(1.0, backCoverage)) * sideArch * 0.075;
 
           return cy >= legCut;
         }, 0.0020);
@@ -2866,21 +2866,10 @@
               }
             }
 
-            // 3. Female TFL (Tensor fasciae latae) & Gluteus Medius Seamless Pelvic Blend
-            if (oy >= 0.75 && oy <= 1.00 && Math.abs(ox) >= 0.08 && Math.abs(ox) <= 0.245) {
-              const wTflL = compactWeight(ox, oy, oz, -0.165, 0.890, -0.030, 0.090, 0.130, 0.120);
-              const wTflR = compactWeight(ox, oy, oz,  0.165, 0.890, -0.030, 0.090, 0.130, 0.120);
-              const wTfl = Math.max(wTflL, wTflR);
-              if (wTfl > 0) {
-                dx += Math.sign(ox) * wTfl * thighDisp * 0.70;
-                dz += (oz < 0 ? -0.40 : 0.25) * wTfl * thighDisp * 0.50;
-              }
-            }
-
-            // 4. Female Lateral Hips & Thighs (Bounded to PELVIS ONLY: |ox| <= 0.235, NEVER touches hands/arms!)
-            if (Math.abs(ox) >= 0.09 && Math.abs(ox) <= 0.235 && oy >= 0.72 && oy <= 0.94 && Math.abs(oz) <= 0.15) {
+            // 3. Female Lateral Hips & Thighs (Smooth, sleek feminine hourglass curve without artificial muscle lumps)
+            if (Math.abs(ox) >= 0.09 && Math.abs(ox) <= 0.245 && oy >= 0.72 && oy <= 0.94 && Math.abs(oz) <= 0.15) {
               const dyHip = (oy - 0.83) / 0.11;
-              const dxHip = (Math.abs(ox) - 0.17) / 0.07;
+              const dxHip = (Math.abs(ox) - 0.17) / 0.075;
               const dzHip = oz / 0.14;
               const d2Hip = dyHip * dyHip + dxHip * dxHip + dzHip * dzHip;
               if (d2Hip < 1.0) {
@@ -2889,7 +2878,7 @@
               }
             }
 
-            // 5. Female Abdominal Core & Tummy (Full vertical height lift and flat toned definition)
+            // 4. Female Abdominal Core & Tummy (Full vertical height lift and flat toned definition)
             if (oz > 0.04 && oy >= 0.94 && oy <= 1.22 && Math.abs(ox) <= 0.14) {
               const wCore = compactWeight(ox, oy, oz, 0.0, 1.08, 0.10, 0.11, 0.14, 0.08);
               if (wCore > 0) {
@@ -2898,7 +2887,7 @@
               }
             }
 
-            // 6. Female Waist Cinch (Deep hourglass contour preserving natural spine)
+            // 5. Female Waist Cinch (Deep hourglass contour preserving natural spine)
             if (oy >= 0.98 && oy <= 1.14 && Math.abs(ox) <= 0.18) {
               const wWst = compactWeight(ox, oy, oz, 0.0, 1.06, 0.0, 0.16, 0.09, 0.12);
               if (wWst > 0) {
