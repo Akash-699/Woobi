@@ -4172,6 +4172,27 @@
           </div>
         </div>
       </div>
+
+<!-- 4. Photo Preview Lightbox Modal -->
+<div class="clothing-lightbox-modal hidden" id="clothingPreviewLightbox" onclick="if(event.target === this) app.closeClothingLightbox()">
+  <div class="clothing-lightbox-card">
+    <div class="clothing-lightbox-header">
+      <h4 class="clothing-lightbox-title" id="lightboxTitle">Garment Preview</h4>
+      <button type="button" class="clothing-lightbox-close" onclick="app.closeClothingLightbox()">✕</button>
+    </div>
+    <div class="clothing-lightbox-img-wrap">
+      <img id="lightboxImg" class="clothing-lightbox-img" src="" alt="Enlarged Garment" />
+    </div>
+    <div class="clothing-lightbox-actions">
+      <button type="button" class="btn-outline-white" style="font-size: 0.8rem; padding: 8px 14px;" onclick="app.closeClothingLightbox()">
+        Back
+      </button>
+      <button type="button" class="btn-outline-white" style="font-size: 0.8rem; padding: 8px 14px; color: #FF6B6B; border-color: rgba(255, 107, 107, 0.4);" id="lightboxRemoveBtn">
+        Remove Photo 🗑️
+      </button>
+    </div>
+  </div>
+</div>
     </div>
   </div>
 
