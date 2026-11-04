@@ -2322,16 +2322,18 @@
       else headerLevel = 1;
     }
 
-    // Only show broken streak (wood & rising smoke) if user had previously earned a streak!
-    // A new user who has never earned a streak must NOT be shown a broken streak.
-    const isBroken = streak.isStreakBroken && streak.hasEarnedStreak && streak.savedPreviousStreak > 0;
+    // If streak is zero OR broken, place the bonfire in the home icon!
+    const isBroken = Boolean(streak.isStreakBroken);
+    const shouldShowBonfire = count === 0 || isBroken;
 
-    if (isBroken) {
+    if (shouldShowBonfire) {
       if (fireImg) fireImg.classList.add('hidden');
       if (smokeImg) smokeImg.classList.remove('hidden');
       if (streakPillEl) {
         streakPillEl.classList.add('broken-streak');
-        streakPillEl.title = 'Streak broken! Click to restore your streak';
+        streakPillEl.title = isBroken
+          ? 'Streak broken! Click to restore your streak'
+          : 'Daily Outfit Streak: 0 Streaks (Click to view calendar)';
       }
     } else {
       if (fireImg) {

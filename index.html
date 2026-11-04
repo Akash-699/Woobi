@@ -31,7 +31,7 @@
   
   <!-- Woobi Core Shared Design Tokens -->
   <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
-  <link rel="stylesheet" href="styles.css?v=20261104_4">
+  <link rel="stylesheet" href="styles.css?v=20261104_5">
 </head>
 <body>
 
@@ -388,11 +388,11 @@
                 </svg>
               </button>
 
-              <!-- 2. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when broken) -->
-              <button type="button" class="streak-trio-btn streak-flame-btn" id="streakHeaderPill" onclick="app.handleStreakIconClick()" title="Daily Outfit Streak">
+              <!-- 2. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when zero or broken) -->
+              <button type="button" class="streak-trio-btn streak-flame-btn broken-streak" id="streakHeaderPill" onclick="app.handleStreakIconClick()" title="Daily Outfit Streak: 0 Streaks">
                 <div class="streak-flame-wrapper" id="streakFlameWrapper">
-                  <img src="assets/streak/fire_level_1.png" class="streak-header-icon-img fire-lvl-1" id="streakHeaderFireImg" alt="Streak Fire" />
-                  <img src="assets/streak/bonfire_smoke.png" class="streak-header-icon-img hidden" id="streakHeaderSmokeImg" alt="Streak Wood & Smoke" />
+                  <img src="assets/streak/fire_level_1.png" class="streak-header-icon-img fire-lvl-1 hidden" id="streakHeaderFireImg" alt="Streak Fire" />
+                  <img src="assets/streak/bonfire_smoke.png" class="streak-header-icon-img" id="streakHeaderSmokeImg" alt="Streak Wood & Smoke" />
                 </div>
                 <span class="streak-count" id="streakCount">0</span>
                 <span class="streak-count-label" id="streakCountLabel">Streaks</span>
@@ -3274,102 +3274,46 @@
         </div>
       </div>
 
-      <!-- Modal 5: Woobi Streak Calendar & Monthly Fire Animation -->
+      <!-- Modal 5: Woobi Streak Calendar (Shows Only Days and Month) -->
       <div class="streak-modal-backdrop hidden" id="streakDetailsModal" onclick="if(event.target === this) app.closeStreakModal()">
         <div class="streak-modal-card streak-details-card streak-calendar-modal-card woobi-calendar-card" onclick="event.stopPropagation()">
-          <!-- Exact Scene Header from Reference Image -->
-          <div class="cal-hero-scene-banner">
-            <button class="streak-modal-close cal-exit-circle-btn" onclick="app.closeStreakModal()" title="Close Calendar" aria-label="Exit">✕</button>
-            <div class="cal-streak-badge-pill" id="calHeaderStreakBadge">
-              <span class="cal-badge-fire-icon" id="calTierFlameIcon"><img src="assets/streak/fire_level_1.png" class="cal-pill-fire-img" alt="Flame" /></span>
-              <span id="calTierText">0 Day Streak • First Fire</span>
-            </div>
-            <!-- Accessible elements for test suites and state synchronization -->
-            <div class="cal-semantic-header-info" style="display: none;">
-              <h2 class="cal-main-title">Woobi Streak Calendar</h2>
-              <p class="cal-main-subtitle">Keep the flame going ✨</p>
-            </div>
-          </div>
-
-          <!-- Monthly Calendar Container with Recessed Date Tiles -->
-          <div class="streak-calendar-card recessed-theme-calendar" style="margin-bottom: 0;">
-            <!-- Month Navigation Bar -->
-            <div class="streak-calendar-nav">
+          <!-- Clean Month Navigation & Close Button Header -->
+          <div class="streak-calendar-nav-header">
+            <div class="cal-nav-left-group">
               <button class="btn-cal-nav btn-cal-nav-prev" onclick="app.prevCalendarMonth()" title="Previous Month" aria-label="Previous Month">❮</button>
               <div class="streak-cal-month-title" id="streakCalMonthTitle">October 2026 ▾</div>
               <button class="btn-cal-nav btn-cal-nav-next" onclick="app.nextCalendarMonth()" title="Next Month" aria-label="Next Month">❯</button>
             </div>
+            <button class="streak-modal-close cal-exit-circle-btn" onclick="app.closeStreakModal()" title="Close Calendar" aria-label="Exit">✕</button>
+          </div>
 
-            <!-- Weekdays Header Row -->
-            <div class="streak-cal-weekdays-row">
-              <span>SUN</span>
-              <span>MON</span>
-              <span>TUE</span>
-              <span>WED</span>
-              <span>THU</span>
-              <span>FRI</span>
-              <span>SAT</span>
+          <!-- Weekdays Header Row -->
+          <div class="streak-cal-weekdays-row">
+            <span>SUN</span>
+            <span>MON</span>
+            <span>TUE</span>
+            <span>WED</span>
+            <span>THU</span>
+            <span>FRI</span>
+            <span>SAT</span>
+          </div>
+
+          <!-- Dynamic 3D Recessed Crater Days Grid -->
+          <div class="streak-calendar-grid recessed-tiles-grid" id="streakCalendarGrid">
+            <!-- Rendered dynamically by app.renderStreakCalendar() -->
+          </div>
+
+          <!-- Hidden semantic elements for state synchronization -->
+          <div style="display: none;" aria-hidden="true">
+            <span id="calActiveCount">0</span>
+            <span id="calBrokenCount">0</span>
+            <span id="calUpcomingCount">0</span>
+            <div id="calHeaderStreakBadge">
+              <span id="calTierFlameIcon"></span>
+              <span id="calTierText">0 Day Streak • First Fire</span>
             </div>
-
-            <!-- Dynamic 3D Recessed Crater Days Grid -->
-            <div class="streak-calendar-grid recessed-tiles-grid" id="streakCalendarGrid">
-              <!-- Rendered dynamically by app.renderStreakCalendar() -->
-            </div>
-
-            <!-- Monthly Summary Stats Bar (3 columns matching target reference) -->
-            <div class="streak-cal-stats-bar stats-pill-card">
-              <div class="cal-stat-item">
-                <div class="stat-icon-wrap">
-                  <img src="assets/streak/stat_flame_icon.png?v=20261104_2" class="stat-flame-img" alt="Active Fire" />
-                </div>
-                <div class="stat-text-wrap">
-                  <span class="stat-val" id="calActiveCount">0</span>
-                  <span class="stat-name">Active Days</span>
-                </div>
-              </div>
-              <div class="cal-stat-sep"></div>
-              <div class="cal-stat-item">
-                <div class="stat-icon-wrap">
-                  <img src="assets/streak/bonfire_smoke.png?v=20261104_2" class="stat-smoke-img animated-bonfire-smoke" alt="Broken Campfire" />
-                </div>
-                <div class="stat-text-wrap">
-                  <span class="stat-val" id="calBrokenCount">0</span>
-                  <span class="stat-name">Broken Days</span>
-                </div>
-              </div>
-              <div class="cal-stat-sep"></div>
-              <div class="cal-stat-item">
-                <div class="stat-icon-wrap">
-                  <div class="stat-crater-circle"></div>
-                </div>
-                <div class="stat-text-wrap">
-                  <span class="stat-val" id="calUpcomingCount">0</span>
-                  <span class="stat-name">Inactive / Upcoming</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Bottom Navigation Bar Matching Target Screenshot (Home, Habits, Streak, Me) -->
-            <nav class="cal-card-bottom-nav">
-              <button class="cal-nav-btn" onclick="app.closeStreakModal()" title="Home">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                <span>Home</span>
-              </button>
-              <button class="cal-nav-btn" onclick="app.closeStreakModal()" title="Habits">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-                <span>Habits</span>
-              </button>
-              <button class="cal-nav-btn active" title="Streak Calendar">
-                <div class="cal-nav-pill">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C85A17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M12 14c-.6 0-1 .4-1 1s.4 1 1 1 1-.4 1-1-.4-1-1-1z"/></svg>
-                  <span>Streak</span>
-                </div>
-              </button>
-              <button class="cal-nav-btn" onclick="app.closeStreakModal(); app.goToScreen('profile')" title="Me">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-                <span>Me</span>
-              </button>
-            </nav>
+            <h2 class="cal-main-title">Woobi Streak Calendar</h2>
+            <p class="cal-main-subtitle">Keep the flame going ✨</p>
           </div>
         </div>
       </div>
