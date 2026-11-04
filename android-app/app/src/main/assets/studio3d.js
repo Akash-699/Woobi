@@ -142,25 +142,25 @@
         skinTone: '#F3D5C6',
         hairStyle: 'bun',
         hairColor: '#1E120A',
-        proportions: 'regular',
+        proportions: 'slim_fit',
         bodyFat: 25,
-        waistDefinition: 50,
+        waistDefinition: 70,
         anatomy: {
           female: {
-            bust: 50,
-            glutes: 50,
-            thighs: 50,
-            waist: 50,
-            stomach: 50,
+            bust: 55,
+            glutes: 60,
+            thighs: 48,
+            waist: 72,
+            stomach: 25,
             height: 1.70,
             weight: 58
           },
           male: {
-            pecs: 50,
-            stomach: 50,
-            shoulders: 50,
-            thighs: 50,
-            glutes: 50,
+            pecs: 65,
+            stomach: 22,
+            shoulders: 72,
+            thighs: 58,
+            glutes: 55,
             height: 1.80,
             weight: 78
           }
@@ -2910,20 +2910,19 @@
       };
 
       // Organic displacement with rich dynamic scaling (in meters)
-      // Organic displacement with stable, anthropometric scaling
-      // At 0%: -1.5cm (lean, firm, athletic contraction)
+      // Organic displacement with rich dynamic scaling (in meters)
       // At default: 0.0cm (exact pristine base mesh)
-      // At 100%: +2.5 to +3.2cm (athletic definition)
-      // At 150%: +3.5 to +4.2cm (sculpted bodybuilder / voluptuous curves)
-      // At 200%: +4.8 to +5.5cm (maximum heroic / high-fashion curvature)
-      const organicDisp = (val, defaultVal, maxDisp, minDisp = -0.015) => {
+      // At 100%: +3.0 to +4.0cm (athletic definition)
+      // At 150%: +6.5 to +8.5cm (sculpted bodybuilder / voluptuous curves)
+      // At 200%: +10.0 to +12.5cm (maximum heroic / high-fashion curvature)
+      const organicDisp = (val, defaultVal, maxDisp, minDisp = -0.020) => {
         const v = typeof val === 'number' ? val : defaultVal;
         if (v <= defaultVal) {
           const t = (defaultVal - v) / Math.max(1, defaultVal);
           return minDisp * t;
         } else {
           const t = (v - defaultVal) / (150 - defaultVal);
-          return maxDisp * (t + 0.12 * t * t);
+          return maxDisp * (t + 0.15 * t * t);
         }
       };
 
@@ -2944,11 +2943,11 @@
           const thighs = anatomy.thighs ?? 58;
           const glutes = anatomy.glutes ?? 55;
 
-          const pecDisp = organicDisp(pecs, 65, 0.038);
-          const shoulderDisp = organicDisp(shoulders, 72, 0.032);
-          const stomachDisp = organicDisp(stomach, 22, 0.026);
-          const thighDisp = organicDisp(thighs, 58, 0.028);
-          const gluteDisp = organicDisp(glutes, 55, 0.052);
+          const pecDisp = organicDisp(pecs, 65, 0.075);
+          const shoulderDisp = organicDisp(shoulders, 72, 0.065);
+          const stomachDisp = organicDisp(stomach, 22, 0.045);
+          const thighDisp = organicDisp(thighs, 58, 0.055);
+          const gluteDisp = organicDisp(glutes, 55, 0.070);
 
           for (let i = 0; i < pos.length; i += 3) {
             const ox = base[i];
@@ -3035,18 +3034,18 @@
             pos[i + 2] = oz + dz;
           }
         } else {
-          // Female Anatomy Morphs
-          const bust = anatomy.bust ?? 50;
-          const glutes = anatomy.glutes ?? 50;
-          const thighs = anatomy.thighs ?? 50;
-          const waist = anatomy.waist ?? 50;
-          const stomach = anatomy.stomach ?? 50;
+          // Female Anatomy Morphs - Dynamic, responsive, anatomically sculpted
+          const bust = anatomy.bust ?? 55;
+          const glutes = anatomy.glutes ?? 60;
+          const thighs = anatomy.thighs ?? 48;
+          const waist = anatomy.waist ?? 72;
+          const stomach = anatomy.stomach ?? 25;
 
-          const bustDisp = organicDisp(bust, 50, 0.040);
-          const gluteDisp = organicDisp(glutes, 50, 0.045);
-          const thighDisp = organicDisp(thighs, 50, 0.028);
-          const stomachDisp = organicDisp(stomach, 50, 0.024);
-          const waistDisp = organicDisp(waist, 50, 0.024);
+          const bustDisp = organicDisp(bust, 55, 0.080);
+          const gluteDisp = organicDisp(glutes, 60, 0.085);
+          const thighDisp = organicDisp(thighs, 48, 0.065);
+          const stomachDisp = organicDisp(stomach, 25, 0.038);
+          const waistDisp = organicDisp(waist, 72, 0.048);
 
           for (let i = 0; i < pos.length; i += 3) {
             const ox = base[i];
@@ -3057,69 +3056,60 @@
             let dy = 0;
             let dz = 0;
 
-            // 1. Female Bust (Apex at x=+-0.068, y=1.215, z=0.125; natural forward projection & teardrop settling without upward sliding)
-            if (oz > 0.02 && oy >= 1.08 && oy <= 1.36 && Math.abs(ox) <= 0.18) {
-              const wBustL = compactWeight(ox, oy, oz, -0.068, 1.215, 0.125, 0.090, 0.135, 0.095);
-              const wBustR = compactWeight(ox, oy, oz,  0.068, 1.215, 0.125, 0.090, 0.135, 0.095);
+            // 1. Female Bust (Apex at x=+-0.076, y=1.215, z=0.145; natural forward projection & teardrop gravity settling without upward sliding)
+            if (oz > 0.02 && oy >= 1.08 && oy <= 1.36 && Math.abs(ox) <= 0.20) {
+              const wBustL = compactWeight(ox, oy, oz, -0.076, 1.215, 0.145, 0.095, 0.140, 0.110);
+              const wBustR = compactWeight(ox, oy, oz,  0.076, 1.215, 0.145, 0.095, 0.140, 0.110);
               const wBust = Math.max(wBustL, wBustR);
-              if (wBust > 0 && Math.abs(bustDisp) > 0.0001) {
+              if (wBust > 0) {
                 dz += wBust * bustDisp * 1.15;
                 dy -= wBust * bustDisp * 0.05; // Gentle downward natural gravity settling (never slides upward!)
-                dx += (ox < 0 ? -1 : 1) * wBust * 0.22 * bustDisp;
+                dx += (ox < 0 ? -1 : 1) * wBust * 0.24 * bustDisp;
               }
             }
 
-            // 2. Female Glutes / Butt (Natural anatomical gluteal curvature with smooth pelvic blend)
-            if (oz < -0.02 && oy >= 0.72 && oy <= 1.05 && Math.abs(ox) <= 0.225) {
-              const ny = (oy - 0.865) / (oy > 0.865 ? 0.170 : 0.135);
-              if (Math.abs(ny) < 1.0) {
-                const wy = Math.cos(ny * Math.PI * 0.5);
-                const wy2 = wy * wy;
-
-                const absX = Math.abs(ox);
-                const cleft = 1.0 - Math.exp(-Math.pow(absX / 0.040, 2.0));
-                const nx = (absX - 0.088) / 0.115;
-                const wx = Math.exp(-nx * nx * 1.5);
-                const wLateral = 0.35 + 0.65 * wx;
-
-                const wz = Math.min(1.0, Math.max(0.0, (-oz - 0.02) / 0.09));
-                const wGl = wy2 * cleft * wLateral * wz;
-
-                if (wGl > 0 && Math.abs(gluteDisp) > 0.0001) {
-                  dz -= wGl * gluteDisp * 0.90;
-                  dy += (oy < 0.865 ? -0.10 : 0.02) * wGl * gluteDisp;
-                  dx += Math.sign(ox) * wGl * gluteDisp * 0.15;
-                }
+            // 2. Female Glutes / Butt (Continuous anatomical peach curvature with seamless pelvic & sacral blend - No Pans, No Rims)
+            if (oz < -0.015 && oy >= 0.72 && oy <= 1.04 && Math.abs(ox) <= 0.235) {
+              const wGlL = compactWeight(ox, oy, oz, -0.082, 0.875, -0.155, 0.125, 0.155, 0.135);
+              const wGlR = compactWeight(ox, oy, oz,  0.082, 0.875, -0.155, 0.125, 0.155, 0.135);
+              const wGl = Math.max(wGlL, wGlR);
+              if (wGl > 0) {
+                const cleft = 1.0 - Math.exp(-Math.pow(Math.abs(ox) / 0.032, 2.0));
+                const smoothGl = wGl * cleft;
+                dz -= smoothGl * gluteDisp * 1.15;
+                dy += (oy < 0.875 ? -0.06 : 0.04) * smoothGl * gluteDisp;
+                dx += (ox < 0 ? -1 : 1) * smoothGl * 0.28 * gluteDisp;
               }
             }
 
-            // 3. Female Lateral Hips & Thighs (Smooth, sleek feminine hourglass curve without artificial muscle lumps)
-            if (Math.abs(ox) >= 0.08 && Math.abs(ox) <= 0.210 && oy >= 0.72 && oy <= 0.94 && Math.abs(oz) <= 0.14) {
-              const dyHip = (oy - 0.83) / 0.11;
-              const dxHip = (Math.abs(ox) - 0.15) / 0.065;
-              const dzHip = oz / 0.13;
+            // 3. Female Lateral Hips & Thighs (Smooth, sleek feminine hourglass curve visible clearly from the front)
+            if (Math.abs(ox) >= 0.08 && Math.abs(ox) <= 0.245 && oy >= 0.70 && oy <= 0.95 && Math.abs(oz) <= 0.15) {
+              const dyHip = (oy - 0.825) / 0.125;
+              const dxHip = (Math.abs(ox) - 0.165) / 0.080;
+              const dzHip = oz / 0.135;
               const d2Hip = dyHip * dyHip + dxHip * dxHip + dzHip * dzHip;
               if (d2Hip < 1.0) {
                 const wHip = (1.0 - d2Hip) * (1.0 - d2Hip);
-                dx += Math.sign(ox) * wHip * thighDisp;
+                dx += Math.sign(ox) * wHip * thighDisp * 0.95;
+                dz += (oz > 0 ? 0.30 : -0.20) * wHip * thighDisp * 0.40;
               }
             }
 
             // 4. Female Abdominal Core & Tummy (Full vertical height lift and flat toned definition)
-            if (oz > 0.04 && oy >= 0.94 && oy <= 1.22 && Math.abs(ox) <= 0.14) {
-              const wCore = compactWeight(ox, oy, oz, 0.0, 1.08, 0.10, 0.11, 0.14, 0.08);
+            if (oz > 0.03 && oy >= 0.94 && oy <= 1.22 && Math.abs(ox) <= 0.15) {
+              const wCore = compactWeight(ox, oy, oz, 0.0, 1.08, 0.10, 0.115, 0.140, 0.085);
               if (wCore > 0) {
-                dz += wCore * stomachDisp;
-                dy += wCore * stomachDisp * 0.25;
+                dz += wCore * stomachDisp * 1.10;
+                dy += wCore * stomachDisp * 0.22;
               }
             }
 
             // 5. Female Waist Cinch (Deep hourglass contour preserving natural spine)
-            if (oy >= 0.98 && oy <= 1.14 && Math.abs(ox) <= 0.18) {
-              const wWst = compactWeight(ox, oy, oz, 0.0, 1.06, 0.0, 0.16, 0.09, 0.12);
+            if (oy >= 0.96 && oy <= 1.15 && Math.abs(ox) <= 0.20) {
+              const wWst = compactWeight(ox, oy, oz, 0.0, 1.055, 0.0, 0.170, 0.095, 0.130);
               if (wWst > 0) {
-                dx -= ox * wWst * waistDisp * 1.5;
-                dz -= oz * wWst * waistDisp * 1.0;
+                dx -= ox * wWst * waistDisp * 2.0;
+                dz -= oz * wWst * waistDisp * 1.2;
               }
             }
 
@@ -3247,12 +3237,12 @@
     resetAnatomyToNormal() {
       const isMale = (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male');
       this.avatarConfig.anatomy = {
-        female: { bust: 50, glutes: 50, thighs: 50, waist: 50, stomach: 50, height: 1.70, weight: 58 },
-        male: { pecs: 50, shoulders: 50, stomach: 50, thighs: 50, glutes: 50, height: 1.80, weight: 78 }
+        female: { bust: 55, glutes: 60, thighs: 48, waist: 72, stomach: 25, height: 1.70, weight: 58 },
+        male: { pecs: 65, shoulders: 72, stomach: 22, thighs: 58, glutes: 55, height: 1.80, weight: 78 }
       };
-      this.avatarConfig.proportions = 'regular';
-      this.avatarConfig.bodyFat = 25;
-      this.avatarConfig.waistDefinition = 50;
+      this.avatarConfig.proportions = isMale ? 'athletic' : 'slim_fit';
+      this.avatarConfig.bodyFat = isMale ? 20 : 25;
+      this.avatarConfig.waistDefinition = 70;
 
       // Restore base vertex positions directly (0 displacement = pristine model)
       if (this.gltfAvatarGroup) {
