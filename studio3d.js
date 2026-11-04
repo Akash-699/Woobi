@@ -2422,12 +2422,14 @@
       if (!geom.attributes.normal) geom.computeVertexNormals();
       const normals = geom.attributes.normal.array;
 
-      function extractUndergarmentGeometry(filterFn, offsetDistance = 0.0022) {
-        const used = new Map();
-        const newPos = [];
-        const newNorm = [];
-        const newIdx = [];
+      function extractUndergarmentGeometry(filterFn, boundarySnapFn = null, offsetDistance = 0.0022) {
+        const edgeMap = new Map();
+        function addEdge(a, b) {
+          const key = a < b ? a + '_' + b : b + '_' + a;
+          edgeMap.set(key, (edgeMap.get(key) || 0) + 1);
+        }
 
+        const filteredTriIndices = [];
         for (let t = 0; t < indices.length; t += 3) {
           const i0 = indices[t], i1 = indices[t + 1], i2 = indices[t + 2];
           const p0 = [basePos[i0 * 3], basePos[i0 * 3 + 1], basePos[i0 * 3 + 2]];
@@ -2435,22 +2437,79 @@
           const p2 = [basePos[i2 * 3], basePos[i2 * 3 + 1], basePos[i2 * 3 + 2]];
 
           if (filterFn(p0, p1, p2)) {
-            [i0, i1, i2].forEach(oldIdx => {
-              if (!used.has(oldIdx)) {
-                const nIdx = newPos.length / 3;
-                used.set(oldIdx, nIdx);
-                const nx = normals[oldIdx * 3] || 0;
-                const ny = normals[oldIdx * 3 + 1] || 0;
-                const nz = normals[oldIdx * 3 + 2] || 0;
-                newPos.push(
-                  basePos[oldIdx * 3] + nx * offsetDistance,
-                  basePos[oldIdx * 3 + 1] + ny * offsetDistance,
-                  basePos[oldIdx * 3 + 2] + nz * offsetDistance
-                );
-                newNorm.push(nx, ny, nz);
+            filteredTriIndices.push(i0, i1, i2);
+            addEdge(i0, i1);
+            addEdge(i1, i2);
+            addEdge(i2, i0);
+          }
+        }
+
+        // Build neighbor connectivity for boundary vertices (edges shared by exactly 1 triangle)
+        const bNeighbors = new Map();
+        for (const [k, count] of edgeMap.entries()) {
+          if (count === 1) {
+            const [a, b] = k.split('_').map(Number);
+            if (!bNeighbors.has(a)) bNeighbors.set(a, []);
+            if (!bNeighbors.has(b)) bNeighbors.set(b, []);
+            bNeighbors.get(a).push(b);
+            bNeighbors.get(b).push(a);
+          }
+        }
+
+        const used = new Map();
+        const newPos = [];
+        const newNorm = [];
+        const newIdx = [];
+
+        for (let i = 0; i < filteredTriIndices.length; i++) {
+          const oldIdx = filteredTriIndices[i];
+          if (!used.has(oldIdx)) {
+            const nIdx = newPos.length / 3;
+            used.set(oldIdx, nIdx);
+
+            let vx = basePos[oldIdx * 3];
+            let vy = basePos[oldIdx * 3 + 1];
+            let vz = basePos[oldIdx * 3 + 2];
+
+            if (typeof boundarySnapFn === 'function') {
+              const isBoundary = bNeighbors.has(oldIdx);
+              const snapped = boundarySnapFn(vx, vy, vz, isBoundary);
+              if (snapped) {
+                vx = snapped[0];
+                vy = snapped[1];
+                vz = snapped[2];
               }
-              newIdx.push(used.get(oldIdx));
-            });
+            }
+
+            const nx = normals[oldIdx * 3] || 0;
+            const ny = normals[oldIdx * 3 + 1] || 0;
+            const nz = normals[oldIdx * 3 + 2] || 0;
+
+            newPos.push(
+              vx + nx * offsetDistance,
+              vy + ny * offsetDistance,
+              vz + nz * offsetDistance
+            );
+            newNorm.push(nx, ny, nz);
+          }
+          newIdx.push(used.get(oldIdx));
+        }
+
+        // Perform 2 iterations of Laplacian boundary smoothing along boundary edge rings
+        if (typeof boundarySnapFn === 'function') {
+          for (let pass = 0; pass < 2; pass++) {
+            for (const [oldIdx, nbs] of bNeighbors.entries()) {
+              if (!used.has(oldIdx)) continue;
+              const myNIdx = used.get(oldIdx);
+              const validNbs = nbs.filter(nb => used.has(nb));
+              if (validNbs.length === 2) {
+                const nbIdx0 = used.get(validNbs[0]);
+                const nbIdx1 = used.get(validNbs[1]);
+                newPos[myNIdx * 3] = newPos[myNIdx * 3] * 0.35 + 0.5 * (newPos[nbIdx0 * 3] + newPos[nbIdx1 * 3]) * 0.65;
+                newPos[myNIdx * 3 + 1] = newPos[myNIdx * 3 + 1] * 0.35 + 0.5 * (newPos[nbIdx0 * 3 + 1] + newPos[nbIdx1 * 3 + 1]) * 0.65;
+                newPos[myNIdx * 3 + 2] = newPos[myNIdx * 3 + 2] * 0.35 + 0.5 * (newPos[nbIdx0 * 3 + 2] + newPos[nbIdx1 * 3 + 2]) * 0.65;
+              }
+            }
           }
         }
 
@@ -2498,6 +2557,11 @@
           }
 
           return false;
+        }, (x, y, z, isBoundary) => {
+          if (isBoundary && y < 1.155) {
+            return [x, 1.140, z];
+          }
+          return [x, y, z];
         }, 0.0022);
 
         const braMesh = new THREE.Mesh(braGeom, braMat);
@@ -2506,7 +2570,7 @@
         braMesh.receiveShadow = true;
         parentNode.add(braMesh);
 
-        // Female Panties - Chic hipster brief wrapping pelvis and balloon glutes
+        // Female Panties - Chic hipster brief wrapping pelvis and balloon glutes with smooth hem
         const pantyMat = new THREE.MeshStandardMaterial({
           color: new THREE.Color(0x282321), // Chic Noir Espresso
           roughness: 0.82,
@@ -2517,6 +2581,13 @@
           polygonOffsetUnits: -1.5
         });
 
+        const pantyTopCurve = (x, z) => (z < 0 ? 0.982 : 0.965) - 0.008 * Math.pow(x / 0.18, 2);
+        const pantyLegCurve = (x, z) => {
+          const backCoverage = Math.max(0, -z / 0.12);
+          const sideArch = Math.pow(Math.abs(x) / 0.18, 1.6);
+          return 0.745 + (1.0 - Math.min(1.0, backCoverage)) * sideArch * 0.075;
+        };
+
         const pantyGeom = extractUndergarmentGeometry((p0, p1, p2) => {
           const cy = (p0[1] + p1[1] + p2[1]) / 3;
           const cx = (p0[0] + p1[0] + p2[0]) / 3;
@@ -2525,17 +2596,21 @@
 
           // Torso / pelvis only: strictly exclude resting arms
           if (maxAbsX > 0.220) return false;
-
-          // High-waisted elegant fit covering iliac crest, hips, and full pelvis
-          const topLimit = cz < 0 ? 0.985 : 0.965;
-          if (cy > topLimit) return false;
-
-          // Full coverage of hips, groin, and glutes without exposing the lateral pelvis
-          const backCoverage = Math.max(0, -cz / 0.12);
-          const sideArch = Math.pow(Math.abs(cx) / 0.18, 1.6);
-          const legCut = 0.745 + (1.0 - Math.min(1.0, backCoverage)) * sideArch * 0.075;
-
-          return cy >= legCut;
+          if (cy > pantyTopCurve(cx, cz)) return false;
+          if (cy < pantyLegCurve(cx, cz)) return false;
+          return true;
+        }, (x, y, z, isBoundary) => {
+          const topY = pantyTopCurve(x, z);
+          const botY = pantyLegCurve(x, z);
+          let newY = y;
+          if (isBoundary) {
+            if (y > 0.90) newY = topY;
+            else if (y < 0.82) newY = botY;
+          } else {
+            if (y > topY) newY = topY;
+            if (y < botY) newY = botY;
+          }
+          return [x, newY, z];
         }, 0.0020);
 
         const pantyMesh = new THREE.Mesh(pantyGeom, pantyMat);
@@ -2545,7 +2620,7 @@
         parentNode.add(pantyMesh);
 
       } else {
-        // Male Boxer Briefs / Underwear - Athletic fitted trunks
+        // Male Boxer Briefs / Underwear - Athletic fitted trunks with smooth tailored cuffs
         const boxerMat = new THREE.MeshStandardMaterial({
           color: new THREE.Color(0x2A2726), // Athletic Charcoal
           roughness: 0.84,
@@ -2555,6 +2630,9 @@
           polygonOffsetFactor: -1.5,
           polygonOffsetUnits: -1.5
         });
+
+        const maleTopCurve = (x, z) => 1.025;
+        const maleLegCurve = (x, z) => 0.695;
 
         const boxerGeom = extractUndergarmentGeometry((p0, p1, p2) => {
           const cy = (p0[1] + p1[1] + p2[1]) / 3;
@@ -2566,10 +2644,22 @@
           if (Math.abs(cz) < 0.06 && maxAbsX > 0.185) return false;
           if (maxAbsX > 0.22) return false;
 
-          if (cy > 1.025) return false;
-          if (cy < 0.695) return false;
+          if (cy > maleTopCurve(cx, cz)) return false;
+          if (cy < maleLegCurve(cx, cz)) return false;
 
           return true;
+        }, (x, y, z, isBoundary) => {
+          const topY = maleTopCurve(x, z);
+          const botY = maleLegCurve(x, z);
+          let newY = y;
+          if (isBoundary) {
+            if (y > 0.96) newY = topY;
+            else if (y < 0.74) newY = botY;
+          } else {
+            if (y > topY) newY = topY;
+            if (y < botY) newY = botY;
+          }
+          return [x, newY, z];
         }, 0.0020);
 
         const boxerMesh = new THREE.Mesh(boxerGeom, boxerMat);
@@ -2766,27 +2856,27 @@
               }
             }
 
-            // 4. Male Glutes (Isotropic spherical athletic ball cheeks with 3D radial expansion)
-            if (oy >= 0.76 && oy <= 1.10 && Math.abs(ox) <= 0.235) {
-              const cxL = -0.098, cxR = 0.098, cyGlute = 0.935, czGlute = -0.150;
-              const rxGl = 0.130, ryGl = 0.160, rzGl = 0.150;
-              const wGlL = compactWeight(ox, oy, oz, cxL, cyGlute, czGlute, rxGl, ryGl, rzGl);
-              const wGlR = compactWeight(ox, oy, oz, cxR, cyGlute, czGlute, rxGl, ryGl, rzGl);
-              const wGl = Math.max(wGlL, wGlR);
-              if (wGl > 0) {
-                const isLeft = ox < 0;
-                const cx = isLeft ? cxL : cxR;
-                const vx = (ox - cx) / rxGl;
-                const vy = (oy - cyGlute) / ryGl;
-                const vz = (oz - czGlute) / rzGl;
-                const len = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0;
-                const ux = vx / len;
-                const uy = vy / len;
-                const uz = vz / len;
+            // 4. Male Glutes (Continuous anatomical athletic curvature with defined midline cleft)
+            if (oz < -0.02 && oy >= 0.76 && oy <= 1.10 && Math.abs(ox) <= 0.235) {
+              const ny = (oy - 0.920) / (oy > 0.920 ? 0.180 : 0.150);
+              if (Math.abs(ny) < 1.0) {
+                const wy = Math.cos(ny * Math.PI * 0.5);
+                const wy2 = wy * wy;
 
-                dx += ux * wGl * gluteDisp * 0.65;
-                dy += uy * wGl * gluteDisp * 0.55;
-                dz += uz * wGl * gluteDisp * 0.85;
+                const absX = Math.abs(ox);
+                const cleft = 1.0 - Math.exp(-Math.pow(absX / 0.040, 2.0));
+                const nx = (absX - 0.095) / 0.120;
+                const wx = Math.exp(-nx * nx * 1.8);
+                const wLateral = 0.25 + 0.75 * wx;
+
+                const wz = Math.min(1.0, Math.max(0.0, (-oz - 0.02) / 0.10));
+
+                const wGl = wy2 * wLateral * cleft * wz;
+                if (wGl > 0) {
+                  dz -= wGl * gluteDisp * 1.20;
+                  dy += (oy < 0.920 ? -0.12 : 0.03) * wGl * gluteDisp;
+                  dx += Math.sign(ox) * wGl * gluteDisp * 0.18;
+                }
               }
             }
 
@@ -2842,27 +2932,27 @@
               }
             }
 
-            // 2. Female Glutes / Butt (Isotropic spherical ball cheeks with true 3D radial expansion)
-            if (oy >= 0.70 && oy <= 1.05 && Math.abs(ox) <= 0.220) {
-              const cxL = -0.078, cxR = 0.078, cyGlute = 0.880, czGlute = -0.115;
-              const rxGl = 0.125, ryGl = 0.155, rzGl = 0.140;
-              const wGlL = compactWeight(ox, oy, oz, cxL, cyGlute, czGlute, rxGl, ryGl, rzGl);
-              const wGlR = compactWeight(ox, oy, oz, cxR, cyGlute, czGlute, rxGl, ryGl, rzGl);
-              const wGl = Math.max(wGlL, wGlR);
-              if (wGl > 0) {
-                const isLeft = ox < 0;
-                const cx = isLeft ? cxL : cxR;
-                const vx = (ox - cx) / rxGl;
-                const vy = (oy - cyGlute) / ryGl;
-                const vz = (oz - czGlute) / rzGl;
-                const len = Math.sqrt(vx * vx + vy * vy + vz * vz) || 1.0;
-                const ux = vx / len;
-                const uy = vy / len;
-                const uz = vz / len;
+            // 2. Female Glutes / Butt (Anatomical Peach/Balloon Curvature with Seamless Sacral Flow and Gluteal Crease)
+            if (oz < -0.02 && oy >= 0.73 && oy <= 1.04 && Math.abs(ox) <= 0.225) {
+              const ny = (oy - 0.865) / (oy > 0.865 ? 0.175 : 0.135);
+              if (Math.abs(ny) < 1.0) {
+                const wy = Math.cos(ny * Math.PI * 0.5);
+                const wy2 = wy * wy;
 
-                dx += ux * wGl * gluteDisp * 0.65;
-                dy += uy * wGl * gluteDisp * 0.60;
-                dz += uz * wGl * gluteDisp * 0.85;
+                const absX = Math.abs(ox);
+                const cleft = 1.0 - Math.exp(-Math.pow(absX / 0.038, 2.0));
+                const nx = (absX - 0.088) / 0.115;
+                const wx = Math.exp(-nx * nx * 1.8);
+                const wLateral = 0.28 + 0.72 * wx;
+
+                const wz = Math.min(1.0, Math.max(0.0, (-oz - 0.02) / 0.09));
+
+                const wGl = wy2 * wLateral * cleft * wz;
+                if (wGl > 0) {
+                  dz -= wGl * gluteDisp * 1.30;
+                  dy += (oy < 0.865 ? -0.16 : 0.04) * wGl * gluteDisp;
+                  dx += Math.sign(ox) * wGl * gluteDisp * 0.22;
+                }
               }
             }
 
