@@ -31,7 +31,7 @@
   
   <!-- Woobi Core Shared Design Tokens -->
   <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
-  <link rel="stylesheet" href="styles.css?v=20261103_final">
+  <link rel="stylesheet" href="styles.css?v=20261104_v6">
 </head>
 <body>
 
@@ -768,6 +768,13 @@
                       </div>
                     </div>
                   </div>
+
+                  <!-- Reset to Normal Body Shape Action -->
+                  <div class="vanity-section" style="margin-top: 14px; text-align: center;">
+                    <button type="button" class="seren-reset-normal-btn" onclick="app.resetToNormalBodyShape()">
+                      🔄 Reset to Normal Body Shape
+                    </button>
+                  </div>
                 </div>
 
                 <!-- Male Anatomical Customizer Controls -->
@@ -901,6 +908,13 @@
                         <span>125 kg</span>
                       </div>
                     </div>
+                  </div>
+
+                  <!-- Reset to Normal Body Shape Action -->
+                  <div class="vanity-section" style="margin-top: 14px; text-align: center;">
+                    <button type="button" class="seren-reset-normal-btn" onclick="app.resetToNormalBodyShape()">
+                      🔄 Reset to Normal Body Shape
+                    </button>
                   </div>
                 </div>
 
@@ -3747,10 +3761,13 @@
           </div>
         </div>
 
-        <!-- 7. Reset to Perfect Model Avatar Action -->
-        <div class="dock-actions-row">
+        <!-- 7. Reset Actions -->
+        <div class="dock-actions-row" style="display: flex; flex-direction: column; gap: 8px;">
+          <button class="dock-reset-normal-btn" onclick="app.resetToNormalBodyShape()" title="Reset all curves, sliders and deformations back to pristine normal mannequin body shape">
+            🔄 Reset to Normal Body Shape
+          </button>
           <button class="dock-perfect-model-btn" onclick="app.resetToPerfectModelAvatar()" title="Reset all curves, waist, chest and biometrics to ideal fashion model standards">
-            ✨ Reset to Perfect Model Avatar
+            ✨ High-Fashion Runway Silhouette
           </button>
         </div>
       </div>
@@ -4108,8 +4125,8 @@
   <script type="module" src="modules/3d-studio-features/index.js"></script>
   <script type="module" src="modules/settings/index.js"></script>
   <script src="wardrobe-astra-material.js?v=20261104_v2"></script>
-  <script src="wardrobe3d.js?v=20261104_v4"></script>
-  <script src="studio3d.js?v=20261104_v4"></script>
-  <script src="app.js?v=20261104_v4"></script>
+  <script src="wardrobe3d.js?v=20261104_v6"></script>
+  <script src="studio3d.js?v=20261104_v6"></script>
+  <script src="app.js?v=20261104_v6"></script>
 </body>
 </html>

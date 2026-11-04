@@ -2932,26 +2932,41 @@
               }
             }
 
-            // 2. Female Glutes / Butt (Anatomical Peach/Balloon Curvature with Seamless Sacral Flow and Gluteal Crease)
-            if (oz < -0.02 && oy >= 0.73 && oy <= 1.04 && Math.abs(ox) <= 0.225) {
-              const ny = (oy - 0.865) / (oy > 0.865 ? 0.175 : 0.135);
+            // 2. Female Glutes / Butt (True 3D Spherical Balloon Inflation from deep inside the pelvis - No Pans, No Rims)
+            if (oz < -0.01 && oy >= 0.72 && oy <= 1.05 && Math.abs(ox) <= 0.230) {
+              const isLeft = ox < 0;
+              const cx = isLeft ? -0.082 : 0.082;
+              const cyGl = 0.865;
+              const czGl = 0.015; // Deep inside pelvis
+              const rx = 0.145, ry = 0.165, rz = 0.155;
+
+              const vx = (ox - cx) / rx;
+              const vy = (oy - cyGl) / ry;
+              const vz = (oz - czGl) / rz;
+              const dist = Math.sqrt(vx * vx + vy * vy + vz * vz);
+
+              const ny = (oy - cyGl) / (oy > cyGl ? 0.170 : 0.135);
               if (Math.abs(ny) < 1.0) {
                 const wy = Math.cos(ny * Math.PI * 0.5);
                 const wy2 = wy * wy;
 
                 const absX = Math.abs(ox);
                 const cleft = 1.0 - Math.exp(-Math.pow(absX / 0.038, 2.0));
-                const nx = (absX - 0.088) / 0.115;
-                const wx = Math.exp(-nx * nx * 1.8);
-                const wLateral = 0.28 + 0.72 * wx;
+                const nx = (absX - 0.082) / 0.115;
+                const wx = Math.exp(-nx * nx * 1.6);
+                const wLateral = 0.25 + 0.75 * wx;
 
-                const wz = Math.min(1.0, Math.max(0.0, (-oz - 0.02) / 0.09));
+                const wz = Math.min(1.0, Math.max(0.0, (-oz - 0.01) / 0.09));
+                const weight = wy2 * cleft * wLateral * wz;
 
-                const wGl = wy2 * wLateral * cleft * wz;
-                if (wGl > 0) {
-                  dz -= wGl * gluteDisp * 1.30;
-                  dy += (oy < 0.865 ? -0.16 : 0.04) * wGl * gluteDisp;
-                  dx += Math.sign(ox) * wGl * gluteDisp * 0.22;
+                if (weight > 0 && dist > 0.01) {
+                  const ux = vx / dist;
+                  const uy = vy / dist;
+                  const uz = vz / dist;
+
+                  dx += ux * weight * gluteDisp * 0.45;
+                  dy += uy * weight * gluteDisp * 0.35;
+                  dz += uz * weight * gluteDisp * 1.35;
                 }
               }
             }
@@ -3101,6 +3116,35 @@
     }
 
     /**
+     * Resets avatar anatomy, proportions, and body shape to pristine normal base mannequin shape
+     */
+    resetAnatomyToNormal() {
+      const isMale = (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male');
+      this.avatarConfig.anatomy = {
+        female: { bust: 55, glutes: 60, thighs: 48, waist: 72, stomach: 25, height: 1.70, weight: 58 },
+        male: { pecs: 65, shoulders: 72, stomach: 22, thighs: 58, glutes: 55, height: 1.80, weight: 78 }
+      };
+      this.avatarConfig.proportions = 'regular';
+      this.avatarConfig.bodyFat = isMale ? 22 : 25;
+
+      // Restore base vertex positions directly (0 displacement = pristine model)
+      if (this.gltfAvatarGroup) {
+        this.gltfAvatarGroup.traverse((child) => {
+          if (child.isMesh && child.geometry && child.geometry.userData && child.geometry.userData.basePositions) {
+            const posAttr = child.geometry.attributes.position;
+            posAttr.array.set(child.geometry.userData.basePositions);
+            posAttr.needsUpdate = true;
+            child.geometry.computeVertexNormals();
+          }
+        });
+      }
+
+      this.updateAnatomy();
+      this.updateBodyMeshScale();
+      this.savePreferences();
+    }
+
+    /**
      * Loads Astra Mannequin (Female or Male)
      */
     loadMannequin(gender = 'female') {
@@ -3113,14 +3157,14 @@
       const loader = new THREE.GLTFLoader();
       const urls = isMale
         ? [
-            '3D - Mannequin By Astra/Woobi_Male_Mannequin.glb',
-            '3D - Mannequin By Astra/male/Woobi_Male_Mannequin.glb',
-            'woobi_male_mannequin.glb'
+            '3D - Mannequin By Astra/Woobi_Male_Mannequin.glb?v=20261104_v6',
+            '3D - Mannequin By Astra/male/Woobi_Male_Mannequin.glb?v=20261104_v6',
+            'woobi_male_mannequin.glb?v=20261104_v6'
           ]
         : [
-            '3D - Mannequin By Astra/Woobi_Female_Mannequin.glb',
-            '3D - Mannequin By Astra/female/Woobi_Female_Mannequin.glb',
-            'woobi_female_mannequin.glb'
+            '3D - Mannequin By Astra/Woobi_Female_Mannequin.glb?v=20261104_v6',
+            '3D - Mannequin By Astra/female/Woobi_Female_Mannequin.glb?v=20261104_v6',
+            'woobi_female_mannequin.glb?v=20261104_v6'
           ];
 
       const tryLoad = (idx) => {

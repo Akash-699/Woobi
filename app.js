@@ -2047,8 +2047,39 @@
     showToast(`✨ Reset to Perfect High-Fashion ${isMale ? 'Male' : 'Female'} Model Avatar!`);
   }
 
+  function resetToNormalBodyShape() {
+    const isMale = (window.Studio3D && window.Studio3D.avatarConfig && window.Studio3D.avatarConfig.gender === 'male');
+
+    if (window.Studio3D) {
+      if (typeof window.Studio3D.resetAnatomyToNormal === 'function') {
+        window.Studio3D.resetAnatomyToNormal();
+      }
+      window.Studio3D.setAvatarRotation(0);
+    }
+
+    document.querySelectorAll('.dock-angle-btn').forEach((b, i) => {
+      if (i === 0) b.classList.add('active');
+      else b.classList.remove('active');
+    });
+
+    // Reset Proportion Chips in Vanity Drawer
+    document.querySelectorAll('#proportionChips .vanity-chip').forEach(btn => {
+      if (btn.getAttribute('data-prop') === 'regular') {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    const currentGender = isMale ? 'male' : 'female';
+    serenSyncAnatomyPanel(currentGender);
+    serenUpdateTesterPills();
+
+    showToast(`🔄 Reset to Normal ${isMale ? 'Male' : 'Female'} Mannequin Body Shape!`);
+  }
+
   function resetMannequinToStandards() {
-    resetToPerfectModelAvatar();
+    resetToNormalBodyShape();
   }
 
   function serenQuickSwitchGender(gender, btn) {
@@ -3945,6 +3976,7 @@
     toggleTestingDock,
     setStudioMannequinAngle,
     resetMannequinToStandards,
+    resetToNormalBodyShape,
     resetToPerfectModelAvatar,
     serenSetSkinTone,
     serenSetHairStyle,
