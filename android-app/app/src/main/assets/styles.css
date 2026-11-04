@@ -5701,11 +5701,13 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
+  pointer-events: auto !important;
 }
 
 .seren-icon-btn {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(220, 208, 192, 0.6);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(220, 210, 195, 0.85);
   width: 38px;
   height: 38px;
   border-radius: 50%;
@@ -5713,14 +5715,18 @@ html, body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #3C332A;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: transform 0.15s ease, background 0.15s ease;
+  color: #554433;
+  box-shadow: 0 4px 16px rgba(70, 50, 30, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .seren-icon-btn:hover {
-  transform: scale(1.08);
-  background: #FFF;
+  transform: translateY(-2px);
+  background: #FFFFFF;
+  color: #C85A17;
+  border-color: rgba(190, 160, 130, 0.85);
 }
 
 /* Stage Viewport */
