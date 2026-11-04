@@ -7,6 +7,7 @@ import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import { createStore } from '../../modules/core/state/Store.js';
 import { NavigationRouter } from '../../modules/core/navigation/NavigationRouter.js';
+import { createClothingCaptureState } from '../../modules/core/index.js';
 import { createSettings } from '../../modules/settings/index.js';
 import { createStudioFeatures } from '../../modules/3d-studio-features/index.js';
 import { createBackendService, createApiClient } from '../../modules/backend/index.js';
@@ -300,5 +301,97 @@ describe('Production Readiness - Complete User Journey Testing', () => {
     // Simulate context restored
     const restoredHandled = mockStudio3d.handleContextRestored();
     assert.strictEqual(restoredHandled, true);
+  });
+
+  // ==========================================================================
+  // JOURNEY 8: Clothing Capture System with Silhouette Limits & Outfit Recs
+  // ==========================================================================
+  it('Journey 8: captures clothes via silhouette system, enforces 7/7/2 limits, reviews, saves to wardrobe and feeds outfit recommendations', () => {
+    const captureState = createClothingCaptureState();
+
+    // 1. Verify initial slot summary
+    let summary = captureState.getSlotSummary();
+    assert.strictEqual(summary.shirt.max, 7);
+    assert.strictEqual(summary.pant.max, 7);
+    assert.strictEqual(summary.shoe.max, 2);
+    assert.strictEqual(summary.total.max, 16);
+    assert.strictEqual(summary.total.count, 0);
+
+    // 2. Step 2: Shirt Camera (Capture up to 7 shirts, verify 8th rejected)
+    captureState.setActiveCategory('shirt');
+    for (let i = 1; i <= 7; i++) {
+      const res = captureState.addConfirmedPhoto('shirt', `data:image/jpeg;base64,shirt_data_${i}`, { name: `Linen Shirt ${i}` });
+      assert.strictEqual(res.success, true);
+    }
+    assert.strictEqual(captureState.getRemainingSlots('shirt'), 0);
+    const excessShirt = captureState.addConfirmedPhoto('shirt', 'data:image/jpeg;base64,shirt_data_8');
+    assert.strictEqual(excessShirt.success, false);
+    assert.match(excessShirt.error, /Maximum limit of 7 reached/);
+
+    // 3. Step 3: Pant Camera (Switch category, verify previous confirmed shirts preserved)
+    captureState.setActiveCategory('pant');
+    assert.strictEqual(captureState.getPhotos('shirt').length, 7);
+    for (let i = 1; i <= 7; i++) {
+      const res = captureState.addConfirmedPhoto('pant', `data:image/jpeg;base64,pant_data_${i}`, { name: `Chino Pant ${i}` });
+      assert.strictEqual(res.success, true);
+    }
+    assert.strictEqual(captureState.getRemainingSlots('pant'), 0);
+    const excessPant = captureState.addConfirmedPhoto('pant', 'data:image/jpeg;base64,pant_data_8');
+    assert.strictEqual(excessPant.success, false);
+
+    // 4. Step 4: Shoe Camera (Capture 2 shoes, verify 3rd rejected)
+    captureState.setActiveCategory('shoe');
+    for (let i = 1; i <= 2; i++) {
+      const res = captureState.addConfirmedPhoto('shoe', `data:image/jpeg;base64,shoe_data_${i}`, { name: `Sneaker ${i}` });
+      assert.strictEqual(res.success, true);
+    }
+    assert.strictEqual(captureState.getRemainingSlots('shoe'), 0);
+    const excessShoe = captureState.addConfirmedPhoto('shoe', 'data:image/jpeg;base64,shoe_data_3');
+    assert.strictEqual(excessShoe.success, false);
+
+    // 5. Total count is exactly 16
+    assert.strictEqual(captureState.getTotalCount(), 16);
+    summary = captureState.getSlotSummary();
+    assert.strictEqual(summary.total.count, 16);
+    assert.strictEqual(summary.total.isFull, true);
+
+    // 6. Step 5 & 6: Remove an unwanted photo and replace it (frees slot)
+    const shoes = captureState.getPhotos('shoe');
+    const removedId = shoes[0].id;
+    const removeRes = captureState.removePhoto('shoe', removedId);
+    assert.strictEqual(removeRes.success, true);
+    assert.strictEqual(removeRes.freedSlot, true);
+    assert.strictEqual(captureState.getRemainingSlots('shoe'), 1);
+
+    // Replace freed slot
+    const replaceRes = captureState.addConfirmedPhoto('shoe', 'data:image/jpeg;base64,replacement_shoe', { name: 'Loafer Replacement' });
+    assert.strictEqual(replaceRes.success, true);
+    assert.strictEqual(captureState.getPhotos('shoe').length, 2);
+
+    // 7. Step 7: Export to Woobi wardrobe schema
+    const wardrobeItems = captureState.exportToWardrobeItems();
+    assert.strictEqual(wardrobeItems.length, 16);
+
+    const exportedShirts = wardrobeItems.filter(i => i.category === 'Tops');
+    const exportedPants = wardrobeItems.filter(i => i.category === 'Bottoms');
+    const exportedShoes = wardrobeItems.filter(i => i.category === 'Shoes');
+
+    assert.strictEqual(exportedShirts.length, 7);
+    assert.strictEqual(exportedPants.length, 7);
+    assert.strictEqual(exportedShoes.length, 2);
+
+    // Verify all items are marked clean & perfect fit for immediate styling
+    assert.ok(wardrobeItems.every(i => i.condition === 'clean' && i.fit === 'perfect'));
+
+    // 8. Integration with Outfit Recommendation Engine:
+    // Score outfit consisting of newly captured items
+    const testOutfit = {
+      top: 'garment_navy_shirt',
+      bottom: 'garment_beige_chinos',
+      shoes: 'garment_white_sneakers'
+    };
+    const scoreResult = features.recommendations.scoreOutfit(testOutfit);
+    assert.ok(scoreResult.score >= 70, 'Recommendation engine successfully scores ensemble');
+    assert.ok(['Harmonious', 'Exceptional'].includes(scoreResult.rating), 'Rating is harmonious or exceptional');
   });
 });
