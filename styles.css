@@ -9158,3 +9158,70 @@ html, body {
   filter: drop-shadow(0 2px 8px rgba(50, 45, 40, 0.25));
   animation: heroSmokeWaft 2.8s ease-in-out infinite alternate;
 }
+
+/* ==========================================================================
+   THREE.JS & WEBGL RESILIENT FALLBACK OVERLAY
+   ========================================================================== */
+.seren-3d-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 28px;
+  text-align: center;
+  color: #473B2F;
+  background: rgba(246, 240, 231, 0.96);
+  backdrop-filter: blur(4px);
+}
+
+.seren-3d-fallback[hidden] {
+  display: none !important;
+}
+
+.seren-3d-fallback__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(71, 59, 47, 0.18);
+  border-radius: 50%;
+  font-size: 24px;
+  color: #8C7A65;
+}
+
+.seren-3d-fallback strong {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.seren-3d-fallback p {
+  max-width: 300px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #75695D;
+}
+
+.seren-3d-fallback .btn-seren-retry {
+  margin-top: 6px;
+  padding: 10px 22px;
+  border: 1px solid #75695D;
+  border-radius: 999px;
+  background: transparent;
+  color: #473B2F;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seren-3d-fallback .btn-seren-retry:hover {
+  background: rgba(71, 59, 47, 0.08);
+  transform: translateY(-1px);
+}
+

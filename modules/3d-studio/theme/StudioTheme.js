@@ -43,8 +43,8 @@ export class StudioTheme {
     this.group = new _THREE.Group();
     this.group.name = 'StudioTheme_ArchitectureGroup';
 
-    // 3. Polished Marble Tile Flooring (16x16m)
-    const floorGeo = new _THREE.PlaneGeometry(16, 16);
+    // 3. Polished Marble Tile Flooring (28x28m extended spacious layout)
+    const floorGeo = new _THREE.PlaneGeometry(28, 28);
     this.floor = new _THREE.Mesh(floorGeo, this.materials.floorMat);
     this.floor.name = 'Studio_Floor';
     this.floor.rotation.x = -Math.PI / 2;
@@ -53,11 +53,11 @@ export class StudioTheme {
     this.group.add(this.floor);
     this.disposables.push(floorGeo);
 
-    // 4. Smooth Curved Architectural Back Wall (Cylinder radius 6.6m, height 6.8m)
-    const wallGeo = new _THREE.CylinderGeometry(6.6, 6.6, 6.8, 48, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
+    // 4. Smooth Curved Architectural Back Wall (Cylinder radius 12.0m, height 8.0m)
+    const wallGeo = new _THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
     this.backWall = new _THREE.Mesh(wallGeo, this.materials.wallMat);
     this.backWall.name = 'Studio_BackWall';
-    this.backWall.position.set(0, 3.4, 5.4);
+    this.backWall.position.set(0, 4.0, 8.2);
     this.backWall.rotation.y = Math.PI; // Orient curved wall behind avatar towards negative Z
     this.backWall.receiveShadow = false; // Smooth back wall illumination without shadow map frustum clipping
     this.group.add(this.backWall);
@@ -66,7 +66,7 @@ export class StudioTheme {
     // 5. Projected Window Mullion Sunlight Shadow on Wall/Floor
     this.windowShadowGroup = new _THREE.Group();
     this.windowShadowGroup.name = 'Studio_WindowShadow';
-    this.windowShadowGroup.position.set(0.8, 1.8, -1.2);
+    this.windowShadowGroup.position.set(1.4, 2.1, -1.8);
     this.windowShadowGroup.rotation.set(-0.25, 0.45, -0.2);
 
     for (let w = 0; w < 4; w++) {
@@ -81,7 +81,7 @@ export class StudioTheme {
     // 6. Overhead Studio Softbox Light Fixture on Arm (Top Left matching reference)
     this.softboxGroup = new _THREE.Group();
     this.softboxGroup.name = 'Studio_SoftboxFixture';
-    this.softboxGroup.position.set(-1.12, 2.65, 0.88);
+    this.softboxGroup.position.set(-2.15, 2.95, 1.10);
     this.softboxGroup.rotation.set(0.38, 0.46, -0.24);
 
     const housingGeo = new _THREE.BoxGeometry(0.34, 0.48, 0.22);
@@ -110,10 +110,13 @@ export class StudioTheme {
 
     this.group.add(this.softboxGroup);
 
-    // 7. Cinematic Foreground Framing Foliage (Bottom Left Camera View)
+    // 7. Cinematic Foreground Framing Foliage
+    // Kept in hierarchy for contract specification, but hidden (visible = false)
+    // to eliminate the dark strip artifacts on the floor when zooming out fully
     this.foliageGroup = new _THREE.Group();
     this.foliageGroup.name = 'Studio_FramingFoliage';
-    this.foliageGroup.position.set(-0.95, 0.15, 1.85);
+    this.foliageGroup.position.set(-1.85, 0.15, 2.40);
+    this.foliageGroup.visible = false;
 
     for (let l = 0; l < 4; l++) {
       const leafGeo = new _THREE.SphereGeometry(0.12, 12, 12);
@@ -121,6 +124,7 @@ export class StudioTheme {
       fgLeaf.scale.set(1.6, 0.18, 0.85);
       fgLeaf.rotation.set(-0.3 + l * 0.2, 0.5 + l * 0.3, -0.4);
       fgLeaf.position.set(l * 0.08, l * 0.12, -l * 0.06);
+      fgLeaf.visible = false;
       this.foliageGroup.add(fgLeaf);
       this.disposables.push(leafGeo);
     }

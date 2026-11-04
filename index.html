@@ -426,29 +426,37 @@
             <!-- Real Three.js 3D WebGL Canvas -->
             <canvas id="seren3dCanvas" class="seren-3d-canvas"></canvas>
 
+            <!-- Three.js / WebGL Fallback Overlay -->
+            <div class="seren-3d-fallback" id="seren3dFallback" hidden>
+              <div class="seren-3d-fallback__icon">✦</div>
+              <strong>3D Studio Unavailable</strong>
+              <p id="seren3dFallbackMessage">The 3D studio is unavailable offline or without WebGL. You can continue using the rest of your wardrobe.</p>
+              <button type="button" class="btn-seren-retry" onclick="window.retryStudio3D && window.retryStudio3D()">Retry 3D Studio</button>
+            </div>
+
             <!-- Floating Editorial Tagline & Greeting Card (Upper-Right matching Target Reference) -->
             <div class="seren-editorial-tagline-wrap">
-              <span class="seren-editorial-tagline">Style a kinder you</span>
+              <span class="seren-editorial-tagline" style="visibility: hidden;" aria-hidden="true">Style a kinder you</span>
               <span class="seren-editorial-heart">♡</span>
             </div>
             <div class="seren-floating-greeting" id="serenFloatingGreeting">
               <div class="greeting-sun-icon">☀️</div>
               <div class="greeting-content">
-                <span class="greeting-time-tag" id="greetingTimeTag">Good morning!</span>
-                <p class="greeting-headline" id="greetingHeadline">Let's find a look that makes you feel amazing today.</p>
+                <span class="greeting-time-tag" id="greetingTimeTag" style="visibility: hidden;" aria-hidden="true">Good morning!</span>
+                <p class="greeting-headline" id="greetingHeadline" style="visibility: hidden;" aria-hidden="true">Let's find a look that makes you feel amazing today.</p>
               </div>
             </div>
 
             <!-- 3D Spatial Floating Interactive Hotspots matching Target Reference -->
             <button class="spatial-3d-hint wardrobe-hint" onclick="app.serenInteract('wardrobe')" title="Explore Wardrobe">
               <span class="hint-icon">👕</span>
-              <span class="hint-text">Wardrobe</span>
+              <span class="hint-text" style="visibility: hidden;" aria-hidden="true">Wardrobe</span>
               <span class="hint-arrow">›</span>
             </button>
 
             <button class="spatial-3d-hint mirror-hint" onclick="app.serenInteract('vanity')" title="Vanity & Grooming">
               <span class="hint-icon">🪞</span>
-              <span class="hint-text">Vanity</span>
+              <span class="hint-text" style="visibility: hidden;" aria-hidden="true">Vanity</span>
               <span class="hint-arrow">›</span>
             </button>
 
@@ -3456,5 +3464,21 @@
   <script src="wardrobe3d.js?v=20261031_9"></script>
   <script src="studio3d.js?v=20261031_9"></script>
   <script src="app.js?v=20261031_9"></script>
+  <script>
+    window.showStudio3DFallback = function (message) {
+      var fallback = document.getElementById('seren3dFallback');
+      var msgEl = document.getElementById('seren3dFallbackMessage');
+      if (msgEl && message) msgEl.textContent = message;
+      if (fallback) fallback.hidden = false;
+    };
+
+    window.retryStudio3D = function () {
+      var fallback = document.getElementById('seren3dFallback');
+      if (fallback) fallback.hidden = true;
+      if (window.Studio3D && typeof window.Studio3D.init === 'function') {
+        window.Studio3D.init('seren3dContainer', 'seren3dCanvas');
+      }
+    };
+  </script>
 </body>
 </html>

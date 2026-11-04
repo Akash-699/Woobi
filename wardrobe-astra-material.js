@@ -132,25 +132,25 @@
       oakFrame: new THREE.MeshStandardMaterial({
         map: woodTex,
         bumpMap: woodBumpTex,
-        bumpScale: 0.003,
-        color: 0xA87B4C, // Natural European honey oak (#A87B4C)
-        roughness: 0.52,
+        bumpScale: 0.006,
+        color: 0xA27443, // Natural European honey oak with rich organic grain (#A27443)
+        roughness: 0.46,
         metalness: 0.02
       }),
       oakBackboard: new THREE.MeshStandardMaterial({
         map: woodTex,
         bumpMap: woodBumpTex,
-        bumpScale: 0.0025,
-        color: 0x9A6D3E, // Deeper honey oak backboard
-        roughness: 0.58,
+        bumpScale: 0.005,
+        color: 0x946536, // Deeper honey oak backboard
+        roughness: 0.52,
         metalness: 0.02
       }),
       oakDrawers: new THREE.MeshStandardMaterial({
         map: woodTex,
         bumpMap: woodBumpTex,
-        bumpScale: 0.003,
-        color: 0xA87B4C, // European oak drawer faces
-        roughness: 0.50,
+        bumpScale: 0.006,
+        color: 0xA27443, // European oak drawer faces
+        roughness: 0.44,
         metalness: 0.02
       }),
       brass: new THREE.MeshStandardMaterial({
