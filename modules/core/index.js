@@ -2,6 +2,16 @@ import { AppBootstrap, appBootstrap } from './app/AppBootstrap.js';
 import { NavigationRouter, navigationRouter } from './navigation/NavigationRouter.js';
 import { Store, store } from './state/Store.js';
 import { StreakState, streakState, createStreakState, STREAK_EVENTS, TEST_USER_ID } from './state/StreakState.js';
+import {
+  ClothingCaptureState,
+  clothingCaptureState,
+  createClothingCaptureState,
+  CLOTHING_CATEGORIES,
+  CATEGORY_LIMITS,
+  TOTAL_LIMIT,
+  CATEGORY_METADATA,
+  CAPTURE_EVENTS
+} from './state/ClothingCaptureState.js';
 import { toastService } from './shared-ui/ToastService.js';
 import { modalService } from './shared-ui/ModalService.js';
 import { GlobalErrorHandler, globalErrorHandler } from './errors/GlobalErrorHandler.js';
@@ -20,6 +30,14 @@ export {
   createStreakState,
   STREAK_EVENTS,
   TEST_USER_ID,
+  ClothingCaptureState,
+  clothingCaptureState,
+  createClothingCaptureState,
+  CLOTHING_CATEGORIES,
+  CATEGORY_LIMITS,
+  TOTAL_LIMIT,
+  CATEGORY_METADATA,
+  CAPTURE_EVENTS,
   toastService,
   modalService,
   GlobalErrorHandler,
@@ -52,6 +70,9 @@ export const CoreContract = {
 
   // Daily Outfit Streak & Memories Engine
   streak: streakState,
+
+  // Clothing Capture & Silhouette Digitization Engine
+  clothingCapture: clothingCaptureState,
   
   // Shared UI & Design System
   ui: {

@@ -68,11 +68,16 @@ export class CameraController {
   }
 
   setZoomFactor(factor) {
-    this.transitions.setZoomFactor(factor);
+    const maxLimit = this.options.maxZoomFactor !== undefined ? this.options.maxZoomFactor : (this.currentPreset === 'STUDIO_OVERVIEW' ? 1.0 : this.transitions.maxZoomFactor);
+    this.transitions.setZoomFactor(Math.min(maxLimit, factor));
   }
 
   addZoomDelta(delta) {
-    this.transitions.addZoomDelta(delta);
+    const maxLimit = this.options.maxZoomFactor !== undefined ? this.options.maxZoomFactor : (this.currentPreset === 'STUDIO_OVERVIEW' ? 1.0 : this.transitions.maxZoomFactor);
+    if (this.currentPreset === 'STUDIO_OVERVIEW' && delta > 0 && this.transitions.zoomFactor >= maxLimit) {
+      return;
+    }
+    this.transitions.setZoomFactor(Math.min(maxLimit, this.transitions.zoomFactor + delta));
   }
 
   resize(width, height) {
@@ -82,6 +87,9 @@ export class CameraController {
 
   update(delta = 0.016) {
     if (this.isDisposed || !this.camera) return;
+    if (this.currentPreset === 'STUDIO_OVERVIEW' && this.transitions.zoomFactor > 1.0) {
+      this.transitions.setZoomFactor(1.0);
+    }
     this.transitions.update(this.camera, this.studioCamera.aspect);
   }
 

@@ -432,12 +432,12 @@
               <button type="button" class="btn-seren-retry" onclick="window.retryStudio3D && window.retryStudio3D()">Retry 3D Studio</button>
             </div>
 
-            <!-- Floating Editorial Tagline & Greeting Card (Upper-Right matching Target Reference) -->
-            <div class="seren-editorial-tagline-wrap">
+            <!-- Floating Editorial Tagline & Greeting Card (Hidden to remove unwanted floating popups) -->
+            <div class="seren-editorial-tagline-wrap" style="display: none;" hidden>
               <span class="seren-editorial-tagline">Style a kinder you</span>
               <span class="seren-editorial-heart">♡</span>
             </div>
-            <div class="seren-floating-greeting" id="serenFloatingGreeting">
+            <div class="seren-floating-greeting" id="serenFloatingGreeting" style="display: none;" hidden>
               <div class="greeting-sun-icon">☀️</div>
               <div class="greeting-content">
                 <span class="greeting-time-tag" id="greetingTimeTag">Good morning!</span>
@@ -445,14 +445,14 @@
               </div>
             </div>
 
-            <!-- 3D Spatial Floating Interactive Hotspots matching Target Reference -->
-            <button class="spatial-3d-hint wardrobe-hint" onclick="app.serenInteract('wardrobe')" title="Explore Wardrobe">
+            <!-- 3D Spatial Floating Interactive Hotspots (Wardrobe & Vanity popups hidden to eliminate clutter) -->
+            <button class="spatial-3d-hint wardrobe-hint" onclick="app.serenInteract('wardrobe')" title="Explore Wardrobe" style="display: none;" hidden>
               <span class="hint-icon">👕</span>
               <span class="hint-text">Wardrobe</span>
               <span class="hint-arrow">›</span>
             </button>
 
-            <button class="spatial-3d-hint mirror-hint" onclick="app.serenInteract('vanity')" title="Vanity & Grooming">
+            <button class="spatial-3d-hint mirror-hint" onclick="app.serenInteract('vanity')" title="Vanity & Grooming" style="display: none;" hidden>
               <span class="hint-icon">🪞</span>
               <span class="hint-text">Vanity</span>
               <span class="hint-arrow">›</span>

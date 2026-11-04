@@ -1869,18 +1869,18 @@
 
   function onStudioCameraChanged(stateName) {
     const backBtn = document.getElementById('serenBackStudioBtn');
-    const hints = document.querySelectorAll('.spatial-3d-hint');
+    const dragHint = document.getElementById('serenDragHint');
     const greeting = document.getElementById('serenFloatingGreeting');
     const tagline = document.querySelector('.seren-editorial-tagline-wrap');
 
     if (stateName === 'STUDIO_OVERVIEW') {
       if (backBtn) backBtn.classList.add('hidden');
-      hints.forEach(h => h.style.display = '');
-      if (greeting) greeting.style.display = '';
-      if (tagline) tagline.style.display = '';
+      if (dragHint) dragHint.style.display = '';
+      if (greeting) greeting.style.display = 'none';
+      if (tagline) tagline.style.display = 'none';
     } else {
       if (backBtn) backBtn.classList.remove('hidden');
-      hints.forEach(h => h.style.display = 'none');
+      if (dragHint) dragHint.style.display = 'none';
       if (greeting) greeting.style.display = 'none';
       if (tagline) tagline.style.display = 'none';
     }
