@@ -10,12 +10,12 @@ authentication test Pass when it only displays the setup-pending message.
 
 1. Open a terminal in the Woobi-1 repository root.
    On a fresh checkout, first run
-   `Copy-Item login/firebase-config.example.js login/firebase-config.js`.
+   `Copy-Item modules/core/login/firebase-config.example.js modules/core/login/firebase-config.js`.
 2. Run `npm start` (Node.js is required; no npm dependencies need installing).
-3. Open http://localhost:5050/login/index.html.
+3. Open http://localhost:5050/login/.
 4. If port 5050 is already in use by this project's server, use the running
    preview instead of starting a second copy.
-5. The entry URL opens the selected playable login page. Do not double-click HTML files to test Google
+5. Do not double-click HTML files to test Google
    authentication: use the HTTP localhost address.
 
 ## 2. Test local validation (and the unconfigured fallback)
@@ -68,7 +68,7 @@ to test the unconfigured preview.
 - Drag clothing with a mouse and touch. Focus a piece and use arrow
   keys; Home resets its position. Try Shuffle and Pause/Resume. The form stays
   above the clothes. Eight pieces exist; six are shown on mobile.
-- Open `/login/index.html` and confirm it leads to the selected login page.
+- Open `/login/` and confirm the playable login page appears directly.
 
 ## 5. Configure Firebase later
 
@@ -125,7 +125,7 @@ from the login page does not establish any server-side protection of it.
 > and prepared Firebase authentication calls. Firebase Web app
 > configuration is local and excluded from Git. Provider/domain setup and live
 > Google login, email/password login, registration and reset-email tests still
-> need verification. Website session/logout integration and Android integration
+> need verification. Website session/logout integration and native Android authentication
 > are pending. Setup comments and manual testing instructions are included.
 
 Attach screenshots of the selected page on desktop/mobile and a small table showing

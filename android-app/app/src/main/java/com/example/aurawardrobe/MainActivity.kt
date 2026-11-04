@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
             }
             webViewClient = WebViewClient()
             webChromeClient = WebChromeClient()
-            loadUrl("file:///android_asset/index.html")
+            loadUrl("file:///android_asset/login/index.html")
         }
         webView = view
         setContentView(view)

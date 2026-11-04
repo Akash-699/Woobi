@@ -38,10 +38,10 @@ from client-writable profile fields. Other users' profiles are not readable.
 
 ## Files for the next developer
 
-- `login/user-profile.js`: builds an explicit allowlist of profile fields and
+- `modules/core/login/user-profile.js`: builds an explicit allowlist of profile fields and
   transactionally creates/updates a document after successful authentication.
   A transaction preserves createdAt if two login sessions create the same profile.
-- `login/auth.js`: optional profile save before the homepage redirect. Password reset does not write a profile. Profile errors do
+- `modules/core/login/auth.js`: optional profile save before the homepage redirect. Password reset does not write a profile. Profile errors do
   not undo successful Auth sign-in; a pop-up offers Continue to wardrobe.
 - `firestore.rules`: requires ownership for individual reads/writes, validates
   field names/types, forbids listing and deletion, preserves createdAt, and

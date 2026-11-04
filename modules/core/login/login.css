@@ -83,3 +83,44 @@ body{height:var(--view-height,100dvh);min-height:0;overflow:hidden;position:rela
  .divider{margin:11px 0 9px}
  .intro{margin-bottom:8px}h1{font-size:33px}
 }
+
+/* Pull the pleats along a rail while the loose hem follows and swings back. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    top: -2%;
+    bottom: -2%;
+    left: -8%;
+    width: calc(58% + 1px);
+    z-index: 20;
+    pointer-events: none;
+    transform-origin: center top;
+    background:
+      linear-gradient(170deg, #ffd5ac20, transparent 45%, #22061238),
+      repeating-linear-gradient(0deg, transparent 0 2px, #ffc5bd0c 2px 3px),
+      repeating-linear-gradient(92deg, #680d20 0%, #9b192b 4%, #cc3945 8%,
+        #b82a38 11%, #881426 15%, #530a1a 18%, #680d20 21%);
+    animation: gather-velvet 3.9s cubic-bezier(.42,0,.24,1) .25s both,
+               sway-velvet 3.9s linear .25s both;
+  }
+  body::after {
+    left: auto;
+    right: -8%;
+    --mirror: -1;
+    --compressed: -.2;
+    --travel: 64%;
+    animation-delay: .38s;
+  }
+  body:focus-within::before, body:focus-within::after { visibility: hidden; }
+  @keyframes gather-velvet {
+    from { translate: 0; scale: var(--mirror, 1) 1; }
+    to { translate: var(--travel, -64%) 0; scale: var(--compressed, .2) 1; visibility: hidden; }
+  }
+  @keyframes sway-velvet {
+    0%, 100% { border-radius: 0; transform: skewX(0); }
+    32% { transform: skewX(3deg); border-top-right-radius: 45% 85%; border-bottom-right-radius: 0; }
+    65% { transform: skewX(-1.6deg); border-top-right-radius: 16% 65%; border-bottom-right-radius: 18% 42%; }
+    84% { transform: skewX(.7deg); border-top-right-radius: 26% 75%; border-bottom-right-radius: 5% 32%; }
+  }
+}

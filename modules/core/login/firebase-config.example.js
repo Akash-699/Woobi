@@ -2,7 +2,7 @@
  * WOOBI FIREBASE SETUP — Copy this file to firebase-config.js and supply Web configuration locally.
  * Provider enablement, authorized domains and live sign-in still need checking.
  *
- * Leave this value null while reviewing the three UI designs. Form validation,
+ * Leave this value null while reviewing the login UI. Form validation,
  * password visibility, auth-screen switching and design interactions work
  * locally. Login, registration and reset emails require a Firebase project.
  * The "Firebase setup pending" message is expected until then; it is not a

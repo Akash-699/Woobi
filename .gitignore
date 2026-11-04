@@ -50,4 +50,4 @@ pr-4.patch
 scratch_*.ps1
 
 # Local Firebase project configuration (copy the tracked example to set up)
-/login/firebase-config.js
+/modules/core/login/firebase-config.js

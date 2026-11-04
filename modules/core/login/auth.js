@@ -54,6 +54,7 @@
     message('');
   }
   async function firebase() {
+    if (window.WOOBI_ANDROID_BUNDLE === true) throw { code: 'native-required' };
     if (!config || !config.apiKey || !config.projectId || !config.authDomain) throw { code: 'setup-pending' };
     if (location.protocol === 'file:') throw { code: 'native-required' };
     if (!firebasePromise) firebasePromise = (async () => {
@@ -94,7 +95,7 @@
   function explain(error) {
     const messages = {
       'setup-pending': 'Sign-in will be available once Woobi’s Firebase project is connected. This preview does not create a session.',
-      'native-required': 'Google sign-in for the Android app needs its native authentication connection.',
+      'native-required': 'Sign-in in the Android app needs its native authentication connection. You can explore the wardrobe preview below.',
       'auth/invalid-credential': 'Your email or password is incorrect. Please try again.',
       'auth/wrong-password': 'Your email or password is incorrect. Please try again.',
       'auth/user-not-found': 'Your email or password is incorrect. Please try again.',
