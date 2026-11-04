@@ -1,7 +1,14 @@
-import bpy  # type: ignore[missing-import]
-import bmesh  # type: ignore[missing-import]
+# pyrefly: ignore-all-errors
+# type: ignore
+try:
+    import bpy  # type: ignore # pyrefly: ignore
+    import bmesh  # type: ignore # pyrefly: ignore
+    import mathutils  # type: ignore # pyrefly: ignore
+except ImportError:
+    bpy = None  # type: ignore
+    bmesh = None  # type: ignore
+    mathutils = None  # type: ignore
 import math
-import mathutils  # type: ignore[missing-import]
 import os
 import random
 

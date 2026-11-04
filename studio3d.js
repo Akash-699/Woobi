@@ -142,23 +142,25 @@
         skinTone: '#F3D5C6',
         hairStyle: 'bun',
         hairColor: '#1E120A',
-        proportions: 'slim_fit',
+        proportions: 'regular',
         bodyFat: 25,
-        waistDefinition: 70,
+        waistDefinition: 50,
         anatomy: {
           female: {
-            bust: 55,
-            glutes: 60,
-            thighs: 48,
-            waist: 72,
+            bust: 50,
+            glutes: 50,
+            thighs: 50,
+            waist: 50,
+            stomach: 50,
             height: 1.70,
             weight: 58
           },
           male: {
-            pecs: 65,
-            stomach: 22,
-            shoulders: 72,
-            thighs: 58,
+            pecs: 50,
+            stomach: 50,
+            shoulders: 50,
+            thighs: 50,
+            glutes: 50,
             height: 1.80,
             weight: 78
           }
@@ -2820,9 +2822,22 @@
         this.anatomicalMeshes = {};
       }
 
-      // If Astra Mannequin GLB is active, attach tailored undergarments
+      // If Astra Mannequin GLB is active, ensure no jagged procedural undergarments interfere with pristine model
       if (this.gltfAvatarGroup) {
-        this.buildMannequinUndergarments(targetGender);
+        const toRemove = [];
+        this.gltfAvatarGroup.traverse((child) => {
+          if (child.isMesh && (child.name === 'Woobi_Female_Panty' || child.name === 'Woobi_Female_Brassiere' || child.name === 'Woobi_Male_Underwear')) {
+            toRemove.push(child);
+          }
+        });
+        toRemove.forEach((child) => {
+          if (child.parent) child.parent.remove(child);
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) {
+            if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+            else child.material.dispose();
+          }
+        });
       }
 
       // If procedural fallback avatar is active, create clean non-interfering contours
@@ -3021,17 +3036,17 @@
           }
         } else {
           // Female Anatomy Morphs
-          const bust = anatomy.bust ?? 55;
-          const glutes = anatomy.glutes ?? 60;
-          const thighs = anatomy.thighs ?? 48;
-          const waist = anatomy.waist ?? 72;
-          const stomach = anatomy.stomach ?? 25;
+          const bust = anatomy.bust ?? 50;
+          const glutes = anatomy.glutes ?? 50;
+          const thighs = anatomy.thighs ?? 50;
+          const waist = anatomy.waist ?? 50;
+          const stomach = anatomy.stomach ?? 50;
 
-          const bustDisp = organicDisp(bust, 55, 0.040);
-          const gluteDisp = organicDisp(glutes, 60, 0.055);
-          const thighDisp = organicDisp(thighs, 48, 0.028);
-          const stomachDisp = organicDisp(stomach, 25, 0.024);
-          const waistDisp = organicDisp(waist, 72, 0.024);
+          const bustDisp = organicDisp(bust, 50, 0.040);
+          const gluteDisp = organicDisp(glutes, 50, 0.045);
+          const thighDisp = organicDisp(thighs, 50, 0.028);
+          const stomachDisp = organicDisp(stomach, 50, 0.024);
+          const waistDisp = organicDisp(waist, 50, 0.024);
 
           for (let i = 0; i < pos.length; i += 3) {
             const ox = base[i];
@@ -3047,48 +3062,33 @@
               const wBustL = compactWeight(ox, oy, oz, -0.068, 1.215, 0.125, 0.090, 0.135, 0.095);
               const wBustR = compactWeight(ox, oy, oz,  0.068, 1.215, 0.125, 0.090, 0.135, 0.095);
               const wBust = Math.max(wBustL, wBustR);
-              if (wBust > 0) {
+              if (wBust > 0 && Math.abs(bustDisp) > 0.0001) {
                 dz += wBust * bustDisp * 1.15;
                 dy -= wBust * bustDisp * 0.05; // Gentle downward natural gravity settling (never slides upward!)
                 dx += (ox < 0 ? -1 : 1) * wBust * 0.22 * bustDisp;
               }
             }
 
-            // 2. Female Glutes / Butt (True 3D Spherical Balloon Inflation from deep inside the pelvis - No Pans, No Rims)
-            if (oz < -0.01 && oy >= 0.72 && oy <= 1.05 && Math.abs(ox) <= 0.230) {
-              const isLeft = ox < 0;
-              const cx = isLeft ? -0.082 : 0.082;
-              const cyGl = 0.865;
-              const czGl = 0.015; // Deep inside pelvis
-              const rx = 0.145, ry = 0.165, rz = 0.155;
-
-              const vx = (ox - cx) / rx;
-              const vy = (oy - cyGl) / ry;
-              const vz = (oz - czGl) / rz;
-              const dist = Math.sqrt(vx * vx + vy * vy + vz * vz);
-
-              const ny = (oy - cyGl) / (oy > cyGl ? 0.170 : 0.135);
+            // 2. Female Glutes / Butt (Natural anatomical gluteal curvature with smooth pelvic blend)
+            if (oz < -0.02 && oy >= 0.72 && oy <= 1.05 && Math.abs(ox) <= 0.225) {
+              const ny = (oy - 0.865) / (oy > 0.865 ? 0.170 : 0.135);
               if (Math.abs(ny) < 1.0) {
                 const wy = Math.cos(ny * Math.PI * 0.5);
                 const wy2 = wy * wy;
 
                 const absX = Math.abs(ox);
-                const cleft = 1.0 - Math.exp(-Math.pow(absX / 0.038, 2.0));
-                const nx = (absX - 0.082) / 0.115;
-                const wx = Math.exp(-nx * nx * 1.6);
-                const wLateral = 0.25 + 0.75 * wx;
+                const cleft = 1.0 - Math.exp(-Math.pow(absX / 0.040, 2.0));
+                const nx = (absX - 0.088) / 0.115;
+                const wx = Math.exp(-nx * nx * 1.5);
+                const wLateral = 0.35 + 0.65 * wx;
 
-                const wz = Math.min(1.0, Math.max(0.0, (-oz - 0.01) / 0.09));
-                const weight = wy2 * cleft * wLateral * wz;
+                const wz = Math.min(1.0, Math.max(0.0, (-oz - 0.02) / 0.09));
+                const wGl = wy2 * cleft * wLateral * wz;
 
-                if (weight > 0 && dist > 0.01) {
-                  const ux = vx / dist;
-                  const uy = vy / dist;
-                  const uz = vz / dist;
-
-                  dx += ux * weight * gluteDisp * 0.45;
-                  dy += uy * weight * gluteDisp * 0.35;
-                  dz += uz * weight * gluteDisp * 1.35;
+                if (wGl > 0 && Math.abs(gluteDisp) > 0.0001) {
+                  dz -= wGl * gluteDisp * 0.90;
+                  dy += (oy < 0.865 ? -0.10 : 0.02) * wGl * gluteDisp;
+                  dx += Math.sign(ox) * wGl * gluteDisp * 0.15;
                 }
               }
             }
@@ -3234,6 +3234,10 @@
       this.avatarConfig.anatomy[g][key] = parseFloat(val);
       this.updateAnatomy();
       this.updateBodyMeshScale();
+      try {
+        localStorage.removeItem('seren_avatar_prefs');
+        localStorage.removeItem('seren_avatar_prefs_v2');
+      } catch (_) {}
       this.savePreferences();
     }
 
@@ -3243,15 +3247,20 @@
     resetAnatomyToNormal() {
       const isMale = (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male');
       this.avatarConfig.anatomy = {
-        female: { bust: 55, glutes: 60, thighs: 48, waist: 72, stomach: 25, height: 1.70, weight: 58 },
-        male: { pecs: 65, shoulders: 72, stomach: 22, thighs: 58, glutes: 55, height: 1.80, weight: 78 }
+        female: { bust: 50, glutes: 50, thighs: 50, waist: 50, stomach: 50, height: 1.70, weight: 58 },
+        male: { pecs: 50, shoulders: 50, stomach: 50, thighs: 50, glutes: 50, height: 1.80, weight: 78 }
       };
       this.avatarConfig.proportions = 'regular';
-      this.avatarConfig.bodyFat = isMale ? 22 : 25;
+      this.avatarConfig.bodyFat = 25;
+      this.avatarConfig.waistDefinition = 50;
 
       // Restore base vertex positions directly (0 displacement = pristine model)
       if (this.gltfAvatarGroup) {
+        const toRemove = [];
         this.gltfAvatarGroup.traverse((child) => {
+          if (child.isMesh && (child.name === 'Woobi_Female_Panty' || child.name === 'Woobi_Female_Brassiere' || child.name === 'Woobi_Male_Underwear')) {
+            toRemove.push(child);
+          }
           if (child.isMesh && child.geometry && child.geometry.userData && child.geometry.userData.basePositions) {
             const posAttr = child.geometry.attributes.position;
             posAttr.array.set(child.geometry.userData.basePositions);
@@ -3259,10 +3268,22 @@
             child.geometry.computeVertexNormals();
           }
         });
+        toRemove.forEach((child) => {
+          if (child.parent) child.parent.remove(child);
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) {
+            if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+            else child.material.dispose();
+          }
+        });
       }
 
       this.updateAnatomy();
       this.updateBodyMeshScale();
+      try {
+        localStorage.removeItem('seren_avatar_prefs');
+        localStorage.removeItem('seren_avatar_prefs_v2');
+      } catch (_) {}
       this.savePreferences();
     }
 
@@ -3376,7 +3397,7 @@
      */
     loadSavedPreferences() {
       try {
-        const saved = localStorage.getItem('seren_avatar_prefs');
+        const saved = localStorage.getItem('seren_avatar_prefs_v3');
         if (saved) {
           const parsed = JSON.parse(saved);
           this.avatarConfig = Object.assign(this.avatarConfig, parsed);
@@ -3389,7 +3410,7 @@
 
     savePreferences() {
       try {
-        localStorage.setItem('seren_avatar_prefs', JSON.stringify(this.avatarConfig));
+        localStorage.setItem('seren_avatar_prefs_v3', JSON.stringify(this.avatarConfig));
       } catch (e) {
         console.warn('Studio3D: Could not persist avatar prefs', e);
       }

@@ -39,6 +39,7 @@ run_server_writer.ps1
 check_title.ps1
 update_admin_html.ps1
 
+typings/
 # OS, Logs & Temporary Scratch Files
 .DS_Store
 Thumbs.db

@@ -5,11 +5,13 @@
  */
 
 export class WardrobeMaterials {
-  static createOakMaterial(THREE, woodTexture = null) {
+  static createOakMaterial(THREE, woodTexture = null, bumpTexture = null) {
     return new THREE.MeshStandardMaterial({
       map: woodTexture || null,
-      color: 0xA87B4C, // Natural European honey oak (#A87B4C)
-      roughness: 0.52,
+      bumpMap: bumpTexture || null,
+      bumpScale: 0.006,
+      color: 0xA27443, // Natural European honey oak with rich grain depth (#A27443)
+      roughness: 0.48,
       metalness: 0.02
     });
   }
