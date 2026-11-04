@@ -372,32 +372,17 @@
         <section class="phone-screen active" id="screen-today">
           <!-- Sérén Studio Minimal Header Overlay -->
           <header class="seren-header">
-            <div class="seren-header-left">
+            <!-- Hidden Branding Mark to remove visual text at top left while preserving compatibility -->
+            <div class="seren-header-left" style="display: none;" hidden>
               <div class="seren-branding">
                 <span class="seren-brand-name">woobi</span>
                 <span class="seren-brand-sub">3D STUDIO</span>
               </div>
             </div>
-            <!-- Three Icons in One Row: Camera, Streak, Gallery (Centered at Top) -->
+
+            <!-- Dynamic Island: 1. Streak | 2. Camera | 3. Gallery | 4. Calendar | 5. Account -->
             <div class="streak-trio-row" id="streakTrioRow">
-              <!-- 1. 📷 Camera Icon: Opens Camera Screen Only -->
-              <button type="button" class="streak-trio-btn streak-camera-btn" id="streakCameraBtn" onclick="app.openCameraModal()" title="Take Outfit Photo">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
-                </svg>
-              </button>
-
-              <!-- 2. 🖼️ Gallery Icon: Opens Outfit Memories Gallery -->
-              <button type="button" class="streak-trio-btn streak-gallery-btn" id="streakGalleryBtn" onclick="app.openMemoriesModal()" title="View Outfit Memories">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21 15 16 10 5 21"/>
-                </svg>
-              </button>
-
-              <!-- 3. 🔥 Streak & Calendar Icon: Burning Fire (or Wood & Rising Smoke when zero or broken) -->
+              <!-- 1. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when zero or broken) -->
               <button type="button" class="streak-trio-btn streak-flame-btn broken-streak" id="streakHeaderPill" onclick="app.handleStreakIconClick()" title="Daily Outfit Streak: 0 Streaks">
                 <div class="streak-flame-wrapper" id="streakFlameWrapper">
                   <img src="assets/streak/fire_level_1.png" class="streak-header-icon-img fire-lvl-1 hidden" id="streakHeaderFireImg" alt="Streak Fire" />
@@ -406,12 +391,38 @@
                 <span class="streak-count" id="streakCount">0</span>
                 <span class="streak-count-label" id="streakCountLabel">Streaks</span>
               </button>
-            </div>
 
-            <!-- Sérén Studio Right Actions -->
-            <div class="seren-header-right">
-              <button class="seren-icon-btn" onclick="app.goToScreen('profile')" title="User Profile">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <!-- 2. 📷 Camera Icon: Opens Camera Screen Only -->
+              <button type="button" class="streak-trio-btn streak-camera-btn" id="streakCameraBtn" onclick="app.openCameraModal()" title="Take Outfit Photo">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              </button>
+
+              <!-- 3. 🖼️ Gallery Icon: Opens Outfit Memories Gallery -->
+              <button type="button" class="streak-trio-btn streak-gallery-btn" id="streakGalleryBtn" onclick="app.openMemoriesModal()" title="View Outfit Memories">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </button>
+
+              <!-- 4. 📅 Calendar Icon: Opens Woobi Streak Calendar -->
+              <button type="button" class="streak-trio-btn streak-calendar-btn" id="streakCalendarBtn" onclick="app.openStreakModal()" title="View Streak Calendar">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                  <line x1="16" x2="16" y1="2" y2="6"/>
+                  <line x1="8" x2="8" y1="2" y2="6"/>
+                  <line x1="3" x2="21" y1="10" y2="10"/>
+                  <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+                </svg>
+              </button>
+
+              <!-- 5. 👤 Account Icon: Opens Profile -->
+              <button type="button" class="streak-trio-btn streak-account-btn" id="streakAccountBtn" onclick="app.goToScreen('profile')" title="User Profile">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
                 </svg>

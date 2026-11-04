@@ -8344,14 +8344,18 @@ html, body {
 }
 
 .streak-camera-btn,
-.streak-gallery-btn {
+.streak-gallery-btn,
+.streak-calendar-btn,
+.streak-account-btn {
   width: 38px;
   padding: 0;
   color: #554433;
 }
 
 .streak-camera-btn:hover,
-.streak-gallery-btn:hover {
+.streak-gallery-btn:hover,
+.streak-calendar-btn:hover,
+.streak-account-btn:hover {
   color: #C85A17;
 }
 

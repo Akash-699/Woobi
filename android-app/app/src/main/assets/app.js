@@ -2201,6 +2201,20 @@
         openMemoriesModal();
       };
     }
+    const calendarBtn = document.getElementById('streakCalendarBtn');
+    if (calendarBtn) {
+      calendarBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        openStreakModal();
+      };
+    }
+    const accountBtn = document.getElementById('streakAccountBtn');
+    if (accountBtn) {
+      accountBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        goToScreen('profile');
+      };
+    }
 
     // Only show missed streak modal if user had earned a streak previously!
     if (state.streak && state.streak.isStreakBroken && state.streak.savedPreviousStreak > 0) {
