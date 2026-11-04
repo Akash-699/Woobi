@@ -16,9 +16,9 @@ export const AVATAR_PALETTE = {
   browDarkBrown: 0x24160E,
   earringWarmBrass: 0xD4AF37,
   cropTankIvory: 0xF7F5F0,
-  trousersSand: 0xD8CBB9,
-  sneakersWhite: 0xFFFFFF,
-  sneakersSole: 0xF8F8F8,
+  trousersSand: 0xD6C7B2,
+  sneakersWhite: 0xFCFCFC,
+  sneakersSole: 0xEDE8DF,
   hairTieDark: 0x140E0A
 };
 
@@ -94,9 +94,9 @@ export class AvatarMaterials {
     this.tankMat = new THREE.MeshStandardMaterial({
       map: this.textures.ribbedKnit || null,
       bumpMap: this.textures.ribbedKnit || null,
-      bumpScale: 0.0025,
+      bumpScale: 0.0035,
       color: AVATAR_PALETTE.cropTankIvory,
-      roughness: 0.68,
+      roughness: 0.65,
       metalness: 0.02
     });
     this.disposables.push(this.tankMat);
@@ -105,22 +105,23 @@ export class AvatarMaterials {
     this.trouserMat = new THREE.MeshStandardMaterial({
       map: this.textures.linenWeave || null,
       bumpMap: this.textures.linenWeave || null,
-      bumpScale: 0.0020,
+      bumpScale: 0.0030,
       color: AVATAR_PALETTE.trousersSand,
-      roughness: 0.72,
+      roughness: 0.76,
       metalness: 0.01
     });
     this.disposables.push(this.trouserMat);
 
-    // Chunky Platform Sneakers Materials
+    // Chunky Platform Sneakers Materials (Crisp White Leather Upper + Textured Rubber Sole)
     this.sneakerMat = new THREE.MeshStandardMaterial({
       color: AVATAR_PALETTE.sneakersWhite,
-      roughness: 0.32,
+      roughness: 0.28,
       metalness: 0.02
     });
     this.soleMat = new THREE.MeshStandardMaterial({
       color: AVATAR_PALETTE.sneakersSole,
-      roughness: 0.45
+      roughness: 0.58,
+      metalness: 0.00
     });
     this.disposables.push(this.sneakerMat, this.soleMat);
 

@@ -16,8 +16,8 @@ export const STAGE_CONFIG = {
   rimThickness: 0.012,          // Stitched trim tube thickness
   rotationArcRadius: 0.72,      // 360-degree rotation guide arc radius
   rotationArcOpacity: 0.60,     // Guide arc opacity
-  accentRugPosition: { x: 1.45, y: 0.008, z: 1.6 },
-  accentRugRadius: 0.75,
+  accentRugPosition: { x: 0, y: 0.004, z: 0 },
+  accentRugRadius: 1.12,
   glbPaths: ['3D - Stage by Astra/seren_stage.glb', 'seren_stage.glb']
 };
 
@@ -44,6 +44,10 @@ export class StageModel {
     this.group = new THREE.Group();
     this.group.name = 'woobi_stage_root';
     this.group.position.set(0, 0, 0);
+    // Proportionally scale horizontal footprint (X/Z) by ~12% to prevent visual dominance while strictly preserving 8cm elevation (Y=1)
+    if (this.group.scale && typeof this.group.scale.set === 'function') {
+      this.group.scale.set(0.88, 1.0, 0.88);
+    }
 
     const { radius, thickness, shadowRadius, shadowOpacity, daisElevation } = this.config;
 
@@ -88,8 +92,8 @@ export class StageModel {
       this.disposables.push(arcGeo);
     });
 
-    // 5. Secondary peeking accent rug at foreground right
-    const accentGeo = new THREE.CylinderGeometry(this.config.accentRugRadius, this.config.accentRugRadius + 0.01, 0.016, 48);
+    // 5. Complete concentric architectural base circle beneath dais
+    const accentGeo = new THREE.CylinderGeometry(this.config.accentRugRadius, this.config.accentRugRadius + 0.012, 0.008, 64);
     const accentRug = new THREE.Mesh(accentGeo, rugMat);
     accentRug.position.set(this.config.accentRugPosition.x, this.config.accentRugPosition.y, this.config.accentRugPosition.z);
     accentRug.receiveShadow = true;

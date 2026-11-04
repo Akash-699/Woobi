@@ -6,15 +6,15 @@
 export const CAMERA_PRESETS = {
   STUDIO_OVERVIEW: {
     name: 'STUDIO_OVERVIEW',
-    position: { x: 0.0, y: 1.22, z: 3.10 },
-    target: { x: -0.08, y: 1.08, z: 0.0 },
+    position: { x: -0.10, y: 1.35, z: 4.60 },
+    target: { x: -0.10, y: 1.08, z: -0.15 },
     fovLandscape: 42,
     fovPortrait: 56
   },
   WARDROBE_CLOSEUP: {
     name: 'WARDROBE_CLOSEUP',
-    position: { x: -0.96, y: 1.20, z: 2.50 },
-    target: { x: -0.96, y: 1.20, z: -0.32 },
+    position: { x: -1.20, y: 1.25, z: -0.20 },
+    target: { x: -1.20, y: 1.20, z: -2.40 },
     fovLandscape: 38,
     fovPortrait: 54
   },
@@ -34,15 +34,15 @@ export const CAMERA_PRESETS = {
   },
   VANITY_VIEW: {
     name: 'VANITY_VIEW',
-    position: { x: 0.65, y: 1.25, z: 1.55 },
-    target: { x: 0.85, y: 1.20, z: -0.10 },
+    position: { x: 0.95, y: 1.25, z: -0.65 },
+    target: { x: 1.15, y: 1.20, z: -2.20 },
     fovLandscape: 38,
     fovPortrait: 46
   },
   MIRROR_VIEW: {
     name: 'MIRROR_VIEW',
-    position: { x: 0.65, y: 1.25, z: 1.55 },
-    target: { x: 0.85, y: 1.20, z: -0.10 },
+    position: { x: 0.95, y: 1.25, z: -0.65 },
+    target: { x: 1.15, y: 1.20, z: -2.20 },
     fovLandscape: 38,
     fovPortrait: 46
   }

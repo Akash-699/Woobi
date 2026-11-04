@@ -13,8 +13,8 @@ export class CameraTransitions {
     this.lookAtLerpSpeed = options.lookAtLerpSpeed || 0.075;
     this.fovLerpSpeed = options.fovLerpSpeed || 0.10;
 
-    this.minZoomFactor = 0.70;
-    this.maxZoomFactor = 1.40;
+    this.minZoomFactor = options.minZoomFactor !== undefined ? options.minZoomFactor : 0.70;
+    this.maxZoomFactor = options.maxZoomFactor !== undefined ? options.maxZoomFactor : 1.40;
     this.zoomFactor = 1.0;
 
     this.minFov = options.minFov || 26.0;
@@ -59,7 +59,24 @@ export class CameraTransitions {
     if (!camera) return;
 
     // 1. Smooth Camera Position & LookAt Lerp
-    camera.position.lerp(this.targetCameraPos, this.positionLerpSpeed);
+    // Zooming in (zoomFactor < 1.0) dollys closer towards the avatar for outfit inspection
+    // Clamped so camera never dollys further back than the baseline studio overview
+    let effectivePos = this.targetCameraPos;
+    if (this.zoomFactor < 1.0 && this.targetCameraPos && this.targetCameraLookAt) {
+      const zoomDelta = this.zoomFactor - 1.0;
+      const dollyOffset = zoomDelta * 3.5;
+      const dx = this.targetCameraPos.x - this.targetCameraLookAt.x;
+      const dy = this.targetCameraPos.y - this.targetCameraLookAt.y;
+      const dz = this.targetCameraPos.z - this.targetCameraLookAt.z;
+      const len = Math.hypot(dx, dy, dz) || 1.0;
+      effectivePos = {
+        x: this.targetCameraPos.x + (dx / len) * dollyOffset,
+        y: this.targetCameraPos.y + (dy / len) * dollyOffset,
+        z: this.targetCameraPos.z + (dz / len) * dollyOffset
+      };
+    }
+
+    camera.position.lerp(effectivePos, this.positionLerpSpeed);
     this.currentCameraLookAt.lerp(this.targetCameraLookAt, this.lookAtLerpSpeed);
     camera.lookAt(this.currentCameraLookAt);
 
