@@ -9370,15 +9370,9 @@ html, body {
   background: #E8DCD0;
 }
 
-/* Bottom Navigation Bar Inside Streak Calendar Card matching Target Reference */
+/* Bottom Navigation Bar Inside Streak Calendar Card (Hidden to preserve clean floating modal card design) */
 .cal-card-bottom-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 10px 4px 4px;
-  margin-top: 8px;
-  border-top: 1px solid rgba(230, 218, 204, 0.7);
-  background: transparent;
+  display: none !important;
 }
 
 .cal-nav-btn {
