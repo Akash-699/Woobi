@@ -1,7 +1,7 @@
-import bpy
-import bmesh
+import bpy  # type: ignore[missing-import]
+import bmesh  # type: ignore[missing-import]
 import math
-import mathutils
+import mathutils  # type: ignore[missing-import]
 import os
 import random
 
