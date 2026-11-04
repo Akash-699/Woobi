@@ -31,7 +31,7 @@
   
   <!-- Woobi Core Shared Design Tokens -->
   <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
-  <link rel="stylesheet" href="styles.css?v=20261031_2">
+  <link rel="stylesheet" href="styles.css?v=20261104_6">
 </head>
 <body>
 
@@ -372,42 +372,32 @@
         <section class="phone-screen active" id="screen-today">
           <!-- Sérén Studio Minimal Header Overlay -->
           <header class="seren-header">
-            <div class="seren-header-left">
+            <!-- Hidden Branding Mark to remove visual text at top left while preserving compatibility -->
+            <div class="seren-header-left" style="display: none;" hidden>
               <div class="seren-branding">
                 <span class="seren-brand-name">woobi</span>
                 <span class="seren-brand-sub">3D STUDIO</span>
               </div>
             </div>
-            <!-- Three Icons in One Row: Camera, Streak, Gallery (Centered at Top) -->
+
+            <!-- Dynamic Island: Only Streak, Camera, Gallery (Centered at Top) -->
             <div class="streak-trio-row" id="streakTrioRow">
-              <!-- 1. 📷 Camera Icon: Opens Camera Screen Only -->
+              <!-- 1. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when zero or broken) -->
+              <button type="button" class="streak-trio-btn streak-flame-btn broken-streak" id="streakHeaderPill" onclick="app.handleStreakIconClick()" title="Daily Outfit Streak: 0 Streaks">
+                <div class="streak-flame-wrapper" id="streakFlameWrapper">
+                  <img src="assets/streak/fire_level_1.png" class="streak-header-icon-img fire-lvl-1 hidden" id="streakHeaderFireImg" alt="Streak Fire" />
+                  <img src="assets/streak/bonfire_smoke.png" class="streak-header-icon-img" id="streakHeaderSmokeImg" alt="Streak Wood & Smoke" />
+                </div>
+                <span class="streak-count" id="streakCount">0</span>
+                <span class="streak-count-label" id="streakCountLabel">Streaks</span>
+              </button>
+
+              <!-- 2. 📷 Camera Icon: Opens Camera Screen Only -->
               <button type="button" class="streak-trio-btn streak-camera-btn" id="streakCameraBtn" onclick="app.openCameraModal()" title="Take Outfit Photo">
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                   <circle cx="12" cy="13" r="4"/>
                 </svg>
-              </button>
-              <button class="seren-icon-btn" onclick="app.goToScreen('weekly-planning')" title="Weekly Outfit Planning">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/>
-                  <line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-              </button>
-              <button class="seren-icon-btn" onclick="app.goToScreen('profile')" title="User Profile">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-
-              <!-- 2. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when broken) -->
-              <button type="button" class="streak-trio-btn streak-flame-btn" id="streakHeaderPill" onclick="app.handleStreakIconClick()" title="Daily Outfit Streak">
-                <div class="streak-flame-wrapper" id="streakFlameWrapper">
-                  <img src="assets/streak_fire.jpg" class="streak-header-icon-img" id="streakHeaderFireImg" alt="Streak Fire" />
-                  <img src="assets/streak_bonfire_smoke.jpg" class="streak-header-icon-img hidden" id="streakHeaderSmokeImg" alt="Streak Wood & Smoke" />
-                </div>
-                <span class="streak-count" id="streakCount">0</span>
-                <span class="streak-count-label" id="streakCountLabel">Streaks</span>
               </button>
 
               <!-- 3. 🖼️ Gallery Icon: Opens Outfit Memories Gallery -->
@@ -416,6 +406,28 @@
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                   <circle cx="8.5" cy="8.5" r="1.5"/>
                   <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Outside Dynamic Island (Top Right Actions): Calendar & Account -->
+            <div class="seren-header-right">
+              <!-- 4. 📅 Calendar Icon: Opens Woobi Streak Calendar -->
+              <button type="button" class="seren-icon-btn streak-calendar-btn" id="streakCalendarBtn" onclick="app.openStreakModal()" title="View Streak Calendar">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                  <line x1="16" x2="16" y1="2" y2="6"/>
+                  <line x1="8" x2="8" y1="2" y2="6"/>
+                  <line x1="3" x2="21" y1="10" y2="10"/>
+                  <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+                </svg>
+              </button>
+
+              <!-- 5. 👤 Account Icon: Opens Profile -->
+              <button type="button" class="seren-icon-btn streak-account-btn" id="streakAccountBtn" onclick="app.goToScreen('profile')" title="User Profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
                 </svg>
               </button>
             </div>
@@ -434,29 +446,29 @@
               <button type="button" class="btn-seren-retry" onclick="window.retryStudio3D && window.retryStudio3D()">Retry 3D Studio</button>
             </div>
 
-            <!-- Floating Editorial Tagline & Greeting Card (Upper-Right matching Target Reference) -->
-            <div class="seren-editorial-tagline-wrap">
-              <span class="seren-editorial-tagline" style="visibility: hidden;" aria-hidden="true">Style a kinder you</span>
+            <!-- Floating Editorial Tagline & Greeting Card (Hidden to remove unwanted floating popups) -->
+            <div class="seren-editorial-tagline-wrap" style="display: none;" hidden>
+              <span class="seren-editorial-tagline">Style a kinder you</span>
               <span class="seren-editorial-heart">♡</span>
             </div>
-            <div class="seren-floating-greeting" id="serenFloatingGreeting">
+            <div class="seren-floating-greeting" id="serenFloatingGreeting" style="display: none;" hidden>
               <div class="greeting-sun-icon">☀️</div>
               <div class="greeting-content">
-                <span class="greeting-time-tag" id="greetingTimeTag" style="visibility: hidden;" aria-hidden="true">Good morning!</span>
-                <p class="greeting-headline" id="greetingHeadline" style="visibility: hidden;" aria-hidden="true">Let's find a look that makes you feel amazing today.</p>
+                <span class="greeting-time-tag" id="greetingTimeTag">Good morning!</span>
+                <p class="greeting-headline" id="greetingHeadline">Let's find a look that makes you feel amazing today.</p>
               </div>
             </div>
 
-            <!-- 3D Spatial Floating Interactive Hotspots matching Target Reference -->
-            <button class="spatial-3d-hint wardrobe-hint" onclick="app.serenInteract('wardrobe')" title="Explore Wardrobe">
+            <!-- 3D Spatial Floating Interactive Hotspots (Wardrobe & Vanity popups hidden to eliminate clutter) -->
+            <button class="spatial-3d-hint wardrobe-hint" onclick="app.serenInteract('wardrobe')" title="Explore Wardrobe" style="display: none;" hidden>
               <span class="hint-icon">👕</span>
-              <span class="hint-text" style="visibility: hidden;" aria-hidden="true">Wardrobe</span>
+              <span class="hint-text">Wardrobe</span>
               <span class="hint-arrow">›</span>
             </button>
 
-            <button class="spatial-3d-hint mirror-hint" onclick="app.serenInteract('vanity')" title="Vanity & Grooming">
+            <button class="spatial-3d-hint mirror-hint" onclick="app.serenInteract('vanity')" title="Vanity & Grooming" style="display: none;" hidden>
               <span class="hint-icon">🪞</span>
-              <span class="hint-text" style="visibility: hidden;" aria-hidden="true">Vanity</span>
+              <span class="hint-text">Vanity</span>
               <span class="hint-arrow">›</span>
             </button>
 
@@ -3112,6 +3124,213 @@
         </section>
 
       </div><!-- /.phone-screen-container -->
+
+      <!-- In-App Daily Reminder Notification Banner -->
+      <div class="in-app-reminder-banner hidden" id="inAppReminderBanner">
+        <div class="reminder-banner-content">
+          <div class="reminder-banner-icon-wrap" id="reminderBannerIcon">
+            <span>🔥</span>
+          </div>
+          <div class="reminder-banner-text">
+            <strong id="reminderBannerTitle">Upload Today's Look</strong>
+            <p id="reminderBannerBody">Snap your recommended outfit before the deadline to keep your streak going!</p>
+          </div>
+          <div class="reminder-banner-actions">
+            <button class="btn-banner-snap" onclick="app.triggerOutfitPhotoUpload()">
+              <span>📷 Snap</span>
+            </button>
+            <button class="btn-banner-close" onclick="app.dismissReminderBanner()">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden File Input for Native Camera / Gallery Upload -->
+      <input type="file" id="outfitPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="app.handleOutfitPhotoSelected(event)">
+
+      <!-- Modal 1: Daily Streak Camera & Photo Capture (Camera Screen Only) -->
+      <div class="streak-modal-backdrop hidden" id="outfitCameraModal" onclick="if(event.target === this) app.closeCameraModal()">
+        <div class="streak-modal-card streak-camera-card" onclick="event.stopPropagation()">
+          <div class="streak-modal-header">
+            <h3 class="streak-modal-title">Camera</h3>
+            <button class="streak-modal-close" onclick="app.closeCameraModal()" title="Exit Camera">✕</button>
+          </div>
+
+          <!-- Live Viewfinder / Capture Section -->
+          <div class="camera-viewfinder-container" id="cameraViewfinderContainer">
+            <video id="cameraVideo" class="camera-video-stream" autoplay playsinline muted></video>
+            <canvas id="cameraCanvas" class="hidden"></canvas>
+            <img id="cameraCapturedPreview" class="camera-captured-img hidden" alt="Captured Look" />
+
+            <!-- Framing guidelines overlay -->
+            <div class="camera-overlay-frame" id="cameraOverlayFrame">
+              <div class="camera-guide-oval"></div>
+            </div>
+
+            <!-- Camera Status / Fallback Card -->
+            <div class="camera-fallback-card hidden" id="cameraFallbackCard">
+              <span class="camera-fallback-icon">📷</span>
+              <p id="cameraFallbackMsg">Camera ready. Tap below to capture outfit photo.</p>
+            </div>
+          </div>
+
+          <!-- Live Camera Controls (before snapshot) -->
+          <div class="camera-controls-row" id="cameraLiveControls">
+            <button class="btn-camera-upload-mini" onclick="app.triggerFileInputClick()" title="Upload from Device">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </button>
+            <button class="btn-camera-shutter" id="btnCameraShutter" onclick="app.captureCameraSnapshot()" title="Capture Outfit">
+              <div class="shutter-inner"></div>
+            </button>
+          </div>
+
+          <!-- Post-Capture Review & Confirm Controls (after photo captured) -->
+          <div class="camera-review-container hidden" id="cameraReviewContainer">
+            <div class="camera-streak-preview" id="cameraStreakPreview">
+              <span class="camera-streak-text">
+                🔥 Current Streak: <strong id="cameraCurrentStreakVal">0</strong> ➔ New: <strong id="cameraNewStreakVal">1</strong> Streaks
+              </span>
+              <div id="cameraDuplicateWarning" class="hidden"></div>
+            </div>
+            <div class="camera-review-actions">
+              <button class="btn-olive-primary" id="btnConfirmCapturedOutfit" onclick="app.confirmCapturedOutfit()">
+                Confirm & Save Outfit 🔥
+              </button>
+              <button class="btn-outline-white" onclick="app.retakeCameraPhoto()">
+                ↺ Retake Photo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 2: Outfit Memories & Look History Gallery (Gallery Only) -->
+      <div class="streak-modal-backdrop hidden" id="outfitMemoriesModal" onclick="if(event.target === this) app.closeMemoriesModal()">
+        <div class="streak-modal-card outfit-memories-card" onclick="event.stopPropagation()">
+          <div class="streak-modal-header">
+            <h3 class="streak-modal-title">Outfit Memories</h3>
+            <button class="streak-modal-close" onclick="app.closeMemoriesModal()" title="Exit Gallery">✕</button>
+          </div>
+
+          <div class="memories-meta-bar">
+            <span class="memories-count-badge" id="memoriesTotalCountBadge">0 Memories Saved</span>
+          </div>
+
+          <!-- Memories Chronological Grid -->
+          <div class="memories-grid" id="memoriesGridContainer">
+            <!-- Rendered dynamically via app.renderOutfitMemories() -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 3: Single Memory Detail Lightbox -->
+      <div class="streak-modal-backdrop hidden" id="memoryDetailModal" onclick="if(event.target === this) app.closeMemoryDetailModal()">
+        <div class="streak-modal-card memory-detail-card" onclick="event.stopPropagation()">
+          <div class="streak-modal-header">
+            <h3 class="streak-modal-title" id="memoryDetailDateTitle">Outfit Memory</h3>
+            <button class="streak-modal-close" onclick="app.closeMemoryDetailModal()">✕</button>
+          </div>
+          <div class="memory-detail-img-wrap">
+            <img id="memoryDetailImg" src="" alt="Outfit Memory" />
+            <span class="memory-detail-streak-tag" id="memoryDetailStreakTag">Day 1 🔥</span>
+          </div>
+          <div class="memory-detail-info">
+            <h4 id="memoryDetailNote" class="memory-detail-note">Outfit Look</h4>
+            <span id="memoryDetailTimestamp" class="memory-detail-time">Logged</span>
+          </div>
+          <button class="btn-outline-white full-width" onclick="app.closeMemoryDetailModal()">Back to Memories</button>
+        </div>
+      </div>
+
+      <!-- Modal 4: Missed Upload Broken Streak & Monthly Restore -->
+      <div class="streak-modal-backdrop hidden" id="missedStreakModal" onclick="if(event.target === this) app.closeMissedStreakModal()">
+        <div class="streak-modal-card missed-streak-card" onclick="event.stopPropagation()">
+          <div class="streak-modal-header" style="justify-content: flex-end; margin-bottom: 0;">
+            <button class="streak-modal-close" onclick="app.closeMissedStreakModal()" title="Close">✕</button>
+          </div>
+          <div class="extinguished-flame-wrap">
+            <img src="assets/streak_bonfire_smoke.jpg" class="missed-bonfire-smoke-img" alt="Bonfire Smoke" />
+            <div class="smoke-extinguished-graphic">
+              <span class="smoke-drift d1">💨</span>
+              <span class="smoke-drift d2">💨</span>
+            </div>
+          </div>
+          <h2 class="missed-modal-headline">Oops! Your outfit streak has ended!</h2>
+          <p class="missed-modal-lead">Your streak is waiting to be restored. Keep your fashion flame alive!</p>
+          
+          <div class="lost-streak-stat-box">
+            <span class="stat-lbl">Lost Streak</span>
+            <span class="stat-num" id="missedStreakLostCount">0 Days</span>
+          </div>
+
+          <!-- Monthly Restoration Status Card -->
+          <div class="restore-status-card" id="restoreStatusCard">
+            <div class="restore-status-indicator">
+              <span class="restore-status-icon" id="restoreStatusIcon">✨</span>
+              <div class="restore-status-text">
+                <strong id="restoreStatusTitle">Monthly Restoration Available</strong>
+                <span id="restoreStatusSubtitle">Refreshes on the 3rd of every month</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="missed-modal-actions">
+            <button class="btn-olive-primary btn-restore-action" id="btnRestoreStreak" onclick="app.restoreMonthlyStreak()">
+              Restore Streak 🔥
+            </button>
+            <button class="btn-outline-white" onclick="app.startNewStreak()">
+              Start Fresh Streak
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 5: Woobi Streak Calendar (Shows Only Days and Month) -->
+      <div class="streak-modal-backdrop hidden" id="streakDetailsModal" onclick="if(event.target === this) app.closeStreakModal()">
+        <div class="streak-modal-card streak-details-card streak-calendar-modal-card woobi-calendar-card" onclick="event.stopPropagation()">
+          <!-- Clean Month Navigation & Close Button Header -->
+          <div class="streak-calendar-nav-header">
+            <div class="cal-nav-left-group">
+              <button class="btn-cal-nav btn-cal-nav-prev" onclick="app.prevCalendarMonth()" title="Previous Month" aria-label="Previous Month">❮</button>
+              <div class="streak-cal-month-title" id="streakCalMonthTitle">October 2026 ▾</div>
+              <button class="btn-cal-nav btn-cal-nav-next" onclick="app.nextCalendarMonth()" title="Next Month" aria-label="Next Month">❯</button>
+            </div>
+            <button class="streak-modal-close cal-exit-circle-btn" onclick="app.closeStreakModal()" title="Close Calendar" aria-label="Exit">✕</button>
+          </div>
+
+          <!-- Weekdays Header Row -->
+          <div class="streak-cal-weekdays-row">
+            <span>SUN</span>
+            <span>MON</span>
+            <span>TUE</span>
+            <span>WED</span>
+            <span>THU</span>
+            <span>FRI</span>
+            <span>SAT</span>
+          </div>
+
+          <!-- Dynamic 3D Recessed Crater Days Grid -->
+          <div class="streak-calendar-grid recessed-tiles-grid" id="streakCalendarGrid">
+            <!-- Rendered dynamically by app.renderStreakCalendar() -->
+          </div>
+
+          <!-- Hidden semantic elements for state synchronization -->
+          <div style="display: none;" aria-hidden="true">
+            <span id="calActiveCount">0</span>
+            <span id="calBrokenCount">0</span>
+            <span id="calUpcomingCount">0</span>
+            <div id="calHeaderStreakBadge">
+              <span id="calTierFlameIcon"></span>
+              <span id="calTierText">0 Day Streak • First Fire</span>
+            </div>
+            <h2 class="cal-main-title">Woobi Streak Calendar</h2>
+            <p class="cal-main-subtitle">Keep the flame going ✨</p>
+          </div>
+        </div>
+      </div>
   </main>
   </div><!-- /.desktop-editorial-frame -->
 <!-- /.app-viewport -->
@@ -3218,230 +3437,302 @@
     </div>
   </div>
 
-        <!-- ===================================================================
-             SCREEN: 3D VIRTUAL FASHION STUDIO
-             =================================================================== -->
-                
+  <!-- =========================================================================
+       CLOTHING CAPTURE & SILHOUETTE DIGITIZATION SYSTEM (MODALS)
+       ========================================================================= -->
 
-  <!-- In-App Daily Reminder Notification Banner -->
-  <div class="in-app-reminder-banner hidden" id="inAppReminderBanner">
-    <div class="reminder-banner-content">
-      <div class="reminder-banner-icon-wrap" id="reminderBannerIcon">
-        <span>🔥</span>
+  <!-- Hidden File Input for Native File Upload / Device Fallback -->
+  <input type="file" id="clothingFileInput" accept="image/*" capture="environment" style="display:none;" onchange="app.handleClothingFileSelected(event)">
+
+  <!-- 1. Category Selection Action Sheet (Step 1) -->
+  <div class="clothing-menu-modal hidden" id="clothingCaptureMenuModal" onclick="if(event.target === this) app.closeClothingCaptureMenu()">
+    <div class="clothing-menu-sheet">
+      <div class="clothing-menu-header">
+        <div>
+          <h3 class="clothing-menu-title">Add to Wardrobe</h3>
+          <p class="clothing-menu-sub">Position clothes inside the silhouette guide</p>
+        </div>
+        <button class="clothing-menu-close" onclick="app.closeClothingCaptureMenu()" title="Close">✕</button>
       </div>
-      <div class="reminder-banner-text">
-        <strong id="reminderBannerTitle">Upload Today's Look</strong>
-        <p id="reminderBannerBody">Snap your recommended outfit before the deadline to keep your streak going!</p>
-      </div>
-      <div class="reminder-banner-actions">
-        <button class="btn-banner-snap" onclick="app.triggerOutfitPhotoUpload()">
-          <span>📷 Snap</span>
+
+      <div class="clothing-options-list">
+        <!-- 1. Shirt 👕 (Max 7) -->
+        <button type="button" class="clothing-option-card" id="clothingOptShirt" onclick="app.openClothingCamera('shirt')">
+          <div class="clothing-opt-icon">👕</div>
+          <div class="clothing-opt-info">
+            <div class="clothing-opt-name">
+              <span>Shirt</span>
+            </div>
+            <div class="clothing-opt-desc">Tops • Shirts, T-shirts, Kurtas, Tops</div>
+          </div>
+          <span class="clothing-opt-badge" id="menuShirtSlots">0 / 7</span>
         </button>
-        <button class="btn-banner-close" onclick="app.dismissReminderBanner()">✕</button>
+
+        <!-- 2. Pant 👖 (Max 7) -->
+        <button type="button" class="clothing-option-card" id="clothingOptPant" onclick="app.openClothingCamera('pant')">
+          <div class="clothing-opt-icon">👖</div>
+          <div class="clothing-opt-info">
+            <div class="clothing-opt-name">
+              <span>Pant</span>
+            </div>
+            <div class="clothing-opt-desc">Bottoms • Trousers, Jeans, Chinos, Skirts</div>
+          </div>
+          <span class="clothing-opt-badge" id="menuPantSlots">0 / 7</span>
+        </button>
+
+        <!-- 3. Shoe 👟 (Max 2) -->
+        <button type="button" class="clothing-option-card" id="clothingOptShoe" onclick="app.openClothingCamera('shoe')">
+          <div class="clothing-opt-icon">👟</div>
+          <div class="clothing-opt-info">
+            <div class="clothing-opt-name">
+              <span>Shoe</span>
+            </div>
+            <div class="clothing-opt-desc">Footwear • Sneakers, Loafers, Sandals</div>
+          </div>
+          <span class="clothing-opt-badge" id="menuShoeSlots">0 / 2</span>
+        </button>
+      </div>
+
+      <div class="clothing-menu-actions">
+        <button type="button" class="clothing-menu-review-btn" id="menuReviewBtn" onclick="app.openClothingReview()" disabled>
+          <span>📋</span>
+          <span id="menuReviewBtnText">Review Captured (0 / 16)</span>
+        </button>
+        <button type="button" class="clothing-menu-wardrobe-link" onclick="app.closeClothingCaptureMenu(); app.serenToggleWardrobe(true);">
+          Explore 3D Wardrobe Closet instead
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Hidden File Input for Native Camera / Gallery Upload -->
-  <input type="file" id="outfitPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="app.handleOutfitPhotoSelected(event)">
+  <!-- 2. Clothing Silhouette Camera Modal (Steps 2, 3, 4, 5) -->
+  <div class="clothing-cam-modal hidden" id="clothingCaptureCameraModal">
+    <!-- Camera Top Bar: Switcher Tabs + Close + Review Quick Access -->
+    <div class="clothing-cam-header">
+      <button type="button" class="clothing-cam-close-btn" onclick="app.closeClothingCamera()" title="Exit Camera">✕</button>
 
-  <!-- Modal 1: Daily Streak Camera & Photo Capture (Camera Screen Only) -->
-  <div class="streak-modal-backdrop hidden" id="outfitCameraModal">
-    <div class="streak-modal-card streak-camera-card">
-      <div class="streak-modal-header">
-        <h3 class="streak-modal-title">Camera</h3>
-        <button class="streak-modal-close" onclick="app.closeCameraModal()" title="Exit Camera">✕</button>
-      </div>
-
-      <!-- Live Viewfinder / Capture Section -->
-      <div class="camera-viewfinder-container" id="cameraViewfinderContainer">
-        <video id="cameraVideo" class="camera-video-stream" autoplay playsinline muted></video>
-        <canvas id="cameraCanvas" class="hidden"></canvas>
-        <img id="cameraCapturedPreview" class="camera-captured-img hidden" alt="Captured Look" />
-
-        <!-- Framing guidelines overlay -->
-        <div class="camera-overlay-frame" id="cameraOverlayFrame">
-          <div class="camera-guide-oval"></div>
-        </div>
-
-        <!-- Camera Status / Fallback Card -->
-        <div class="camera-fallback-card hidden" id="cameraFallbackCard">
-          <span class="camera-fallback-icon">📷</span>
-          <p id="cameraFallbackMsg">Camera ready. Tap below to capture outfit photo.</p>
-        </div>
-      </div>
-
-      <!-- Live Camera Controls (before snapshot) -->
-      <div class="camera-controls-row" id="cameraLiveControls">
-        <button class="btn-camera-upload-mini" onclick="app.triggerFileInputClick()" title="Upload from Device">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
+      <!-- Category Switcher Tabs (Seamless switching without losing confirmed items) -->
+      <div class="clothing-cam-tabs">
+        <button type="button" class="clothing-cam-tab active" id="camTabShirt" onclick="app.switchClothingCategory('shirt')">
+          <span>👕 Shirt</span>
+          <span class="clothing-cam-tab-badge" id="camBadgeShirt">0/7</span>
         </button>
-        <button class="btn-camera-shutter" id="btnCameraShutter" onclick="app.captureCameraSnapshot()" title="Capture Outfit">
-          <div class="shutter-inner"></div>
+        <button type="button" class="clothing-cam-tab" id="camTabPant" onclick="app.switchClothingCategory('pant')">
+          <span>👖 Pant</span>
+          <span class="clothing-cam-tab-badge" id="camBadgePant">0/7</span>
+        </button>
+        <button type="button" class="clothing-cam-tab" id="camTabShoe" onclick="app.switchClothingCategory('shoe')">
+          <span>👟 Shoe</span>
+          <span class="clothing-cam-tab-badge" id="camBadgeShoe">0/2</span>
         </button>
       </div>
 
-      <!-- Post-Capture Review & Confirm Controls (after photo captured) -->
-      <div class="camera-review-container hidden" id="cameraReviewContainer">
-        <div class="camera-streak-preview" id="cameraStreakPreview">
-          <span class="camera-streak-text">
-            🔥 Current Streak: <strong id="cameraCurrentStreakVal">0</strong> ➔ New: <strong id="cameraNewStreakVal">1</strong> Streaks
-          </span>
-          <div id="cameraDuplicateWarning" class="hidden"></div>
+      <button type="button" class="clothing-cam-review-pill" onclick="app.openClothingReview()" title="View Final Review">
+        <span>📋</span>
+        <span id="camReviewCountBadge">0</span>
+      </button>
+    </div>
+
+    <!-- Live Viewfinder / Silhouette Guide -->
+    <div class="clothing-viewfinder-wrap" id="clothingViewfinderContainer">
+      <video id="clothingCameraVideo" class="clothing-camera-video" autoplay playsinline muted></video>
+      <canvas id="clothingCameraCanvas" class="hidden"></canvas>
+      <img id="clothingCapturedPreview" class="clothing-captured-preview hidden" alt="Captured Garment Preview" />
+
+      <!-- Silhouette Overlay Frame (POINTER-EVENTS NONE - NEVER INCLUDED IN SAVED PHOTO) -->
+      <div class="clothing-silhouette-frame" id="clothingSilhouetteFrame">
+        <!-- Live slot badge -->
+        <div class="clothing-slot-pill" id="clothingSlotStatusPill">
+          👕 Shirt: 1 of 7 (6 remaining)
         </div>
-        <div class="camera-review-actions">
-          <button class="btn-olive-primary" id="btnConfirmCapturedOutfit" onclick="app.confirmCapturedOutfit()">
-            Confirm & Save Outfit 🔥
+
+        <!-- 1. Shirt Silhouette Vector Overlay -->
+        <svg id="silhouetteShirt" class="clothing-silhouette-svg" viewBox="0 0 300 400" fill="none" stroke="currentColor">
+          <!-- Collar / Neckline -->
+          <path d="M120 70 C135 90, 165 90, 180 70" stroke-width="2.5" stroke-linecap="round" />
+          <path d="M115 70 C130 55, 170 55, 185 70" stroke-width="2" stroke-dasharray="4 3" opacity="0.8" />
+          <!-- Shoulders, Sleeves & Torso -->
+          <path d="M120 70 L65 105 L45 155 L85 175 L95 140 L95 320 C95 330, 205 330, 205 320 L205 140 L215 175 L255 155 L235 105 L180 70 Z" 
+                stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+          <!-- Guidelines: Center & Chest -->
+          <line x1="150" y1="90" x2="150" y2="310" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.5" />
+          <line x1="95" y1="130" x2="205" y2="130" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.5" />
+          <text x="150" y="46" text-anchor="middle" font-size="11" fill="currentColor" letter-spacing="1.2">ALIGN SHOULDERS HERE</text>
+          <line x1="60" y1="55" x2="240" y2="55" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.5" />
+        </svg>
+
+        <!-- 2. Pant Silhouette Vector Overlay -->
+        <svg id="silhouettePant" class="clothing-silhouette-svg hidden" viewBox="0 0 300 400" fill="none" stroke="currentColor">
+          <!-- Waistband -->
+          <path d="M85 60 C125 56, 175 56, 215 60 L218 80 C175 76, 125 76, 82 80 Z" stroke-width="2.5" stroke-linejoin="round" />
+          <!-- Trousers / Legs Outline -->
+          <path d="M82 80 L75 140 L90 350 L132 350 L145 170 L155 170 L168 350 L210 350 L225 140 L218 80" 
+                stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+          <!-- Crease Guidelines -->
+          <line x1="111" y1="140" x2="111" y2="340" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.5" />
+          <line x1="189" y1="140" x2="189" y2="340" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.5" />
+          <text x="150" y="42" text-anchor="middle" font-size="11" fill="currentColor" letter-spacing="1.2">ALIGN WAISTBAND HERE</text>
+          <line x1="75" y1="50" x2="225" y2="50" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.5" />
+        </svg>
+
+        <!-- 3. Shoe Silhouette Vector Overlay -->
+        <svg id="silhouetteShoe" class="clothing-silhouette-svg hidden" viewBox="0 0 300 400" fill="none" stroke="currentColor">
+          <!-- Left Shoe Outline -->
+          <path d="M85 85 C65 110, 60 170, 62 230 C64 280, 75 320, 95 325 C115 325, 125 285, 126 230 C127 170, 122 110, 105 85 C98 75, 92 75, 85 85 Z" 
+                stroke-width="2.6" stroke-linejoin="round" />
+          <ellipse cx="94" cy="180" rx="16" ry="32" stroke-width="1.6" stroke-dasharray="4 3" opacity="0.6" />
+          <line x1="82" y1="140" x2="106" y2="140" stroke-width="1.4" opacity="0.5" />
+          <line x1="84" y1="155" x2="104" y2="155" stroke-width="1.4" opacity="0.5" />
+
+          <!-- Right Shoe Outline -->
+          <path d="M215 85 C235 110, 240 170, 238 230 C236 280, 225 320, 205 325 C185 325, 175 285, 174 230 C173 170, 178 110, 195 85 C202 75, 208 75, 215 85 Z" 
+                stroke-width="2.6" stroke-linejoin="round" />
+          <ellipse cx="206" cy="180" rx="16" ry="32" stroke-width="1.6" stroke-dasharray="4 3" opacity="0.6" />
+          <line x1="194" y1="140" x2="218" y2="140" stroke-width="1.4" opacity="0.5" />
+          <line x1="196" y1="155" x2="216" y2="155" stroke-width="1.4" opacity="0.5" />
+
+          <text x="150" y="52" text-anchor="middle" font-size="11" fill="currentColor" letter-spacing="1.2">ALIGN FOOTWEAR PAIR</text>
+          <line x1="50" y1="340" x2="250" y2="340" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.5" />
+        </svg>
+
+        <!-- Positioning Guideline Banner -->
+        <div class="clothing-guide-banner" id="clothingGuideText">
+          👕 Lay shirt flat and align shoulders &amp; torso inside the outline
+        </div>
+      </div>
+
+      <!-- Camera Status & Permission Fallback Card -->
+      <div class="clothing-fallback-card hidden" id="clothingCameraFallback">
+        <span class="clothing-fallback-icon">📷</span>
+        <h4 style="margin: 0 0 6px 0; font-size: 1.1rem;">Camera Viewfinder Ready</h4>
+        <p style="margin: 0 0 16px 0; font-size: 0.8rem; color: #BFB5A9;">
+          Take a photo or choose an existing garment file to position.
+        </p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+          <button type="button" class="btn-outline-white" style="font-size: 0.82rem; padding: 8px 14px;" onclick="app.triggerClothingFileInput()">
+            Upload Garment File 📁
           </button>
-          <button class="btn-outline-white" onclick="app.retakeCameraPhoto()">
-            ↺ Retake Photo
+          <button type="button" class="btn-outline-white" style="font-size: 0.82rem; padding: 8px 14px;" onclick="app.loadSampleClothingPhoto()">
+            Use Sample Photo 🖼️
           </button>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal 2: Outfit Memories & Look History Gallery (Gallery Only) -->
-  <div class="streak-modal-backdrop hidden" id="outfitMemoriesModal">
-    <div class="streak-modal-card outfit-memories-card">
-      <div class="streak-modal-header">
-        <h3 class="streak-modal-title">Outfit Memories</h3>
-        <button class="streak-modal-close" onclick="app.closeMemoriesModal()" title="Exit Gallery">✕</button>
-      </div>
-
-      <div class="memories-meta-bar">
-        <span class="memories-count-badge" id="memoriesTotalCountBadge">0 Memories Saved</span>
-      </div>
-
-      <!-- Memories Chronological Grid -->
-      <div class="memories-grid" id="memoriesGridContainer">
-        <!-- Rendered dynamically via app.renderOutfitMemories() -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal 3: Single Memory Detail Lightbox -->
-  <div class="streak-modal-backdrop hidden" id="memoryDetailModal">
-    <div class="streak-modal-card memory-detail-card">
-      <div class="streak-modal-header">
-        <h3 class="streak-modal-title" id="memoryDetailDateTitle">Outfit Memory</h3>
-        <button class="streak-modal-close" onclick="app.closeMemoryDetailModal()">✕</button>
-      </div>
-      <div class="memory-detail-img-wrap">
-        <img id="memoryDetailImg" src="" alt="Outfit Memory" />
-        <span class="memory-detail-streak-tag" id="memoryDetailStreakTag">Day 1 🔥</span>
-      </div>
-      <div class="memory-detail-info">
-        <h4 id="memoryDetailNote" class="memory-detail-note">Outfit Look</h4>
-        <span id="memoryDetailTimestamp" class="memory-detail-time">Logged</span>
-      </div>
-      <button class="btn-outline-white full-width" onclick="app.closeMemoryDetailModal()">Back to Memories</button>
-    </div>
-  </div>
-
-  <!-- Modal 4: Missed Upload Broken Streak & Monthly Restore -->
-  <div class="streak-modal-backdrop hidden" id="missedStreakModal">
-    <div class="streak-modal-card missed-streak-card">
-      <div class="streak-modal-header" style="justify-content: flex-end; margin-bottom: 0;">
-        <button class="streak-modal-close" onclick="app.closeMissedStreakModal()" title="Close">✕</button>
-      </div>
-      <div class="extinguished-flame-wrap">
-        <img src="assets/streak_bonfire_smoke.jpg" class="missed-bonfire-smoke-img" alt="Bonfire Smoke" />
-        <div class="smoke-extinguished-graphic">
-          <span class="smoke-drift d1">💨</span>
-          <span class="smoke-drift d2">💨</span>
-        </div>
-      </div>
-      <h2 class="missed-modal-headline">Oops! Your outfit streak has ended!</h2>
-      <p class="missed-modal-lead">Your streak is waiting to be restored. Keep your fashion flame alive!</p>
-      
-      <div class="lost-streak-stat-box">
-        <span class="stat-lbl">Lost Streak</span>
-        <span class="stat-num" id="missedStreakLostCount">0 Days</span>
-      </div>
-
-      <!-- Monthly Restoration Status Card -->
-      <div class="restore-status-card" id="restoreStatusCard">
-        <div class="restore-status-indicator">
-          <span class="restore-status-icon" id="restoreStatusIcon">✨</span>
-          <div class="restore-status-text">
-            <strong id="restoreStatusTitle">Monthly Restoration Available</strong>
-            <span id="restoreStatusSubtitle">Refreshes on the 3rd of every month</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="missed-modal-actions">
-        <button class="btn-olive-primary btn-restore-action" id="btnRestoreStreak" onclick="app.restoreMonthlyStreak()">
-          Restore Streak 🔥
+    <!-- Camera Bottom Controls -->
+    <div class="clothing-cam-controls">
+      <!-- Live Shutter Controls (before capture) -->
+      <div class="clothing-live-controls" id="clothingCameraLiveControls">
+        <button type="button" class="clothing-control-tool-btn" onclick="app.triggerClothingFileInput()" title="Choose Photo from Device">
+          📁
         </button>
-        <button class="btn-outline-white" onclick="app.startNewStreak()">
-          Start Fresh Streak
+        
+        <button type="button" class="clothing-shutter-btn" id="clothingShutterBtn" onclick="app.captureClothingSnapshot()" title="Take Photo">
+          <div class="clothing-shutter-inner"></div>
+        </button>
+
+        <button type="button" class="clothing-control-tool-btn" onclick="app.flipClothingCamera()" title="Switch Front/Rear Camera">
+          🔄
+        </button>
+      </div>
+
+      <!-- Review & Confirm Controls (after capture) -->
+      <div class="clothing-review-controls hidden" id="clothingCameraReviewControls">
+        <button type="button" class="clothing-btn-retake" onclick="app.retakeClothingPhoto()">
+          ↺ Retake
+        </button>
+        <button type="button" class="clothing-btn-confirm" id="btnConfirmClothingPhoto" onclick="app.confirmClothingPhoto()">
+          ✓ Confirm &amp; Save Photo
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Modal 5: Woobi Streak Calendar & Monthly Fire Animation -->
-  <div class="streak-modal-backdrop hidden" id="streakDetailsModal">
-    <div class="streak-modal-card streak-details-card streak-calendar-modal-card">
-      <div class="streak-modal-header">
-        <div class="streak-cal-title-wrap">
-          <h3 class="streak-modal-title">Streak Calendar</h3>
-          <span class="streak-cal-active-badge" id="calHeaderStreakBadge">🔥 Current Streak: 0 Days</span>
-        </div>
-        <button class="streak-modal-close" onclick="app.closeStreakModal()" title="Close">✕</button>
+  <!-- 3. Final Review Page (Step 6) -->
+  <div class="clothing-review-modal hidden" id="clothingCaptureReviewModal">
+    <div class="clothing-review-header">
+      <button type="button" class="clothing-review-back-btn" onclick="app.closeClothingReview()" title="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="clothing-review-title-box">
+        <h3 class="clothing-review-main-title">Review Clothes</h3>
+        <span class="clothing-review-total-badge" id="reviewTotalBadge">0 of 16 Selected</span>
       </div>
+      <div style="width: 36px;"></div>
+    </div>
 
-      <!-- Monthly Circular Calendar Card: Only the Calendar -->
-      <div class="streak-calendar-card" style="margin-bottom: 0;">
-        <!-- Month Navigation Bar -->
-        <div class="streak-calendar-nav">
-          <button class="btn-cal-nav" onclick="app.prevCalendarMonth()" title="Previous Month">❮</button>
-          <div class="streak-cal-month-title" id="streakCalMonthTitle">October 2026 ▾</div>
-          <button class="btn-cal-nav" onclick="app.nextCalendarMonth()" title="Next Month">❯</button>
-        </div>
-
-        <!-- Weekdays Header Row -->
-        <div class="streak-cal-weekdays-row">
-          <span>SUN</span>
-          <span>MON</span>
-          <span>TUE</span>
-          <span>WED</span>
-          <span>THU</span>
-          <span>FRI</span>
-          <span>SAT</span>
-        </div>
-
-        <!-- Dynamic Circular Days Grid -->
-        <div class="streak-calendar-grid" id="streakCalendarGrid">
-          <!-- Rendered dynamically by app.renderCalendar() -->
-        </div>
-
-        <!-- Monthly Summary Stats Bar -->
-        <div class="streak-cal-stats-bar">
-          <div class="cal-stat-item">
-            <span class="stat-icon">🔥</span>
-            <span class="stat-val" id="calActiveCount">0</span>
-            <span class="stat-name">Active Days</span>
+    <div class="clothing-review-body">
+      <!-- Section 1: Shirts (Max 7) -->
+      <section class="clothing-category-section">
+        <div class="clothing-sec-header">
+          <div class="clothing-sec-title">
+            <span>👕</span>
+            <span>Shirts</span>
           </div>
-          <div class="cal-stat-sep">|</div>
-          <div class="cal-stat-item">
-            <span class="stat-icon">🪵</span>
-            <span class="stat-val" id="calBrokenCount">0</span>
-            <span class="stat-name">Missed Days</span>
-          </div>
-          <div class="cal-stat-sep">|</div>
-          <div class="cal-stat-item">
-            <span class="stat-icon">⚪</span>
-            <span class="stat-val" id="calUpcomingCount">0</span>
-            <span class="stat-name">Upcoming</span>
-          </div>
+          <span class="clothing-sec-count-pill" id="reviewShirtCountPill">0 / 7</span>
         </div>
+        <div class="clothing-cards-grid" id="reviewShirtsGrid">
+          <!-- Rendered dynamically via app.renderClothingReviewGrid() -->
+        </div>
+      </section>
+
+      <!-- Section 2: Pants (Max 7) -->
+      <section class="clothing-category-section">
+        <div class="clothing-sec-header">
+          <div class="clothing-sec-title">
+            <span>👖</span>
+            <span>Pants</span>
+          </div>
+          <span class="clothing-sec-count-pill" id="reviewPantCountPill">0 / 7</span>
+        </div>
+        <div class="clothing-cards-grid" id="reviewPantsGrid">
+          <!-- Rendered dynamically via app.renderClothingReviewGrid() -->
+        </div>
+      </section>
+
+      <!-- Section 3: Shoes (Max 2) -->
+      <section class="clothing-category-section">
+        <div class="clothing-sec-header">
+          <div class="clothing-sec-title">
+            <span>👟</span>
+            <span>Shoes</span>
+          </div>
+          <span class="clothing-sec-count-pill" id="reviewShoeCountPill">0 / 2</span>
+        </div>
+        <div class="clothing-cards-grid" id="reviewShoesGrid">
+          <!-- Rendered dynamically via app.renderClothingReviewGrid() -->
+        </div>
+      </section>
+    </div>
+
+    <!-- Review Footer CTA -->
+    <div class="clothing-review-footer">
+      <div class="clothing-review-tally" id="reviewTallySummary">
+        0 Shirts • 0 Pants • 0 Shoes confirmed
+      </div>
+      <button type="button" class="clothing-btn-save-all" id="btnSaveWardrobeSelection" onclick="app.saveCapturedClothingToWardrobe()" disabled>
+        Finish &amp; Save to Wardrobe ✨
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. Photo Preview Lightbox Modal -->
+  <div class="clothing-lightbox-modal hidden" id="clothingPreviewLightbox" onclick="if(event.target === this) app.closeClothingLightbox()">
+    <div class="clothing-lightbox-card">
+      <div class="clothing-lightbox-header">
+        <h4 class="clothing-lightbox-title" id="lightboxTitle">Garment Preview</h4>
+        <button type="button" class="clothing-lightbox-close" onclick="app.closeClothingLightbox()">✕</button>
+      </div>
+      <div class="clothing-lightbox-img-wrap">
+        <img id="lightboxImg" class="clothing-lightbox-img" src="" alt="Enlarged Garment" />
+      </div>
+      <div class="clothing-lightbox-actions">
+        <button type="button" class="btn-outline-white" style="font-size: 0.8rem; padding: 8px 14px;" onclick="app.closeClothingLightbox()">
+          Back
+        </button>
+        <button type="button" class="btn-outline-white" style="font-size: 0.8rem; padding: 8px 14px; color: #FF6B6B; border-color: rgba(255, 107, 107, 0.4);" id="lightboxRemoveBtn">
+          Remove Photo 🗑️
+        </button>
       </div>
     </div>
   </div>
@@ -3463,7 +3754,7 @@
   <script src="wardrobe-astra-material.js?v=20261031_9"></script>
   <script src="wardrobe3d.js?v=20261031_9"></script>
   <script src="studio3d.js?v=20261031_9"></script>
-  <script src="app.js?v=20261031_9"></script>
+  <script src="app.js?v=20261104_2"></script>
   <script>
     window.showStudio3DFallback = function (message) {
       var fallback = document.getElementById('seren3dFallback');

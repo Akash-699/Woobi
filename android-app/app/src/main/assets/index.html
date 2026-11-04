@@ -31,7 +31,7 @@
   
   <!-- Woobi Core Shared Design Tokens -->
   <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
-  <link rel="stylesheet" href="styles.css?v=20261031_2">
+  <link rel="stylesheet" href="styles.css?v=20261104_1">
 </head>
 <body>
 
@@ -372,30 +372,32 @@
         <section class="phone-screen active" id="screen-today">
           <!-- Sérén Studio Minimal Header Overlay -->
           <header class="seren-header">
-            <div class="seren-header-left">
+            <!-- Hidden Branding Mark to remove visual text at top left while preserving compatibility -->
+            <div class="seren-header-left" style="display: none;" hidden>
               <div class="seren-branding">
                 <span class="seren-brand-name">woobi</span>
                 <span class="seren-brand-sub">3D STUDIO</span>
               </div>
             </div>
-            <!-- Three Icons in One Row: Camera, Streak, Gallery (Centered at Top) -->
+
+            <!-- Dynamic Island: Only Streak, Camera, Gallery (Centered at Top) -->
             <div class="streak-trio-row" id="streakTrioRow">
-              <!-- 1. 📷 Camera Icon: Opens Camera Screen Only -->
+              <!-- 1. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when broken) -->
+              <button type="button" class="streak-trio-btn streak-flame-btn" id="streakHeaderPill" onclick="app.handleStreakIconClick()" title="Daily Outfit Streak">
+                <div class="streak-flame-wrapper" id="streakFlameWrapper">
+                  <img src="assets/streak/fire_level_1.png" class="streak-header-icon-img fire-lvl-1" id="streakHeaderFireImg" alt="Streak Fire" />
+                  <img src="assets/streak/bonfire_smoke.png" class="streak-header-icon-img hidden" id="streakHeaderSmokeImg" alt="Streak Wood & Smoke" />
+                </div>
+                <span class="streak-count" id="streakCount">0</span>
+                <span class="streak-count-label" id="streakCountLabel">Streaks</span>
+              </button>
+
+              <!-- 2. 📷 Camera Icon: Opens Camera Screen Only -->
               <button type="button" class="streak-trio-btn streak-camera-btn" id="streakCameraBtn" onclick="app.openCameraModal()" title="Take Outfit Photo">
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                   <circle cx="12" cy="13" r="4"/>
                 </svg>
-              </button>
-
-              <!-- 2. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when broken) -->
-              <button type="button" class="streak-trio-btn streak-flame-btn" id="streakHeaderPill" onclick="app.handleStreakIconClick()" title="Daily Outfit Streak">
-                <div class="streak-flame-wrapper" id="streakFlameWrapper">
-                  <img src="assets/streak_fire.jpg" class="streak-header-icon-img" id="streakHeaderFireImg" alt="Streak Fire" />
-                  <img src="assets/streak_bonfire_smoke.jpg" class="streak-header-icon-img hidden" id="streakHeaderSmokeImg" alt="Streak Wood & Smoke" />
-                </div>
-                <span class="streak-count" id="streakCount">0</span>
-                <span class="streak-count-label" id="streakCountLabel">Streaks</span>
               </button>
 
               <!-- 3. 🖼️ Gallery Icon: Opens Outfit Memories Gallery -->
@@ -407,6 +409,28 @@
                 </svg>
               </button>
             </div>
+
+            <!-- Outside Dynamic Island (Top Right Actions): Calendar & Account -->
+            <div class="seren-header-right">
+              <!-- 4. 📅 Calendar Icon: Opens Woobi Streak Calendar -->
+              <button type="button" class="seren-icon-btn streak-calendar-btn" id="streakCalendarBtn" onclick="app.openStreakModal()" title="View Streak Calendar">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                  <line x1="16" x2="16" y1="2" y2="6"/>
+                  <line x1="8" x2="8" y1="2" y2="6"/>
+                  <line x1="3" x2="21" y1="10" y2="10"/>
+                  <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+                </svg>
+              </button>
+
+              <!-- 5. 👤 Account Icon: Opens Profile -->
+              <button type="button" class="seren-icon-btn streak-account-btn" id="streakAccountBtn" onclick="app.goToScreen('profile')" title="User Profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </button>
+            </div>
           </header>
 
           <!-- Real 3D WebGL Studio Viewport -->
@@ -414,12 +438,20 @@
             <!-- Real Three.js 3D WebGL Canvas -->
             <canvas id="seren3dCanvas" class="seren-3d-canvas"></canvas>
 
-            <!-- Floating Editorial Tagline & Greeting Card (Upper-Right matching Target Reference) -->
-            <div class="seren-editorial-tagline-wrap">
+            <!-- Three.js / WebGL Fallback Overlay -->
+            <div class="seren-3d-fallback" id="seren3dFallback" hidden>
+              <div class="seren-3d-fallback__icon">✦</div>
+              <strong>3D Studio Unavailable</strong>
+              <p id="seren3dFallbackMessage">The 3D studio is unavailable offline or without WebGL. You can continue using the rest of your wardrobe.</p>
+              <button type="button" class="btn-seren-retry" onclick="window.retryStudio3D && window.retryStudio3D()">Retry 3D Studio</button>
+            </div>
+
+            <!-- Floating Editorial Tagline & Greeting Card (Hidden to remove unwanted floating popups) -->
+            <div class="seren-editorial-tagline-wrap" style="display: none;" hidden>
               <span class="seren-editorial-tagline">Style a kinder you</span>
               <span class="seren-editorial-heart">♡</span>
             </div>
-            <div class="seren-floating-greeting" id="serenFloatingGreeting">
+            <div class="seren-floating-greeting" id="serenFloatingGreeting" style="display: none;" hidden>
               <div class="greeting-sun-icon">☀️</div>
               <div class="greeting-content">
                 <span class="greeting-time-tag" id="greetingTimeTag">Good morning!</span>
@@ -427,14 +459,14 @@
               </div>
             </div>
 
-            <!-- 3D Spatial Floating Interactive Hotspots matching Target Reference -->
-            <button class="spatial-3d-hint wardrobe-hint" onclick="app.serenInteract('wardrobe')" title="Explore Wardrobe">
+            <!-- 3D Spatial Floating Interactive Hotspots (Wardrobe & Vanity popups hidden to eliminate clutter) -->
+            <button class="spatial-3d-hint wardrobe-hint" onclick="app.serenInteract('wardrobe')" title="Explore Wardrobe" style="display: none;" hidden>
               <span class="hint-icon">👕</span>
               <span class="hint-text">Wardrobe</span>
               <span class="hint-arrow">›</span>
             </button>
 
-            <button class="spatial-3d-hint mirror-hint" onclick="app.serenInteract('vanity')" title="Vanity & Grooming">
+            <button class="spatial-3d-hint mirror-hint" onclick="app.serenInteract('vanity')" title="Vanity & Grooming" style="display: none;" hidden>
               <span class="hint-icon">🪞</span>
               <span class="hint-text">Vanity</span>
               <span class="hint-arrow">›</span>
@@ -2540,93 +2572,58 @@
         </section>
 
         <!-- ===================================================================
-             SCREEN 25: WEEKLY PLANNING (NEW)
+             SCREEN 25: WEEKLY PLANNING & CALENDAR
              =================================================================== -->
         <section class="phone-screen" id="screen-weekly-planning">
-          <div class="screen-body-padded" style="padding-top: 14px;">
-            <h1 class="screen-headline-serif">Your week, dressed</h1>
-            <p class="screen-caption-sub">Plan your outfits for the days ahead.</p>
+          <div class="screen-sub-header">
+            <button class="nav-back-arrow" onclick="app.weeklyPlannerGoBack()" title="Back to Today">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <span class="sub-header-title">Weekly Planner</span>
+            <button class="btn-today-pill" onclick="app.plannerJumpToToday()" title="Jump to Today">Today</button>
+          </div>
 
-            <div class="weekly-schedule-stream">
-              <!-- Mon -->
-              <div class="day-plan-card" onclick="app.goToScreen('outfit-details')">
-                <div class="dp-day-info">
-                  <strong>Mon</strong>
-                  <span>3 Nov</span>
-                </div>
-                <div class="dp-outfit-preview">
-                  <span class="dp-occ-tag">College</span>
-                  <div class="dp-thumbs-row">
-                    <img src="assets/terracotta_tee.jpg">
-                    <img src="assets/dark_denim.jpg">
-                    <img src="assets/white_sneakers.jpg">
-                  </div>
-                </div>
-                <span class="dp-chevron">›</span>
-              </div>
+          <div class="screen-body-padded" style="padding-top: 10px; padding-bottom: 80px;">
+            <div class="planner-header-intro">
+              <h1 class="screen-headline-serif">Your week, dressed</h1>
+              <p class="screen-caption-sub">Plan outfits for upcoming days, assign looks, and stay effortlessly ready.</p>
+            </div>
 
-              <!-- Tue -->
-              <div class="day-plan-card" onclick="app.goToScreen('outfit-details')">
-                <div class="dp-day-info">
-                  <strong>Tue</strong>
-                  <span>4 Nov</span>
-                </div>
-                <div class="dp-outfit-preview">
-                  <span class="dp-occ-tag">Office</span>
-                  <div class="dp-thumbs-row">
-                    <img src="assets/navy_shirt.jpg">
-                    <img src="assets/beige_chinos.jpg">
-                    <img src="assets/tan_loafers.jpg">
-                  </div>
-                </div>
-                <span class="dp-chevron">›</span>
+            <!-- Week Navigation Controls -->
+            <div class="planner-week-ctrl-bar">
+              <button class="planner-week-btn" onclick="app.plannerChangeWeek(-1)" title="Previous Week">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
+                <span>Prev</span>
+              </button>
+              <div class="planner-week-label-box">
+                <span class="planner-week-title" id="plannerWeekTitle">Nov 2 – Nov 8, 2026</span>
+                <span class="planner-week-sub" id="plannerWeekSub">This Week (Current)</span>
               </div>
+              <button class="planner-week-btn" onclick="app.plannerChangeWeek(1)" title="Next Week">
+                <span>Next</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
 
-              <!-- Wed -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Wed</strong>
-                  <span>5 Nov</span>
-                </div>
-                <span class="dp-empty-text">Choose an outfit</span>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
+            <!-- Interactive Weekly Date Strip (Calendar Ribbon) -->
+            <div class="planner-week-strip" id="plannerWeekStrip">
+              <!-- Dynamically rendered 7 day items (Mon-Sun) with date, status dot, active state -->
+            </div>
 
-              <!-- Thu -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Thu</strong>
-                  <span>6 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
+            <!-- Planning Summary / Progress Bar -->
+            <div class="planner-summary-card" id="plannerSummaryCard">
+              <div class="planner-summary-info">
+                <span class="planner-summary-count" id="plannerSummaryCount"><strong>2 of 7</strong> days planned</span>
+                <span class="planner-selected-date-badge" id="plannerSelectedDateBadge">Selected: Mon, 2 Nov</span>
               </div>
+              <div class="planner-progress-track">
+                <div class="planner-progress-fill" id="plannerProgressFill" style="width: 28.5%;"></div>
+              </div>
+            </div>
 
-              <!-- Fri -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Fri</strong>
-                  <span>7 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
-
-              <!-- Sat -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Sat</strong>
-                  <span>8 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
-
-              <!-- Sun -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Sun</strong>
-                  <span>9 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
+            <!-- Dynamic Day Schedule Cards Stream -->
+            <div class="weekly-schedule-stream" id="weeklyScheduleStream">
+              <!-- Dynamically populated for all 7 days of the selected week -->
             </div>
           </div>
 
@@ -3127,9 +3124,306 @@
         </section>
 
       </div><!-- /.phone-screen-container -->
+
+      <!-- In-App Daily Reminder Notification Banner -->
+      <div class="in-app-reminder-banner hidden" id="inAppReminderBanner">
+        <div class="reminder-banner-content">
+          <div class="reminder-banner-icon-wrap" id="reminderBannerIcon">
+            <span>🔥</span>
+          </div>
+          <div class="reminder-banner-text">
+            <strong id="reminderBannerTitle">Upload Today's Look</strong>
+            <p id="reminderBannerBody">Snap your recommended outfit before the deadline to keep your streak going!</p>
+          </div>
+          <div class="reminder-banner-actions">
+            <button class="btn-banner-snap" onclick="app.triggerOutfitPhotoUpload()">
+              <span>📷 Snap</span>
+            </button>
+            <button class="btn-banner-close" onclick="app.dismissReminderBanner()">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden File Input for Native Camera / Gallery Upload -->
+      <input type="file" id="outfitPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="app.handleOutfitPhotoSelected(event)">
+
+      <!-- Modal 1: Daily Streak Camera & Photo Capture (Camera Screen Only) -->
+      <div class="streak-modal-backdrop hidden" id="outfitCameraModal" onclick="if(event.target === this) app.closeCameraModal()">
+        <div class="streak-modal-card streak-camera-card" onclick="event.stopPropagation()">
+          <div class="streak-modal-header">
+            <h3 class="streak-modal-title">Camera</h3>
+            <button class="streak-modal-close" onclick="app.closeCameraModal()" title="Exit Camera">✕</button>
+          </div>
+
+          <!-- Live Viewfinder / Capture Section -->
+          <div class="camera-viewfinder-container" id="cameraViewfinderContainer">
+            <video id="cameraVideo" class="camera-video-stream" autoplay playsinline muted></video>
+            <canvas id="cameraCanvas" class="hidden"></canvas>
+            <img id="cameraCapturedPreview" class="camera-captured-img hidden" alt="Captured Look" />
+
+            <!-- Framing guidelines overlay -->
+            <div class="camera-overlay-frame" id="cameraOverlayFrame">
+              <div class="camera-guide-oval"></div>
+            </div>
+
+            <!-- Camera Status / Fallback Card -->
+            <div class="camera-fallback-card hidden" id="cameraFallbackCard">
+              <span class="camera-fallback-icon">📷</span>
+              <p id="cameraFallbackMsg">Camera ready. Tap below to capture outfit photo.</p>
+            </div>
+          </div>
+
+          <!-- Live Camera Controls (before snapshot) -->
+          <div class="camera-controls-row" id="cameraLiveControls">
+            <button class="btn-camera-upload-mini" onclick="app.triggerFileInputClick()" title="Upload from Device">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </button>
+            <button class="btn-camera-shutter" id="btnCameraShutter" onclick="app.captureCameraSnapshot()" title="Capture Outfit">
+              <div class="shutter-inner"></div>
+            </button>
+          </div>
+
+          <!-- Post-Capture Review & Confirm Controls (after photo captured) -->
+          <div class="camera-review-container hidden" id="cameraReviewContainer">
+            <div class="camera-streak-preview" id="cameraStreakPreview">
+              <span class="camera-streak-text">
+                🔥 Current Streak: <strong id="cameraCurrentStreakVal">0</strong> ➔ New: <strong id="cameraNewStreakVal">1</strong> Streaks
+              </span>
+              <div id="cameraDuplicateWarning" class="hidden"></div>
+            </div>
+            <div class="camera-review-actions">
+              <button class="btn-olive-primary" id="btnConfirmCapturedOutfit" onclick="app.confirmCapturedOutfit()">
+                Confirm & Save Outfit 🔥
+              </button>
+              <button class="btn-outline-white" onclick="app.retakeCameraPhoto()">
+                ↺ Retake Photo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 2: Outfit Memories & Look History Gallery (Gallery Only) -->
+      <div class="streak-modal-backdrop hidden" id="outfitMemoriesModal" onclick="if(event.target === this) app.closeMemoriesModal()">
+        <div class="streak-modal-card outfit-memories-card" onclick="event.stopPropagation()">
+          <div class="streak-modal-header">
+            <h3 class="streak-modal-title">Outfit Memories</h3>
+            <button class="streak-modal-close" onclick="app.closeMemoriesModal()" title="Exit Gallery">✕</button>
+          </div>
+
+          <div class="memories-meta-bar">
+            <span class="memories-count-badge" id="memoriesTotalCountBadge">0 Memories Saved</span>
+          </div>
+
+          <!-- Memories Chronological Grid -->
+          <div class="memories-grid" id="memoriesGridContainer">
+            <!-- Rendered dynamically via app.renderOutfitMemories() -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 3: Single Memory Detail Lightbox -->
+      <div class="streak-modal-backdrop hidden" id="memoryDetailModal" onclick="if(event.target === this) app.closeMemoryDetailModal()">
+        <div class="streak-modal-card memory-detail-card" onclick="event.stopPropagation()">
+          <div class="streak-modal-header">
+            <h3 class="streak-modal-title" id="memoryDetailDateTitle">Outfit Memory</h3>
+            <button class="streak-modal-close" onclick="app.closeMemoryDetailModal()">✕</button>
+          </div>
+          <div class="memory-detail-img-wrap">
+            <img id="memoryDetailImg" src="" alt="Outfit Memory" />
+            <span class="memory-detail-streak-tag" id="memoryDetailStreakTag">Day 1 🔥</span>
+          </div>
+          <div class="memory-detail-info">
+            <h4 id="memoryDetailNote" class="memory-detail-note">Outfit Look</h4>
+            <span id="memoryDetailTimestamp" class="memory-detail-time">Logged</span>
+          </div>
+          <button class="btn-outline-white full-width" onclick="app.closeMemoryDetailModal()">Back to Memories</button>
+        </div>
+      </div>
+
+      <!-- Modal 4: Missed Upload Broken Streak & Monthly Restore -->
+      <div class="streak-modal-backdrop hidden" id="missedStreakModal" onclick="if(event.target === this) app.closeMissedStreakModal()">
+        <div class="streak-modal-card missed-streak-card" onclick="event.stopPropagation()">
+          <div class="streak-modal-header" style="justify-content: flex-end; margin-bottom: 0;">
+            <button class="streak-modal-close" onclick="app.closeMissedStreakModal()" title="Close">✕</button>
+          </div>
+          <div class="extinguished-flame-wrap">
+            <img src="assets/streak_bonfire_smoke.jpg" class="missed-bonfire-smoke-img" alt="Bonfire Smoke" />
+            <div class="smoke-extinguished-graphic">
+              <span class="smoke-drift d1">💨</span>
+              <span class="smoke-drift d2">💨</span>
+            </div>
+          </div>
+          <h2 class="missed-modal-headline">Oops! Your outfit streak has ended!</h2>
+          <p class="missed-modal-lead">Your streak is waiting to be restored. Keep your fashion flame alive!</p>
+          
+          <div class="lost-streak-stat-box">
+            <span class="stat-lbl">Lost Streak</span>
+            <span class="stat-num" id="missedStreakLostCount">0 Days</span>
+          </div>
+
+          <!-- Monthly Restoration Status Card -->
+          <div class="restore-status-card" id="restoreStatusCard">
+            <div class="restore-status-indicator">
+              <span class="restore-status-icon" id="restoreStatusIcon">✨</span>
+              <div class="restore-status-text">
+                <strong id="restoreStatusTitle">Monthly Restoration Available</strong>
+                <span id="restoreStatusSubtitle">Refreshes on the 3rd of every month</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="missed-modal-actions">
+            <button class="btn-olive-primary btn-restore-action" id="btnRestoreStreak" onclick="app.restoreMonthlyStreak()">
+              Restore Streak 🔥
+            </button>
+            <button class="btn-outline-white" onclick="app.startNewStreak()">
+              Start Fresh Streak
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 5: Woobi Streak Calendar & Monthly Fire Animation -->
+      <div class="streak-modal-backdrop hidden" id="streakDetailsModal" onclick="if(event.target === this) app.closeStreakModal()">
+        <div class="streak-modal-card streak-details-card streak-calendar-modal-card woobi-calendar-card" onclick="event.stopPropagation()">
+          <!-- Exact Scene Header from Reference Image -->
+          <div class="cal-hero-scene-banner">
+            <button class="streak-modal-close cal-exit-circle-btn" onclick="app.closeStreakModal()" title="Close Calendar" aria-label="Exit">✕</button>
+            <!-- Accessible elements for test suites and state synchronization -->
+            <div class="cal-semantic-header-info" style="display: none;">
+              <h2 class="cal-main-title">Woobi Streak Calendar</h2>
+              <p class="cal-main-subtitle">Keep the flame going ✨</p>
+              <div class="cal-streak-badge-pill" id="calHeaderStreakBadge">
+                <span class="cal-badge-fire-icon" id="calTierFlameIcon">🔥</span>
+                <span id="calTierText">0 Day Streak • Spark Flame</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Monthly Calendar Container with Recessed Date Tiles -->
+          <div class="streak-calendar-card recessed-theme-calendar" style="margin-bottom: 0;">
+            <!-- Month Navigation Bar -->
+            <div class="streak-calendar-nav">
+              <button class="btn-cal-nav btn-cal-nav-prev" onclick="app.prevCalendarMonth()" title="Previous Month" aria-label="Previous Month">❮</button>
+              <div class="streak-cal-month-title" id="streakCalMonthTitle">October 2026 ▾</div>
+              <button class="btn-cal-nav btn-cal-nav-next" onclick="app.nextCalendarMonth()" title="Next Month" aria-label="Next Month">❯</button>
+            </div>
+
+            <!-- Weekdays Header Row -->
+            <div class="streak-cal-weekdays-row">
+              <span>SUN</span>
+              <span>MON</span>
+              <span>TUE</span>
+              <span>WED</span>
+              <span>THU</span>
+              <span>FRI</span>
+              <span>SAT</span>
+            </div>
+
+            <!-- Dynamic 3D Recessed Crater Days Grid -->
+            <div class="streak-calendar-grid recessed-tiles-grid" id="streakCalendarGrid">
+              <!-- Rendered dynamically by app.renderStreakCalendar() -->
+            </div>
+
+            <!-- Monthly Summary Stats Bar (3 columns matching target reference) -->
+            <div class="streak-cal-stats-bar stats-pill-card">
+              <div class="cal-stat-item">
+                <div class="stat-icon-wrap">
+                  <img src="assets/streak/stat_flame_icon.png" class="stat-flame-img" alt="Active Fire" />
+                </div>
+                <div class="stat-text-wrap">
+                  <span class="stat-val" id="calActiveCount">0</span>
+                  <span class="stat-name">Active Days</span>
+                </div>
+              </div>
+              <div class="cal-stat-sep"></div>
+              <div class="cal-stat-item">
+                <div class="stat-icon-wrap">
+                  <img src="assets/streak/bonfire_smoke.png" class="stat-smoke-img animated-bonfire-smoke" alt="Broken Campfire" />
+                </div>
+                <div class="stat-text-wrap">
+                  <span class="stat-val" id="calBrokenCount">0</span>
+                  <span class="stat-name">Broken Days</span>
+                </div>
+              </div>
+              <div class="cal-stat-sep"></div>
+              <div class="cal-stat-item">
+                <div class="stat-icon-wrap">
+                  <div class="stat-crater-circle"></div>
+                </div>
+                <div class="stat-text-wrap">
+                  <span class="stat-val" id="calUpcomingCount">0</span>
+                  <span class="stat-name">Inactive / Upcoming</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Navigation Bar Matching Target Screenshot (Home, Habits, Streak, Me) -->
+            <nav class="cal-card-bottom-nav">
+              <button class="cal-nav-btn" onclick="app.closeStreakModal()" title="Home">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span>Home</span>
+              </button>
+              <button class="cal-nav-btn" onclick="app.closeStreakModal()" title="Habits">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                <span>Habits</span>
+              </button>
+              <button class="cal-nav-btn active" title="Streak Calendar">
+                <div class="cal-nav-pill">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C85A17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M12 14c-.6 0-1 .4-1 1s.4 1 1 1 1-.4 1-1-.4-1-1-1z"/></svg>
+                  <span>Streak</span>
+                </div>
+              </button>
+              <button class="cal-nav-btn" onclick="app.closeStreakModal(); app.goToScreen('profile')" title="Me">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                <span>Me</span>
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
   </main>
   </div><!-- /.desktop-editorial-frame -->
 <!-- /.app-viewport -->
+
+  <!-- Weekly Planner Outfit Selection Modal Sheet -->
+  <div class="planner-modal-backdrop hidden" id="plannerOutfitModal" onclick="if(event.target === this) app.closePlannerOutfitModal()">
+    <div class="planner-modal-sheet" onclick="event.stopPropagation()">
+      <div class="sheet-drag-handle"></div>
+      <div class="planner-modal-header">
+        <div>
+          <span class="planner-modal-sub" id="plannerModalSub">Assign outfit</span>
+          <h3 class="planner-modal-title" id="plannerModalTitle">Choose look for Wednesday, 5 Nov</h3>
+        </div>
+        <button class="sheet-close-btn" onclick="app.closePlannerOutfitModal()" title="Close">✕</button>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="planner-filter-tabs" id="plannerFilterTabs">
+        <button class="planner-filter-tab active" onclick="app.filterPlannerOutfits('All', this)">All</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Work', this)">Work</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Casual', this)">Casual</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Ethnic', this)">Ethnic</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Weekend', this)">Weekend</button>
+      </div>
+
+      <!-- Outfits Catalog Grid / Stream -->
+      <div class="planner-outfits-grid" id="plannerOutfitsGrid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <div style="text-align: center; margin-top: 10px; padding-top: 6px;">
+        <button class="btn-link-simple" style="font-size: 0.78rem; color: var(--olive-primary, #324334);" onclick="app.closePlannerOutfitModal(); app.goToScreen('custom-builder');">
+          ✦ Or build a custom outfit in Style Studio
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Item Condition & Fit Modal Sheet -->
   <div class="condition-modal-backdrop hidden" id="itemConditionModal">
@@ -3199,234 +3493,6 @@
     </div>
   </div>
 
-        <!-- ===================================================================
-             SCREEN: 3D VIRTUAL FASHION STUDIO
-             =================================================================== -->
-                
-
-  <!-- In-App Daily Reminder Notification Banner -->
-  <div class="in-app-reminder-banner hidden" id="inAppReminderBanner">
-    <div class="reminder-banner-content">
-      <div class="reminder-banner-icon-wrap" id="reminderBannerIcon">
-        <span>🔥</span>
-      </div>
-      <div class="reminder-banner-text">
-        <strong id="reminderBannerTitle">Upload Today's Look</strong>
-        <p id="reminderBannerBody">Snap your recommended outfit before the deadline to keep your streak going!</p>
-      </div>
-      <div class="reminder-banner-actions">
-        <button class="btn-banner-snap" onclick="app.triggerOutfitPhotoUpload()">
-          <span>📷 Snap</span>
-        </button>
-        <button class="btn-banner-close" onclick="app.dismissReminderBanner()">✕</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Hidden File Input for Native Camera / Gallery Upload -->
-  <input type="file" id="outfitPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="app.handleOutfitPhotoSelected(event)">
-
-  <!-- Modal 1: Daily Streak Camera & Photo Capture (Camera Screen Only) -->
-  <div class="streak-modal-backdrop hidden" id="outfitCameraModal">
-    <div class="streak-modal-card streak-camera-card">
-      <div class="streak-modal-header">
-        <h3 class="streak-modal-title">Camera</h3>
-        <button class="streak-modal-close" onclick="app.closeCameraModal()" title="Exit Camera">✕</button>
-      </div>
-
-      <!-- Live Viewfinder / Capture Section -->
-      <div class="camera-viewfinder-container" id="cameraViewfinderContainer">
-        <video id="cameraVideo" class="camera-video-stream" autoplay playsinline muted></video>
-        <canvas id="cameraCanvas" class="hidden"></canvas>
-        <img id="cameraCapturedPreview" class="camera-captured-img hidden" alt="Captured Look" />
-
-        <!-- Framing guidelines overlay -->
-        <div class="camera-overlay-frame" id="cameraOverlayFrame">
-          <div class="camera-guide-oval"></div>
-        </div>
-
-        <!-- Camera Status / Fallback Card -->
-        <div class="camera-fallback-card hidden" id="cameraFallbackCard">
-          <span class="camera-fallback-icon">📷</span>
-          <p id="cameraFallbackMsg">Camera ready. Tap below to capture outfit photo.</p>
-        </div>
-      </div>
-
-      <!-- Live Camera Controls (before snapshot) -->
-      <div class="camera-controls-row" id="cameraLiveControls">
-        <button class="btn-camera-upload-mini" onclick="app.triggerFileInputClick()" title="Upload from Device">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-        </button>
-        <button class="btn-camera-shutter" id="btnCameraShutter" onclick="app.captureCameraSnapshot()" title="Capture Outfit">
-          <div class="shutter-inner"></div>
-        </button>
-      </div>
-
-      <!-- Post-Capture Review & Confirm Controls (after photo captured) -->
-      <div class="camera-review-container hidden" id="cameraReviewContainer">
-        <div class="camera-streak-preview" id="cameraStreakPreview">
-          <span class="camera-streak-text">
-            🔥 Current Streak: <strong id="cameraCurrentStreakVal">0</strong> ➔ New: <strong id="cameraNewStreakVal">1</strong> Streaks
-          </span>
-          <div id="cameraDuplicateWarning" class="hidden"></div>
-        </div>
-        <div class="camera-review-actions">
-          <button class="btn-olive-primary" id="btnConfirmCapturedOutfit" onclick="app.confirmCapturedOutfit()">
-            Confirm & Save Outfit 🔥
-          </button>
-          <button class="btn-outline-white" onclick="app.retakeCameraPhoto()">
-            ↺ Retake Photo
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal 2: Outfit Memories & Look History Gallery (Gallery Only) -->
-  <div class="streak-modal-backdrop hidden" id="outfitMemoriesModal">
-    <div class="streak-modal-card outfit-memories-card">
-      <div class="streak-modal-header">
-        <h3 class="streak-modal-title">Outfit Memories</h3>
-        <button class="streak-modal-close" onclick="app.closeMemoriesModal()" title="Exit Gallery">✕</button>
-      </div>
-
-      <div class="memories-meta-bar">
-        <span class="memories-count-badge" id="memoriesTotalCountBadge">0 Memories Saved</span>
-      </div>
-
-      <!-- Memories Chronological Grid -->
-      <div class="memories-grid" id="memoriesGridContainer">
-        <!-- Rendered dynamically via app.renderOutfitMemories() -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal 3: Single Memory Detail Lightbox -->
-  <div class="streak-modal-backdrop hidden" id="memoryDetailModal">
-    <div class="streak-modal-card memory-detail-card">
-      <div class="streak-modal-header">
-        <h3 class="streak-modal-title" id="memoryDetailDateTitle">Outfit Memory</h3>
-        <button class="streak-modal-close" onclick="app.closeMemoryDetailModal()">✕</button>
-      </div>
-      <div class="memory-detail-img-wrap">
-        <img id="memoryDetailImg" src="" alt="Outfit Memory" />
-        <span class="memory-detail-streak-tag" id="memoryDetailStreakTag">Day 1 🔥</span>
-      </div>
-      <div class="memory-detail-info">
-        <h4 id="memoryDetailNote" class="memory-detail-note">Outfit Look</h4>
-        <span id="memoryDetailTimestamp" class="memory-detail-time">Logged</span>
-      </div>
-      <button class="btn-outline-white full-width" onclick="app.closeMemoryDetailModal()">Back to Memories</button>
-    </div>
-  </div>
-
-  <!-- Modal 4: Missed Upload Broken Streak & Monthly Restore -->
-  <div class="streak-modal-backdrop hidden" id="missedStreakModal">
-    <div class="streak-modal-card missed-streak-card">
-      <div class="streak-modal-header" style="justify-content: flex-end; margin-bottom: 0;">
-        <button class="streak-modal-close" onclick="app.closeMissedStreakModal()" title="Close">✕</button>
-      </div>
-      <div class="extinguished-flame-wrap">
-        <img src="assets/streak_bonfire_smoke.jpg" class="missed-bonfire-smoke-img" alt="Bonfire Smoke" />
-        <div class="smoke-extinguished-graphic">
-          <span class="smoke-drift d1">💨</span>
-          <span class="smoke-drift d2">💨</span>
-        </div>
-      </div>
-      <h2 class="missed-modal-headline">Oops! Your outfit streak has ended!</h2>
-      <p class="missed-modal-lead">Your streak is waiting to be restored. Keep your fashion flame alive!</p>
-      
-      <div class="lost-streak-stat-box">
-        <span class="stat-lbl">Lost Streak</span>
-        <span class="stat-num" id="missedStreakLostCount">0 Days</span>
-      </div>
-
-      <!-- Monthly Restoration Status Card -->
-      <div class="restore-status-card" id="restoreStatusCard">
-        <div class="restore-status-indicator">
-          <span class="restore-status-icon" id="restoreStatusIcon">✨</span>
-          <div class="restore-status-text">
-            <strong id="restoreStatusTitle">Monthly Restoration Available</strong>
-            <span id="restoreStatusSubtitle">Refreshes on the 3rd of every month</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="missed-modal-actions">
-        <button class="btn-olive-primary btn-restore-action" id="btnRestoreStreak" onclick="app.restoreMonthlyStreak()">
-          Restore Streak 🔥
-        </button>
-        <button class="btn-outline-white" onclick="app.startNewStreak()">
-          Start Fresh Streak
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal 5: Woobi Streak Calendar & Monthly Fire Animation -->
-  <div class="streak-modal-backdrop hidden" id="streakDetailsModal">
-    <div class="streak-modal-card streak-details-card streak-calendar-modal-card">
-      <div class="streak-modal-header">
-        <div class="streak-cal-title-wrap">
-          <h3 class="streak-modal-title">Streak Calendar</h3>
-          <span class="streak-cal-active-badge" id="calHeaderStreakBadge">🔥 Current Streak: 0 Days</span>
-        </div>
-        <button class="streak-modal-close" onclick="app.closeStreakModal()" title="Close">✕</button>
-      </div>
-
-      <!-- Monthly Circular Calendar Card: Only the Calendar -->
-      <div class="streak-calendar-card" style="margin-bottom: 0;">
-        <!-- Month Navigation Bar -->
-        <div class="streak-calendar-nav">
-          <button class="btn-cal-nav" onclick="app.prevCalendarMonth()" title="Previous Month">❮</button>
-          <div class="streak-cal-month-title" id="streakCalMonthTitle">October 2026 ▾</div>
-          <button class="btn-cal-nav" onclick="app.nextCalendarMonth()" title="Next Month">❯</button>
-        </div>
-
-        <!-- Weekdays Header Row -->
-        <div class="streak-cal-weekdays-row">
-          <span>SUN</span>
-          <span>MON</span>
-          <span>TUE</span>
-          <span>WED</span>
-          <span>THU</span>
-          <span>FRI</span>
-          <span>SAT</span>
-        </div>
-
-        <!-- Dynamic Circular Days Grid -->
-        <div class="streak-calendar-grid" id="streakCalendarGrid">
-          <!-- Rendered dynamically by app.renderCalendar() -->
-        </div>
-
-        <!-- Monthly Summary Stats Bar -->
-        <div class="streak-cal-stats-bar">
-          <div class="cal-stat-item">
-            <span class="stat-icon">🔥</span>
-            <span class="stat-val" id="calActiveCount">0</span>
-            <span class="stat-name">Active Days</span>
-          </div>
-          <div class="cal-stat-sep">|</div>
-          <div class="cal-stat-item">
-            <span class="stat-icon">🪵</span>
-            <span class="stat-val" id="calBrokenCount">0</span>
-            <span class="stat-name">Missed Days</span>
-          </div>
-          <div class="cal-stat-sep">|</div>
-          <div class="cal-stat-item">
-            <span class="stat-icon">⚪</span>
-            <span class="stat-val" id="calUpcomingCount">0</span>
-            <span class="stat-name">Upcoming</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Notification Toast -->
   <div class="toast-popup" id="toastPopup"></div>
 
@@ -3445,5 +3511,21 @@
   <script src="wardrobe3d.js?v=20261031_9"></script>
   <script src="studio3d.js?v=20261031_9"></script>
   <script src="app.js?v=20261031_9"></script>
+  <script>
+    window.showStudio3DFallback = function (message) {
+      var fallback = document.getElementById('seren3dFallback');
+      var msgEl = document.getElementById('seren3dFallbackMessage');
+      if (msgEl && message) msgEl.textContent = message;
+      if (fallback) fallback.hidden = false;
+    };
+
+    window.retryStudio3D = function () {
+      var fallback = document.getElementById('seren3dFallback');
+      if (fallback) fallback.hidden = true;
+      if (window.Studio3D && typeof window.Studio3D.init === 'function') {
+        window.Studio3D.init('seren3dContainer', 'seren3dCanvas');
+      }
+    };
+  </script>
 </body>
 </html>

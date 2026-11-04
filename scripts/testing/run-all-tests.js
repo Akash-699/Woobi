@@ -50,9 +50,10 @@ const testSuites = [
   { name: 'Entitlement Anti-Tampering Security (5 Tests)', path: 'modules/backend/security/EntitlementSecurity.test.js', isNodeTest: true },
   { name: 'Branding & Compatibility Verification (6 Tests)', path: 'modules/core/BrandingCompatibility.test.js', isNodeTest: true },
   { name: 'Daily Outfit Streak & Memories State Engine (15 Tests)', path: 'modules/core/state/StreakState.test.js', isNodeTest: true },
+  { name: 'Clothing Silhouette Capture & Slot Budgeting Engine (9 Tests)', path: 'modules/core/state/ClothingCaptureState.test.js', isNodeTest: true },
 
-  // 6. Production User Journeys & End-to-End Flows (7 Tests)
-  { name: 'Application User Journeys (7 Tests)', path: 'scripts/testing/test-user-journeys.js', isNodeTest: true },
+  // 6. Production User Journeys & End-to-End Flows (8 Tests)
+  { name: 'Application User Journeys (8 Tests)', path: 'scripts/testing/test-user-journeys.js', isNodeTest: true },
 
   // 7. Multi-Process Durability & OS Locking (4 Tests)
   { name: 'Multi-Process Concurrency & Crash Durability (4 Tests)', path: 'scripts/testing/test-multiprocess-concurrency.js', isNodeTest: true }
