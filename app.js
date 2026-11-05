@@ -199,6 +199,11 @@
       renderWeeklyCalendar();
     }
 
+    // Sync Settings UI if applicable
+    if (typeof syncSettingsUI === 'function') {
+      syncSettingsUI(screenId);
+    }
+
     // Update Bottom Nav active tab indicator if applicable
     updateBottomNav(screenId);
 
@@ -1374,6 +1379,91 @@
     }
     setPerformancePreset('high');
     showToast('Graphics settings restored to High');
+  }
+
+  function syncSettingsUI(screenId) {
+    const sm = getSettingsManager();
+    if (!sm) return;
+
+    // 1. Profile / Account Info
+    if (!screenId || screenId === 'profile' || screenId === 'account-privacy') {
+      const nameInput = document.getElementById('inputProfileName');
+      const emailInput = document.getElementById('inputProfileEmail');
+      const displayNameEl = document.getElementById('profileDisplayName');
+      const planLabelEl = document.getElementById('profileUserPlan');
+
+      const acc = sm.account ? sm.account.getProfile() : null;
+      const userName = (acc && acc.name) || (state.user && state.user.name) || 'Suriya';
+      const userEmail = (acc && acc.email) || (state.user && state.user.email) || 'suriya@example.com';
+      const isPrem = sm.account ? sm.account.isPremium() : state.isPremium;
+
+      if (nameInput) nameInput.value = userName;
+      if (emailInput) emailInput.value = userEmail;
+      if (displayNameEl) displayNameEl.textContent = userName;
+      if (planLabelEl) planLabelEl.textContent = isPrem ? 'Premium Member ✨' : 'Free plan';
+    }
+
+    // 2. Appearance & Studio Themes
+    if (!screenId || screenId === 'appearance-settings') {
+      if (sm.appearance) {
+        const appTheme = sm.appearance.getAppTheme ? sm.appearance.getAppTheme() : 'light';
+        document.querySelectorAll('#screen-appearance-settings .cat-pill').forEach(btn => {
+          if (btn.id === 'btnThemeLight' && appTheme === 'light') btn.classList.add('active');
+          else if (btn.id === 'btnThemeDark' && appTheme === 'dark') btn.classList.add('active');
+          else if (btn.id === 'btnThemeSystem' && appTheme === 'system') btn.classList.add('active');
+          else if (btn.id && btn.id.startsWith('btnTheme')) btn.classList.remove('active');
+        });
+
+        const studioTheme = sm.appearance.getStudioTheme ? sm.appearance.getStudioTheme() : 'luxury-cream';
+        const checkLux = document.getElementById('checkThemeLuxury');
+        const checkNord = document.getElementById('checkThemeNordic');
+        const checkTerra = document.getElementById('checkThemeTerracotta');
+        if (checkLux) checkLux.style.display = studioTheme === 'luxury-cream' ? 'inline' : 'none';
+        if (checkNord) checkNord.style.display = studioTheme === 'nordic-minimal' ? 'inline' : 'none';
+        if (checkTerra) checkTerra.style.display = studioTheme === 'warm-terracotta' ? 'inline' : 'none';
+
+        const highContrast = sm.appearance.getHighContrast ? sm.appearance.getHighContrast() : false;
+        const hcToggle = document.getElementById('toggleHighContrast');
+        if (hcToggle) hcToggle.checked = !!highContrast;
+      }
+    }
+
+    // 3. Performance & Graphics
+    if (!screenId || screenId === 'performance-settings') {
+      if (sm.performance) {
+        const preset = sm.performance.getPreset ? sm.performance.getPreset() : 'high';
+        const presetBtnMap = {
+          high: 'btnPerfHigh',
+          medium: 'btnPerfMedium',
+          low: 'btnPerfLow',
+          battery_saver: 'btnPerfBattery',
+          auto: 'btnPerfAuto'
+        };
+        Object.entries(presetBtnMap).forEach(([key, btnId]) => {
+          const btn = document.getElementById(btnId);
+          if (btn) btn.classList.toggle('active', key === preset);
+        });
+
+        const options = sm.performance.getOptions ? sm.performance.getOptions() : {};
+        const shadowToggle = document.getElementById('toggleShadows');
+        const reflToggle = document.getElementById('toggleReflections');
+        const idleToggle = document.getElementById('toggleIdleMotion');
+        if (shadowToggle && options.shadows !== undefined) shadowToggle.checked = options.shadows !== false;
+        if (reflToggle && options.reflections !== undefined) reflToggle.checked = options.reflections !== false;
+        if (idleToggle && options.idleAnimations !== undefined) idleToggle.checked = options.idleAnimations !== false;
+      }
+    }
+
+    // 4. Privacy & Consent
+    if (!screenId || screenId === 'account-privacy') {
+      if (sm.privacy) {
+        const consent = sm.privacy.getConsentSettings ? sm.privacy.getConsentSettings() : {};
+        const analyticsToggle = document.getElementById('toggleAnalyticsConsent');
+        const crashToggle = document.getElementById('toggleCrashReporting');
+        if (analyticsToggle && consent.analytics !== undefined) analyticsToggle.checked = !!consent.analytics;
+        if (crashToggle && consent.crashReporting !== undefined) crashToggle.checked = consent.crashReporting !== false;
+      }
+    }
   }
 
   async function requestNotificationPermission() {
@@ -2886,9 +2976,13 @@
 
     if (memories.length === 0) {
       gridEl.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 40px 10px; color: #8C755E;">
-          <span style="font-size: 2.2rem; display: block; margin-bottom: 8px;">📷</span>
-          <p style="font-size: 0.9rem; margin: 0;">No memories logged yet. Snap your first outfit today to start your streak!</p>
+        <div style="grid-column: 1 / -1; text-align: center; padding: 42px 16px; background: #FFFFFF; border-radius: 20px; border: 1.5px dashed rgba(215, 200, 180, 0.85); margin: 8px 0;">
+          <span style="font-size: 2.6rem; display: block; margin-bottom: 8px;">📷</span>
+          <h4 style="font-family: var(--font-serif); font-size: 1.15rem; color: #2F241A; margin: 0 0 6px 0;">No memories logged yet</h4>
+          <p style="font-size: 0.82rem; color: #796654; margin: 0 0 16px 0; line-height: 1.45;">Snap your daily outfit look to keep your streak alive and build your personal fashion archive.</p>
+          <button type="button" class="btn-olive-primary" style="margin: 0 auto; padding: 9px 20px; font-size: 0.82rem; width: auto;" onclick="app.closeMemoriesModal(); app.openCameraModal();">
+            Take Today's Outfit Photo 🔥
+          </button>
         </div>
       `;
       return;
@@ -4366,6 +4460,14 @@
     initStreakState();
     initPlannerState();
 
+    if (typeof window !== 'undefined' && window.navigationRouter) {
+      window.navigationRouter.registerScreenHook('appearance-settings', () => syncSettingsUI('appearance-settings'));
+      window.navigationRouter.registerScreenHook('performance-settings', () => syncSettingsUI('performance-settings'));
+      window.navigationRouter.registerScreenHook('account-privacy', () => syncSettingsUI('account-privacy'));
+      window.navigationRouter.registerScreenHook('profile', () => syncSettingsUI('profile'));
+      window.navigationRouter.registerScreenHook('reminders', () => syncSettingsUI('reminders'));
+    }
+
     renderCurrentLook();
     renderWardrobeGrid();
     updateWardrobeCounts();
@@ -4418,6 +4520,7 @@
     toggleReflectionQuality,
     toggleIdleAnimations,
     resetPerformance,
+    syncSettingsUI,
     requestNotificationPermission,
     getSettingsManager,
     deleteAccount,
