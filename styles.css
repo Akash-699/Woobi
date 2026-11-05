@@ -6255,6 +6255,22 @@ body {
   display: block;
 }
 
+#serenTabPro {
+  color: #b8860b;
+}
+
+#serenTabPro .seren-tab-icon svg {
+  stroke: #b8860b;
+}
+
+#serenTabPro.active {
+  color: #8c6508;
+}
+
+#serenTabPro.active .seren-tab-dot {
+  background: #b8860b;
+}
+
 .seren-center-plus {
   flex: 0 0 46px;
   width: 46px;
@@ -9583,17 +9599,6 @@ body {
   }
 }
 
-75% {
-  transform: translateY(-2px) scale(1.03) rotate(-1deg) skewX(-0.5deg);
-  opacity: 0.96;
-}
-
-100% {
-  transform: translateY(0) scale(1) rotate(0deg) skewX(0deg);
-  opacity: 0.90;
-}
-}
-
 /* Fallback legacy crater smoke */
 .crater-smoke-img {
   width: 28px;
@@ -11491,36 +11496,42 @@ body {
   background: #080a0f !important;
   color: #e6edf3;
   padding-top: 0 !important;
-  padding-bottom: 100px;
-  min-height: 100%;
+  padding-bottom: 64px !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 100% !important;
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden !important;
+  display: none;
+  flex-direction: column;
+  box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+#screen-premium.active {
+  display: flex !important;
 }
 
 /* Sticky Minimal Header */
 .premium-sticky-header {
-  position: sticky;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  background: rgba(8, 10, 15, 0.88);
+  padding: 10px 16px;
+  background: rgba(8, 10, 15, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 100;
 }
 
 .premium-back-btn {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -11557,9 +11568,9 @@ body {
   background: none;
   border: 1px solid rgba(229, 195, 120, 0.4);
   color: #e5c378;
-  padding: 5px 12px;
+  padding: 4px 11px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -11569,11 +11580,19 @@ body {
   background: rgba(229, 195, 120, 0.15);
 }
 
-/* Scroll Content Container */
+/* Scroll Content Container - Fitted Without Page Scroll */
 .premium-scroll-content {
-  padding: 24px 20px 40px;
-  max-width: 960px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 14px 6px;
+  max-width: 390px;
+  width: 100%;
   margin: 0 auto;
+  overflow: hidden !important;
+  box-sizing: border-box;
 }
 
 /* 1. Hero Section */
@@ -11935,40 +11954,51 @@ body {
 .plan-cards-viewport {
   width: 100%;
   max-width: 366px;
-  margin: 0 auto 30px;
+  margin: 0 auto;
   overflow: hidden;
-  border-radius: 26px;
+  border-radius: 24px;
   position: relative;
   box-sizing: border-box;
+  flex: 1;
+  min-height: 0;
+  display: block;
+  padding-top: 14px;
 }
 
 .plan-cards-slider-track {
   display: flex;
   flex-direction: row;
   width: 300%;
+  min-width: 300%;
+  flex-shrink: 0;
+  height: 100%;
   transform: translateX(0%);
   transition: transform 0.36s cubic-bezier(0.2, 0.9, 0.3, 1);
   will-change: transform;
 }
 
-/* Individual Card (Fixed Same Size as before) */
+/* Individual Card (Fitted to Screen Height) */
 .sub-plan-card {
   width: 33.333333%;
+  min-width: 33.333333%;
+  max-width: 33.333333%;
   flex-shrink: 0;
-  height: 520px;
-  min-height: 520px;
-  max-height: 520px;
+  height: calc(100% - 14px);
+  min-height: 0;
+  max-height: calc(100% - 14px);
+  margin-top: 14px;
   box-sizing: border-box;
   background: #11141c;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 24px;
-  padding: 22px 18px 20px;
+  padding: 14px 18px 12px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   position: relative;
   box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
 }
 
 .sub-plan-card:hover {
@@ -11982,7 +12012,7 @@ body {
 }
 
 .free-text-amount {
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.5px;
@@ -12013,45 +12043,48 @@ body {
 
 .pro-crown-ribbon {
   position: absolute;
-  top: -14px;
+  top: -12px;
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(90deg, #d4af37, #f3e5ab, #d4af37);
   color: #1a1608;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 800;
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  padding: 4px 14px;
+  padding: 3px 12px;
   border-radius: 999px;
   box-shadow: 0 4px 14px rgba(212, 175, 55, 0.45);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   white-space: nowrap;
+  line-height: 1.2;
+  z-index: 5;
+}
 }
 
 .pro-crown-ribbon .crown-icon {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
 }
 
 .plan-header {
-  margin-bottom: 12px;
+  margin-bottom: 2px;
 }
 
 .plan-label-row {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 3px;
 }
 
 .plan-pill-tag {
   display: inline-block;
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  padding: 3px 9px;
+  padding: 2px 8px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   color: #8b949e;
@@ -12070,10 +12103,10 @@ body {
 }
 
 .plan-heading-bold {
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   font-weight: 900;
   color: #ffffff;
-  margin: 0 0 4px;
+  margin: 0 0 2px;
   letter-spacing: 0.6px;
   text-transform: uppercase;
 }
@@ -12084,37 +12117,37 @@ body {
   -webkit-text-fill-color: transparent;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .crown-icon-inline {
   -webkit-text-fill-color: initial;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
 }
 
 .plan-description {
-  font-size: 0.77rem;
+  font-size: 0.7rem;
   color: #8b949e;
-  line-height: 1.35;
-  margin: 0 0 10px;
-  min-height: 30px;
+  line-height: 1.25;
+  margin: 0 0 6px;
+  min-height: unset;
 }
 
 .plan-pricing-display {
   display: flex;
   align-items: baseline;
-  gap: 3px;
-  margin-bottom: 6px;
+  gap: 2px;
+  margin-bottom: 4px;
 }
 
 .plan-pricing-display .currency {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #ffffff;
 }
 
 .plan-pricing-display .amount {
-  font-size: 2.2rem;
+  font-size: 1.85rem;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: -1px;
@@ -12126,19 +12159,19 @@ body {
 }
 
 .plan-pricing-display .cadence {
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   color: #8b949e;
-  margin-left: 3px;
+  margin-left: 2px;
 }
 
 .plan-highlight-strip {
   background: rgba(255, 255, 255, 0.04);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.72rem;
+  border-radius: 6px;
+  padding: 5px 9px;
+  font-size: 0.68rem;
   color: #c9d1d9;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   border-left: 3px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -12150,17 +12183,21 @@ body {
 
 .plan-body {
   flex: 1;
-  margin-bottom: 14px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 6px;
 }
 
 .features-label {
   display: block;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   color: #8b949e;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .plan-features {
@@ -12169,20 +12206,20 @@ body {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .plan-features li {
-  font-size: 0.77rem;
+  font-size: 0.7rem;
   color: #c9d1d9;
-  line-height: 1.35;
+  line-height: 1.2;
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 6px;
 }
 
 .check-bullet {
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   font-weight: 800;
   color: #58a6ff;
   flex-shrink: 0;
@@ -12197,9 +12234,9 @@ body {
 /* Plan Action & Play Buttons */
 .btn-sub-tier {
   width: 100%;
-  padding: 13px 18px;
-  border-radius: 12px;
-  font-size: 0.88rem;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
