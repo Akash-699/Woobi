@@ -64,6 +64,32 @@ import {
   createSavedLooksManager
 } from './saved-looks/index.js';
 
+import {
+  SmartColourMatcher,
+  createColourMatcher,
+  SmartColorMatcher,
+  createColorMatcher,
+  ColourSelectionInterface,
+  createColourSelectionInterface,
+  ColorSelectionInterface,
+  createColorSelectionInterface,
+  ColourTheory,
+  ColorTheory,
+  ColourMatchingContract,
+  ColorMatchingContract,
+  FASHION_COLOURS,
+  FASHION_COLORS,
+  SHIRT_COLOUR_SWATCHES,
+  PANTS_COLOUR_SWATCHES,
+  SHOES_COLOUR_SWATCHES,
+  BENCHMARK_OUTFITS,
+  COLOUR_MATCHING_EVENTS,
+  COLOR_MATCHING_EVENTS,
+  RATING_TIERS,
+  HARMONY_TYPES,
+  OUTFIT_SLOTS
+} from './colour-matching/index.js';
+
 /**
  * Backward-compatible StudioFeaturesContract
  */
@@ -73,7 +99,9 @@ export const StudioFeaturesContract = {
   recommendations: RecommendationsContract,
   customizer: CustomizerContract,
   animations: AnimationsContract,
-  savedLooks: SavedLooksContract
+  savedLooks: SavedLooksContract,
+  colourMatching: ColourMatchingContract,
+  colorMatching: ColorMatchingContract
 };
 
 /**
@@ -111,6 +139,10 @@ export class StudioFeatures {
 
     // 6. Saved Looks Manager
     this.savedLooks = createSavedLooksManager(options.savedLooks || {});
+
+    // 7. Smart Outfit Colour Matcher
+    this.colourMatcher = createColourMatcher(options.colourMatcher || options.colorMatcher || {});
+    this.colorMatcher = this.colourMatcher;
   }
 
   setAvatarModel(avatarModel) {
@@ -194,7 +226,32 @@ export {
   SavedLooksContract,
   LookbookStorage,
   SavedLooksManager,
-  createSavedLooksManager
+  createSavedLooksManager,
+
+  // Smart Outfit Colour Matching
+  SmartColourMatcher,
+  createColourMatcher,
+  SmartColorMatcher,
+  createColorMatcher,
+  ColourSelectionInterface,
+  createColourSelectionInterface,
+  ColorSelectionInterface,
+  createColorSelectionInterface,
+  ColourTheory,
+  ColorTheory,
+  ColourMatchingContract,
+  ColorMatchingContract,
+  FASHION_COLOURS,
+  FASHION_COLORS,
+  SHIRT_COLOUR_SWATCHES,
+  PANTS_COLOUR_SWATCHES,
+  SHOES_COLOUR_SWATCHES,
+  BENCHMARK_OUTFITS,
+  COLOUR_MATCHING_EVENTS,
+  COLOR_MATCHING_EVENTS,
+  RATING_TIERS,
+  HARMONY_TYPES,
+  OUTFIT_SLOTS
 };
 
 if (typeof window !== 'undefined') {
@@ -207,7 +264,32 @@ if (typeof window !== 'undefined') {
     recommendations: { RecommendationEngine, createRecommendationEngine, OCCASIONS, STYLE_AESTHETICS, CURATED_LOOKS },
     customizer: { AvatarCustomizer, createAvatarCustomizer, SKIN_TONE_PRESETS, HAIR_COLOR_PRESETS, HAIR_STYLES, BODY_PROPORTIONS },
     animations: { PoseController, createPoseController, IdleMotion, STUDIO_POSES, POSE_KEYFRAMES },
-    savedLooks: { SavedLooksManager, createSavedLooksManager, LookbookStorage, LOOKS_EVENTS }
+    savedLooks: { SavedLooksManager, createSavedLooksManager, LookbookStorage, LOOKS_EVENTS },
+    colourMatching: {
+      SmartColourMatcher,
+      createColourMatcher,
+      ColourSelectionInterface,
+      createColourSelectionInterface,
+      ColourTheory,
+      FASHION_COLOURS,
+      SHIRT_COLOUR_SWATCHES,
+      PANTS_COLOUR_SWATCHES,
+      SHOES_COLOUR_SWATCHES,
+      BENCHMARK_OUTFITS,
+      RATING_TIERS,
+      HARMONY_TYPES,
+      OUTFIT_SLOTS,
+      ColourMatchingContract
+    },
+    colorMatching: {
+      SmartColorMatcher,
+      createColorMatcher,
+      ColorSelectionInterface,
+      createColorSelectionInterface,
+      ColorTheory,
+      FASHION_COLORS,
+      ColorMatchingContract
+    }
   };
 }
 
