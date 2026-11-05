@@ -378,7 +378,7 @@ export class StreakState {
 
     this.state.uploadedToday = hasTodayMemory || (this.state.lastUploadDateStr === todayStr);
 
-    if (this.state.uploadedToday) {
+    if (this.state.uploadedToday || this.isTestUser()) {
       this.state.isStreakBroken = false;
       return;
     }
