@@ -147,20 +147,12 @@
         waistDefinition: 70,
         anatomy: {
           female: {
-            bust: 55,
-            glutes: 60,
-            thighs: 48,
-            waist: 72,
-            stomach: 25,
+            waist: 70,
             height: 1.70,
             weight: 58
           },
           male: {
-            pecs: 65,
-            stomach: 22,
-            shoulders: 72,
-            thighs: 58,
-            glutes: 55,
+            waist: 70,
             height: 1.80,
             weight: 78
           }
@@ -1986,11 +1978,10 @@
 
       const loader = new THREE.GLTFLoader();
       const modelUrls = [
-        'seren_avatar.glb',
-        '3D - Mannequin By Astra/Woobi_Female_Mannequin.glb',
-        'woobi_female_mannequin.glb',
-        'assets/models/avatar_female.glb',
-        'https://readyplayerme.github.io/visage/female.glb'
+        'Woobi_Female_Mannequin_Fixed.glb?v=human_v2',
+        'woobi_female_mannequin.glb?v=human_v2',
+        '3D - Mannequin By Astra/Woobi_Female_Mannequin.glb?v=human_v2',
+        'seren_avatar.glb'
       ];
 
       const tryLoad = (index) => {
@@ -2003,9 +1994,9 @@
             console.log('Studio3D: Rigged 3D avatar loaded successfully from', url);
             const model = gltf.scene;
 
-            // Scale & position model correctly onto the elevated stage dais
+            // Scale & position model correctly onto the elevated stage dais (avatarRoot provides the 0.080m dais elevation)
             model.scale.set(0.96, 0.96, 0.96);
-            model.position.set(0, 0.080, 0);
+            model.position.set(0, 0, 0);
 
             // Traverse and apply luxury reference styling
             model.traverse((child) => {
@@ -2414,7 +2405,7 @@
       }
 
       if (this.gltfAvatarGroup) {
-        this.gltfAvatarGroup.position.set(0, 0.080, 0);
+        this.gltfAvatarGroup.position.set(0, 0, 0);
       }
 
       this.updateAnatomy();
@@ -2504,307 +2495,49 @@
     }
 
     /**
-     * Builds and attaches chic tailored undergarments for Astra Mannequins:
-     * - Male Mannequin: Athletic fitted boxer briefs in stylish charcoal heather.
-     * - Female Mannequin: Sophisticated demi-cup brassiere and matching chic hipster panty in noir espresso.
-     * Form-fitted directly to the mannequin mesh with micro-offset and polygonOffset to guarantee zero z-fighting.
-     * Undergarment meshes inherit basePositions and morph dynamically & synchronously with all anatomy sliders.
+     * Ensures clean, properly fitted basic underwear presentation
+     * Male: plain boxer briefs
+     * Female: full-coverage briefs & matching bra
      */
     buildMannequinUndergarments(targetGender = 'female') {
       if (!this.gltfAvatarGroup) return;
 
       const isMale = (targetGender === 'male' || targetGender === 'masculine');
 
-      // 1. Remove previous undergarments to guarantee clean state
-      const toRemove = [];
+      // Style and configure undergarment meshes with realistic PBR fabric material
+      const fabricColor = new THREE.Color(0x222428); // Refined neutral matte charcoal
       this.gltfAvatarGroup.traverse((child) => {
-        if (child.isMesh && (child.name === 'Woobi_Female_Panty' || child.name === 'Woobi_Female_Brassiere' || child.name === 'Woobi_Male_Underwear')) {
-          toRemove.push(child);
-        }
-      });
-      toRemove.forEach((child) => {
-        if (child.parent) child.parent.remove(child);
-        if (child.geometry) child.geometry.dispose();
-        if (child.material) {
-          if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-          else child.material.dispose();
-        }
-      });
-
-      // 2. Locate mannequin body mesh
-      let bodyMesh = null;
-      this.gltfAvatarGroup.traverse((child) => {
-        if (!bodyMesh && child.isMesh && child.geometry && child.geometry.attributes && child.geometry.attributes.position && child.geometry.index) {
-          bodyMesh = child;
-        }
-      });
-      if (!bodyMesh) return;
-
-      const geom = bodyMesh.geometry;
-      const basePos = geom.userData.basePositions || geom.attributes.position.array;
-      const indices = geom.index.array;
-      if (!geom.attributes.normal) geom.computeVertexNormals();
-      const normals = geom.attributes.normal.array;
-
-      function extractUndergarmentGeometry(filterFn, boundarySnapFn = null, offsetDistance = 0.0022) {
-        const edgeMap = new Map();
-        function addEdge(a, b) {
-          const key = a < b ? a + '_' + b : b + '_' + a;
-          edgeMap.set(key, (edgeMap.get(key) || 0) + 1);
-        }
-
-        const filteredTriIndices = [];
-        for (let t = 0; t < indices.length; t += 3) {
-          const i0 = indices[t], i1 = indices[t + 1], i2 = indices[t + 2];
-          const p0 = [basePos[i0 * 3], basePos[i0 * 3 + 1], basePos[i0 * 3 + 2]];
-          const p1 = [basePos[i1 * 3], basePos[i1 * 3 + 1], basePos[i1 * 3 + 2]];
-          const p2 = [basePos[i2 * 3], basePos[i2 * 3 + 1], basePos[i2 * 3 + 2]];
-
-          if (filterFn(p0, p1, p2)) {
-            filteredTriIndices.push(i0, i1, i2);
-            addEdge(i0, i1);
-            addEdge(i1, i2);
-            addEdge(i2, i0);
-          }
-        }
-
-        // Build neighbor connectivity for boundary vertices (edges shared by exactly 1 triangle)
-        const bNeighbors = new Map();
-        for (const [k, count] of edgeMap.entries()) {
-          if (count === 1) {
-            const [a, b] = k.split('_').map(Number);
-            if (!bNeighbors.has(a)) bNeighbors.set(a, []);
-            if (!bNeighbors.has(b)) bNeighbors.set(b, []);
-            bNeighbors.get(a).push(b);
-            bNeighbors.get(b).push(a);
-          }
-        }
-
-        const used = new Map();
-        const newPos = [];
-        const newNorm = [];
-        const newIdx = [];
-
-        for (let i = 0; i < filteredTriIndices.length; i++) {
-          const oldIdx = filteredTriIndices[i];
-          if (!used.has(oldIdx)) {
-            const nIdx = newPos.length / 3;
-            used.set(oldIdx, nIdx);
-
-            let vx = basePos[oldIdx * 3];
-            let vy = basePos[oldIdx * 3 + 1];
-            let vz = basePos[oldIdx * 3 + 2];
-
-            if (typeof boundarySnapFn === 'function') {
-              const isBoundary = bNeighbors.has(oldIdx);
-              const snapped = boundarySnapFn(vx, vy, vz, isBoundary);
-              if (snapped) {
-                vx = snapped[0];
-                vy = snapped[1];
-                vz = snapped[2];
-              }
-            }
-
-            const nx = normals[oldIdx * 3] || 0;
-            const ny = normals[oldIdx * 3 + 1] || 0;
-            const nz = normals[oldIdx * 3 + 2] || 0;
-
-            newPos.push(
-              vx + nx * offsetDistance,
-              vy + ny * offsetDistance,
-              vz + nz * offsetDistance
-            );
-            newNorm.push(nx, ny, nz);
-          }
-          newIdx.push(used.get(oldIdx));
-        }
-
-        // Perform 2 iterations of Laplacian boundary smoothing along boundary edge rings
-        if (typeof boundarySnapFn === 'function') {
-          for (let pass = 0; pass < 2; pass++) {
-            for (const [oldIdx, nbs] of bNeighbors.entries()) {
-              if (!used.has(oldIdx)) continue;
-              const myNIdx = used.get(oldIdx);
-              const validNbs = nbs.filter(nb => used.has(nb));
-              if (validNbs.length === 2) {
-                const nbIdx0 = used.get(validNbs[0]);
-                const nbIdx1 = used.get(validNbs[1]);
-                newPos[myNIdx * 3] = newPos[myNIdx * 3] * 0.35 + 0.5 * (newPos[nbIdx0 * 3] + newPos[nbIdx1 * 3]) * 0.65;
-                newPos[myNIdx * 3 + 1] = newPos[myNIdx * 3 + 1] * 0.35 + 0.5 * (newPos[nbIdx0 * 3 + 1] + newPos[nbIdx1 * 3 + 1]) * 0.65;
-                newPos[myNIdx * 3 + 2] = newPos[myNIdx * 3 + 2] * 0.35 + 0.5 * (newPos[nbIdx0 * 3 + 2] + newPos[nbIdx1 * 3 + 2]) * 0.65;
-              }
+        if (child.isMesh && (child.name === 'Woobi_Female_Brassiere' || child.name === 'Woobi_Female_Briefs' || child.name === 'Woobi_Male_Underwear')) {
+          child.visible = true;
+          child.castShadow = true;
+          child.receiveShadow = true;
+          if (child.material) {
+            if (Array.isArray(child.material)) {
+              child.material.forEach((mat) => {
+                mat.color.copy(fabricColor);
+                mat.roughness = 0.78;
+                mat.metalness = 0.0;
+              });
+            } else {
+              child.material.color.copy(fabricColor);
+              child.material.roughness = 0.78;
+              child.material.metalness = 0.0;
             }
           }
         }
-
-        const subGeom = new THREE.BufferGeometry();
-        subGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPos, 3));
-        subGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNorm, 3));
-        subGeom.setIndex(new THREE.Uint16BufferAttribute(newIdx, 1));
-        subGeom.userData.basePositions = new Float32Array(newPos);
-        return subGeom;
-      }
-
-      const parentNode = bodyMesh.parent || this.gltfAvatarGroup;
-
-      if (!isMale) {
-        // Female Brassiere (Bra) - Demi-cups, underbust band, elegant shoulder straps
-        const braMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(0x282321), // Chic Noir Espresso
-          roughness: 0.82,
-          metalness: 0.04,
-          side: THREE.DoubleSide,
-          polygonOffset: true,
-          polygonOffsetFactor: -1.5,
-          polygonOffsetUnits: -1.5
-        });
-
-        const braGeom = extractUndergarmentGeometry((p0, p1, p2) => {
-          const cy = (p0[1] + p1[1] + p2[1]) / 3;
-          const cx = (p0[0] + p1[0] + p2[0]) / 3;
-          const cz = (p0[2] + p1[2] + p2[2]) / 3;
-          const maxAbsX = Math.max(Math.abs(p0[0]), Math.abs(p1[0]), Math.abs(p2[0]));
-
-          // Torso boundary check: strictly exclude resting arms (|X| > 0.165 in chest range)
-          if (maxAbsX > 0.165 && cy <= 1.28) return false;
-          const bandBottom = 1.140;
-          if (cy < bandBottom) return false;
-
-          if (cy <= 1.275) {
-            if (cz < -0.02) return cy <= 1.235;
-            return true;
-          }
-
-          if (cy <= 1.395) {
-            const strapDist = Math.abs(Math.abs(cx) - 0.082);
-            return strapDist <= 0.022 && maxAbsX <= 0.115;
-          }
-
-          return false;
-        }, (x, y, z, isBoundary) => {
-          if (isBoundary && y < 1.155) {
-            return [x, 1.140, z];
-          }
-          return [x, y, z];
-        }, 0.0022);
-
-        const braMesh = new THREE.Mesh(braGeom, braMat);
-        braMesh.name = 'Woobi_Female_Brassiere';
-        braMesh.castShadow = true;
-        braMesh.receiveShadow = true;
-        parentNode.add(braMesh);
-
-        // Female Panties - Chic hipster brief wrapping pelvis and balloon glutes with smooth hem
-        const pantyMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(0x282321), // Chic Noir Espresso
-          roughness: 0.82,
-          metalness: 0.04,
-          side: THREE.DoubleSide,
-          polygonOffset: true,
-          polygonOffsetFactor: -1.5,
-          polygonOffsetUnits: -1.5
-        });
-
-        const pantyTopCurve = (x, z) => (z < 0 ? 0.982 : 0.965) - 0.008 * Math.pow(x / 0.18, 2);
-        const pantyLegCurve = (x, z) => {
-          const backCoverage = Math.max(0, -z / 0.12);
-          const sideArch = Math.pow(Math.abs(x) / 0.18, 1.6);
-          return 0.745 + (1.0 - Math.min(1.0, backCoverage)) * sideArch * 0.075;
-        };
-
-        const pantyGeom = extractUndergarmentGeometry((p0, p1, p2) => {
-          const cy = (p0[1] + p1[1] + p2[1]) / 3;
-          const cx = (p0[0] + p1[0] + p2[0]) / 3;
-          const cz = (p0[2] + p1[2] + p2[2]) / 3;
-          const maxAbsX = Math.max(Math.abs(p0[0]), Math.abs(p1[0]), Math.abs(p2[0]));
-
-          // Torso / pelvis only: strictly exclude resting arms
-          if (maxAbsX > 0.220) return false;
-          if (cy > pantyTopCurve(cx, cz)) return false;
-          if (cy < pantyLegCurve(cx, cz)) return false;
-          return true;
-        }, (x, y, z, isBoundary) => {
-          const topY = pantyTopCurve(x, z);
-          const botY = pantyLegCurve(x, z);
-          let newY = y;
-          if (isBoundary) {
-            if (y > 0.90) newY = topY;
-            else if (y < 0.82) newY = botY;
-          } else {
-            if (y > topY) newY = topY;
-            if (y < botY) newY = botY;
-          }
-          return [x, newY, z];
-        }, 0.0020);
-
-        const pantyMesh = new THREE.Mesh(pantyGeom, pantyMat);
-        pantyMesh.name = 'Woobi_Female_Panty';
-        pantyMesh.castShadow = true;
-        pantyMesh.receiveShadow = true;
-        parentNode.add(pantyMesh);
-
-      } else {
-        // Male Boxer Briefs / Underwear - Athletic fitted trunks with smooth tailored cuffs
-        const boxerMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(0x2A2726), // Athletic Charcoal
-          roughness: 0.84,
-          metalness: 0.03,
-          side: THREE.DoubleSide,
-          polygonOffset: true,
-          polygonOffsetFactor: -1.5,
-          polygonOffsetUnits: -1.5
-        });
-
-        const maleTopCurve = (x, z) => 1.025;
-        const maleLegCurve = (x, z) => 0.695;
-
-        const boxerGeom = extractUndergarmentGeometry((p0, p1, p2) => {
-          const cy = (p0[1] + p1[1] + p2[1]) / 3;
-          const cx = (p0[0] + p1[0] + p2[0]) / 3;
-          const cz = (p0[2] + p1[2] + p2[2]) / 3;
-          const maxAbsX = Math.max(Math.abs(p0[0]), Math.abs(p1[0]), Math.abs(p2[0]));
-
-          // Torso/pelvis only: strictly exclude wrist/hand
-          if (Math.abs(cz) < 0.06 && maxAbsX > 0.185) return false;
-          if (maxAbsX > 0.22) return false;
-
-          if (cy > maleTopCurve(cx, cz)) return false;
-          if (cy < maleLegCurve(cx, cz)) return false;
-
-          return true;
-        }, (x, y, z, isBoundary) => {
-          const topY = maleTopCurve(x, z);
-          const botY = maleLegCurve(x, z);
-          let newY = y;
-          if (isBoundary) {
-            if (y > 0.96) newY = topY;
-            else if (y < 0.74) newY = botY;
-          } else {
-            if (y > topY) newY = topY;
-            if (y < botY) newY = botY;
-          }
-          return [x, newY, z];
-        }, 0.0020);
-
-        const boxerMesh = new THREE.Mesh(boxerGeom, boxerMat);
-        boxerMesh.name = 'Woobi_Male_Underwear';
-        boxerMesh.castShadow = true;
-        boxerMesh.receiveShadow = true;
-        parentNode.add(boxerMesh);
-      }
+      });
     }
 
     /**
-     * Builds and attaches anatomically sculpted features.
-     * When using Astra Mannequin GLBs, the anatomical contours (bust, glutes, hip flares, pecs,
-     * shoulders, stomach) are natively integrated into the single manifold mesh to eliminate
-     * all surface z-fighting and blurring artifacts.
+     * Builds and attaches natural features.
+     * Mannequins natively feature understated, graceful, natural contours.
+     * Guarantees zero unnatural muscle bumps, zero crude additions, and zero z-fighting.
      */
     buildAnatomicalFeatures(gender = 'female') {
       const isMale = (gender === 'male' || gender === 'masculine');
       const targetGender = isMale ? 'male' : 'female';
 
-      // Clean up previous anatomical group to guarantee zero z-fighting/blurring
+      // Clean up previous anatomical group to guarantee zero extraneous objects
       if (this.anatomicalGroup) {
         if (this.avatarRoot) {
           this.avatarRoot.remove(this.anatomicalGroup);
@@ -2822,109 +2555,27 @@
         this.anatomicalMeshes = {};
       }
 
-      // If Astra Mannequin GLB is active, ensure no jagged procedural undergarments interfere with pristine model
-      if (this.gltfAvatarGroup) {
-        const toRemove = [];
-        this.gltfAvatarGroup.traverse((child) => {
-          if (child.isMesh && (child.name === 'Woobi_Female_Panty' || child.name === 'Woobi_Female_Brassiere' || child.name === 'Woobi_Male_Underwear')) {
-            toRemove.push(child);
-          }
-        });
-        toRemove.forEach((child) => {
-          if (child.parent) child.parent.remove(child);
-          if (child.geometry) child.geometry.dispose();
-          if (child.material) {
-            if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-            else child.material.dispose();
-          }
-        });
-      }
-
-      // If procedural fallback avatar is active, create clean non-interfering contours
-      if (!this.gltfAvatarGroup && this.sculptedAvatarGroup && this.sculptedAvatarGroup.visible) {
-        this.anatomicalGroup = new THREE.Group();
-        this.anatomicalGroup.name = `WoobiAnatomy_${targetGender}`;
-        this.anatomicalMeshes = {};
-
-        const mat = this.createPorcelainAnatomyMaterial();
-
-        if (isMale) {
-          const pecGeo = new THREE.SphereGeometry(0.12, 28, 20);
-          pecGeo.scale(1.15, 0.75, 0.65);
-          const leftPec = new THREE.Mesh(pecGeo, mat);
-          leftPec.position.set(-0.098, 1.28, 0.095);
-          const rightPec = new THREE.Mesh(pecGeo, mat);
-          rightPec.position.set(0.098, 1.28, 0.095);
-          this.anatomicalGroup.add(leftPec);
-          this.anatomicalGroup.add(rightPec);
-          this.anatomicalMeshes.leftPec = leftPec;
-          this.anatomicalMeshes.rightPec = rightPec;
-        } else {
-          const breastGeo = new THREE.SphereGeometry(0.092, 28, 20);
-          breastGeo.scale(1.0, 1.10, 1.25);
-          const leftBreast = new THREE.Mesh(breastGeo, mat);
-          leftBreast.position.set(-0.092, 1.20, 0.102);
-          const rightBreast = new THREE.Mesh(breastGeo, mat);
-          rightBreast.position.set(0.092, 1.20, 0.102);
-          this.anatomicalGroup.add(leftBreast);
-          this.anatomicalGroup.add(rightBreast);
-          this.anatomicalMeshes.leftBreast = leftBreast;
-          this.anatomicalMeshes.rightBreast = rightBreast;
-        }
-
-        if (this.avatarRoot) {
-          this.avatarRoot.add(this.anatomicalGroup);
-        }
-      }
-
+      this.buildMannequinUndergarments(targetGender);
       this.updateAnatomy();
     }
 
     /**
-     * Applies real-time continuous anatomical vertex morphs directly to the mannequin mesh.
-     * Uses a C^2-continuous compact support radial bump kernel (1 - d^2)^2 with realistic
-     * anthropometric displacement bounds (3.5 - 4.5 cm maximum):
-     * - Zero step discontinuities, zero hard-box jumps, zero spiky fins or horizontal shelves.
-     * - Firm, toned contraction at 0% without balloon deflation.
-     * - Fully organic, voluptuous/muscular curves up to 150%.
-     * - Anatomical dual-cheek glutes with deeply preserved intergluteal cleft groove and under-butt fold.
-     * - Authentic masculine shoulders: broad deltoid caps seamlessly integrated with the clavicle and arm.
+     * Guarantees that the 3D mannequin mesh remains smooth, natural, and pristine.
+     * Applies subtle, organic waistline silhouette contouring based on tailoring parameters.
      */
     applyAnatomicalVertexMorphs() {
       if (!this.gltfAvatarGroup) return;
 
       const isMale = (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male');
-      const anatomy = (this.avatarConfig.anatomy && (isMale ? this.avatarConfig.anatomy.male : this.avatarConfig.anatomy.female)) || {};
+      const anatomy = this.avatarConfig.anatomy ? (isMale ? this.avatarConfig.anatomy.male : this.avatarConfig.anatomy.female) : null;
+      const waist = (anatomy && typeof anatomy.waist === 'number')
+        ? anatomy.waist
+        : (typeof this.avatarConfig.waistDefinition === 'number' ? this.avatarConfig.waistDefinition : 70);
 
-      // C^2-smooth compact support radial bump kernel:
-      // (1 - d^2)^2 for d < 1, exactly 0 for d >= 1.
-      // Guarantees zero boundary discontinuity, zero tearing, zero shelf fins!
-      const compactWeight = (x, y, z, cx, cy, cz, rx, ry, rz) => {
-        const dx = (x - cx) / rx;
-        const dy = (y - cy) / ry;
-        const dz = (z - cz) / rz;
-        const d2 = dx * dx + dy * dy + dz * dz;
-        if (d2 >= 1.0) return 0.0;
-        const inv = 1.0 - d2;
-        return inv * inv;
-      };
-
-      // Organic displacement with rich dynamic scaling (in meters)
-      // Organic displacement with rich dynamic scaling (in meters)
-      // At default: 0.0cm (exact pristine base mesh)
-      // At 100%: +3.0 to +4.0cm (athletic definition)
-      // At 150%: +6.5 to +8.5cm (sculpted bodybuilder / voluptuous curves)
-      // At 200%: +10.0 to +12.5cm (maximum heroic / high-fashion curvature)
-      const organicDisp = (val, defaultVal, maxDisp, minDisp = -0.020) => {
-        const v = typeof val === 'number' ? val : defaultVal;
-        if (v <= defaultVal) {
-          const t = (defaultVal - v) / Math.max(1, defaultVal);
-          return minDisp * t;
-        } else {
-          const t = (v - defaultVal) / (150 - defaultVal);
-          return maxDisp * (t + 0.15 * t * t);
-        }
-      };
+      // Natural waist factor: 70 is natural baseline (1.0), 90 is slim fit (~0.968), 30 is relaxed (~1.064)
+      const waistFactor = 1.0 - ((waist - 70) / 100) * 0.16;
+      const waistCenterY = isMale ? 1.08 : 1.04;
+      const waistSigma = isMale ? 0.14 : 0.12;
 
       this.gltfAvatarGroup.traverse((child) => {
         if (!child.isMesh || !child.geometry || !child.geometry.attributes || !child.geometry.attributes.position) return;
@@ -2933,289 +2584,50 @@
         if (!geom.userData.basePositions) {
           geom.userData.basePositions = new Float32Array(posAttr.array);
         }
+
         const base = geom.userData.basePositions;
-        const pos = posAttr.array;
+        const count = posAttr.count;
 
-        if (isMale) {
-          const pecs = anatomy.pecs ?? 65;
-          const shoulders = anatomy.shoulders ?? 72;
-          const stomach = anatomy.stomach ?? 22;
-          const thighs = anatomy.thighs ?? 58;
-          const glutes = anatomy.glutes ?? 55;
-
-          const pecDisp = organicDisp(pecs, 65, 0.075);
-          const shoulderDisp = organicDisp(shoulders, 72, 0.065);
-          const stomachDisp = organicDisp(stomach, 22, 0.045);
-          const thighDisp = organicDisp(thighs, 58, 0.055);
-          const gluteDisp = organicDisp(glutes, 55, 0.070);
-
-          for (let i = 0; i < pos.length; i += 3) {
-            const ox = base[i];
-            const oy = base[i + 1];
-            const oz = base[i + 2];
-
-            let dx = 0;
-            let dy = 0;
-            let dz = 0;
-
-            // 1. Male Pecs (Apex at x=+-0.105, y=1.315, z=0.160; forward projection and defined cleavage cleft)
-            if (oz > 0.04 && oy >= 1.18 && oy <= 1.44 && Math.abs(ox) <= 0.22) {
-              const wPecL = compactWeight(ox, oy, oz, -0.105, 1.315, 0.160, 0.115, 0.130, 0.095);
-              const wPecR = compactWeight(ox, oy, oz,  0.105, 1.315, 0.160, 0.115, 0.130, 0.095);
-              const wPec = Math.max(wPecL, wPecR);
-              if (wPec > 0) {
-                dz += wPec * pecDisp * 1.10;
-                dy += wPec * pecDisp * 0.10; // Controlled vertical chest definition
-                dx += (ox < 0 ? -1 : 1) * wPec * 0.22 * pecDisp;
-              }
-            }
-
-            // 2. Male Shoulders / Boulder Deltoids (Cap at x=+-0.245, y=1.442, z=0.005; aligned with true anatomical clavicle & arm joint)
-            if (oy >= 1.28 && oy <= 1.54 && Math.abs(ox) >= 0.15 && Math.abs(ox) <= 0.35) {
-              const wShL = compactWeight(ox, oy, oz, -0.245, 1.442, 0.005, 0.110, 0.120, 0.100);
-              const wShR = compactWeight(ox, oy, oz,  0.245, 1.442, 0.005, 0.110, 0.120, 0.100);
-              const wSh = Math.max(wShL, wShR);
-              if (wSh > 0) {
-                dx += (ox < 0 ? -1 : 1) * wSh * shoulderDisp * 0.85;
-                dy += wSh * 0.20 * shoulderDisp;
-                dz += (oz > 0 ? 0.25 : -0.20) * wSh * shoulderDisp * 0.50;
-              }
-            }
-
-            // 3. Male Stomach & 8-Pack Core (Full vertical column from Y=0.96 to Y=1.24 with height lift)
-            if (oz > 0.04 && oy >= 0.96 && oy <= 1.24 && Math.abs(ox) <= 0.16) {
-              const wSt = compactWeight(ox, oy, oz, 0.0, 1.09, 0.10, 0.12, 0.14, 0.09);
-              if (wSt > 0) {
-                dz += wSt * stomachDisp;
-                dy += wSt * stomachDisp * 0.25;
-                dx += (ox < 0 ? -1 : 1) * wSt * 0.14 * stomachDisp;
-              }
-            }
-
-            // 4. Male Glutes (Continuous anatomical athletic curvature with defined midline cleft)
-            if (oz < -0.02 && oy >= 0.76 && oy <= 1.10 && Math.abs(ox) <= 0.235) {
-              const ny = (oy - 0.920) / (oy > 0.920 ? 0.180 : 0.150);
-              if (Math.abs(ny) < 1.0) {
-                const wy = Math.cos(ny * Math.PI * 0.5);
-                const wy2 = wy * wy;
-
-                const absX = Math.abs(ox);
-                const cleft = 1.0 - Math.exp(-Math.pow(absX / 0.040, 2.0));
-                const nx = (absX - 0.095) / 0.120;
-                const wx = Math.exp(-nx * nx * 1.8);
-                const wLateral = 0.25 + 0.75 * wx;
-
-                const wz = Math.min(1.0, Math.max(0.0, (-oz - 0.02) / 0.10));
-
-                const wGl = wy2 * wLateral * cleft * wz;
-                if (wGl > 0) {
-                  dz -= wGl * gluteDisp * 1.20;
-                  dy += (oy < 0.920 ? -0.12 : 0.03) * wGl * gluteDisp;
-                  dx += Math.sign(ox) * wGl * gluteDisp * 0.18;
-                }
-              }
-            }
-
-            // 5. Male Quads & Thighs (Bounded to LEGS ONLY: |ox| <= 0.23, NEVER touching hands/arms!)
-            if (oy >= 0.55 && oy <= 0.86 && Math.abs(ox) >= 0.06 && Math.abs(ox) <= 0.23 && Math.abs(oz) <= 0.16) {
-              const dyQd = (oy - 0.72) / 0.14;
-              const dxQd = (Math.abs(ox) - 0.14) / 0.08;
-              const dzQd = oz / 0.13;
-              const d2Qd = dyQd * dyQd + dxQd * dxQd + dzQd * dzQd;
-              if (d2Qd < 1.0) {
-                const wQd = (1.0 - d2Qd) * (1.0 - d2Qd);
-                dx += Math.sign(ox) * wQd * thighDisp * 0.75;
-                dz += (oz > 0 ? 0.60 : -0.30) * wQd * thighDisp * 0.60;
-              }
-            }
-
-            pos[i] = ox + dx;
-            pos[i + 1] = oy + dy;
-            pos[i + 2] = oz + dz;
-          }
+        // If waist is standard baseline, restore base positions cleanly
+        if (Math.abs(waist - 70) < 0.5) {
+          posAttr.array.set(base);
         } else {
-          // Female Anatomy Morphs - Dynamic, responsive, anatomically sculpted
-          const bust = anatomy.bust ?? 55;
-          const glutes = anatomy.glutes ?? 60;
-          const thighs = anatomy.thighs ?? 48;
-          const waist = anatomy.waist ?? 72;
-          const stomach = anatomy.stomach ?? 25;
+          for (let i = 0; i < count; i++) {
+            const bx = base[i * 3];
+            const by = base[i * 3 + 1];
+            const bz = base[i * 3 + 2];
 
-          const bustDisp = organicDisp(bust, 55, 0.080);
-          const gluteDisp = organicDisp(glutes, 60, 0.085);
-          const thighDisp = organicDisp(thighs, 48, 0.065);
-          const stomachDisp = organicDisp(stomach, 25, 0.038);
-          const waistDisp = organicDisp(waist, 72, 0.048);
+            // Gaussian falloff around waistline
+            const dy = by - waistCenterY;
+            const bell = Math.exp(-(dy * dy) / (waistSigma * waistSigma));
 
-          for (let i = 0; i < pos.length; i += 3) {
-            const ox = base[i];
-            const oy = base[i + 1];
-            const oz = base[i + 2];
-
-            let dx = 0;
-            let dy = 0;
-            let dz = 0;
-
-            // 1. Female Bust (Apex at x=+-0.076, y=1.215, z=0.145; natural forward projection & teardrop gravity settling without upward sliding)
-            if (oz > 0.02 && oy >= 1.08 && oy <= 1.36 && Math.abs(ox) <= 0.20) {
-              const wBustL = compactWeight(ox, oy, oz, -0.076, 1.215, 0.145, 0.095, 0.140, 0.110);
-              const wBustR = compactWeight(ox, oy, oz,  0.076, 1.215, 0.145, 0.095, 0.140, 0.110);
-              const wBust = Math.max(wBustL, wBustR);
-              if (wBust > 0) {
-                dz += wBust * bustDisp * 1.15;
-                dy -= wBust * bustDisp * 0.05; // Gentle downward natural gravity settling (never slides upward!)
-                dx += (ox < 0 ? -1 : 1) * wBust * 0.24 * bustDisp;
-              }
-            }
-
-            // 2. Female Glutes / Butt (Continuous anatomical peach curvature with seamless pelvic & sacral blend - No Pans, No Rims)
-            if (oz < -0.015 && oy >= 0.72 && oy <= 1.04 && Math.abs(ox) <= 0.235) {
-              const wGlL = compactWeight(ox, oy, oz, -0.082, 0.875, -0.155, 0.125, 0.155, 0.135);
-              const wGlR = compactWeight(ox, oy, oz,  0.082, 0.875, -0.155, 0.125, 0.155, 0.135);
-              const wGl = Math.max(wGlL, wGlR);
-              if (wGl > 0) {
-                const cleft = 1.0 - Math.exp(-Math.pow(Math.abs(ox) / 0.032, 2.0));
-                const smoothGl = wGl * cleft;
-                dz -= smoothGl * gluteDisp * 1.15;
-                dy += (oy < 0.875 ? -0.06 : 0.04) * smoothGl * gluteDisp;
-                dx += (ox < 0 ? -1 : 1) * smoothGl * 0.28 * gluteDisp;
-              }
-            }
-
-            // 3. Female Lateral Hips & Thighs (Smooth, sleek feminine hourglass curve visible clearly from the front)
-            if (Math.abs(ox) >= 0.08 && Math.abs(ox) <= 0.245 && oy >= 0.70 && oy <= 0.95 && Math.abs(oz) <= 0.15) {
-              const dyHip = (oy - 0.825) / 0.125;
-              const dxHip = (Math.abs(ox) - 0.165) / 0.080;
-              const dzHip = oz / 0.135;
-              const d2Hip = dyHip * dyHip + dxHip * dxHip + dzHip * dzHip;
-              if (d2Hip < 1.0) {
-                const wHip = (1.0 - d2Hip) * (1.0 - d2Hip);
-                dx += Math.sign(ox) * wHip * thighDisp * 0.95;
-                dz += (oz > 0 ? 0.30 : -0.20) * wHip * thighDisp * 0.40;
-              }
-            }
-
-            // 4. Female Abdominal Core & Tummy (Full vertical height lift and flat toned definition)
-            if (oz > 0.03 && oy >= 0.94 && oy <= 1.22 && Math.abs(ox) <= 0.15) {
-              const wCore = compactWeight(ox, oy, oz, 0.0, 1.08, 0.10, 0.115, 0.140, 0.085);
-              if (wCore > 0) {
-                dz += wCore * stomachDisp * 1.10;
-                dy += wCore * stomachDisp * 0.22;
-              }
-            }
-
-            // 5. Female Waist Cinch (Deep hourglass contour preserving natural spine)
-            if (oy >= 0.96 && oy <= 1.15 && Math.abs(ox) <= 0.20) {
-              const wWst = compactWeight(ox, oy, oz, 0.0, 1.055, 0.0, 0.170, 0.095, 0.130);
-              if (wWst > 0) {
-                dx -= ox * wWst * waistDisp * 2.0;
-                dz -= oz * wWst * waistDisp * 1.2;
-              }
-            }
-
-            pos[i] = ox + dx;
-            pos[i + 1] = oy + dy;
-            pos[i + 2] = oz + dz;
+            const scale = 1.0 + (waistFactor - 1.0) * bell;
+            posAttr.setX(i, bx * scale);
+            posAttr.setY(i, by);
+            posAttr.setZ(i, bz * (1.0 + (waistFactor - 1.0) * bell * 0.70));
           }
         }
-
         posAttr.needsUpdate = true;
         geom.computeVertexNormals();
       });
     }
 
     /**
-     * Updates individual anatomical scales, projection, and stature/weight proportions
+     * Synchronizes natural mannequin geometry and proportions
      */
     updateAnatomy() {
-      // 1. Morph the GLTF mannequin mesh directly via procedural vertex deforming
       this.applyAnatomicalVertexMorphs();
-
-      const isMale = (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male');
-      const data = (this.avatarConfig.anatomy && (isMale ? this.avatarConfig.anatomy.male : this.avatarConfig.anatomy.female)) || {};
-      const meshes = this.anatomicalMeshes || {};
-
-      if (isMale) {
-        // Male Pectorals (Chest)
-        const pecsVal = typeof data.pecs === 'number' ? data.pecs : 65;
-        const pecScale = 0.60 + (pecsVal / 100) * 0.80;
-        if (meshes.leftPec && meshes.rightPec) {
-          meshes.leftPec.scale.set(pecScale * 1.05, pecScale * 0.95, pecScale * 1.15);
-          meshes.rightPec.scale.set(pecScale * 1.05, pecScale * 0.95, pecScale * 1.15);
-          meshes.leftPec.position.z = 0.075 + (pecsVal / 100) * 0.045;
-          meshes.rightPec.position.z = 0.075 + (pecsVal / 100) * 0.045;
-        }
-
-        // Male Shoulders / Deltoids V-Taper
-        const shoulderVal = typeof data.shoulders === 'number' ? data.shoulders : 72;
-        const shoulderScale = 0.65 + (shoulderVal / 100) * 0.70;
-        const shoulderSpan = 0.240 + (shoulderVal / 100) * 0.035;
-        if (meshes.leftDeltoid && meshes.rightDeltoid) {
-          meshes.leftDeltoid.scale.set(shoulderScale * 1.1, shoulderScale, shoulderScale);
-          meshes.rightDeltoid.scale.set(shoulderScale * 1.1, shoulderScale, shoulderScale);
-          meshes.leftDeltoid.position.x = -shoulderSpan;
-          meshes.rightDeltoid.position.x = shoulderSpan;
-        }
-
-        // Male Stomach & Core
-        const stomachVal = typeof data.stomach === 'number' ? data.stomach : 22;
-        const stomachScale = 0.50 + (stomachVal / 100) * 0.90;
-        if (meshes.stomach) {
-          meshes.stomach.scale.set(stomachScale * 1.05, 1.0, stomachScale * 1.20);
-          meshes.stomach.position.z = 0.038 + (stomachVal / 100) * 0.035;
-        }
-
-        // Male Quads / Muscular Thighs
-        const quadVal = typeof data.thighs === 'number' ? data.thighs : 58;
-        const quadScale = 0.70 + (quadVal / 100) * 0.65;
-        if (meshes.leftQuad && meshes.rightQuad) {
-          meshes.leftQuad.scale.set(quadScale, 1.0, quadScale * 1.08);
-          meshes.rightQuad.scale.set(quadScale, 1.0, quadScale * 1.08);
-        }
-
-      } else {
-        // Female Bust / Breasts
-        const bustVal = typeof data.bust === 'number' ? data.bust : 55;
-        const bustScale = 0.55 + (bustVal / 100) * 0.95;
-        if (meshes.leftBreast && meshes.rightBreast) {
-          meshes.leftBreast.scale.set(bustScale * 0.95, bustScale * 1.05, bustScale * 1.25);
-          meshes.rightBreast.scale.set(bustScale * 0.95, bustScale * 1.05, bustScale * 1.25);
-          meshes.leftBreast.position.z = 0.078 + (bustVal / 100) * 0.055;
-          meshes.rightBreast.position.z = 0.078 + (bustVal / 100) * 0.055;
-        }
-
-        // Female Glutes / Buttocks
-        const gluteVal = typeof data.glutes === 'number' ? data.glutes : 60;
-        const gluteScale = 0.60 + (gluteVal / 100) * 0.85;
-        if (meshes.leftGlute && meshes.rightGlute) {
-          meshes.leftGlute.scale.set(gluteScale * 1.05, gluteScale * 1.15, gluteScale * 1.12);
-          meshes.rightGlute.scale.set(gluteScale * 1.05, gluteScale * 1.15, gluteScale * 1.12);
-          meshes.leftGlute.position.z = -0.048 - (gluteVal / 100) * 0.045;
-          meshes.rightGlute.position.z = -0.048 - (gluteVal / 100) * 0.045;
-        }
-
-        // Female Thighs & Hips Contour
-        const thighVal = typeof data.thighs === 'number' ? data.thighs : 48;
-        const thighScale = 0.65 + (thighVal / 100) * 0.75;
-        const hipSpan = 0.118 + (thighVal / 100) * 0.022;
-        if (meshes.leftThigh && meshes.rightThigh) {
-          meshes.leftThigh.scale.set(thighScale * 1.10, 1.0, thighScale);
-          meshes.rightThigh.scale.set(thighScale * 1.10, 1.0, thighScale);
-          meshes.leftThigh.position.x = -hipSpan;
-          meshes.rightThigh.position.x = hipSpan;
-        }
-      }
     }
 
     /**
-     * Sets specific anatomical parameter and recalculates models
+     * Sets specific sizing parameters (height, weight, waist) and updates whole-body scaling
      */
     setAnatomy(key, val, gender = null) {
       const g = gender || (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male' ? 'male' : 'female');
       if (!this.avatarConfig.anatomy) {
         this.avatarConfig.anatomy = {
-          female: { bust: 55, glutes: 60, thighs: 48, waist: 72, stomach: 25, height: 1.70, weight: 58 },
-          male: { pecs: 65, stomach: 22, shoulders: 72, thighs: 58, glutes: 55, height: 1.80, weight: 78 }
+          female: { waist: 70, height: 1.70, weight: 58 },
+          male: { waist: 70, height: 1.80, weight: 78 }
         };
       }
       if (!this.avatarConfig.anatomy[g]) {
@@ -3232,38 +2644,26 @@
     }
 
     /**
-     * Resets avatar anatomy, proportions, and body shape to pristine normal base mannequin shape
+     * Resets avatar anatomy, proportions, and body shape to pristine natural mannequin shape
      */
     resetAnatomyToNormal() {
       const isMale = (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male');
       this.avatarConfig.anatomy = {
-        female: { bust: 55, glutes: 60, thighs: 48, waist: 72, stomach: 25, height: 1.70, weight: 58 },
-        male: { pecs: 65, shoulders: 72, stomach: 22, thighs: 58, glutes: 55, height: 1.80, weight: 78 }
+        female: { waist: 70, height: 1.70, weight: 58 },
+        male: { waist: 70, height: 1.80, weight: 78 }
       };
       this.avatarConfig.proportions = isMale ? 'athletic' : 'slim_fit';
       this.avatarConfig.bodyFat = isMale ? 20 : 25;
       this.avatarConfig.waistDefinition = 70;
 
-      // Restore base vertex positions directly (0 displacement = pristine model)
+      // Restore base vertex positions directly (0 displacement = pristine natural model)
       if (this.gltfAvatarGroup) {
-        const toRemove = [];
         this.gltfAvatarGroup.traverse((child) => {
-          if (child.isMesh && (child.name === 'Woobi_Female_Panty' || child.name === 'Woobi_Female_Brassiere' || child.name === 'Woobi_Male_Underwear')) {
-            toRemove.push(child);
-          }
           if (child.isMesh && child.geometry && child.geometry.userData && child.geometry.userData.basePositions) {
             const posAttr = child.geometry.attributes.position;
             posAttr.array.set(child.geometry.userData.basePositions);
             posAttr.needsUpdate = true;
             child.geometry.computeVertexNormals();
-          }
-        });
-        toRemove.forEach((child) => {
-          if (child.parent) child.parent.remove(child);
-          if (child.geometry) child.geometry.dispose();
-          if (child.material) {
-            if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-            else child.material.dispose();
           }
         });
       }
@@ -3273,6 +2673,7 @@
       try {
         localStorage.removeItem('seren_avatar_prefs');
         localStorage.removeItem('seren_avatar_prefs_v2');
+        localStorage.removeItem('seren_avatar_prefs_v3');
       } catch (_) {}
       this.savePreferences();
     }
@@ -3290,14 +2691,15 @@
       const loader = new THREE.GLTFLoader();
       const urls = isMale
         ? [
-            '3D - Mannequin By Astra/Woobi_Male_Mannequin.glb?v=20261104_v6',
-            '3D - Mannequin By Astra/male/Woobi_Male_Mannequin.glb?v=20261104_v6',
-            'woobi_male_mannequin.glb?v=20261104_v6'
+            'woobi_male_mannequin.glb?v=human_v2',
+            '3D - Mannequin By Astra/Woobi_Male_Mannequin.glb?v=human_v2',
+            '3D - Mannequin By Astra/male/Woobi_Male_Mannequin.glb?v=human_v2'
           ]
         : [
-            '3D - Mannequin By Astra/Woobi_Female_Mannequin.glb?v=20261104_v6',
-            '3D - Mannequin By Astra/female/Woobi_Female_Mannequin.glb?v=20261104_v6',
-            'woobi_female_mannequin.glb?v=20261104_v6'
+            'Woobi_Female_Mannequin_Fixed.glb?v=human_v2',
+            'woobi_female_mannequin.glb?v=human_v2',
+            '3D - Mannequin By Astra/Woobi_Female_Mannequin.glb?v=human_v2',
+            '3D - Mannequin By Astra/female/Woobi_Female_Mannequin.glb?v=human_v2'
           ];
 
       const tryLoad = (idx) => {
@@ -3314,8 +2716,8 @@
               this.avatarRoot.remove(this.gltfAvatarGroup);
             }
 
-            // Position model cleanly on the dais (0.08m height)
-            model.position.set(0, 0.080, 0);
+            // Position model cleanly on the dais (avatarRoot provides the 0.080m dais elevation)
+            model.position.set(0, 0, 0);
 
             model.traverse((child) => {
               if (child.isMesh) {
@@ -3332,6 +2734,12 @@
             this.gltfAvatarGroup = model;
             if (this.avatarRoot) {
               this.avatarRoot.add(this.gltfAvatarGroup);
+            }
+            if (this.avatarModel) {
+              this.avatarModel.gltfAvatarGroup = model;
+              if (this.avatarModel.animations && typeof this.avatarModel.animations.setGLTFModel === 'function') {
+                this.avatarModel.animations.setGLTFModel(this.gltfAvatarGroup);
+              }
             }
             if (this.sculptedAvatarGroup) {
               this.sculptedAvatarGroup.visible = false;
@@ -3387,7 +2795,7 @@
      */
     loadSavedPreferences() {
       try {
-        const saved = localStorage.getItem('seren_avatar_prefs_v3');
+        const saved = localStorage.getItem('seren_avatar_prefs_v4');
         if (saved) {
           const parsed = JSON.parse(saved);
           this.avatarConfig = Object.assign(this.avatarConfig, parsed);
@@ -3400,7 +2808,7 @@
 
     savePreferences() {
       try {
-        localStorage.setItem('seren_avatar_prefs_v3', JSON.stringify(this.avatarConfig));
+        localStorage.setItem('seren_avatar_prefs_v4', JSON.stringify(this.avatarConfig));
       } catch (e) {
         console.warn('Studio3D: Could not persist avatar prefs', e);
       }
@@ -3479,6 +2887,9 @@
         if (this.avatarController) {
           this.avatarController.setTargetRotation(this.targetRotationY);
         }
+        if (this.avatarModel.animations && this.gltfAvatarGroup && typeof this.avatarModel.animations.setGLTFModel === 'function') {
+          this.avatarModel.animations.setGLTFModel(this.gltfAvatarGroup);
+        }
         this.avatarModel.update(delta, time);
         if (this.features && typeof this.features.update === 'function') {
           this.features.update(delta, time);
@@ -3492,13 +2903,40 @@
           this.avatarRoot.rotation.y = this.avatarRotationY;
         }
 
-        // 2. Subtle Idle Breathing Motion
+        // 2. Continuous Organic Respiration & Living Postural Micro-Sway (Living Mannequin Presence)
+        const breathSpeed = 1.365; // Relaxed respiration: ~13 breaths/min, 4.6s full cycle
         const breath = Math.sin(time * 1.6) * 0.003;
+        const breathCycle = (time * breathSpeed) % (Math.PI * 2);
+        // Asymmetric respiration waveform (active inhalation, smooth passive elastic recoil)
+        const breathNormalized = Math.sin(breathCycle - Math.sin(breathCycle) * 0.28);
+
+        // Biomechanical postural sway angles (inverted pendulum from ankle pivot)
+        const swayZ = Math.sin(time * 0.95) * 0.016; // Coronal lateral weight shift between feet (6.6s cycle, ~0.92 deg)
+        const swayX = Math.sin(time * 1.365 + 0.45) * 0.011 + Math.sin(time * 2.73) * 0.0025; // Sagittal postural lean synchronized with deep breath (~0.77 deg)
+        const swayY = Math.cos(time * 0.74) * 0.012; // Natural idle presence yaw drift (8.5s cycle, ~0.69 deg)
+
         if (this.chestGroup) {
           this.chestGroup.position.y = 1.22 + breath;
+          this.chestGroup.scale.set(1.0 + breathNormalized * 0.015, 1.0, 1.0 + breathNormalized * 0.025);
         }
         if (this.headGroup) {
           this.headGroup.position.y = 1.54 + breath * 0.6;
+          this.headGroup.rotation.z = swayZ * 0.50;
+          this.headGroup.rotation.x = swayX * 0.50;
+        }
+
+        // Animate loaded GLTF human mannequin (Organic breathing & living postural slow movements)
+        if (this.gltfAvatarGroup) {
+          // Thoracic breathing: Ribcage expansion and vertical elevation anchored at feet (y=0)
+          this.gltfAvatarGroup.scale.set(
+            1.0 + breathNormalized * 0.018, // 1.8% lateral ribcage expansion
+            1.0 + breathNormalized * 0.012, // 1.2% (~2.1cm) vertical thoracic rise and fall
+            1.0 + breathNormalized * 0.034  // 3.4% chest and bust forward expansion
+          );
+          // Natural living slow movements: graceful postural sway & weight shift from ankle/hip pivot
+          this.gltfAvatarGroup.rotation.x = swayX;
+          this.gltfAvatarGroup.rotation.z = swayZ;
+          this.gltfAvatarGroup.rotation.y = swayY;
         }
 
         // 3. Natural Periodic Eyelid Blinking

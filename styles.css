@@ -6381,23 +6381,9 @@ html, body {
 /* ===================================================================
    DESKTOP 3D MANNEQUIN TESTING & INSPECTOR SUITE (OUTSIDE MOBILE LAYOUT)
    =================================================================== */
-.desktop-testing-dock {
-  width: 350px;
-  max-width: 360px;
-  max-height: 890px;
-  display: flex;
-  flex-direction: column;
-  background: rgba(255, 252, 248, 0.94);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(220, 204, 186, 0.75);
-  border-radius: 28px;
-  box-shadow: 0 20px 50px rgba(44, 34, 24, 0.12), 0 4px 12px rgba(44, 34, 24, 0.04);
-  overflow: hidden;
-  box-sizing: border-box;
-  user-select: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 100;
+.desktop-testing-dock,
+.dock-mini-launcher {
+  display: none !important;
 }
 
 .desktop-testing-dock.collapsed {
@@ -6979,6 +6965,62 @@ html, body {
 /* ===================================================================
    3D SPATIAL FLOATING INTERACTIVE HOTSPOTS (MATCHING REFERENCE)
    =================================================================== */
+.seren-mannequin-quick-toggle {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 252, 247, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(220, 208, 192, 0.85);
+  border-radius: 999px;
+  padding: 4px;
+  box-shadow: 0 4px 18px rgba(70, 55, 40, 0.12);
+  pointer-events: auto;
+  user-select: none;
+}
+
+.seren-mannequin-quick-toggle .quick-toggle-btn {
+  border: none;
+  background: transparent;
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #6E5F4E;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.seren-mannequin-quick-toggle .quick-toggle-btn:hover {
+  color: #2F2821;
+}
+
+.seren-mannequin-quick-toggle .quick-toggle-btn.active {
+  background: #4A5B44;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(74, 91, 68, 0.28);
+}
+
+.seren-mannequin-quick-toggle .quick-toggle-btn.sizing-btn {
+  border-left: 1px solid rgba(220, 208, 192, 0.6);
+  border-radius: 0 999px 999px 0;
+  padding-left: 10px;
+  color: #4A5B44;
+  font-weight: 700;
+}
+
+.seren-mannequin-quick-toggle .quick-toggle-btn.sizing-btn:hover {
+  background: rgba(74, 91, 68, 0.08);
+}
+
 .spatial-3d-hint {
   position: absolute;
   z-index: 30;

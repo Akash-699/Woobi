@@ -58,3 +58,6 @@ scratch_*.ps1
 
 # Local Firebase project configuration
 /login/firebase-config.js
+
+__pycache__/
+*.pyc

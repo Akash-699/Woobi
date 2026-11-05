@@ -77,7 +77,7 @@ export class AvatarModel {
     if (!this.assets) return;
 
     this.assets.loadRiggedModel(
-      (model, url) => {
+      (model, url, animations) => {
         if (this.isDisposed) return;
         this.gltfAvatarGroup = model;
         if (this.avatarRoot) {
@@ -87,13 +87,19 @@ export class AvatarModel {
           this.sculptedAvatarGroup.visible = false;
         }
         this.activeAvatarType = 'glb';
+        if (this.animations && typeof this.animations.setGLTFModel === 'function') {
+          this.animations.setGLTFModel(this.gltfAvatarGroup, animations || model.animations || []);
+        }
 
-        if (onSuccess) onSuccess(model, url);
+        if (onSuccess) onSuccess(model, url, animations);
       },
       (err) => {
         if (this.isDisposed) return;
         // High-definition sculpted avatar remains active as verified fallback
         this.activeAvatarType = 'sculpted';
+        if (this.animations && typeof this.animations.setGLTFModel === 'function') {
+          this.animations.setGLTFModel(null);
+        }
         if (this.sculptedAvatarGroup) {
           this.sculptedAvatarGroup.visible = true;
         }
@@ -107,7 +113,7 @@ export class AvatarModel {
     if (!this.assets) return;
     this.assets.loadMannequinModel(
       gender,
-      (model, url) => {
+      (model, url, animations) => {
         if (this.isDisposed) return;
         this.gltfAvatarGroup = model;
         if (this.avatarRoot) {
@@ -117,10 +123,19 @@ export class AvatarModel {
           this.sculptedAvatarGroup.visible = false;
         }
         this.activeAvatarType = 'mannequin';
-        if (onSuccess) onSuccess(model, url);
+        if (this.animations && typeof this.animations.setGLTFModel === 'function') {
+          this.animations.setGLTFModel(this.gltfAvatarGroup, animations || model.animations || []);
+        }
+        if (onSuccess) onSuccess(model, url, animations);
       },
       onError
     );
+  }
+
+  playAction(actionName, crossFadeDuration = 0.4) {
+    if (this.animations && typeof this.animations.playAction === 'function') {
+      return this.animations.playAction(actionName, crossFadeDuration);
+    }
   }
 
   getElevation() {
