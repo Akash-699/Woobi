@@ -20,15 +20,15 @@ export class ThemeMaterials {
 
     const preset = THEME_PRESETS[presetName] || THEME_PRESETS[DEFAULT_THEME_PRESET];
 
-    // 1. Flooring Material (Rich champagne stone ground plane with tactile relief)
-    const floorTexture = (presetName === 'mediterranean-luxury')
-      ? (this.textures.champagneStone || this.textures.sandPlaster || null)
-      : (this.textures.champagneStone || this.textures.creamMarble || null);
+    // 1. Flooring Material (Darker neutral matte grey #7A7A7A floor with subtle roughness and tactile relief)
+    const floorTexture = (presetName === 'nordic-minimal' || presetName === 'warm-terracotta')
+      ? (this.textures.champagneStone || this.textures.creamMarble || null)
+      : null;
 
     this.floorMat = new THREE.MeshStandardMaterial({
       map: floorTexture,
       bumpMap: this.textures.stoneBump || null,
-      bumpScale: 0.007,
+      bumpScale: floorTexture ? 0.007 : 0.003,
       roughness: preset.floor.roughness,
       metalness: preset.floor.metalness,
       color: preset.floor.color
@@ -86,6 +86,13 @@ export class ThemeMaterials {
     if (!preset) return;
 
     if (this.floorMat) {
+      if (presetName === 'mediterranean-luxury' || presetName === 'luxury-cream') {
+        this.floorMat.map = null;
+        this.floorMat.bumpScale = 0.003;
+      } else {
+        this.floorMat.map = this.textures.champagneStone || this.textures.creamMarble || null;
+        this.floorMat.bumpScale = 0.007;
+      }
       this.floorMat.color.set(preset.floor.color);
       this.floorMat.roughness = preset.floor.roughness;
       this.floorMat.metalness = preset.floor.metalness;

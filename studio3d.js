@@ -833,15 +833,15 @@
         return;
       }
 
-      // 1. Champagne Stone Architectural Ground Plane (#CDB594) with Tactile Relief
+      // 1. Darker Neutral Matte Grey Architectural Ground Plane (#7A7A7A) with Tactile Relief
       const floorGeo = new THREE.PlaneGeometry(28, 28);
       const floorMat = new THREE.MeshStandardMaterial({
-        map: this.textures.champagneStone || this.textures.sandPlaster,
+        map: null,
         bumpMap: this.textures.stoneBump || null,
-        bumpScale: 0.007,
-        roughness: 0.68,
-        metalness: 0.02,
-        color: 0xCDB594
+        bumpScale: 0.003,
+        roughness: 0.82,
+        metalness: 0.01,
+        color: 0x7A7A7A
       });
       const floor = new THREE.Mesh(floorGeo, floorMat);
       floor.rotation.x = -Math.PI / 2;
