@@ -1,6 +1,6 @@
 /**
  * Woobi - Backend Module
- * DatabaseService.js - Hardened ACID-Compliant Repository Engine with Mutex Writes, Backup Recovery & Scoped Isolation
+ * DatabaseService.js - Hardened ACID-Compliant Repository Engine with Mutex Writes, Backup Recovery, Scoped Isolation & Supabase Cloud Sync
  */
 
 import fs from 'node:fs';
@@ -36,6 +36,12 @@ class BaseRepository {
       list.push(record);
     });
     this.db.emit(DB_EVENTS.ENTITY_CREATED, { collection: this.collectionName, entity: record });
+
+    // Sync to Supabase in the background
+    if (typeof this.db.syncSupabase === 'function') {
+      this.db.syncSupabase(this.collectionName, 'POST', record).catch(() => { });
+    }
+
     return record;
   }
 
@@ -56,6 +62,11 @@ class BaseRepository {
 
     if (updated) {
       this.db.emit(DB_EVENTS.ENTITY_UPDATED, { collection: this.collectionName, entity: updated });
+
+      // Sync update to Supabase in the background
+      if (typeof this.db.syncSupabase === 'function') {
+        this.db.syncSupabase(this.collectionName, 'PATCH', updates, `id=eq.${id}`).catch(() => { });
+      }
     }
     return updated;
   }
@@ -70,6 +81,11 @@ class BaseRepository {
 
     if (deleted) {
       this.db.emit(DB_EVENTS.ENTITY_DELETED, { collection: this.collectionName, id, entity: deleted });
+
+      // Sync deletion to Supabase in the background
+      if (typeof this.db.syncSupabase === 'function') {
+        this.db.syncSupabase(this.collectionName, 'DELETE', null, `id=eq.${id}`).catch(() => { });
+      }
       return true;
     }
     return false;
@@ -152,6 +168,11 @@ class AvatarRepository extends BaseRepository {
         list.push(saved);
       }
     });
+
+    if (saved && typeof this.db.syncSupabase === 'function') {
+      this.db.syncSupabase(this.collectionName, 'POST', saved).catch(() => { });
+    }
+
     return saved;
   }
 }
@@ -181,6 +202,11 @@ class SettingsRepository extends BaseRepository {
         list.push(saved);
       }
     });
+
+    if (saved && typeof this.db.syncSupabase === 'function') {
+      this.db.syncSupabase(this.collectionName, 'POST', saved).catch(() => { });
+    }
+
     return saved;
   }
 }
@@ -221,6 +247,11 @@ class StreakRepository extends BaseRepository {
         list.push(record);
       }
     });
+
+    if (record && typeof this.db.syncSupabase === 'function') {
+      this.db.syncSupabase(this.collectionName, 'POST', record).catch(() => { });
+    }
+
     return record;
   }
 }
@@ -260,6 +291,11 @@ class SubscriptionRepository extends BaseRepository {
         list.push(entitlement);
       }
     });
+
+    if (entitlement && typeof this.db.syncSupabase === 'function') {
+      this.db.syncSupabase(this.collectionName, 'POST', entitlement).catch(() => { });
+    }
+
     return entitlement;
   }
 }
@@ -287,6 +323,15 @@ class RevokedTokenRepository extends BaseRepository {
         expiresAt: expiresAt || new Date(Date.now() + 24 * 3600 * 1000).toISOString()
       });
     });
+
+    if (typeof this.db.syncSupabase === 'function') {
+      this.db.syncSupabase(this.collectionName, 'POST', {
+        token,
+        revokedAt: new Date().toISOString(),
+        expiresAt: expiresAt || new Date(Date.now() + 24 * 3600 * 1000).toISOString()
+      }).catch(() => { });
+    }
+
     return true;
   }
 
@@ -305,8 +350,13 @@ export class DatabaseService {
     this.options = {
       dataDir: path.resolve('data'),
       inMemoryOnly: false,
+      supabaseUrl: options.supabaseUrl || (typeof process !== 'undefined' ? process.env.SUPABASE_URL : null),
+      supabaseKey: options.supabaseKey || (typeof process !== 'undefined' ? (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY) : null),
       ...options
     };
+
+    this.supabaseUrl = this.options.supabaseUrl;
+    this.supabaseKey = this.options.supabaseKey;
 
     this.cache = new Map();
     this.cacheMtime = new Map();
@@ -334,6 +384,46 @@ export class DatabaseService {
 
     // Initial schema migration / seeding
     this.runInitialMigrations();
+  }
+
+  _toSnakeCase(obj) {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
+    const result = {};
+    for (const [key, val] of Object.entries(obj)) {
+      const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+      result[snakeKey] = val;
+    }
+    return result;
+  }
+
+  /**
+   * Helper to perform transactional PostgREST requests against Supabase
+   */
+  async syncSupabase(table, method, body = null, queryParams = '') {
+    if (!this.supabaseUrl || !this.supabaseKey) return null;
+    try {
+      const formattedBody = body ? this._toSnakeCase(body) : null;
+      const url = `${this.supabaseUrl}/rest/v1/${table}${queryParams ? `?${queryParams}` : ''}`;
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'apikey': this.supabaseKey,
+          'Authorization': `Bearer ${this.supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation,resolution=merge-duplicates'
+        },
+        body: formattedBody ? JSON.stringify(formattedBody) : undefined
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.warn(`Supabase DB sync [${table}] ${method} warning [${res.status}]:`, errorText);
+        return null;
+      }
+      return await res.json().catch(() => null);
+    } catch (err) {
+      console.warn(`Supabase DB connection warning:`, err.message);
+      return null;
+    }
   }
 
   on(event, callback) {
@@ -389,7 +479,7 @@ export class DatabaseService {
       if (cachedMtime && stat.mtimeMs === cachedMtime && this.cache.has(collectionName)) {
         return this.cache.get(collectionName);
       }
-    } catch {}
+    } catch { }
 
     try {
       const content = fs.readFileSync(filePath, 'utf8');
@@ -400,7 +490,7 @@ export class DatabaseService {
         const stat = fs.statSync(filePath);
         if (!this.cacheMtime) this.cacheMtime = new Map();
         this.cacheMtime.set(collectionName, stat.mtimeMs);
-      } catch {}
+      } catch { }
       return list;
     } catch (err) {
       this.emit(DB_EVENTS.CORRUPTION_DETECTED, { collection: collectionName, error: err.message });
@@ -431,14 +521,14 @@ export class DatabaseService {
    * Acquire cross-process OS directory lock
    */
   async _acquireFileLock(collectionName, timeoutMs = 8000) {
-    if (this.options.inMemoryOnly) return () => {};
+    if (this.options.inMemoryOnly) return () => { };
     const lockDir = path.join(this.options.dataDir, `${collectionName}.oslock`);
     const startTime = Date.now();
     while (Date.now() - startTime < timeoutMs) {
       try {
         fs.mkdirSync(lockDir);
         return () => {
-          try { fs.rmdirSync(lockDir); } catch {}
+          try { fs.rmdirSync(lockDir); } catch { }
         };
       } catch (err) {
         if (err.code !== 'EEXIST' && err.code !== 'EPERM' && err.code !== 'EACCES') throw err;
@@ -446,9 +536,9 @@ export class DatabaseService {
           const stat = fs.statSync(lockDir);
           // Break stale locks older than 10s
           if (Date.now() - stat.mtimeMs > 10000) {
-            try { fs.rmdirSync(lockDir); } catch {}
+            try { fs.rmdirSync(lockDir); } catch { }
           }
-        } catch {}
+        } catch { }
         await new Promise(r => setTimeout(r, 20));
       }
     }
@@ -514,7 +604,7 @@ export class DatabaseService {
       if (fs.existsSync(filePath)) {
         try {
           fs.copyFileSync(filePath, backupPath);
-        } catch {}
+        } catch { }
       }
 
       // 2. Write to unique temporary file
@@ -544,10 +634,10 @@ export class DatabaseService {
         const stat = fs.statSync(filePath);
         if (!this.cacheMtime) this.cacheMtime = new Map();
         this.cacheMtime.set(collectionName, stat.mtimeMs);
-      } catch {}
+      } catch { }
     } catch (err) {
       if (fs.existsSync(tmpPath)) {
-        try { fs.unlinkSync(tmpPath); } catch {}
+        try { fs.unlinkSync(tmpPath); } catch { }
       }
       throw new Error(`Database atomic write failure on [${collectionName}]: ${err.message}`);
     }
@@ -590,13 +680,13 @@ export class DatabaseService {
         const bak = this.getBackupFilePath(ent);
         const lock = path.join(this.options.dataDir, `${ent}.oslock`);
         if (fs.existsSync(fp)) {
-          try { fs.unlinkSync(fp); } catch {}
+          try { fs.unlinkSync(fp); } catch { }
         }
         if (fs.existsSync(bak)) {
-          try { fs.unlinkSync(bak); } catch {}
+          try { fs.unlinkSync(bak); } catch { }
         }
         if (fs.existsSync(lock)) {
-          try { fs.rmdirSync(lock); } catch {}
+          try { fs.rmdirSync(lock); } catch { }
         }
       }
     }

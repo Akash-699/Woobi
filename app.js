@@ -1569,22 +1569,24 @@
   // SÉRÉN 3D VIRTUAL FASHION STUDIO CONTROLLER
   // ===================================================================
 
+  const SUPABASE_CDN = 'https://lewsuhfhagpjootunpsa.supabase.co/storage/v1/object/public/Troys%20Assets/assets/';
+
   const SEREN_GARMENTS = [
-    { id: 'cardigan', cat: 'tops', name: 'Cream Knit Cardigan', photo: 'assets/style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
-    { id: 'blazer', cat: 'tops', name: 'Camel Smart Blazer', photo: 'assets/smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
-    { id: 'navy_shirt', cat: 'tops', name: 'Navy Oxford Shirt', photo: 'assets/navy_shirt.jpg', is3D: true, sub: 'Crisp button-down collar' },
-    { id: 'striped_sweater', cat: 'tops', name: 'Breton Striped Sweater', photo: 'assets/style_casual.jpg', is3D: true, sub: 'French nautical knit' },
-    { id: 'tank', cat: 'tops', name: 'Ribbed Ivory Tank', photo: 'assets/welcome_hero.jpg', is3D: true, sub: 'Scoop neck luxury cotton' },
+    { id: 'cardigan', cat: 'tops', name: 'Cream Knit Cardigan', photo: SUPABASE_CDN + 'style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
+    { id: 'blazer', cat: 'tops', name: 'Camel Smart Blazer', photo: SUPABASE_CDN + 'smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
+    { id: 'navy_shirt', cat: 'tops', name: 'Navy Oxford Shirt', photo: SUPABASE_CDN + 'navy_shirt.jpg', is3D: true, sub: 'Crisp button-down collar' },
+    { id: 'striped_sweater', cat: 'tops', name: 'Breton Striped Sweater', photo: SUPABASE_CDN + 'style_casual.jpg', is3D: true, sub: 'French nautical knit' },
+    { id: 'tank', cat: 'tops', name: 'Ribbed Ivory Tank', photo: SUPABASE_CDN + 'welcome_hero.jpg', is3D: true, sub: 'Scoop neck luxury cotton' },
 
-    { id: 'taupe_wide', cat: 'bottoms', name: 'Tailored Taupe Trousers', photo: 'assets/beige_chinos.jpg', is3D: true, sub: 'Pleated high-waisted drape' },
-    { id: 'dark_denim', cat: 'bottoms', name: 'Dark Indigo Straight Jeans', photo: 'assets/blue_jeans.jpg', is3D: true, sub: 'Tailored Japanese denim' },
-    { id: 'white_chinos', cat: 'bottoms', name: 'Crisp Ivory Chinos', photo: 'assets/beige_chinos.jpg', is3D: true, sub: 'Clean minimalist cut' },
+    { id: 'taupe_wide', cat: 'bottoms', name: 'Tailored Taupe Trousers', photo: SUPABASE_CDN + 'beige_chinos.jpg', is3D: true, sub: 'Pleated high-waisted drape' },
+    { id: 'dark_denim', cat: 'bottoms', name: 'Dark Indigo Straight Jeans', photo: SUPABASE_CDN + 'dark_denim.jpg', is3D: true, sub: 'Tailored Japanese denim' },
+    { id: 'white_chinos', cat: 'bottoms', name: 'Crisp Ivory Chinos', photo: SUPABASE_CDN + 'beige_chinos.jpg', is3D: true, sub: 'Clean minimalist cut' },
 
-    { id: 'blazer', cat: 'outerwear', name: 'Camel Smart Blazer', photo: 'assets/smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
-    { id: 'cardigan', cat: 'outerwear', name: 'Cream Knit Cardigan', photo: 'assets/style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
+    { id: 'blazer', cat: 'outerwear', name: 'Camel Smart Blazer', photo: SUPABASE_CDN + 'smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
+    { id: 'cardigan', cat: 'outerwear', name: 'Cream Knit Cardigan', photo: SUPABASE_CDN + 'style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
 
-    { id: 'loafers', cat: 'shoes', name: 'Caramel Leather Loafers', photo: 'assets/smart_blazer.jpg', is3D: true, sub: 'Polished brass horsebit' },
-    { id: 'sneakers', cat: 'shoes', name: 'Clean White Sneakers', photo: 'assets/welcome_hero.jpg', is3D: true, sub: 'Minimalist court leather' }
+    { id: 'loafers', cat: 'shoes', name: 'Caramel Leather Loafers', photo: SUPABASE_CDN + 'tan_loafers.jpg', is3D: true, sub: 'Polished brass horsebit' },
+    { id: 'sneakers', cat: 'shoes', name: 'Clean White Sneakers', photo: SUPABASE_CDN + 'white_sneakers.jpg', is3D: true, sub: 'Minimalist court leather' }
   ];
 
   const STYLING_REVIEWS = {
