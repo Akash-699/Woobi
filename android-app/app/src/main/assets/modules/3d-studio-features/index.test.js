@@ -15,6 +15,10 @@ import {
   AvatarCustomizer,
   PoseController,
   SavedLooksManager,
+  SmartColourMatcher,
+  createColourMatcher,
+  ColourSelectionInterface,
+  ColourTheory,
   GARMENT_CATALOG,
   STUDIO_POSES,
   SKIN_TONE_PRESETS,
@@ -22,13 +26,17 @@ import {
 } from './index.js';
 
 describe('Root 3D Studio Features Module - Unified Exports', () => {
-  it('1. should export all 6 submodule classes and factories', () => {
+  it('1. should export all submodule classes and factories', () => {
     assert.ok(VirtualTryOn);
     assert.ok(GarmentInteractions);
     assert.ok(RecommendationEngine);
     assert.ok(AvatarCustomizer);
     assert.ok(PoseController);
     assert.ok(SavedLooksManager);
+    assert.ok(SmartColourMatcher);
+    assert.ok(createColourMatcher);
+    assert.ok(ColourSelectionInterface);
+    assert.ok(ColourTheory);
   });
 
   it('2. should export standard constants and catalogs across submodules', () => {
@@ -45,9 +53,10 @@ describe('Root 3D Studio Features Module - Unified Exports', () => {
     assert.ok(StudioFeaturesContract.customizer);
     assert.ok(StudioFeaturesContract.animations);
     assert.ok(StudioFeaturesContract.savedLooks);
+    assert.ok(StudioFeaturesContract.colourMatching);
   });
 
-  it('4. should instantiate StudioFeatures orchestrator', () => {
+  it('4. should instantiate StudioFeatures orchestrator with colourMatcher', () => {
     const features = createStudioFeatures();
     assert.ok(features);
     assert.ok(features.tryOn);
@@ -56,6 +65,15 @@ describe('Root 3D Studio Features Module - Unified Exports', () => {
     assert.ok(features.customizer);
     assert.ok(features.animations);
     assert.ok(features.savedLooks);
+    assert.ok(features.colourMatcher);
+
+    const matchRes = features.colourMatcher.analyzeOutfit({
+      shirt: 'Crisp White',
+      pants: 'Midnight Navy',
+      shoes: 'Espresso Brown'
+    });
+    assert.strictEqual(matchRes.rating, 'Excellent');
+    assert.ok(matchRes.score >= 85);
   });
 
   it('5. should coordinate look re-equipping between savedLooks and tryOn', () => {

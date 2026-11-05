@@ -194,12 +194,10 @@ export class AvatarAssets {
 
           this.activeModel = model;
           this.activeModelUrl = url;
-          this.activeAnimations = gltf.animations || [];
-          model.animations = this.activeAnimations;
           this.isLoaded = true;
           this.isLoading = false;
 
-          if (onSuccess) onSuccess(model, url, this.activeAnimations);
+          if (onSuccess) onSuccess(model, url);
         },
         undefined,
         (err) => {

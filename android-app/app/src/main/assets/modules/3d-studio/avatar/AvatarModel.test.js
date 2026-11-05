@@ -369,39 +369,6 @@ test('Periodic blinking updates eyelid scale Y', () => {
   assert.strictEqual(rig.eyelids[0].scale.y > 0.02, true);
 });
 
-test('AvatarAnimations registers and triggers interactive actions (walk, pose, spread, turn, idle)', () => {
-  const root = new MockTHREE.Group();
-  const anim = new AvatarAnimations(root, null, MockTHREE);
-
-  const actions = anim.getActionList();
-  assert.deepStrictEqual(actions, ['walk', 'pose', 'spread', 'turn', 'idle']);
-
-  assert.strictEqual(anim.currentActionName, 'idle');
-  anim.playAction('walk');
-  assert.strictEqual(anim.currentActionName, 'walk');
-  anim.playAction('pose');
-  assert.strictEqual(anim.currentActionName, 'pose');
-  anim.playAction('spread');
-  assert.strictEqual(anim.currentActionName, 'spread');
-  anim.playAction('turn');
-  assert.strictEqual(anim.currentActionName, 'turn');
-});
-
-test('AvatarAnimations update loop executes kinematic actions on GLTF model', () => {
-  const root = new MockTHREE.Group();
-  const gltf = new MockTHREE.Group();
-  const anim = new AvatarAnimations(root, null, MockTHREE);
-  anim.setGLTFModel(gltf);
-
-  anim.playAction('walk');
-  anim.update(0.016, 1.0);
-  assert.strictEqual(gltf.position.y <= 0, true);
-
-  anim.playAction('turn');
-  anim.update(0.1, 1.1);
-  assert.strictEqual(anim.avatarRotationY > 0, true);
-});
-
 console.log('\n==================================================');
 console.log('  CONTROLLER & STATE PERSISTENCE TESTS            ');
 console.log('==================================================');

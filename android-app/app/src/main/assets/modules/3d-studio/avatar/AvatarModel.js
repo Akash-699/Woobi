@@ -77,7 +77,7 @@ export class AvatarModel {
     if (!this.assets) return;
 
     this.assets.loadRiggedModel(
-      (model, url, animations) => {
+      (model, url) => {
         if (this.isDisposed) return;
         this.gltfAvatarGroup = model;
         if (this.avatarRoot) {
@@ -88,10 +88,10 @@ export class AvatarModel {
         }
         this.activeAvatarType = 'glb';
         if (this.animations && typeof this.animations.setGLTFModel === 'function') {
-          this.animations.setGLTFModel(this.gltfAvatarGroup, animations || model.animations || []);
+          this.animations.setGLTFModel(this.gltfAvatarGroup);
         }
 
-        if (onSuccess) onSuccess(model, url, animations);
+        if (onSuccess) onSuccess(model, url);
       },
       (err) => {
         if (this.isDisposed) return;
@@ -113,7 +113,7 @@ export class AvatarModel {
     if (!this.assets) return;
     this.assets.loadMannequinModel(
       gender,
-      (model, url, animations) => {
+      (model, url) => {
         if (this.isDisposed) return;
         this.gltfAvatarGroup = model;
         if (this.avatarRoot) {
@@ -124,18 +124,12 @@ export class AvatarModel {
         }
         this.activeAvatarType = 'mannequin';
         if (this.animations && typeof this.animations.setGLTFModel === 'function') {
-          this.animations.setGLTFModel(this.gltfAvatarGroup, animations || model.animations || []);
+          this.animations.setGLTFModel(this.gltfAvatarGroup);
         }
-        if (onSuccess) onSuccess(model, url, animations);
+        if (onSuccess) onSuccess(model, url);
       },
       onError
     );
-  }
-
-  playAction(actionName, crossFadeDuration = 0.4) {
-    if (this.animations && typeof this.animations.playAction === 'function') {
-      return this.animations.playAction(actionName, crossFadeDuration);
-    }
   }
 
   getElevation() {

@@ -68,6 +68,7 @@ export class StudioTheme {
     this.windowShadowGroup.name = 'Studio_WindowShadow';
     this.windowShadowGroup.position.set(1.4, 2.1, -1.8);
     this.windowShadowGroup.rotation.set(-0.25, 0.45, -0.2);
+    this.windowShadowGroup.visible = false; // Hidden to remove window glare projection from wall and mirror
 
     for (let w = 0; w < 4; w++) {
       const paneGeo = new _THREE.PlaneGeometry(0.38, 0.58);

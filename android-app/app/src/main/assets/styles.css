@@ -103,6 +103,8 @@ html, body {
     border-radius: 46px;
     box-shadow: 0 30px 80px rgba(26, 31, 25, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.08);
     margin: auto;
+    position: relative;
+    transform: translateZ(0); /* Establishes containing block for fixed/absolute descendants */
   }
   .phone-screen-container {
     border-radius: 46px;
@@ -466,30 +468,31 @@ html, body {
   left: 0;
   right: 0;
   width: 100%;
-  height: auto;
-  min-height: 70px;
-  background: rgba(250, 249, 246, 0.98);
+  height: 64px;
+  background: rgba(250, 249, 246, 0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid rgba(220, 214, 204, 0.75);
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 8px 14px max(env(safe-area-inset-bottom, 0px), 18px) 14px;
+  padding: 6px 14px max(env(safe-area-inset-bottom, 0px), 8px) 14px;
   z-index: 1000;
   box-shadow: 0 -4px 20px rgba(26, 31, 25, 0.04);
+  box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
   .phone-bottom-nav {
     position: fixed;
-    bottom: max(3vh, 20px);
-    left: 50%;
-    transform: translateX(-50%);
-    width: 420px;
-    max-width: 420px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    transform: none;
     border-radius: 0 0 46px 46px;
-    padding-bottom: 14px;
+    padding-bottom: 12px;
   }
 }
 
@@ -503,23 +506,41 @@ html, body {
   gap: 3px;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 6px 14px;
-  transition: var(--transition-fast);
+  padding: 6px 12px;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  flex: 1;
+  max-width: 80px;
+}
+
+.nav-tab:hover {
+  color: var(--text-main);
+  background: rgba(82, 99, 75, 0.05);
 }
 
 .nav-tab svg {
   stroke: var(--text-muted);
+  transition: all 0.2s ease;
 }
 
 .nav-tab.active {
   color: var(--olive-primary);
+  font-weight: 700;
 }
 
 .nav-tab.active svg {
   stroke: var(--olive-primary);
+}
+
+.nav-tab.active svg[fill="currentColor"] {
   fill: var(--olive-primary);
+}
+
+.nav-tab.active svg[fill="none"] {
+  fill: none;
+  stroke: var(--olive-primary);
 }
 
 .nav-tab span {
@@ -5701,11 +5722,13 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
+  pointer-events: auto !important;
 }
 
 .seren-icon-btn {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(220, 208, 192, 0.6);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(220, 210, 195, 0.85);
   width: 38px;
   height: 38px;
   border-radius: 50%;
@@ -5713,14 +5736,18 @@ html, body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #3C332A;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: transform 0.15s ease, background 0.15s ease;
+  color: #554433;
+  box-shadow: 0 4px 16px rgba(70, 50, 30, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .seren-icon-btn:hover {
-  transform: scale(1.08);
-  background: #FFF;
+  transform: translateY(-2px);
+  background: #FFFFFF;
+  color: #C85A17;
+  border-color: rgba(190, 160, 130, 0.85);
 }
 
 /* Stage Viewport */
@@ -7019,61 +7046,6 @@ html, body {
 
 .seren-mannequin-quick-toggle .quick-toggle-btn.sizing-btn:hover {
   background: rgba(74, 91, 68, 0.08);
-}
-
-.seren-mannequin-actions-bar {
-  position: absolute;
-  bottom: 22px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 35;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 252, 247, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(220, 208, 192, 0.88);
-  border-radius: 999px;
-  padding: 4px 6px;
-  box-shadow: 0 6px 22px rgba(60, 48, 35, 0.15);
-  pointer-events: auto;
-  user-select: none;
-  max-width: calc(100% - 32px);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.seren-mannequin-actions-bar::-webkit-scrollbar {
-  display: none;
-}
-
-.seren-mannequin-actions-bar .action-btn {
-  border: none;
-  background: transparent;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-family: inherit;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #6E5F4E;
-  cursor: pointer;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-}
-
-.seren-mannequin-actions-bar .action-btn:hover {
-  color: #2F2821;
-  background: rgba(74, 91, 68, 0.08);
-}
-
-.seren-mannequin-actions-bar .action-btn.active {
-  background: #4A5B44;
-  color: #FFFFFF;
-  box-shadow: 0 2px 10px rgba(74, 91, 68, 0.35);
 }
 
 .spatial-3d-hint {
@@ -8635,15 +8607,18 @@ html, body {
 .streak-modal-backdrop {
   position: absolute;
   inset: 0;
-  z-index: 150;
+  z-index: 1200;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  background: rgba(30, 25, 20, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  animation: fadeInBackdrop 0.25s ease-out;
+  padding: 24px 16px;
+  background: rgba(22, 18, 14, 0.48);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  animation: fadeInBackdrop 0.22s ease-out;
 }
 
 .streak-modal-backdrop.hidden {
@@ -8663,9 +8638,12 @@ html, body {
   padding: 24px 22px;
   width: 100%;
   max-width: 340px;
+  max-height: calc(100% - 20px);
+  overflow-y: auto;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
   animation: scaleInModal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   text-align: left;
+  box-sizing: border-box;
 }
 
 @keyframes scaleInModal {
@@ -9013,44 +8991,50 @@ html, body {
 }
 
 .streak-camera-btn,
-.streak-gallery-btn {
+.streak-gallery-btn,
+.streak-calendar-btn,
+.streak-account-btn {
   width: 38px;
   padding: 0;
   color: #554433;
 }
 
 .streak-camera-btn:hover,
-.streak-gallery-btn:hover {
+.streak-gallery-btn:hover,
+.streak-calendar-btn:hover,
+.streak-account-btn:hover {
   color: #C85A17;
 }
 
 /* Header Icon Mini Fire & Smoke */
 .streak-header-icon-img {
-  width: 22px;
-  height: 22px;
-  object-fit: cover;
-  border-radius: 50%;
-  box-shadow: 0 0 8px rgba(255, 110, 0, 0.7);
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(255, 120, 20, 0.6));
   animation: realisticFlameFlicker 2.2s ease-in-out infinite alternate;
 }
 
 #streakHeaderSmokeImg.streak-header-icon-img {
-  box-shadow: 0 0 6px rgba(70, 60, 50, 0.5);
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(70, 60, 50, 0.45));
   animation: realisticWoodSmoke 3.2s ease-in-out infinite alternate;
 }
 
 @keyframes realisticFlameFlicker {
   0% {
     transform: scale(0.97) rotate(-1deg);
-    filter: drop-shadow(0 0 6px rgba(255, 90, 0, 0.8)) brightness(1);
+    opacity: 0.95;
   }
   50% {
-    transform: scale(1.06) rotate(1.5deg);
-    filter: drop-shadow(0 0 12px rgba(255, 130, 0, 0.95)) brightness(1.18);
+    transform: scale(1.05) rotate(1.5deg);
+    opacity: 1;
   }
   100% {
     transform: scale(0.98) rotate(-0.5deg);
-    filter: drop-shadow(0 0 7px rgba(255, 100, 0, 0.85)) brightness(1.04);
+    opacity: 0.95;
   }
 }
 
@@ -9195,80 +9179,908 @@ html, body {
 }
 
 /* ==========================================================================
-   11. MONTHLY CIRCULAR CALENDAR & FIRE/SMOKE BUBBLES
+   11. MONTHLY CIRCULAR CALENDAR (SHOWS ONLY DAYS AND MONTH)
    ========================================================================== */
-.streak-calendar-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(225, 215, 200, 0.8);
-  border-radius: 20px;
-  padding: 16px 14px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 20px rgba(70, 50, 30, 0.05);
+.streak-calendar-modal-card.woobi-calendar-card {
+  background: #FAF7F2;
+  border: 1.5px solid rgba(225, 212, 198, 0.95);
+  border-radius: 26px;
+  padding: 16px 14px 18px 14px;
+  max-width: 330px;
+  width: 90vw;
+  box-shadow: 0 20px 50px rgba(45, 30, 18, 0.35), 0 4px 16px rgba(0, 0, 0, 0.12);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  margin: auto;
+  animation: cardPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.streak-calendar-nav {
+.streak-calendar-modal-card.woobi-calendar-card::-webkit-scrollbar {
+  width: 4px;
+}
+
+.streak-calendar-modal-card.woobi-calendar-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.streak-calendar-modal-card.woobi-calendar-card::-webkit-scrollbar-thumb {
+  background: rgba(200, 180, 160, 0.45);
+  border-radius: 4px;
+}
+
+@keyframes cardPopIn {
+  0% {
+    transform: scale(0.92) translateY(12px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Calendar Month Navigation Header (Days & Month Only) */
+.streak-calendar-nav-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+  padding: 0 2px;
 }
 
-.btn-cal-nav {
-  background: #F8F4EE;
-  border: 1px solid rgba(215, 200, 180, 0.6);
+.cal-nav-left-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cal-exit-circle-btn {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
+  background: #FFFFFF;
+  border: 1px solid rgba(215, 200, 185, 0.8);
+  color: #4C3B30;
+  font-size: 0.88rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #554433;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 4px rgba(80, 60, 40, 0.08);
+  padding: 0;
+  line-height: 1;
+}
+
+.cal-exit-circle-btn:hover {
+  background: #FFFFFF;
+  color: #C85A17;
+  transform: scale(1.1);
+  border-color: rgba(200, 90, 23, 0.5);
+}
+
+/* Calendar Month Navigation */
+.streak-calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+.btn-cal-nav {
+  background: #F9F5EE;
+  border: 1px solid rgba(215, 200, 180, 0.65);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #4A3A2F;
+  font-size: 0.72rem;
   font-weight: 700;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(80, 60, 40, 0.06);
 }
 
 .btn-cal-nav:hover {
-  background: #EDE4D6;
+  background: #EFE4D6;
   color: #C85A17;
   transform: scale(1.08);
 }
 
 .streak-cal-month-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.18rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 0.92rem;
   font-weight: 700;
-  color: #2C241D;
-  letter-spacing: 0.3px;
+  color: #2F2117;
+  letter-spacing: 0.2px;
+  cursor: default;
 }
 
+/* Weekdays Header Row */
 .streak-cal-weekdays-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
-  font-size: 0.72rem;
+  font-size: 0.58rem;
   font-weight: 700;
-  color: #8C755E;
-  margin-bottom: 10px;
-  letter-spacing: 0.6px;
+  color: #9C897B;
+  margin-bottom: 4px;
+  letter-spacing: 0.4px;
 }
 
-.streak-calendar-grid {
+/* 7-Column Recessed Days Grid */
+.streak-calendar-grid.recessed-tiles-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 10px 6px;
-  justify-items: center;
+  gap: 3.5px;
+  margin-bottom: 6px;
+}
+
+/* Soft Recessed Placeholder Tiles (SUN, MON, TUE, WED before Day 1) */
+.date-tile-empty-recessed {
+  position: relative;
+  height: 44px;
+  background: rgba(244, 236, 226, 0.42);
+  border: 1px solid rgba(230, 220, 208, 0.55);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 3px rgba(180, 150, 130, 0.08);
+}
+
+/* 3D Recessed Date Tile */
+.date-tile-recessed {
+  position: relative;
+  height: 44px;
+  background: #FAF7F2;
+  border: 1px solid rgba(225, 214, 200, 0.85);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 14px;
+  justify-content: flex-end;
+  padding-bottom: 3px;
+  box-shadow: 0 1.5px 3px rgba(70, 50, 35, 0.05), inset 0 1px 1px #FFFFFF;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease;
+  overflow: visible;
+  box-sizing: border-box;
 }
 
-/* Empty placeholder offset slots */
-.streak-cal-slot-empty {
-  width: 42px;
+.date-tile-recessed:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(90, 65, 45, 0.12), inset 0 1px 1px #FFFFFF;
+  z-index: 5;
+}
+
+.date-tile-num {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: #4A3A2F;
+  line-height: 1;
+  z-index: 5;
+}
+
+/* Circular Recessed Cave / Crater Socket */
+.crater-socket {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+  overflow: visible;
+  padding-bottom: 2px;
+  background: radial-gradient(circle at 50% 75%, #2A1E14 0%, #180E08 55%, #0C0603 100%);
+  border: 1.5px solid rgba(55, 35, 20, 0.80);
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.92),
+              inset 0 1.5px 3px rgba(10, 5, 2, 0.98),
+              inset 0 -2px 4px rgba(225, 100, 18, 0.22),
+              0 1px 1.5px rgba(255, 255, 255, 0.72);
+  transition: all 0.22s ease;
+}
+
+/* Socket Variants */
+.crater-socket.completed-crater {
+  background: radial-gradient(circle at 50% 80%, #5C2810 0%, #2E1208 52%, #120503 100%);
+  border: 1.5px solid rgba(70, 32, 14, 0.82);
+  box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.94),
+              inset 0 2px 3px rgba(0, 0, 0, 0.98),
+              inset 0 -4px 7px rgba(235, 95, 15, 0.42),
+              0 1.5px 2px rgba(255, 255, 255, 0.68);
+}
+
+.crater-socket.missed-crater {
+  background: radial-gradient(circle at 50% 35%, #EDE4D8 0%, #DFD3C4 55%, #CFBFAD 100%);
+  border: 1px solid rgba(195, 180, 165, 0.85);
+  box-shadow: inset 0 3px 5px rgba(130, 110, 95, 0.28),
+              inset 0 1px 2px rgba(160, 140, 125, 0.20),
+              inset 0 -1.5px 3px rgba(255, 255, 255, 0.70),
+              0 1px 1px rgba(255, 255, 255, 0.85);
+  animation: missedCraterSoftGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes missedCraterSoftGlow {
+  0% {
+    box-shadow: inset 0 3px 5px rgba(130, 110, 95, 0.28),
+                inset 0 1px 2px rgba(160, 140, 125, 0.20),
+                0 1px 1px rgba(255, 255, 255, 0.85);
+  }
+  100% {
+    box-shadow: inset 0 3px 6px rgba(130, 110, 95, 0.35),
+                inset 0 1px 2px rgba(160, 140, 125, 0.25),
+                0 1px 2px rgba(255, 255, 255, 0.95);
+  }
+}
+
+.crater-socket.today-crater {
+  background: radial-gradient(circle at 50% 75%, #2A170C 0%, #170C06 60%, #0D0603 100%);
+  border: 1.5px dashed #FF8A00;
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.85), 0 0 8px rgba(255, 138, 0, 0.35);
+  animation: todayCraterPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes todayCraterPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 126, 34, 0.45); }
+  70% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(230, 126, 34, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 126, 34, 0); }
+}
+
+.today-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #E67E22;
+  box-shadow: 0 0 6px rgba(230, 126, 34, 0.8);
+  margin-bottom: 10px;
+}
+
+.crater-socket.upcoming-crater {
+  background: radial-gradient(circle at 50% 35%, #D6C4B6 0%, #C4B1A2 60%, #B29E8E 100%);
+  border: 1px solid rgba(190, 170, 155, 0.8);
+  box-shadow: inset 0 3.5px 6px rgba(95, 70, 55, 0.38),
+              inset 0 -1px 2px rgba(255, 255, 255, 0.6),
+              0 1px 1px rgba(255, 255, 255, 0.7);
+}
+
+/* ==========================================================================
+   ANIMATED BURNING FLOW FIRE & BONFIRE SMOKE (TOP EMERGES FROM CAVE)
+   ========================================================================== */
+/* 1. Fire Cell Wrap & Vertical Burning Surge - Top emerges above cave rim */
+.streak-cell-fire-wrap {
+  width: 36px;
   height: 42px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+  pointer-events: none;
+  margin-top: -15px;
+  transform-origin: 50% 92%;
+  z-index: 3;
+  overflow: visible;
 }
 
-/* Individual Circular Day Bubble */
+/* Pure burning & flowing flame animation with continuous smooth shaking */
+.streak-cell-fire-wrap.burning-flow-active,
+.streak-cell-fire-wrap.fire-shaking-active {
+  animation-name: fireSmoothContinuousShake;
+  animation-duration: 1.25s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes fireSmoothContinuousShake {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1.0);
+  }
+  15% {
+    transform: translateY(-1.2px) rotate(-0.8deg) scaleY(1.04) scaleX(0.97);
+  }
+  30% {
+    transform: translateY(-0.5px) rotate(0.6deg) scaleY(0.98) scaleX(1.01);
+  }
+  45% {
+    transform: translateY(-2.0px) rotate(-1.0deg) scaleY(1.08) scaleX(0.95);
+  }
+  60% {
+    transform: translateY(-1.0px) rotate(0.8deg) scaleY(1.02) scaleX(0.99);
+  }
+  75% {
+    transform: translateY(-2.4px) rotate(-0.5deg) scaleY(1.10) scaleX(0.94);
+  }
+  90% {
+    transform: translateY(-0.8px) rotate(0.5deg) scaleY(1.01) scaleX(0.99);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1.0);
+  }
+}
+
+/* 2. Fire Cell Image & Dynamic Radiant Burning Flame Flickering */
+.streak-cell-fire-img {
+  width: 32px;
+  height: 36px;
+  max-width: 34px;
+  max-height: 38px;
+  object-fit: contain;
+  transform-origin: 50% 90%;
+  animation-name: fireSmoothContinuousFlicker;
+  animation-duration: 1.15s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  pointer-events: none;
+}
+
+@keyframes fireSmoothContinuousFlicker {
+  0% {
+    transform: scale(1.0) translateY(0);
+    opacity: 0.95;
+  }
+  35% {
+    transform: scale(1.03) translateY(-1px);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(0.98) translateY(0.5px);
+    opacity: 0.94;
+  }
+  100% {
+    transform: scale(1.04) translateY(-1.2px);
+    opacity: 1;
+  }
+}
+
+/* 3. Flowing Flame Heat Streaks (Hidden so custom fire characters remain crisp) */
+.flowing-flame-streaks {
+  display: none !important;
+}
+
+.flame-streak-ribbon {
+  display: none !important;
+}
+
+@keyframes flameRibbonFlow1 {
+  0% { transform: translateY(6px) scaleY(0.7); opacity: 0; }
+  50% { transform: translateY(-5px) scaleY(1.25); opacity: 0; }
+  100% { transform: translateY(-16px) scaleY(0.4); opacity: 0; }
+}
+
+@keyframes flameRibbonFlow2 {
+  0% { transform: translateY(5px) scaleY(0.6); opacity: 0; }
+  50% { transform: translateY(-7px) scaleY(1.35); opacity: 0; }
+  100% { transform: translateY(-20px) scaleY(0.3); opacity: 0; }
+}
+
+@keyframes flameRibbonFlow3 {
+  0% { transform: translateY(6px) scaleY(0.7); opacity: 0; }
+  50% { transform: translateY(-4px) scaleY(1.15); opacity: 0; }
+  100% { transform: translateY(-14px) scaleY(0.4); opacity: 0; }
+}
+
+/* 4. Five Distinct Burning Flame Levels */
+/* Level 1: First Fire (1–9 days) – Small warm amber flicker, gentle glow */
+.streak-cell-fire-wrap.fire-lvl-1.burning-flow-active,
+.streak-cell-fire-wrap.fire-lvl-1.fire-shaking-active {
+  animation-duration: 1.45s;
+  transform: scale(0.82);
+}
+.streak-header-icon-img.fire-lvl-1,
+.fire-lvl-1-img {
+  filter: brightness(1.05) saturate(1.25)
+          drop-shadow(0 -4px 8px rgba(255, 140, 30, 0.75))
+          drop-shadow(0 0 6px rgba(240, 100, 10, 0.45));
+}
+
+/* Level 2: Second Fire (10–29 days) – Brighter golden sunburst, faster shake */
+.streak-cell-fire-wrap.fire-lvl-2.burning-flow-active,
+.streak-cell-fire-wrap.fire-lvl-2.fire-shaking-active {
+  animation-duration: 1.20s;
+  transform: scale(0.90);
+}
+.streak-header-icon-img.fire-lvl-2,
+.fire-lvl-2-img {
+  filter: brightness(1.12) saturate(1.40)
+          drop-shadow(0 -5px 10px rgba(255, 160, 20, 0.85))
+          drop-shadow(0 0 8px rgba(255, 110, 5, 0.55))
+          drop-shadow(0 -2px 4px rgba(255, 200, 80, 0.35));
+}
+
+/* Level 3: Third Fire (30–49 days) – Strong orange inferno, wide hot glow */
+.streak-cell-fire-wrap.fire-lvl-3.burning-flow-active,
+.streak-cell-fire-wrap.fire-lvl-3.fire-shaking-active {
+  animation-duration: 1.00s;
+  transform: scale(1.00);
+}
+.streak-header-icon-img.fire-lvl-3,
+.fire-lvl-3-img {
+  filter: brightness(1.18) saturate(1.55)
+          drop-shadow(0 -6px 12px rgba(255, 130, 10, 0.90))
+          drop-shadow(0 0 10px rgba(255, 80, 0, 0.65))
+          drop-shadow(0 -3px 6px rgba(255, 220, 60, 0.40));
+}
+
+/* Level 4: Fourth Fire (50–99 days) – Blazing crimson-gold, aggressive flicker */
+.streak-cell-fire-wrap.fire-lvl-4.burning-flow-active,
+.streak-cell-fire-wrap.fire-lvl-4.fire-shaking-active {
+  animation-duration: 0.85s;
+  transform: scale(1.08);
+}
+.streak-header-icon-img.fire-lvl-4,
+.fire-lvl-4-img {
+  filter: brightness(1.25) saturate(1.65)
+          drop-shadow(0 -7px 14px rgba(255, 100, 5, 0.95))
+          drop-shadow(0 0 12px rgba(255, 55, 0, 0.78))
+          drop-shadow(0 -4px 8px rgba(255, 230, 50, 0.50))
+          drop-shadow(0 2px 4px rgba(200, 60, 0, 0.30));
+}
+
+/* Level 5: Final Fire (100–200+ days) – Supreme white-gold blaze, max intensity */
+.streak-cell-fire-wrap.fire-lvl-5.burning-flow-active,
+.streak-cell-fire-wrap.fire-lvl-5.fire-shaking-active {
+  animation-duration: 0.72s;
+  animation-name: fireLevel5RadiantFlow;
+  transform: scale(1.16);
+}
+.streak-header-icon-img.fire-lvl-5,
+.fire-lvl-5-img {
+  filter: brightness(1.35) saturate(1.80)
+          drop-shadow(0 -9px 18px rgba(255, 180, 20, 1.0))
+          drop-shadow(0 0 15px rgba(255, 60, 0, 0.90))
+          drop-shadow(0 -5px 10px rgba(255, 240, 100, 0.65))
+          drop-shadow(0 2px 5px rgba(220, 70, 0, 0.40))
+          drop-shadow(0 -1px 3px rgba(255, 255, 200, 0.55));
+}
+
+@keyframes fireLevel5RadiantFlow {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1.0);
+  }
+  25% {
+    transform: translateY(-1.8px) rotate(-0.8deg) scaleY(1.08) scaleX(0.95);
+  }
+  50% {
+    transform: translateY(-0.8px) rotate(0.6deg) scaleY(0.98) scaleX(1.02);
+  }
+  75% {
+    transform: translateY(-2.8px) rotate(-1.0deg) scaleY(1.14) scaleX(0.92);
+  }
+}
+
+/* 4. Bonfire & Natural Rising Smoke Animation - Smoke emerges out of cave */
+.streak-cell-bonfire-wrap {
+  width: 30px;
+  height: 38px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+  pointer-events: none;
+  margin-top: -14px;
+  transform-origin: 50% 98%;
+  z-index: 3;
+  overflow: visible;
+}
+
+.streak-cell-bonfire-wrap.bonfire-smoke-active {
+  /* Wood logs stay completely steady and anchored in the socket */
+  animation: none !important;
+  transform: none !important;
+}
+
+.crater-bonfire-img.animated-bonfire-smoke {
+  max-width: 30px;
+  max-height: 38px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  transform-origin: 50% 98%;
+  filter: drop-shadow(0 2px 4px rgba(45, 38, 30, 0.45));
+  animation: smokeWaftCurling 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes smokeWaftCurling {
+  0% {
+    transform: rotate(0deg) skewX(0deg);
+  }
+  20% {
+    transform: rotate(-1.8deg) skewX(-2.5deg);
+  }
+  45% {
+    transform: rotate(1.2deg) skewX(1.8deg);
+  }
+  70% {
+    transform: rotate(-2.2deg) skewX(-3.2deg);
+  }
+  85% {
+    transform: rotate(1.8deg) skewX(2.4deg);
+  }
+  100% {
+    transform: rotate(0deg) skewX(0deg);
+  }
+}
+  75% {
+    transform: translateY(-2px) scale(1.03) rotate(-1deg) skewX(-0.5deg);
+    opacity: 0.96;
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg) skewX(0deg);
+    opacity: 0.90;
+  }
+}
+
+/* Fallback legacy crater smoke */
+.crater-smoke-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  pointer-events: none;
+  animation: smokeWaftCurling 3.2s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 4px rgba(45, 38, 32, 0.38));
+}
+
+@keyframes smokeRisingWaft {
+  0% { transform: translateY(0) scale(1); opacity: 0.9; }
+  50% { transform: translateY(-2px) scale(1.05); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 0.9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-cell-fire-wrap.fire-shaking-active,
+  .streak-cell-fire-img,
+  .streak-cell-bonfire-wrap.bonfire-smoke-active,
+  .crater-bonfire-img.animated-bonfire-smoke,
+  .crater-socket.missed-crater {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   FLOWING FIRE STREAKS ANIMATION (REALISTIC LIQUID FLAME FLOW)
+   ========================================================================== */
+.flowing-fire-wrap {
+  width: 32px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  pointer-events: none;
+  transform-origin: center bottom;
+}
+
+.flowing-fire-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0 5px rgba(255, 140, 20, 0.75))
+          drop-shadow(0 -1px 3px rgba(255, 60, 0, 0.5));
+}
+
+/* 1. Main Flame Body Fluid Sway & Lick */
+.flame-body-path {
+  transform-origin: 19px 42px;
+  animation: flameBodyFluidFlow 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes flameBodyFluidFlow {
+  0% {
+    transform: scaleY(1) scaleX(1) skewX(0deg);
+  }
+  25% {
+    transform: scaleY(1.08) scaleX(0.95) skewX(-2.5deg);
+  }
+  50% {
+    transform: scaleY(0.96) scaleX(1.03) skewX(2deg);
+  }
+  75% {
+    transform: scaleY(1.05) scaleX(0.97) skewX(-1.5deg);
+  }
+  100% {
+    transform: scaleY(1) scaleX(1) skewX(0deg);
+  }
+}
+
+/* 2. Flowing Fire Streaks Animation */
+.fire-flowing-streak {
+  transform-origin: 19px 38px;
+  mix-blend-mode: screen;
+}
+
+.streak-left {
+  animation: flowingStreakLeft 1.4s ease-in-out infinite;
+}
+
+@keyframes flowingStreakLeft {
+  0% {
+    transform: translateY(8px) scaleY(0.7) scaleX(0.85);
+    opacity: 0.2;
+  }
+  40% {
+    transform: translateY(-2px) scaleY(1.15) scaleX(1);
+    opacity: 0.95;
+  }
+  80% {
+    transform: translateY(-8px) scaleY(0.8) scaleX(0.7) skewX(-3deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-13px) scaleY(0.4) scaleX(0.5);
+    opacity: 0;
+  }
+}
+
+.streak-right {
+  animation: flowingStreakRight 1.6s ease-in-out 0.3s infinite;
+}
+
+@keyframes flowingStreakRight {
+  0% {
+    transform: translateY(8px) scaleY(0.7) scaleX(0.85);
+    opacity: 0.2;
+  }
+  40% {
+    transform: translateY(-2px) scaleY(1.12) scaleX(1);
+    opacity: 0.95;
+  }
+  80% {
+    transform: translateY(-8px) scaleY(0.8) scaleX(0.7) skewX(3deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-13px) scaleY(0.4) scaleX(0.5);
+    opacity: 0;
+  }
+}
+
+.streak-center {
+  animation: flowingStreakCenter 1.2s ease-in-out 0.15s infinite;
+}
+
+@keyframes flowingStreakCenter {
+  0% {
+    transform: translateY(9px) scaleY(0.75);
+    opacity: 0.3;
+  }
+  45% {
+    transform: translateY(-4px) scaleY(1.22);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-15px) scaleY(0.5);
+    opacity: 0;
+  }
+}
+
+/* 3. Glowing White-Hot Core Flicker */
+.flame-core-path {
+  transform-origin: 19px 40px;
+  animation: coreFlickerGlow 0.9s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 3px #FFFFFF);
+}
+
+@keyframes coreFlickerGlow {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+/* 4. Drifting Sparks / Embers Flowing Upward */
+.flowing-ember {
+  animation: emberStreamUp 1.8s ease-out infinite;
+}
+
+.ember-1 {
+  animation-duration: 1.6s;
+  animation-delay: 0s;
+}
+
+.ember-2 {
+  animation-duration: 2.1s;
+  animation-delay: 0.5s;
+}
+
+.ember-3 {
+  animation-duration: 1.4s;
+  animation-delay: 0.9s;
+}
+
+@keyframes emberStreamUp {
+  0% {
+    transform: translateY(8px) translateX(0) scale(0.5);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(1px) translateX(1px) scale(1);
+  }
+  70% {
+    opacity: 0.8;
+    transform: translateY(-8px) translateX(-1px) scale(0.8);
+  }
+  100% {
+    transform: translateY(-16px) translateX(2px) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* 5. Ambient Crater Cavity Heat Glow */
+.fire-ambient-glow {
+  animation: ambientCavityPulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes ambientCavityPulse {
+  0% {
+    opacity: 0.5;
+    transform: scaleX(0.95);
+  }
+  100% {
+    opacity: 0.85;
+    transform: scaleX(1.1);
+  }
+}
+
+/* 5 Level Flow Enhancements */
+.flowing-fire-wrap.fire-lvl-2 .flowing-fire-svg {
+  filter: drop-shadow(0 0 7px rgba(255, 170, 20, 0.85)) drop-shadow(0 -2px 4px rgba(255, 80, 0, 0.6));
+}
+
+.flowing-fire-wrap.fire-lvl-3 .flowing-fire-svg {
+  filter: drop-shadow(0 0 9px rgba(255, 120, 20, 0.9)) drop-shadow(0 -3px 5px rgba(255, 40, 0, 0.7));
+}
+
+.flowing-fire-wrap.fire-lvl-4 .flowing-fire-svg {
+  filter: drop-shadow(0 0 11px rgba(255, 80, 10, 0.95)) drop-shadow(0 -3px 6px rgba(255, 30, 0, 0.8));
+}
+
+.flowing-fire-wrap.fire-lvl-5 .flowing-fire-svg {
+  filter: drop-shadow(0 0 14px rgba(255, 210, 40, 1)) drop-shadow(0 0 20px rgba(255, 50, 0, 0.7));
+}
+
+/* Bottom 3-Segment Stats Bar matching Target Reference */
+.streak-cal-stats-bar.stats-pill-card {
+  background: #FFFDFB;
+  border: 1.5px solid rgba(228, 218, 206, 0.9);
+  border-radius: 13px;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin: 4px 8px 4px 8px;
+  box-shadow: 0 3px 10px rgba(180, 150, 130, 0.08);
+}
+
+.cal-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.stat-icon-wrap {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-flame-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  animation: flameBodyFluidFlow 1.8s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 3px rgba(255, 140, 20, 0.6));
+}
+
+.stat-smoke-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  animation: smokeRisingWaft 3s ease-in-out infinite alternate;
+}
+
+.stat-crater-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #E6DACF 0%, #F5ECE3 100%);
+  box-shadow: inset 0 2px 4px rgba(110, 85, 65, 0.35), inset 0 -1px 2px #FFFFFF;
+}
+
+.stat-text-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-text-wrap .stat-val {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #2F2117;
+  line-height: 1;
+}
+
+.stat-text-wrap .stat-name {
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: #7A6657;
+  margin-top: 2px;
+}
+
+.cal-stat-sep {
+  width: 1px;
+  height: 28px;
+  background: #E8DCD0;
+}
+
+/* Bottom Navigation Bar Inside Streak Calendar Card (Hidden to preserve clean floating modal card design) */
+.cal-card-bottom-nav {
+  display: none !important;
+}
+
+.cal-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #8C7A6D;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.cal-nav-btn:hover {
+  color: #5A473B;
+}
+
+.cal-nav-btn.active {
+  color: #C85A17;
+}
+
+.cal-nav-btn.active .cal-nav-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: #FEE7D6;
+  border-radius: 20px;
+  padding: 4px 14px;
+  box-shadow: 0 2px 6px rgba(200, 90, 23, 0.12);
+}
+
+.cal-nav-btn svg {
+  display: block;
+}
+
+/* Backwards-compatibility for .streak-cal-bubble */
 .streak-cal-bubble {
   position: relative;
   width: 42px;
@@ -9299,11 +10111,11 @@ html, body {
   line-height: 1;
 }
 
-/* COMPLETED DAY: REALISTIC BURNING FIRE BUBBLE */
 .streak-cal-bubble.completed {
-  background-image: url('assets/streak_fire.jpg');
-  background-size: 125%;
+  background-image: url('assets/streak/fire_level_1.png');
+  background-size: 85%;
   background-position: center;
+  background-repeat: no-repeat;
   border: 1.5px solid #FF8C00;
   box-shadow: 0 0 10px rgba(255, 110, 0, 0.8), inset 0 0 8px rgba(255, 190, 0, 0.6);
   animation: flameBurnPulse 2.4s ease-in-out infinite alternate;
@@ -9314,7 +10126,6 @@ html, body {
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 6px rgba(180, 50, 0, 0.9);
 }
 
-/* Smooth realistic burning fire animation */
 @keyframes flameBurnPulse {
   0% {
     box-shadow: 0 0 8px rgba(255, 90, 0, 0.7), inset 0 0 6px rgba(255, 180, 0, 0.5);
@@ -9330,11 +10141,11 @@ html, body {
   }
 }
 
-/* MISSED DAY: NATURAL BONFIRE SMOKE BUBBLE */
 .streak-cal-bubble.missed {
-  background-image: url('assets/streak_bonfire_smoke.jpg');
-  background-size: 130%;
-  background-position: center 40%;
+  background-image: url('assets/streak/bonfire_smoke.png');
+  background-size: 90%;
+  background-position: center;
+  background-repeat: no-repeat;
   border: 1.5px solid #7D6F63;
   box-shadow: 0 0 8px rgba(50, 45, 40, 0.35), inset 0 0 8px rgba(0, 0, 0, 0.4);
   animation: smokeWaftDrift 3s ease-in-out infinite alternate;
@@ -9346,21 +10157,11 @@ html, body {
 }
 
 @keyframes smokeWaftDrift {
-  0% {
-    transform: translateY(0);
-    filter: drop-shadow(0 0 4px rgba(40, 35, 30, 0.3));
-  }
-  50% {
-    transform: translateY(-2px);
-    filter: drop-shadow(0 0 8px rgba(50, 45, 40, 0.5));
-  }
-  100% {
-    transform: translateY(0);
-    filter: drop-shadow(0 0 4px rgba(40, 35, 30, 0.3));
-  }
+  0% { transform: translateY(0); filter: drop-shadow(0 0 4px rgba(40, 35, 30, 0.3)); }
+  50% { transform: translateY(-2px); filter: drop-shadow(0 0 8px rgba(50, 45, 40, 0.5)); }
+  100% { transform: translateY(0); filter: drop-shadow(0 0 4px rgba(40, 35, 30, 0.3)); }
 }
 
-/* TODAY (NOT YET UPLOADED) */
 .streak-cal-bubble.today {
   background: #FFF8EE;
   border: 2px dashed #E67E22;
@@ -9379,7 +10180,6 @@ html, body {
   100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 126, 34, 0); }
 }
 
-/* UPCOMING DAY */
 .streak-cal-bubble.upcoming {
   background: #FAF7F2;
   border: 1px solid rgba(220, 212, 202, 0.6);
@@ -9391,16 +10191,9 @@ html, body {
   font-weight: 600;
 }
 
-/* Monthly Stats Bar */
-.streak-cal-stats-bar {
-  background: #FBF8F3;
-  border: 1px solid rgba(220, 210, 195, 0.7);
-  border-radius: 12px;
-  padding: 10px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  margin-top: 10px;
+.streak-cal-slot-empty {
+  visibility: hidden;
+  height: 58px;
 }
 
 .cal-stat-item {
@@ -9449,14 +10242,21 @@ html, body {
    12. DAILY STREAK CAMERA & VIEWFINDER MODAL
    ========================================================================== */
 .streak-camera-card {
-  max-width: 440px;
-  width: 95vw;
+  max-width: 380px;
+  width: 90vw;
+  padding: 18px 16px 20px 16px;
+  border-radius: 28px;
+  background: #FAF7F2;
+  border: 1.5px solid rgba(225, 212, 198, 0.95);
+  box-shadow: 0 20px 50px rgba(45, 30, 18, 0.35), 0 4px 16px rgba(0, 0, 0, 0.12);
+  margin: auto;
+  box-sizing: border-box;
 }
 
 .camera-modal-subtitle {
-  font-size: 0.84rem;
+  font-size: 0.80rem;
   color: #6C5C4D;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   line-height: 1.35;
 }
 
@@ -9473,6 +10273,7 @@ html, body {
   justify-content: center;
   box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7);
   margin-bottom: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .camera-video-stream {
@@ -9499,8 +10300,8 @@ html, body {
 }
 
 .camera-guide-oval {
-  width: 70%;
-  height: 82%;
+  width: 72%;
+  height: 84%;
   border: 2px dashed rgba(255, 255, 255, 0.45);
   border-radius: 50%;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.25);
@@ -9539,26 +10340,54 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 6px 0 10px 0;
+  padding: 6px 12px 10px 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.btn-camera-upload-mini,
+.btn-camera-sample-mini {
+  background: #FFFFFF;
+  border: 1.5px solid rgba(210, 195, 175, 0.85);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #554433;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.btn-camera-upload-mini:hover,
+.btn-camera-sample-mini:hover {
+  background: #FAF6EF;
+  color: var(--olive-primary);
+  border-color: var(--olive-primary);
+  transform: scale(1.08);
 }
 
 .btn-camera-shutter {
-  width: 66px;
-  height: 66px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: #FFFFFF;
-  border: 4px solid #C85A17;
+  border: 3.5px solid var(--olive-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(200, 90, 23, 0.35);
+  box-shadow: 0 4px 18px rgba(82, 99, 75, 0.35);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+  outline: none;
 }
 
 .btn-camera-shutter:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 24px rgba(200, 90, 23, 0.5);
+  transform: scale(1.06);
+  box-shadow: 0 6px 22px rgba(82, 99, 75, 0.45);
 }
 
 .btn-camera-shutter:active {
@@ -9566,10 +10395,11 @@ html, body {
 }
 
 .shutter-inner {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: #C85A17;
+  background: var(--olive-primary);
+  transition: transform 0.15s ease;
 }
 
 .btn-camera-upload, .btn-camera-sample {
@@ -9590,7 +10420,7 @@ html, body {
 
 .btn-camera-upload:hover, .btn-camera-sample:hover {
   background: #F4ECE1;
-  color: #C85A17;
+  color: var(--olive-primary);
 }
 
 /* Review container */
@@ -9623,12 +10453,12 @@ html, body {
 }
 
 .advance-arrow {
-  color: #C85A17;
+  color: var(--olive-primary);
   font-weight: 800;
 }
 
 .advance-highlight {
-  color: #C85A17;
+  color: var(--olive-primary);
 }
 
 .camera-note-field {
@@ -9650,7 +10480,7 @@ html, body {
 }
 
 .camera-note-input:focus {
-  border-color: #C85A17;
+  border-color: var(--olive-primary);
   background: #FFFFFF;
 }
 
@@ -9664,11 +10494,18 @@ html, body {
    13. OUTFIT MEMORIES GALLERY MODAL
    ========================================================================== */
 .outfit-memories-card {
-  max-width: 520px;
-  width: 95vw;
+  max-width: 480px;
+  width: 92vw;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
+  background: #FAF7F2;
+  border: 1.5px solid rgba(225, 212, 198, 0.95);
+  border-radius: 28px;
+  padding: 18px 16px 20px 16px;
+  box-shadow: 0 20px 50px rgba(45, 30, 18, 0.35), 0 4px 16px rgba(0, 0, 0, 0.12);
+  margin: auto;
+  box-sizing: border-box;
 }
 
 .memories-meta-bar {
@@ -9685,10 +10522,11 @@ html, body {
   background: #F4EBE0;
   padding: 4px 12px;
   border-radius: 999px;
+  border: 1px solid rgba(220, 208, 192, 0.6);
 }
 
 .btn-mini-snap {
-  background: #C85A17;
+  background: var(--olive-primary);
   color: #FFFFFF;
   border: none;
   padding: 6px 14px;
@@ -9696,43 +10534,46 @@ html, body {
   font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(82, 99, 75, 0.25);
 }
 
 .btn-mini-snap:hover {
-  background: #A8480E;
+  background: var(--olive-dark);
 }
 
 .memories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
   overflow-y: auto;
-  max-height: 55vh;
-  padding-right: 4px;
+  max-height: 58vh;
+  padding: 4px 4px 12px 4px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .memory-card {
   background: #FFFFFF;
-  border: 1px solid rgba(220, 208, 192, 0.7);
-  border-radius: 14px;
+  border: 1px solid rgba(220, 208, 192, 0.85);
+  border-radius: 18px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.22s ease;
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
+  box-shadow: 0 4px 12px rgba(45, 30, 18, 0.05);
 }
 
 .memory-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(70, 50, 30, 0.12);
-  border-color: #C85A17;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(70, 50, 30, 0.15);
+  border-color: var(--olive-primary);
 }
 
 .memory-thumb-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 1/1;
+  aspect-ratio: 3/4;
   overflow: hidden;
   background: #EFE8DC;
 }
@@ -9741,61 +10582,75 @@ html, body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.35s ease;
 }
 
 .memory-card:hover .memory-thumb-img {
-  transform: scale(1.06);
+  transform: scale(1.05);
 }
 
 .memory-streak-badge {
   position: absolute;
-  top: 6px;
-  left: 6px;
-  background: rgba(0, 0, 0, 0.7);
+  top: 8px;
+  left: 8px;
+  background: rgba(22, 18, 14, 0.78);
   color: #FFFFFF;
-  font-size: 0.68rem;
+  font-size: 0.70rem;
   font-weight: 700;
-  padding: 2px 7px;
+  padding: 3px 9px;
   border-radius: 999px;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .memory-card-meta {
-  padding: 8px;
+  padding: 10px 12px 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  background: #FFFFFF;
 }
 
 .memory-card-date {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 700;
-  color: #2F241A;
+  color: #1D201C;
+  letter-spacing: -0.1px;
 }
 
 .memory-card-note {
-  font-size: 0.68rem;
-  color: #796654;
+  font-size: 0.72rem;
+  color: #6C5C4D;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.25;
 }
 
 /* Lightbox Modal */
 .memory-detail-card {
-  max-width: 380px;
+  max-width: 360px;
+  width: 90vw;
+  background: #FAF7F2;
+  border-radius: 28px;
+  border: 1.5px solid rgba(225, 212, 198, 0.95);
+  padding: 18px;
+  box-shadow: 0 20px 50px rgba(45, 30, 18, 0.35);
+  margin: auto;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .memory-detail-img-wrap {
   position: relative;
   width: 100%;
   aspect-ratio: 3/4;
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
-  margin-bottom: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  margin-bottom: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 #memoryDetailImg {

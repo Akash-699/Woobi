@@ -38,8 +38,8 @@ export const THEME_PRESETS = {
       far: 24.0
     },
     wall: {
-      color: 0xDCC5A3, // Desert sand limewash plaster
-      roughness: 0.90,
+      color: 0xFFFFFF, // Full texture fidelity for custom wall map (authentic red-brown brick wall)
+      roughness: 0.85,
       metalness: 0.01
     },
     architectural: {
@@ -53,9 +53,9 @@ export const THEME_PRESETS = {
       metalness: 0.02
     },
     floor: {
-      color: 0xCDB594, // Grounded champagne stone floor with distinct horizon depth (#CDB594)
-      roughness: 0.68,
-      metalness: 0.02
+      color: 0x616161, // Darker neutral matte grey (#616161)
+      roughness: 0.82,
+      metalness: 0.01
     },
     accent: {
       color: 0x98816B // Warm taupe
@@ -92,9 +92,9 @@ export const THEME_PRESETS = {
       metalness: 0.01
     },
     floor: {
-      color: 0xFFFFFF,
-      roughness: 0.28,
-      metalness: 0.04
+      color: 0x616161, // Darker neutral matte grey (#616161)
+      roughness: 0.82,
+      metalness: 0.01
     },
     windowShadow: {
       color: 0x4A3A2A,
