@@ -147,6 +147,7 @@
     currentPlan: 'free',
     selectedPlanPreference: null,
     pendingUpgradePlan: 'pro',
+    billingCycle: 'yearly',
     isPremium: false,
     wearHistoryCount: 6
   };
@@ -1181,49 +1182,68 @@
     openUpgradeConfirmation(planId);
   }
 
+  const PLAN_PRICING = {
+    free: {
+      yearly: { sym: '$', amount: '0', cadence: '', num: 0 },
+      monthly: { sym: '$', amount: '0', cadence: '', num: 0 },
+      lifetime: { sym: '$', amount: '0', cadence: '', num: 0 }
+    },
+    basic: {
+      yearly: { sym: '$', amount: '173', cadence: '/ year', num: 173 },
+      monthly: { sym: '$', amount: '19', cadence: '/ month', num: 19 },
+      lifetime: { sym: '$', amount: '299', cadence: 'once', num: 299 }
+    },
+    pro: {
+      yearly: { sym: '$', amount: '387', cadence: '/ year', num: 387 },
+      monthly: { sym: '$', amount: '39', cadence: '/ month', num: 39 },
+      lifetime: { sym: '$', amount: '499', cadence: 'once', num: 499 }
+    }
+  };
+
   function openUpgradeConfirmation(planId) {
     state.pendingUpgradePlan = planId;
     const modal = document.getElementById('subUpgradeModal');
     if (!modal) return;
 
+    const cycle = state.billingCycle || 'yearly';
+    const pricing = (PLAN_PRICING[planId] && PLAN_PRICING[planId][cycle]) || PLAN_PRICING.pro.yearly;
+
     const titleEl = document.getElementById('subModalTitle');
     const badgeEl = document.getElementById('subModalBadge');
     const nameEl = document.getElementById('subModalPlanName');
     const priceEl = document.getElementById('subModalPrice');
+    const cadenceEl = modal.querySelector('.modal-cad');
     const bulletsEl = document.getElementById('subModalBullets');
 
     if (planId === 'basic') {
       if (titleEl) titleEl.textContent = 'Upgrade to Woobi Basic';
-      if (badgeEl) badgeEl.textContent = 'BASIC MEMBERSHIP';
+      if (badgeEl) badgeEl.textContent = 'MOST POPULAR';
       if (nameEl) nameEl.textContent = 'Woobi Basic';
-      if (priceEl) priceEl.textContent = '179';
+      if (priceEl) priceEl.textContent = pricing.amount;
+      if (cadenceEl) cadenceEl.textContent = pricing.cadence || 'billed yearly';
       if (bulletsEl) {
         bulletsEl.innerHTML = `
-          <li><span class="check-bullet">✓</span> Everything in Free tier</li>
-          <li><span class="check-bullet">✓</span> More daily AI outfit recommendations</li>
-          <li><span class="check-bullet">✓</span> Expanded digital wardrobe capacity</li>
-          <li><span class="check-bullet">✓</span> More Style Hint suggestions & combinations</li>
-          <li><span class="check-bullet">✓</span> Additional outfit history and gallery features</li>
+          <li><span class="check-bullet">✓</span> Personalized outfit recommendations</li>
+          <li><span class="check-bullet">✓</span> Curated brand discounts</li>
+          <li><span class="check-bullet">✓</span> Virtual try-on tools</li>
+          <li><span class="check-bullet">✓</span> Digital wardrobe organizer & daily style feeds</li>
           <li><span class="check-bullet">✓</span> Ad-free experience</li>
         `;
       }
     } else {
-      // Pro plan default
       if (titleEl) titleEl.textContent = 'Get Woobi Pro 👑';
-      if (badgeEl) badgeEl.textContent = 'MOST POPULAR / BEST EXPERIENCE';
+      if (badgeEl) badgeEl.textContent = 'VIP COUTURE ACCESS';
       if (nameEl) nameEl.textContent = 'Woobi Pro';
-      if (priceEl) priceEl.textContent = '387';
+      if (priceEl) priceEl.textContent = pricing.amount;
+      if (cadenceEl) cadenceEl.textContent = pricing.cadence || 'billed yearly';
       if (bulletsEl) {
         bulletsEl.innerHTML = `
-          <li><span class="check-bullet gold">✓</span> Everything in Basic tier</li>
-          <li><span class="check-bullet gold">✓</span> Advanced AI personal stylist (occasion & weather tuned)</li>
-          <li><span class="check-bullet gold">✓</span> Generous / unlimited AI outfit recommendations</li>
-          <li><span class="check-bullet gold">✓</span> Advanced colour matching & palette engine</li>
-          <li><span class="check-bullet gold">✓</span> Premium Style Hint with detailed suggestions</li>
-          <li><span class="check-bullet gold">✓</span> Advanced virtual try-on features</li>
-          <li><span class="check-bullet gold">✓</span> Premium 3D mannequin customisation & exclusive themes</li>
-          <li><span class="check-bullet gold">✓</span> Save unlimited favourite outfit combinations</li>
-          <li><span class="check-bullet gold">✓</span> Priority access to new features & VIP support</li>
+          <li><span class="check-bullet gold">✓</span> 1-on-1 dedicated stylist</li>
+          <li><span class="check-bullet gold">✓</span> Early access to exclusive collections</li>
+          <li><span class="check-bullet gold">✓</span> Priority shipping & returns</li>
+          <li><span class="check-bullet gold">✓</span> Limitless 3D Virtual Studio try-on</li>
+          <li><span class="check-bullet gold">✓</span> Advanced occasion & color palette generator</li>
+          <li><span class="check-bullet gold">✓</span> Unlimited saved looks & VIP support</li>
         `;
       }
     }
@@ -1238,11 +1258,13 @@
 
   function confirmPlanPreference() {
     const plan = state.pendingUpgradePlan || 'pro';
+    const cycle = state.billingCycle || 'yearly';
     state.selectedPlanPreference = plan;
     closeUpgradeConfirmation();
 
-    const planLabel = plan === 'pro' ? 'Pro (₹387/mo)' : 'Basic (₹179/mo)';
-    showToast(`✓ Preference recorded for Woobi ${planLabel}! Payment gateway integration coming soon.`);
+    const planData = (PLAN_PRICING[plan] && PLAN_PRICING[plan][cycle]) || { amount: '387', cadence: '/ year' };
+    const planLabel = plan === 'pro' ? 'Pro' : 'Basic';
+    showToast(`✓ Preference recorded for Woobi ${planLabel} ($${planData.amount} ${planData.cadence})! Payment gateway integration coming soon.`);
 
     updateSubscriptionUI();
   }
@@ -1254,123 +1276,91 @@
 
   function updateSubscriptionUI() {
     const current = state.isPremium ? (state.currentPlan || 'pro') : 'free';
-    const pref = state.selectedPlanPreference;
+    const cycle = state.billingCycle || 'yearly';
 
-    // Status bar update
-    const tierEl = document.getElementById('subStatusTier');
-    const badgeEl = document.getElementById('subStatusBadge');
-    const captionEl = document.getElementById('subStatusCaption');
-    const pricePill = document.getElementById('subStatusPricePill');
+    // Update active tab on cadence switcher
+    const monthlyBtn = document.getElementById('cadenceMonthly');
+    const yearlyBtn = document.getElementById('cadenceYearly');
+    const lifetimeBtn = document.getElementById('cadenceLifetime');
+    if (monthlyBtn) monthlyBtn.classList.toggle('active', cycle === 'monthly');
+    if (yearlyBtn) yearlyBtn.classList.toggle('active', cycle === 'yearly');
+    if (lifetimeBtn) lifetimeBtn.classList.toggle('active', cycle === 'lifetime');
 
-    if (tierEl) {
-      if (current === 'free') {
-        tierEl.textContent = 'Free Forever Plan';
-        if (pricePill) pricePill.innerHTML = '₹0 <span class="per-txt">/ mo</span>';
-        if (captionEl) {
-          if (pref) {
-            const prefLabel = pref === 'pro' ? 'Woobi Pro (₹387/mo)' : 'Woobi Basic (₹179/mo)';
-            captionEl.textContent = `Active: Free Forever • Preference: ${prefLabel} (Gateway in progress)`;
-          } else {
-            captionEl.textContent = 'Standard 3D studio, wardrobe & daily streak features';
-          }
-        }
-      } else if (current === 'basic') {
-        tierEl.textContent = 'Woobi Basic Plan';
-        if (pricePill) pricePill.innerHTML = '₹179 <span class="per-txt">/ mo</span>';
-        if (captionEl) captionEl.textContent = 'Expanded wardrobe & daily AI outfit recommendations';
-      } else {
-        tierEl.textContent = 'Woobi Pro VIP Plan 👑';
-        if (pricePill) pricePill.innerHTML = '₹387 <span class="per-txt">/ mo</span>';
-        if (captionEl) captionEl.textContent = 'Full AI stylist, unlimited combinations & virtual try-on';
-      }
+    // Update Free price display
+    const freeEl = document.getElementById('priceDisplayFree');
+    if (freeEl) freeEl.textContent = '$0';
+
+    // Update Basic price display
+    const basicEl = document.getElementById('priceDisplayBasic');
+    if (basicEl) {
+      const basicData = PLAN_PRICING.basic[cycle] || PLAN_PRICING.basic.yearly;
+      basicEl.innerHTML = `<span class="seren-price-num">${basicData.sym}${basicData.amount}</span><span class="seren-price-cadence">${basicData.cadence}</span>`;
     }
 
-    // Update buttons on the plan cards preserving play button markup
-    function updateTierButton(btn, text, isPro, isCurrent) {
-      if (!btn) return;
-      const textSpan = btn.querySelector('.btn-tier-text');
-      if (textSpan) {
-        textSpan.textContent = text;
-      } else {
-        const iconHtml = isCurrent
-          ? `<span class="play-btn-circle check-circle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>`
-          : `<span class="play-btn-circle play-triangle${isPro ? ' gold-play' : ''}"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>`;
-        btn.innerHTML = `${iconHtml}<span class="btn-tier-text">${text}</span>`;
-      }
+    // Update Pro price display
+    const proEl = document.getElementById('priceDisplayPro');
+    if (proEl) {
+      const proData = PLAN_PRICING.pro[cycle] || PLAN_PRICING.pro.yearly;
+      proEl.innerHTML = `<span class="seren-price-num">${proData.sym}${proData.amount}</span><span class="seren-price-cadence">${proData.cadence}</span>`;
     }
 
+    // Update CTA buttons
     const btnFree = document.getElementById('btnPlanFree');
     const btnBasic = document.getElementById('btnPlanBasic');
     const btnPro = document.getElementById('btnPlanPro');
 
     if (btnFree) {
       if (current === 'free') {
-        updateTierButton(btnFree, 'Current Plan', false, true);
+        btnFree.textContent = 'Current Plan';
         btnFree.disabled = true;
-        btnFree.classList.add('btn-plan-current');
+        btnFree.classList.add('current-plan-btn');
       } else {
-        updateTierButton(btnFree, 'Switch to Free', false, false);
+        btnFree.textContent = 'Start Free';
         btnFree.disabled = false;
-        btnFree.classList.remove('btn-plan-current');
+        btnFree.classList.remove('current-plan-btn');
       }
     }
 
     if (btnBasic) {
       if (current === 'basic') {
-        updateTierButton(btnBasic, 'Current Plan', false, true);
+        btnBasic.textContent = 'Current Plan';
         btnBasic.disabled = true;
-        btnBasic.classList.add('btn-plan-current');
+        btnBasic.classList.add('current-plan-btn');
       } else {
-        const txt = (pref === 'basic') ? 'Preference Saved (₹179/mo)' : 'Upgrade to Basic';
-        updateTierButton(btnBasic, txt, false, false);
+        btnBasic.textContent = 'Choose Basic';
         btnBasic.disabled = false;
-        btnBasic.classList.remove('btn-plan-current');
+        btnBasic.classList.remove('current-plan-btn');
       }
     }
 
     if (btnPro) {
       if (current === 'pro') {
-        updateTierButton(btnPro, 'Current Plan 👑', true, true);
+        btnPro.textContent = 'Current Plan 👑';
         btnPro.disabled = true;
-        btnPro.classList.add('btn-plan-current');
+        btnPro.classList.add('current-plan-btn');
       } else {
-        const txt = (pref === 'pro') ? 'Preference Saved (₹387/mo)' : 'Get Woobi Pro';
-        updateTierButton(btnPro, txt, true, false);
+        btnPro.textContent = 'Go Pro';
         btnPro.disabled = false;
-        btnPro.classList.remove('btn-plan-current');
+        btnPro.classList.remove('current-plan-btn');
       }
     }
+  }
 
-    initPlanSwipeGestures();
+  function setBillingCycle(cycle) {
+    state.billingCycle = cycle;
+    updateSubscriptionUI();
+  }
+
+  function openLegalModal(docType) {
+    if (docType === 'terms') {
+      alert('Woobi Terms of Service:\n\n1. Enjoy personal styling, 3D mannequins & daily outfit streaks.\n2. In accordance with safety standards, payment integration is in final development; no charges apply today.\n3. Digital subscriptions renew automatically according to selected billing cycle once live billing launches.');
+    } else {
+      goToScreen('account-privacy');
+    }
   }
 
   function switchPlanView(planId) {
-    const track = document.getElementById('planCardsSliderTrack');
-    const pill = document.getElementById('segmentedSlidePill');
-    const btnFree = document.getElementById('segBtnFree');
-    const btnBasic = document.getElementById('segBtnBasic');
-    const btnPro = document.getElementById('segBtnPro');
-
-    const btns = [btnFree, btnBasic, btnPro];
-    btns.forEach(b => b && b.classList.remove('active'));
-
-    if (pill) {
-      pill.classList.remove('pill-free', 'pill-basic', 'pill-pro');
-    }
-
-    if (planId === 'free') {
-      if (btnFree) btnFree.classList.add('active');
-      if (pill) pill.classList.add('pill-free');
-      if (track) track.style.transform = 'translateX(0%)';
-    } else if (planId === 'basic') {
-      if (btnBasic) btnBasic.classList.add('active');
-      if (pill) pill.classList.add('pill-basic');
-      if (track) track.style.transform = 'translateX(-33.333333%)';
-    } else if (planId === 'pro') {
-      if (btnPro) btnPro.classList.add('active');
-      if (pill) pill.classList.add('pill-pro');
-      if (track) track.style.transform = 'translateX(-66.666666%)';
-    }
+    updateSubscriptionUI();
   }
 
   function initPlanSwipeGestures() {
@@ -4957,6 +4947,8 @@
     openUpgradeConfirmation,
     closeUpgradeConfirmation,
     confirmPlanPreference,
+    setBillingCycle,
+    openLegalModal,
     toggleFaq,
     updateSubscriptionUI,
     switchPlanView,

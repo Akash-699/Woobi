@@ -2178,181 +2178,104 @@
              SCREEN 14: WOOBI PREMIUM SUBSCRIPTION (SPOTIFY-INSPIRED DARK LUXE)
              =================================================================== -->
         <section class="phone-screen" id="screen-premium">
-          <!-- Sticky Minimal Header Overlay -->
-          <div class="premium-sticky-header">
-            <button class="nav-back-arrow premium-back-btn" onclick="app.goToScreen('today')" aria-label="Back" title="Back">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m15 18-6-6 6-6"/>
+          <!-- Minimal Editorial Header -->
+          <header class="seren-plan-header">
+            <button type="button" class="seren-plan-close-btn" onclick="app.goToScreen('today')" aria-label="Close" title="Close">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
             </button>
-            <div class="premium-header-brand">
-              <span class="luxe-sparkle">✦</span>
-              <span class="luxe-brand-text">WOOBI PREMIUM</span>
-            </div>
-            <button class="premium-header-action" onclick="app.goToScreen('manage-subscription')" title="Manage subscription">
-              Manage
-            </button>
+            <div class="seren-plan-brand">WOOBI</div>
+            <div style="width: 32px;"></div>
+          </header>
+
+          <!-- Plan Intro Header -->
+          <div class="seren-plan-intro">
+            <h1 class="seren-plan-title">Choose your plan</h1>
+            <p class="seren-plan-subtitle">Unfold curated styling, daily inspo, and a sustainable wardrobe</p>
           </div>
 
-          <div class="premium-scroll-content">
-            <!-- Top Sliding Segmented Button Switcher -->
-            <div class="plan-switcher-container">
-              <div class="plan-segmented-slider" id="planSegmentedSlider">
-                <div class="segmented-slide-pill pill-free" id="segmentedSlidePill"></div>
-                <button class="plan-segment-btn active" id="segBtnFree" onclick="app.switchPlanView('free')">Free</button>
-                <button class="plan-segment-btn" id="segBtnBasic" onclick="app.switchPlanView('basic')">Basic</button>
-                <button class="plan-segment-btn" id="segBtnPro" onclick="app.switchPlanView('pro')">Pro 👑</button>
+          <!-- Billing Cadence Switcher (Monthly | Yearly (Save 20%) | Lifetime) -->
+          <div class="seren-cadence-switcher-wrap">
+            <div class="seren-cadence-pill" id="serenCadencePill">
+              <button type="button" class="seren-cadence-tab" id="cadenceMonthly" onclick="app.setBillingCycle('monthly')">Monthly</button>
+              <button type="button" class="seren-cadence-tab active" id="cadenceYearly" onclick="app.setBillingCycle('yearly')">Yearly (Save 20%)</button>
+              <button type="button" class="seren-cadence-tab" id="cadenceLifetime" onclick="app.setBillingCycle('lifetime')">Lifetime</button>
+            </div>
+          </div>
+
+          <!-- 3 Vertically Stacked Plan Cards -->
+          <div class="seren-plan-cards-stack">
+            <!-- 1. Free Card -->
+            <div class="seren-plan-card seren-card-free" id="cardPlanFree">
+              <div class="seren-card-top-row">
+                <h3 class="seren-card-tier-name">Free</h3>
+                <div class="seren-card-price-display" id="priceDisplayFree">$0</div>
               </div>
+              <ul class="seren-card-feature-list">
+                <li>Daily style feeds</li>
+                <li>Digital wardrobe organizer</li>
+              </ul>
+              <button type="button" class="seren-card-btn seren-btn-free" id="btnPlanFree" onclick="app.selectSubscriptionPlan('free')">
+                Start Free
+              </button>
             </div>
 
-            <!-- Single Card Viewport (Cards in the Same Fixed Size) -->
-            <div class="plan-cards-viewport" id="planCardsViewport">
-              <div class="plan-cards-slider-track" id="planCardsSliderTrack">
-
-                <!-- PLAN 1: FREE -->
-                <div class="sub-plan-card plan-free" id="planCardFree">
-                  <div class="plan-header">
-                    <div class="plan-label-row">
-                      <span class="plan-pill-tag">Free Forever</span>
-                    </div>
-                    <h3 class="plan-heading-bold">FREE</h3>
-                    <p class="plan-description">Essential wardrobe digitization and everyday streak tracking.</p>
-                    <div class="plan-pricing-display">
-                      <span class="currency">₹</span>
-                      <span class="amount">0</span>
-                      <span class="cadence">/ month</span>
-                    </div>
-                  </div>
-
-                  <div class="plan-highlight-strip">
-                    <span>Includes 3D Studio & daily outfit streak tracking</span>
-                  </div>
-
-                  <div class="plan-body">
-                    <span class="features-label">Included Features:</span>
-                    <ul class="plan-features">
-                      <li><span class="check-bullet">✓</span> Basic digital wardrobe</li>
-                      <li><span class="check-bullet">✓</span> Limited outfit recommendations</li>
-                      <li><span class="check-bullet">✓</span> Basic Style Hint access</li>
-                      <li><span class="check-bullet">✓</span> Standard 3D Studio access</li>
-                      <li><span class="check-bullet">✓</span> Daily outfit streak tracking</li>
-                      <li><span class="check-bullet">✓</span> Basic outfit photo gallery</li>
-                    </ul>
-                  </div>
-
-                  <div class="plan-footer">
-                    <button class="btn-sub-tier btn-plan-play btn-plan-current" id="btnPlanFree" onclick="app.selectSubscriptionPlan('free')" disabled>
-                      <span class="play-btn-circle check-circle">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                      </span>
-                      <span class="btn-tier-text">Current Plan</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- PLAN 2: BASIC -->
-                <div class="sub-plan-card plan-basic" id="planCardBasic">
-                  <div class="plan-header">
-                    <div class="plan-label-row">
-                      <span class="plan-pill-tag basic-tag">Basic</span>
-                    </div>
-                    <h3 class="plan-heading-bold">BASIC</h3>
-                    <p class="plan-description">Expanded digital closet capacity & frequent AI outfit suggestions.</p>
-                    <div class="plan-pricing-display">
-                      <span class="currency">₹</span>
-                      <span class="amount">179</span>
-                      <span class="cadence">/ month</span>
-                    </div>
-                  </div>
-
-                  <div class="plan-highlight-strip">
-                    <span>Expanded wardrobe capacity + Ad-free experience</span>
-                  </div>
-
-                  <div class="plan-body">
-                    <span class="features-label">Everything in Free, plus:</span>
-                    <ul class="plan-features">
-                      <li><span class="check-bullet">✓</span> <strong>Everything in Free</strong></li>
-                      <li><span class="check-bullet">✓</span> More daily AI recommendations</li>
-                      <li><span class="check-bullet">✓</span> Expanded digital wardrobe capacity</li>
-                      <li><span class="check-bullet">✓</span> More Style Hint suggestions</li>
-                      <li><span class="check-bullet">✓</span> Advanced outfit combinations</li>
-                      <li><span class="check-bullet">✓</span> Ad-free experience</li>
-                    </ul>
-                  </div>
-
-                  <div class="plan-footer">
-                    <button class="btn-sub-tier btn-plan-play btn-plan-upgrade" id="btnPlanBasic" onclick="app.openUpgradeConfirmation('basic')">
-                      <span class="play-btn-circle play-triangle">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-                          <polygon points="5 3 19 12 5 21 5 3"/>
-                        </svg>
-                      </span>
-                      <span class="btn-tier-text">Upgrade to Basic</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- PLAN 3: PRO -->
-                <div class="sub-plan-card plan-pro featured-pro-card" id="planCardPro">
-                  <div class="pro-crown-ribbon">
-                    <span class="crown-icon">👑</span>
-                    <span class="ribbon-text">Most Popular / Best Experience</span>
-                  </div>
-
-                  <div class="plan-header">
-                    <div class="plan-label-row">
-                      <span class="plan-pill-tag pro-tag">Woobi Pro</span>
-                    </div>
-                    <h3 class="plan-heading-bold pro-heading-bold">
-                      PRO <span class="crown-icon-inline">👑</span>
-                    </h3>
-                    <p class="plan-description">The ultimate AI personal stylist and limitless virtual couture experience.</p>
-                    <div class="plan-pricing-display pro-pricing">
-                      <span class="currency">₹</span>
-                      <span class="amount gold-amount">387</span>
-                      <span class="cadence">/ month</span>
-                    </div>
-                  </div>
-
-                  <div class="plan-highlight-strip gold-strip">
-                    <span>👑 AI Personal Stylist + Unlimited combinations</span>
-                  </div>
-
-                  <div class="plan-body">
-                    <span class="features-label">Everything in Basic, plus:</span>
-                    <ul class="plan-features">
-                      <li><span class="check-bullet gold">✓</span> <strong>Everything in Basic</strong></li>
-                      <li><span class="check-bullet gold">✓</span> Advanced AI Personal Stylist</li>
-                      <li><span class="check-bullet gold">✓</span> Weather & occasion recommendations</li>
-                      <li><span class="check-bullet gold">✓</span> Advanced color & combo generator</li>
-                      <li><span class="check-bullet gold">✓</span> Premium 3D Studio & virtual try-on</li>
-                      <li><span class="check-bullet gold">✓</span> Unlimited saved looks & VIP support</li>
-                    </ul>
-                  </div>
-
-                  <div class="plan-footer">
-                    <button class="btn-sub-tier btn-plan-play btn-plan-pro-gold" id="btnPlanPro" onclick="app.openUpgradeConfirmation('pro')">
-                      <span class="play-btn-circle play-triangle gold-play">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-                          <polygon points="5 3 19 12 5 21 5 3"/>
-                        </svg>
-                      </span>
-                      <span class="btn-tier-text">Get Woobi Pro</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="legal-links-row" style="margin-top: 18px; text-align: center;">
-                  <a href="#manage" onclick="event.preventDefault(); app.goToScreen('manage-subscription');">Manage subscription</a>
-                  <span>|</span>
-                  <a href="#terms" onclick="event.preventDefault();">Terms</a>
-                  <span>|</span>
-                  <a href="#privacy" onclick="event.preventDefault(); app.goToScreen('account-privacy');">Privacy</a>
+            <!-- 2. Basic Card (Most Popular) -->
+            <div class="seren-plan-card seren-card-basic" id="cardPlanBasic">
+              <div class="seren-card-badge-row">
+                <span class="seren-popular-badge">MOST POPULAR</span>
+              </div>
+              <div class="seren-card-top-row">
+                <h3 class="seren-card-tier-name">Basic</h3>
+                <div class="seren-card-price-display" id="priceDisplayBasic">
+                  <span class="seren-price-num">$173</span>
+                  <span class="seren-price-cadence">/ year</span>
                 </div>
               </div>
+              <ul class="seren-card-feature-list">
+                <li>Personalized outfit recommendations</li>
+                <li>Curated brand discounts</li>
+                <li>Virtual try-on tools</li>
+              </ul>
+              <button type="button" class="seren-card-btn seren-btn-basic" id="btnPlanBasic" onclick="app.openUpgradeConfirmation('basic')">
+                Choose Basic
+              </button>
+            </div>
+
+            <!-- 3. Pro Card -->
+            <div class="seren-plan-card seren-card-pro" id="cardPlanPro">
+              <div class="seren-card-top-row">
+                <h3 class="seren-card-tier-name">Pro</h3>
+                <div class="seren-card-price-display" id="priceDisplayPro">
+                  <span class="seren-price-num">$387</span>
+                  <span class="seren-price-cadence">/ year</span>
+                </div>
+              </div>
+              <ul class="seren-card-feature-list">
+                <li>1-on-1 dedicated stylist</li>
+                <li>Early access to exclusive collections</li>
+                <li>Priority shipping &amp; returns</li>
+              </ul>
+              <button type="button" class="seren-card-btn seren-btn-pro" id="btnPlanPro" onclick="app.openUpgradeConfirmation('pro')">
+                Go Pro
+              </button>
+            </div>
+          </div>
+
+          <!-- Trust Badges & Footer Information -->
+          <div class="seren-plan-trust-footer">
+            <div class="seren-trust-meta">
+              <span>Secure payment. Cancel anytime.</span>
+              <span class="seren-payment-pills">
+                <span class="seren-badge-pay">Pay</span>
+                <span class="seren-badge-pay">VISA</span>
+              </span>
+            </div>
+            <div class="seren-trust-links">
+              <a href="#terms" onclick="event.preventDefault(); app.openLegalModal('terms');">Terms of Service</a> &amp;
+              <a href="#privacy" onclick="event.preventDefault(); app.goToScreen('account-privacy');">Privacy</a>
             </div>
           </div>
 
