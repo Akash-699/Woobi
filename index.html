@@ -396,7 +396,8 @@
         <section class="phone-screen active" id="screen-today">
           <!-- Sérén Studio Minimal Header Overlay -->
           <header class="seren-header">
-            <div class="seren-header-left">
+            <!-- Hidden Branding Mark to remove visual text at top left while preserving compatibility -->
+            <div class="seren-header-left" style="display: none;" hidden>
               <div class="seren-branding">
                 <span class="seren-brand-name">woobi</span>
                 <span class="seren-brand-sub">3D STUDIO</span>
@@ -2177,7 +2178,20 @@
              SCREEN 14: WOOBI PREMIUM SUBSCRIPTION (SPOTIFY-INSPIRED DARK LUXE)
              =================================================================== -->
         <section class="phone-screen" id="screen-premium">
-<!-- Sticky Minimal Header Overlay -->
+          <!-- Sticky Minimal Header Overlay -->
+          <div class="premium-sticky-header">
+            <button class="nav-back-arrow premium-back-btn" onclick="app.goToScreen('today')" aria-label="Back" title="Back">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
+            </button>
+            <div class="premium-header-brand">
+              <span class="luxe-sparkle">✦</span>
+              <span class="luxe-brand-text">WOOBI PREMIUM</span>
+            </div>
+            <button class="premium-header-action" onclick="app.goToScreen('manage-subscription')" title="Manage subscription">
+              Manage
+            </button>
           </div>
 
           <div class="premium-scroll-content">

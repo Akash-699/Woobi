@@ -5907,7 +5907,7 @@ body {
 }
 
 .seren-header-left {
-  display: flex;
+  display: none !important;
   align-items: center;
   gap: 12px;
 }
@@ -12682,14 +12682,14 @@ body {
   line-height: 1.2;
   z-index: 5;
 }
-}
 
 .pro-crown-ribbon .crown-icon {
   font-size: 0.75rem;
 }
 
 .plan-header {
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .plan-label-row {
@@ -12757,7 +12757,9 @@ body {
   display: flex;
   align-items: baseline;
   gap: 2px;
-  margin-bottom: 4px;
+  margin-top: 2px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
 }
 
 .plan-pricing-display .currency {
@@ -12793,6 +12795,7 @@ body {
   font-weight: 600;
   margin-bottom: 6px;
   border-left: 3px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
 }
 
 .plan-highlight-strip.gold-strip {
@@ -12802,12 +12805,13 @@ body {
 }
 
 .plan-body {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   margin-bottom: 6px;
+  overflow: hidden;
 }
 
 .features-label {
@@ -12818,6 +12822,7 @@ body {
   letter-spacing: 0.8px;
   color: #8b949e;
   margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .plan-features {
