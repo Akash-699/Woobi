@@ -1,6 +1,6 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { StreakState, STREAK_EVENTS } from './StreakState.js';
+import { StreakState, STREAK_EVENTS, TEST_USER_ID } from './StreakState.js';
 
 describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
   let streakState;
@@ -12,6 +12,8 @@ describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
       memoriesKey: null
     });
     streakState.memories = [];
+    streakState.state.currentStreak = 0;
+    streakState.state.hasEarnedStreak = false;
   });
 
   it('1. initializes with zero streak and no broken streak state for a new user', () => {
@@ -262,5 +264,95 @@ describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
     const decDate = new Date('2026-12-10');
     assert.strictEqual(streakState.isMonthlyRestoreAvailable(decDate), true, 'Available in next month cycle');
   });
-});
 
+  it('19. accurately computes 5 fire levels at boundaries (1, 9, 10, 29, 30, 49, 50, 99, 100, 200)', () => {
+    assert.strictEqual(streakState.getFireLevel(0), 0);
+    assert.strictEqual(streakState.getFireLevel(1), 1);
+    assert.strictEqual(streakState.getFireLevel(9), 1);
+    assert.strictEqual(streakState.getFireLevel(10), 2);
+    assert.strictEqual(streakState.getFireLevel(29), 2);
+    assert.strictEqual(streakState.getFireLevel(30), 3);
+    assert.strictEqual(streakState.getFireLevel(49), 3);
+    assert.strictEqual(streakState.getFireLevel(50), 4);
+    assert.strictEqual(streakState.getFireLevel(99), 4);
+    assert.strictEqual(streakState.getFireLevel(100), 5);
+    assert.strictEqual(streakState.getFireLevel(200), 5);
+    assert.strictEqual(streakState.getFireLevel(250), 5);
+  });
+
+  it('20. generates 136-day test user dataset with Level 5 fire and marked test memories', () => {
+    streakState.setUserId(TEST_USER_ID);
+    const res = streakState.seedTestUserStreak136();
+    assert.strictEqual(res.success, true);
+    assert.strictEqual(res.streak, 136);
+    assert.strictEqual(streakState.state.currentStreak, 136);
+    assert.strictEqual(streakState.state.bestStreak, 136);
+    assert.strictEqual(streakState.state.isTestUser, true);
+    assert.ok(streakState.state.deadline > Date.now(), 'Seeded test-user deadline should remain active');
+    assert.strictEqual(streakState.isTestUser(), true);
+
+    const status = streakState.getStreakStatus();
+    assert.strictEqual(status.currentStreak, 136);
+    assert.strictEqual(status.fireLevel, 5, '136-day streak must display Level 5 fire');
+    assert.strictEqual(status.fireLevelName, 'Final Fire');
+
+    assert.strictEqual(streakState.memories.length, 136);
+    assert.strictEqual(streakState.memories[0].date, '2026-06-21');
+    assert.strictEqual(streakState.memories[135].date, '2026-11-03');
+    assert.strictEqual(streakState.memories[0].isTestData, true);
+    assert.ok(streakState.memories[0].note.startsWith('[TEST DATA]'));
+  });
+
+  it('21. strictly isolates 136-day test data from real users', () => {
+    streakState.loadTestUserStreak136();
+    assert.strictEqual(streakState.state.currentStreak, 136);
+    assert.strictEqual(streakState.isTestUser(), true);
+
+    // Switch to a new real user
+    streakState.switchToRealUser('real_user_789');
+    assert.strictEqual(streakState.isTestUser(), false);
+    assert.strictEqual(streakState.state.currentStreak, 0, 'Real user must have 0 initial streak');
+    assert.strictEqual(streakState.memories.length, 0, 'Real user must have zero test memories');
+  });
+
+  it('22. allows resetting test data cleanly without corrupting other users', () => {
+    streakState.loadTestUserStreak136();
+    assert.strictEqual(streakState.state.currentStreak, 136);
+
+    const resetRes = streakState.resetTestData();
+    assert.strictEqual(resetRes.success, true);
+    assert.strictEqual(streakState.state.currentStreak, 136);
+    assert.strictEqual(streakState.memories.length, 136);
+  });
+
+  it('23. executes real user lifecycle: starts at 0, increments to 1 on day 1, 2 on day 2, and resets to 0 on break', () => {
+    // 1. Initial streak is 0
+    assert.strictEqual(streakState.state.currentStreak, 0);
+
+    // 2. Day 1 upload: streak becomes 1
+    const day1Res = streakState.recordDailyOutfitUpload({
+      photoUrl: 'assets/navy_shirt.jpg',
+      customDate: '2026-11-01'
+    });
+    assert.strictEqual(day1Res.success, true);
+    assert.strictEqual(day1Res.streak, 1);
+    assert.strictEqual(streakState.state.currentStreak, 1);
+
+    // 3. Day 2 (consecutive) upload: streak increments to 2
+    const day2Res = streakState.recordDailyOutfitUpload({
+      photoUrl: 'assets/white_linen_shirt.jpg',
+      customDate: '2026-11-02'
+    });
+    assert.strictEqual(day2Res.success, true);
+    assert.strictEqual(day2Res.streak, 2);
+    assert.strictEqual(streakState.state.currentStreak, 2);
+
+    // 4. Streak break: deadline expires without upload on day 3 -> streak becomes 0
+    streakState.state.deadline = Date.now() - 1000;
+    streakState.state.uploadedToday = false;
+    const brokenStatus = streakState.getStreakStatus();
+    assert.strictEqual(brokenStatus.isStreakBroken, true);
+    assert.strictEqual(brokenStatus.currentStreak, 0, 'Streak must become 0 on break');
+    assert.strictEqual(brokenStatus.savedPreviousStreak, 2);
+  });
+});

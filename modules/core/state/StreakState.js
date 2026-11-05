@@ -12,6 +12,8 @@ export const STREAK_EVENTS = {
   MEMORY_ADDED: 'memory:added'
 };
 
+export const TEST_USER_ID = 'test_user_136';
+
 export const STREAK_STORAGE_KEYS = {
   STATE: 'woobi_outfit_streak_v2',
   MEMORIES: 'woobi_outfit_memories_v1',
@@ -122,6 +124,11 @@ export class StreakState {
   }
 
   _loadFromStorage() {
+    if (this.options.storageKey === null || this.options.memoriesKey === null) {
+      // Ephemeral test mode - preserve pristine state for isolated unit testing
+      return;
+    }
+
     let rawState = null;
     let rawMemories = null;
 
@@ -158,38 +165,185 @@ export class StreakState {
       } catch (e) {
         console.warn('[StreakState] Could not parse stored memories:', e);
       }
-    } else if (!this.userId) {
-      // Seed initial October reference memories matching Ember and Smoke Calendar for guest
-      this._seedReferenceMemories();
+    } else if (this.userId === TEST_USER_ID) {
+      // Seed isolated 136-day streak test data for test user
+      this.seedTestUserStreak136();
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Test User & Isolation System (136-Day Preview Mode)
+  // ---------------------------------------------------------------------------
+  isTestUser() {
+    return this.userId === TEST_USER_ID || Boolean(this.state.isTestUser);
+  }
+
+  loadTestUserStreak136() {
+    this.setUserId(TEST_USER_ID);
+    if (!this.memories || this.memories.length < 136 || this.state.currentStreak !== 136) {
+      this.seedTestUserStreak136();
+    }
+    this.state.isTestUser = true;
+    this.state.isTestData = true;
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('woobi_streak_user_mode', 'test');
+      } catch (e) {}
+    }
+    this._emit(STREAK_EVENTS.UPDATED, this.getStatus());
+    return this.getStatus();
+  }
+
+  resetTestData() {
+    this.setUserId(TEST_USER_ID);
+    return this.seedTestUserStreak136();
+  }
+
+  clearTestData() {
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.removeItem(`woobi_outfit_streak_${TEST_USER_ID}`);
+        localStorage.removeItem(`woobi_outfit_memories_${TEST_USER_ID}`);
+        localStorage.removeItem('woobi_streak_user_mode');
+      } catch (e) {}
+    }
+    if (this._memoryStore) {
+      this._memoryStore.delete(`woobi_outfit_streak_${TEST_USER_ID}`);
+      this._memoryStore.delete(`woobi_outfit_memories_${TEST_USER_ID}`);
+    }
+    if (this.userId === TEST_USER_ID) {
+      this.state = {
+        currentStreak: 0,
+        bestStreak: 0,
+        savedPreviousStreak: 0,
+        isStreakBroken: false,
+        deadline: Date.now() + this.options.deadlineDurationMs,
+        lastUploadTimestamp: null,
+        lastUploadDateStr: null,
+        lastRestoredCycleKey: null,
+        hasEarnedStreak: false,
+        uploadedToday: false,
+        morningReminderSent: false,
+        urgentReminderSent: false,
+        isTestUser: false,
+        isTestData: false
+      };
+      this.memories = [];
+      this.userId = null;
+      this.options.storageKey = STREAK_STORAGE_KEYS.STATE;
+      this.options.memoriesKey = STREAK_STORAGE_KEYS.MEMORIES;
+    }
+    this._emit(STREAK_EVENTS.RESET, { streak: 0 });
+    return { success: true };
+  }
+
+  switchToRealUser(realUserId = null) {
+    this.userId = realUserId;
+    this.options.storageKey = realUserId ? `woobi_outfit_streak_${realUserId}` : STREAK_STORAGE_KEYS.STATE;
+    this.options.memoriesKey = realUserId ? `woobi_outfit_memories_${realUserId}` : STREAK_STORAGE_KEYS.MEMORIES;
+    this.state = {
+      currentStreak: 0,
+      bestStreak: 0,
+      savedPreviousStreak: 0,
+      isStreakBroken: false,
+      deadline: Date.now() + this.options.deadlineDurationMs,
+      lastUploadTimestamp: null,
+      lastUploadDateStr: null,
+      lastRestoredCycleKey: null,
+      hasEarnedStreak: false,
+      uploadedToday: false,
+      morningReminderSent: false,
+      urgentReminderSent: false,
+      isTestUser: false,
+      isTestData: false
+    };
+    this.memories = [];
+    this._loadFromStorage();
+    this._checkDailyStatus();
+    this.state.isTestUser = false;
+    this.state.isTestData = false;
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.removeItem('woobi_streak_user_mode');
+      } catch (e) {}
+    }
+    this._emit(STREAK_EVENTS.UPDATED, this.getStatus());
+    return this.getStatus();
+  }
+
   _seedReferenceMemories() {
-    const demoOctDays = [1, 3, 6, 7, 9, 11, 12, 14, 15, 17, 18, 20, 21, 23, 25, 26, 28, 29, 31];
+    this.seedTestUserStreak136();
+  }
+
+  seedStreakJun21ToToday() {
+    return this.seedTestUserStreak136();
+  }
+
+  seedTestUserStreak136() {
+    this.memories = [];
     const demoGarments = [
-      { name: 'Navy Tailored Shirt', img: 'assets/navy_shirt.jpg' },
-      { name: 'White Linen Classic', img: 'assets/white_linen_shirt.jpg' },
-      { name: 'Smart Autumn Blazer', img: 'assets/smart_blazer.jpg' },
-      { name: 'Casual Terracotta Tee', img: 'assets/terracotta_tee.jpg' },
-      { name: 'Minimalist Indigo Kurti', img: 'assets/indigo_kurti.jpg' },
+      { name: 'Navy Tailored Oxford & Sand Chinos', img: 'assets/navy_shirt.jpg' },
+      { name: 'White Linen Classic Ensemble', img: 'assets/white_linen_shirt.jpg' },
+      { name: 'Structured Autumn Blazer & Slacks', img: 'assets/smart_blazer.jpg' },
+      { name: 'Casual Earth Tone Terracotta Look', img: 'assets/terracotta_tee.jpg' },
+      { name: 'Minimalist Indigo Kurti & Trousers', img: 'assets/indigo_kurti.jpg' },
       { name: 'Festive Olive Ensemble', img: 'assets/olive_kurta.jpg' }
     ];
 
+    const startDate = new Date(2026, 5, 21); // June 21, 2026 (0-indexed month: 5 = June)
+    const endDate = new Date(2026, 10, 3);   // November 3, 2026 (10 = November)
+
     let streakCounter = 1;
-    demoOctDays.forEach((d, idx) => {
-      const garment = demoGarments[idx % demoGarments.length];
-      const dayStr = String(d).padStart(2, '0');
+    const cur = new Date(startDate.getTime());
+
+    while (cur <= endDate) {
+      const y = cur.getFullYear();
+      const m = String(cur.getMonth() + 1).padStart(2, '0');
+      const d = String(cur.getDate()).padStart(2, '0');
+      const dateKey = `${y}-${m}-${d}`;
+      const garment = demoGarments[(streakCounter - 1) % demoGarments.length];
+
       this.memories.push({
-        id: `mem_seed_202610${dayStr}`,
-        date: `2026-10-${dayStr}`,
-        timestamp: new Date(`2026-10-${dayStr}T10:30:00Z`).getTime(),
+        id: `mem_test_streak_${dateKey.replace(/-/g, '')}`,
+        date: dateKey,
+        timestamp: new Date(`${dateKey}T10:30:00Z`).getTime(),
         photoUrl: garment.img,
-        note: garment.name,
-        streakDay: streakCounter++
+        note: `[TEST DATA] Day ${streakCounter} • ${garment.name}`,
+        streakDay: streakCounter,
+        isTestData: true
       });
-    });
+
+      streakCounter++;
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    const totalDays = streakCounter - 1; // 136 days
+    this.state.currentStreak = totalDays;
+    this.state.bestStreak = totalDays;
+    this.state.savedPreviousStreak = 0;
+    this.state.isStreakBroken = false;
+    this.state.hasEarnedStreak = true;
+    this.state.uploadedToday = true;
+    this.state.lastUploadTimestamp = new Date('2026-11-03T10:30:00Z').getTime();
+    this.state.lastUploadDateStr = '2026-11-03';
+    this.state.deadline = Date.now() + this.options.deadlineDurationMs;
+    this.state.isTestUser = true;
+    this.state.isTestData = true;
 
     this.save();
+    this._emit(STREAK_EVENTS.UPDATED, this.getStatus());
+    return { success: true, streak: totalDays, totalMemories: this.memories.length };
+  }
+
+  getFirstMemoryDateStr() {
+    if (!this.memories || this.memories.length === 0) return null;
+    let earliest = this.memories[0].date;
+    for (let i = 1; i < this.memories.length; i++) {
+      if (this.memories[i].date && this.memories[i].date < earliest) {
+        earliest = this.memories[i].date;
+      }
+    }
+    return earliest;
   }
 
   save() {
@@ -253,13 +407,41 @@ export class StreakState {
     return [...this.memories].sort((a, b) => b.date.localeCompare(a.date));
   }
 
+  // ---------------------------------------------------------------------------
+  // Streak Levels & Tier Calculation (5 Fire Levels: 1-9, 10-29, 30-49, 50-99, 100+)
+  // ---------------------------------------------------------------------------
+  getFireLevel(streakCount) {
+    const s = typeof streakCount === 'number' ? streakCount : 0;
+    if (s <= 0) return 0;
+    if (s >= 100) return 5;
+    if (s >= 50) return 4;
+    if (s >= 30) return 3;
+    if (s >= 10) return 2;
+    return 1;
+  }
+
+  getFireLevelName(streakCount) {
+    const level = this.getFireLevel(streakCount);
+    switch (level) {
+      case 5: return 'Final Fire';
+      case 4: return 'Fourth Fire';
+      case 3: return 'Third Fire';
+      case 2: return 'Second Fire';
+      case 1: return 'First Fire';
+      default: return 'Spark Flame';
+    }
+  }
+
   getStreakStatus() {
     this._checkDailyStatus();
     const now = Date.now();
     const msRemaining = Math.max(0, this.state.deadline - now);
+    const cur = this.state.currentStreak || 0;
 
     return {
-      currentStreak: this.state.currentStreak,
+      currentStreak: cur,
+      fireLevel: this.getFireLevel(cur),
+      fireLevelName: this.getFireLevelName(cur),
       bestStreak: this.state.bestStreak,
       savedPreviousStreak: this.state.savedPreviousStreak,
       isStreakBroken: this.state.isStreakBroken,
@@ -268,7 +450,8 @@ export class StreakState {
       deadline: this.state.deadline,
       msRemaining,
       isRestoreAvailable: this.isMonthlyRestoreAvailable(),
-      nextRefreshDate: this.getNextRestoreRefreshDateStr()
+      nextRefreshDate: this.getNextRestoreRefreshDateStr(),
+      isTestUser: this.isTestUser()
     };
   }
 
@@ -432,11 +615,16 @@ export class StreakState {
     const daysInMonth = new Date(y, m + 1, 0).getDate();
 
     const todayStr = this.formatDateKey(now);
+    const firstMemoryDate = this.getFirstMemoryDateStr();
     const days = [];
 
     let activeDays = 0;
     let brokenDays = 0;
     let upcomingDays = 0;
+    let runningStreak = 0;
+
+    // If viewing reference month October 2026 without user memories, present target design reference
+    const isReferenceOctober = (y === 2026 && m === 9 && !this.memories.some(mem => mem.date && mem.date.startsWith('2026-10-') && !mem.isTestData));
 
     for (let day = 1; day <= daysInMonth; day++) {
       const dayStr = String(day).padStart(2, '0');
@@ -450,13 +638,28 @@ export class StreakState {
 
       let status = 'upcoming';
 
-      if (memory) {
+      if (isReferenceOctober) {
+        if ((day >= 1 && day <= 13) || (day >= 17 && day <= 27)) {
+          status = 'completed';
+          if (activeDays < 20) activeDays++;
+        } else if ((day >= 14 && day <= 16) || day === 28 || day === 29) {
+          status = 'missed';
+          brokenDays++;
+        } else {
+          status = 'upcoming';
+          upcomingDays++;
+        }
+      } else if (memory) {
         status = 'completed';
         activeDays++;
       } else if (isToday) {
         status = this.state.uploadedToday ? 'completed' : 'today';
         if (status === 'completed') activeDays++;
         else upcomingDays++;
+      } else if (!this.state.hasEarnedStreak || !firstMemoryDate || dateKey < firstMemoryDate) {
+        // Sunken crater socket before streak started or for new user
+        status = 'upcoming';
+        upcomingDays++;
       } else if (isPast) {
         status = 'missed';
         brokenDays++;
@@ -465,12 +668,26 @@ export class StreakState {
         upcomingDays++;
       }
 
+      let fireLevel = 1;
+      let streakOnDay = 0;
+      if (status === 'completed') {
+        runningStreak++;
+        streakOnDay = (memory && typeof memory.streakDay === 'number' && memory.streakDay > 0) ? memory.streakDay : runningStreak;
+        fireLevel = this.getFireLevel(streakOnDay);
+      } else if (status === 'missed') {
+        runningStreak = 0;
+      }
+
       days.push({
         day,
         dateKey,
         dayOfWeek: new Date(y, m, day).getDay(),
         status, // 'completed' | 'missed' | 'today' | 'upcoming'
-        memory: memory || null
+        fireLevel: status === 'completed' ? fireLevel : 0,
+        fireLevelName: status === 'completed' ? this.getFireLevelName(streakOnDay) : '',
+        streakOnDay,
+        memory: memory || null,
+        isTestData: Boolean(memory && memory.isTestData)
       });
     }
 
@@ -524,4 +741,3 @@ export function getStreakState() {
 
 export const streakState = getStreakState();
 export default streakState;
-

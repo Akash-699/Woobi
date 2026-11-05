@@ -1569,22 +1569,24 @@
   // SÉRÉN 3D VIRTUAL FASHION STUDIO CONTROLLER
   // ===================================================================
 
+  const SUPABASE_CDN = 'https://lewsuhfhagpjootunpsa.supabase.co/storage/v1/object/public/Troys%20Assets/assets/';
+
   const SEREN_GARMENTS = [
-    { id: 'cardigan', cat: 'tops', name: 'Cream Knit Cardigan', photo: 'assets/style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
-    { id: 'blazer', cat: 'tops', name: 'Camel Smart Blazer', photo: 'assets/smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
-    { id: 'navy_shirt', cat: 'tops', name: 'Navy Oxford Shirt', photo: 'assets/navy_shirt.jpg', is3D: true, sub: 'Crisp button-down collar' },
-    { id: 'striped_sweater', cat: 'tops', name: 'Breton Striped Sweater', photo: 'assets/style_casual.jpg', is3D: true, sub: 'French nautical knit' },
-    { id: 'tank', cat: 'tops', name: 'Ribbed Ivory Tank', photo: 'assets/welcome_hero.jpg', is3D: true, sub: 'Scoop neck luxury cotton' },
+    { id: 'cardigan', cat: 'tops', name: 'Cream Knit Cardigan', photo: SUPABASE_CDN + 'style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
+    { id: 'blazer', cat: 'tops', name: 'Camel Smart Blazer', photo: SUPABASE_CDN + 'smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
+    { id: 'navy_shirt', cat: 'tops', name: 'Navy Oxford Shirt', photo: SUPABASE_CDN + 'navy_shirt.jpg', is3D: true, sub: 'Crisp button-down collar' },
+    { id: 'striped_sweater', cat: 'tops', name: 'Breton Striped Sweater', photo: SUPABASE_CDN + 'style_casual.jpg', is3D: true, sub: 'French nautical knit' },
+    { id: 'tank', cat: 'tops', name: 'Ribbed Ivory Tank', photo: SUPABASE_CDN + 'welcome_hero.jpg', is3D: true, sub: 'Scoop neck luxury cotton' },
 
-    { id: 'taupe_wide', cat: 'bottoms', name: 'Tailored Taupe Trousers', photo: 'assets/beige_chinos.jpg', is3D: true, sub: 'Pleated high-waisted drape' },
-    { id: 'dark_denim', cat: 'bottoms', name: 'Dark Indigo Straight Jeans', photo: 'assets/blue_jeans.jpg', is3D: true, sub: 'Tailored Japanese denim' },
-    { id: 'white_chinos', cat: 'bottoms', name: 'Crisp Ivory Chinos', photo: 'assets/beige_chinos.jpg', is3D: true, sub: 'Clean minimalist cut' },
+    { id: 'taupe_wide', cat: 'bottoms', name: 'Tailored Taupe Trousers', photo: SUPABASE_CDN + 'beige_chinos.jpg', is3D: true, sub: 'Pleated high-waisted drape' },
+    { id: 'dark_denim', cat: 'bottoms', name: 'Dark Indigo Straight Jeans', photo: SUPABASE_CDN + 'dark_denim.jpg', is3D: true, sub: 'Tailored Japanese denim' },
+    { id: 'white_chinos', cat: 'bottoms', name: 'Crisp Ivory Chinos', photo: SUPABASE_CDN + 'beige_chinos.jpg', is3D: true, sub: 'Clean minimalist cut' },
 
-    { id: 'blazer', cat: 'outerwear', name: 'Camel Smart Blazer', photo: 'assets/smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
-    { id: 'cardigan', cat: 'outerwear', name: 'Cream Knit Cardigan', photo: 'assets/style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
+    { id: 'blazer', cat: 'outerwear', name: 'Camel Smart Blazer', photo: SUPABASE_CDN + 'smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
+    { id: 'cardigan', cat: 'outerwear', name: 'Cream Knit Cardigan', photo: SUPABASE_CDN + 'style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
 
-    { id: 'loafers', cat: 'shoes', name: 'Caramel Leather Loafers', photo: 'assets/smart_blazer.jpg', is3D: true, sub: 'Polished brass horsebit' },
-    { id: 'sneakers', cat: 'shoes', name: 'Clean White Sneakers', photo: 'assets/welcome_hero.jpg', is3D: true, sub: 'Minimalist court leather' }
+    { id: 'loafers', cat: 'shoes', name: 'Caramel Leather Loafers', photo: SUPABASE_CDN + 'tan_loafers.jpg', is3D: true, sub: 'Polished brass horsebit' },
+    { id: 'sneakers', cat: 'shoes', name: 'Clean White Sneakers', photo: SUPABASE_CDN + 'white_sneakers.jpg', is3D: true, sub: 'Minimalist court leather' }
   ];
 
   const STYLING_REVIEWS = {
@@ -2121,11 +2123,21 @@
   function initStreakState() {
     const engine = getStreakEngine();
     if (engine) {
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.removeItem('woobi_streak_user_mode');
+        } catch (e) {}
+      }
+
       state.streak = getStreakStatusSafe(engine);
       if (typeof engine.on === 'function') {
         engine.on('streak:updated', (data) => {
           state.streak = getStreakStatusSafe(engine);
           updateStreakUI();
+          const modal = document.getElementById('streakDetailsModal');
+          if (modal && !modal.classList.contains('hidden')) {
+            renderStreakCalendar();
+          }
         });
         engine.on('streak:broken', (data) => {
           state.streak = getStreakStatusSafe(engine);
@@ -2138,10 +2150,14 @@
         engine.on('streak:restored', () => {
           state.streak = getStreakStatusSafe(engine);
           updateStreakUI();
+          const modal = document.getElementById('streakDetailsModal');
+          if (modal && !modal.classList.contains('hidden')) {
+            renderStreakCalendar();
+          }
         });
       }
     } else {
-      // Local fallback state
+      // Local fallback state while waiting for core engine
       if (!state.streak) {
         state.streak = {
           currentStreak: 0,
@@ -2152,6 +2168,24 @@
           uploadedToday: false,
           deadline: Date.now() + 24 * 3600 * 1000
         };
+      }
+
+      // Automatically hook into core engine as soon as module mounts
+      if (typeof window !== 'undefined' && !window._coreStreakHookAttached) {
+        window._coreStreakHookAttached = true;
+        window.addEventListener('woobi:core:ready', () => {
+          initStreakState();
+        });
+        let pollCount = 0;
+        const poller = setInterval(() => {
+          pollCount++;
+          if (getStreakEngine()) {
+            clearInterval(poller);
+            initStreakState();
+          } else if (pollCount > 40) {
+            clearInterval(poller);
+          }
+        }, 50);
       }
     }
 
@@ -2182,6 +2216,20 @@
       galleryBtn.onclick = (e) => {
         if (e) e.stopPropagation();
         openMemoriesModal();
+      };
+    }
+    const calendarBtn = document.getElementById('streakCalendarBtn');
+    if (calendarBtn) {
+      calendarBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        openStreakModal();
+      };
+    }
+    const accountBtn = document.getElementById('streakAccountBtn');
+    if (accountBtn) {
+      accountBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        goToScreen('profile');
       };
     }
 
@@ -2273,19 +2321,37 @@
       streakCountLabelEl.textContent = count === 1 ? 'Streak' : 'Streaks';
     }
 
-    // Only show broken streak (wood & rising smoke) if user had previously earned a streak!
-    // A new user who has never earned a streak must NOT be shown a broken streak.
-    const isBroken = streak.isStreakBroken && streak.hasEarnedStreak && streak.savedPreviousStreak > 0;
+    // Determine current fire level for trio header icon
+    let headerLevel = 1;
+    if (engine && typeof engine.getFireLevel === 'function') {
+      headerLevel = engine.getFireLevel(count);
+    } else {
+      if (count >= 100) headerLevel = 5;
+      else if (count >= 50) headerLevel = 4;
+      else if (count >= 30) headerLevel = 3;
+      else if (count >= 10) headerLevel = 2;
+      else headerLevel = 1;
+    }
 
-    if (isBroken) {
+    // If streak is zero OR broken, place the bonfire in the home icon!
+    const isBroken = Boolean(streak.isStreakBroken);
+    const shouldShowBonfire = count === 0 || isBroken;
+
+    if (shouldShowBonfire) {
       if (fireImg) fireImg.classList.add('hidden');
       if (smokeImg) smokeImg.classList.remove('hidden');
       if (streakPillEl) {
         streakPillEl.classList.add('broken-streak');
-        streakPillEl.title = 'Streak broken! Click to restore your streak';
+        streakPillEl.title = isBroken
+          ? 'Streak broken! Click to restore your streak'
+          : 'Daily Outfit Streak: 0 Streaks (Click to view calendar)';
       }
     } else {
-      if (fireImg) fireImg.classList.remove('hidden');
+      if (fireImg) {
+        fireImg.classList.remove('hidden');
+        fireImg.src = `assets/streak/fire_level_${headerLevel}.png`;
+        fireImg.className = `streak-header-icon-img fire-lvl-${headerLevel}`;
+      }
       if (smokeImg) smokeImg.classList.add('hidden');
       if (streakPillEl) {
         streakPillEl.classList.remove('broken-streak');
@@ -2313,15 +2379,12 @@
   function openStreakModal() {
     const modal = document.getElementById('streakDetailsModal');
     if (!modal) return;
-
     const engine = getStreakEngine();
-    const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
-    const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
-    const badge = document.getElementById('calHeaderStreakBadge');
-    if (badge) {
-      badge.textContent = `🔥 Current Streak: ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}`;
+    // Default to reference October 2026 if user has not yet uploaded in November 2026
+    if (engine && !engine.hasUploadedToday() && (!engine.memories || !engine.memories.some(m => m.date && m.date.startsWith('2026-11')))) {
+      currentCalYear = 2026;
+      currentCalMonth = 9; // October (0-indexed)
     }
-
     renderStreakCalendar();
     modal.classList.remove('hidden');
   }
@@ -2353,8 +2416,30 @@
     const engine = getStreakEngine();
     const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
     const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
+
+    let tierLevel = 1;
+    let tierName = 'First Fire';
+    if (engine && typeof engine.getFireLevel === 'function') {
+      tierLevel = engine.getFireLevel(curStreak);
+      tierName = engine.getFireLevelName(curStreak);
+    } else {
+      if (curStreak >= 100) { tierLevel = 5; tierName = 'Final Fire'; }
+      else if (curStreak >= 50) { tierLevel = 4; tierName = 'Fourth Fire'; }
+      else if (curStreak >= 30) { tierLevel = 3; tierName = 'Third Fire'; }
+      else if (curStreak >= 10) { tierLevel = 2; tierName = 'Second Fire'; }
+      else { tierLevel = 1; tierName = 'First Fire'; }
+    }
+
+    const tierTextEl = document.getElementById('calTierText');
+    if (tierTextEl) {
+      tierTextEl.textContent = `${curStreak} ${curStreak === 1 ? 'Day' : 'Days'} Streak • ${tierName}`;
+    }
+    const tierFlameIconEl = document.getElementById('calTierFlameIcon');
+    if (tierFlameIconEl) {
+      tierFlameIconEl.innerHTML = `<img src="assets/streak/fire_level_${tierLevel}.png?v=20261104_4" class="cal-pill-fire-img" alt="Flame" />`;
+    }
     const badge = document.getElementById('calHeaderStreakBadge');
-    if (badge) {
+    if (badge && !tierTextEl) {
       badge.textContent = `🔥 Current Streak: ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}`;
     }
 
@@ -2369,12 +2454,32 @@
       const isCurMonth = now.getFullYear() === currentCalYear && now.getMonth() === currentCalMonth;
       const todayDate = now.getDate();
       const days = [];
+      let runningStreak = 0;
+      let activeDays = 0;
+      let brokenDays = 0;
+      let upcomingDays = 0;
+
       for (let d = 1; d <= totalDays; d++) {
         let status = 'upcoming';
-        if (isCurMonth && d === todayDate) status = 'today';
-        else if (isCurMonth && d < todayDate) status = 'completed';
-        days.push({ day: d, status });
+        let fireLvl = 1;
+        if (isCurMonth && d === todayDate) {
+          status = 'today';
+          upcomingDays++;
+        } else if (isCurMonth && d < todayDate) {
+          status = 'completed';
+          activeDays++;
+          runningStreak++;
+          if (runningStreak >= 100) fireLvl = 5;
+          else if (runningStreak >= 50) fireLvl = 4;
+          else if (runningStreak >= 30) fireLvl = 3;
+          else if (runningStreak >= 10) fireLvl = 2;
+          else fireLvl = 1;
+        } else {
+          upcomingDays++;
+        }
+        days.push({ day: d, status, fireLevel: fireLvl });
       }
+
       calData = {
         year: currentCalYear,
         month: currentCalMonth,
@@ -2382,9 +2487,10 @@
         totalDays,
         firstDayOfWeek: firstDay,
         days,
-        stats: { activeDays: isCurMonth ? todayDate : totalDays, brokenDays: 0, upcomingDays: isCurMonth ? (totalDays - todayDate) : 0 }
+        stats: { activeDays, brokenDays, upcomingDays }
       };
     }
+
     const titleEl = document.getElementById('streakCalMonthTitle');
     const gridEl = document.getElementById('streakCalendarGrid');
     const activeEl = document.getElementById('calActiveCount');
@@ -2402,38 +2508,132 @@
     if (!gridEl) return;
     gridEl.innerHTML = '';
 
-    // 1. Render empty offset slots for start of month
+    // Helper: Creates high-performance animated SVG with flowing fire streaks
+    function createFlowingFireElement(level = 1) {
+      const wrap = document.createElement('div');
+      wrap.className = `flowing-fire-wrap fire-lvl-${level}`;
+      wrap.innerHTML = `
+        <svg class="flowing-fire-svg" viewBox="0 0 38 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="flameOuterGrad" x1="19" y1="44" x2="19" y2="2" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FF2E00"/>
+              <stop offset="30%" stop-color="#FF6A00"/>
+              <stop offset="70%" stop-color="#FFA600"/>
+              <stop offset="100%" stop-color="#FFF3A5"/>
+            </linearGradient>
+            <linearGradient id="flameCoreGrad" x1="19" y1="42" x2="19" y2="16" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FF8A00"/>
+              <stop offset="50%" stop-color="#FFDE3B"/>
+              <stop offset="100%" stop-color="#FFFFFF"/>
+            </linearGradient>
+            <linearGradient id="flameStreakGrad" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stop-color="#FF4500" stop-opacity="0.1"/>
+              <stop offset="45%" stop-color="#FFB800" stop-opacity="0.95"/>
+              <stop offset="100%" stop-color="#FFFFE8" stop-opacity="0.1"/>
+            </linearGradient>
+          </defs>
+          <ellipse cx="19" cy="39" rx="14" ry="6" fill="#FFA500" class="fire-ambient-glow"/>
+          <path class="flame-body-path" fill="url(#flameOuterGrad)"
+            d="M19 2 C16 9 9 16 9 27 C9 36 13 42 19 43 C25 42 29 36 29 27 C29 16 22 9 19 2 Z"/>
+          <path class="fire-flowing-streak streak-left" fill="url(#flameStreakGrad)"
+            d="M14 36 C12 30 11 23 17 15 C15 21 14 28 16 35 Z"/>
+          <path class="fire-flowing-streak streak-right" fill="url(#flameStreakGrad)"
+            d="M24 36 C26 30 27 23 21 15 C23 21 24 28 22 35 Z"/>
+          <path class="fire-flowing-streak streak-center" fill="url(#flameStreakGrad)"
+            d="M18 32 C16 24 18 14 19 5 C20 14 22 24 20 32 Z"/>
+          <path class="flame-core-path" fill="url(#flameCoreGrad)"
+            d="M19 21 C16 26 14 30 14 36 C14 41 16 42 19 42 C22 42 24 41 24 36 C24 30 22 26 19 21 Z"/>
+          <circle cx="15" cy="20" r="1.1" fill="#FFF4A3" class="flowing-ember ember-1"/>
+          <circle cx="23" cy="16" r="1.0" fill="#FFCF5C" class="flowing-ember ember-2"/>
+          <circle cx="19" cy="9"  r="1.2" fill="#FFFFFF" class="flowing-ember ember-3"/>
+        </svg>
+      `;
+      return wrap;
+    }
+
+    // 1. Render empty offset slots for start of month (soft recessed placeholder tiles)
     for (let i = 0; i < calData.firstDayOfWeek; i++) {
       const emptySlot = document.createElement('div');
-      emptySlot.className = 'streak-cal-slot-empty';
+      emptySlot.className = 'date-tile-empty-recessed streak-cal-slot-empty';
       gridEl.appendChild(emptySlot);
     }
 
-    // 2. Render each day bubble
+    // 2. Render each day in 3D Recessed Tile format with circular Crater Sockets
     calData.days.forEach(dayInfo => {
-      const bubble = document.createElement('div');
-      bubble.className = `streak-cal-bubble ${dayInfo.status}`;
-      bubble.title = `${calData.monthName} ${dayInfo.day}: ${dayInfo.status.toUpperCase()}`;
+      const tile = document.createElement('div');
+      tile.className = `date-tile-recessed ${dayInfo.status}`;
+      tile.title = `${calData.monthName} ${dayInfo.day}: ${dayInfo.status.toUpperCase()}`;
 
-      // Date number centered
+      // Date number at top-left
       const numSpan = document.createElement('span');
-      numSpan.className = 'streak-cal-day-num';
+      numSpan.className = 'date-tile-num';
       numSpan.textContent = dayInfo.day;
-      bubble.appendChild(numSpan);
+      tile.appendChild(numSpan);
 
-      // Click behavior
-      bubble.addEventListener('click', () => {
+      // Inner circular crater socket
+      const crater = document.createElement('div');
+      crater.className = `crater-socket ${dayInfo.status}-crater`;
+
+      if (dayInfo.status === 'completed') {
+        const lvl = Math.min(5, Math.max(1, dayInfo.fireLevel || 1));
+        const delay = ((dayInfo.day * 0.19) % 1.6).toFixed(2);
+
+        const fireWrap = document.createElement('div');
+        fireWrap.className = `streak-cell-fire-wrap fire-lvl-${lvl} burning-flow-active fire-shaking-active`;
+        fireWrap.style.animationDelay = `${delay}s`;
+
+        const fireImg = document.createElement('img');
+        fireImg.src = `assets/streak/fire_level_${lvl}.png?v=20261104_3`;
+        fireImg.alt = `Streak Fire Level ${lvl}`;
+        fireImg.className = `streak-cell-fire-img fire-lvl-${lvl}-img`;
+        fireImg.style.animationDelay = `${delay}s`;
+        fireImg.onerror = () => {
+          fireImg.src = 'assets/streak/reference_flame_sample.png';
+        };
+
+        fireWrap.appendChild(fireImg);
+        crater.appendChild(fireWrap);
+      } else if (dayInfo.status === 'missed') {
+        const delay = ((dayInfo.day * 0.23) % 2.1).toFixed(2);
+
+        const bonfireWrap = document.createElement('div');
+        bonfireWrap.className = 'streak-cell-bonfire-wrap bonfire-smoke-active';
+        bonfireWrap.style.animationDelay = `${delay}s`;
+
+        const bonfireImg = document.createElement('img');
+        bonfireImg.src = `assets/streak/bonfire_smoke.png?v=20261104_1`;
+        bonfireImg.alt = 'Missed Bonfire Smoke';
+        bonfireImg.className = 'crater-bonfire-img animated-bonfire-smoke';
+        bonfireImg.style.animationDelay = `${delay}s`;
+        bonfireImg.onerror = () => {
+          bonfireImg.src = 'assets/streak/reference_campfire_sample.png';
+        };
+
+        bonfireWrap.appendChild(bonfireImg);
+        crater.appendChild(bonfireWrap);
+      } else if (dayInfo.status === 'today') {
+        const dot = document.createElement('div');
+        dot.className = 'today-pulse-dot';
+        crater.appendChild(dot);
+      }
+
+      tile.appendChild(crater);
+
+      // Interactive Click Handling
+      tile.addEventListener('click', () => {
         if (dayInfo.status === 'completed' && dayInfo.memory) {
           openMemoryDetail(dayInfo.memory.id);
         } else if (dayInfo.status === 'today') {
           closeStreakModal();
           openCameraModal();
+        } else if (dayInfo.status === 'missed') {
+          showMissedStreakModal();
         } else {
           showToast(`📅 ${calData.monthName} ${dayInfo.day}: ${dayInfo.status.charAt(0).toUpperCase() + dayInfo.status.slice(1)}`);
         }
       });
 
-      gridEl.appendChild(bubble);
+      gridEl.appendChild(tile);
     });
   }
 
@@ -2945,11 +3145,41 @@
       engine.state.lastUploadDateStr = null;
       engine.state.lastRestoredCycleKey = null;
       engine.memories = [];
-      engine._seedReferenceMemories();
       engine.save();
     }
     initStreakState();
     showToast('🗑️ Reset streak to fresh starter state (0 days, no lost streak).');
+  }
+
+  function resetTestData() {
+    const engine = getStreakEngine();
+    if (engine && typeof engine.resetTestData === 'function') {
+      engine.resetTestData();
+    }
+    state.streak = getStreakStatusSafe(engine);
+    updateStreakUI();
+    renderStreakCalendar();
+    showToast('🔥 Reset 136-day test data (June 21 – Today) with Level 5 fire!');
+  }
+
+  function toggleTestUserMode() {
+    const engine = getStreakEngine();
+    if (!engine) return;
+    const isTest = typeof engine.isTestUser === 'function' ? engine.isTestUser() : false;
+    if (isTest) {
+      if (typeof engine.switchToRealUser === 'function') {
+        engine.switchToRealUser('user_real');
+      }
+      showToast('Switched to Real User mode (Authentic streaks).');
+    } else {
+      if (typeof engine.loadTestUserStreak136 === 'function') {
+        engine.loadTestUserStreak136();
+      }
+      showToast('Switched to Test User (136-day streak with Level 5 fire)!');
+    }
+    state.streak = getStreakStatusSafe(engine);
+    updateStreakUI();
+    renderStreakCalendar();
   }
 
   // Legacy compatibility helpers
@@ -4268,6 +4498,14 @@
     prevCalendarMonth,
     nextCalendarMonth,
     renderStreakCalendar,
+    seedStreakJun21ToToday: () => {
+      const eng = getStreakEngine();
+      if (eng && typeof eng.seedStreakJun21ToToday === 'function') {
+        eng.seedStreakJun21ToToday();
+      }
+      renderStreakCalendar();
+      updateStreakUI();
+    },
     openCameraModal,
     closeCameraModal,
     captureCameraSnapshot,
@@ -4295,6 +4533,24 @@
     devSimulateStreakBreak,
     devToggleRestoreToken,
     devResetStreak,
+    resetTestData,
+    toggleTestUserMode,
+    loadTestUserStreak136: () => {
+      const eng = getStreakEngine();
+      if (eng && typeof eng.loadTestUserStreak136 === 'function') {
+        eng.loadTestUserStreak136();
+      }
+      renderStreakCalendar();
+      updateStreakUI();
+    },
+    switchToRealUser: (id) => {
+      const eng = getStreakEngine();
+      if (eng && typeof eng.switchToRealUser === 'function') {
+        eng.switchToRealUser(id);
+      }
+      renderStreakCalendar();
+      updateStreakUI();
+    },
 
     // Clothing Capture & Silhouette Digitization API
     openClothingCaptureMenu,
