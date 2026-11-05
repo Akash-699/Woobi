@@ -512,7 +512,7 @@
         this.group.add(flange);
       });
 
-      // 9 Volumetric Hanging Garments (Target contents strictly matching user requirements)
+      // 9 Volumetric Hanging Garments (Balanced clothing categories including shirts & trousers)
       const garmentSpecs = [
         // 1. Crisp White Button-down Shirt
         { x: -0.80, mat: this.materials.poplinWhite, len: 0.72, type: 'shirt', collar: 'spread' },
@@ -522,16 +522,16 @@
         { x: -0.40, mat: this.materials.linenBeige, len: 0.74, type: 'shirt', collar: 'spread' },
         // 4. Subtle Pinstripe Shirt
         { x: -0.20, mat: this.materials.shirtPinstripe, len: 0.70, type: 'shirt', collar: 'spread' },
-        // 5. Crisp White Poplin Dress Shirt
-        { x: 0.00, mat: this.materials.poplinWhite, len: 0.73, type: 'shirt', collar: 'classic' },
+        // 5. Tailored Sand Trousers (Draped over hanger crossbar)
+        { x: 0.00, mat: new THREE.MeshStandardMaterial({ color: 0xC8BAA7, roughness: 0.75 }), len: 0.74, type: 'trousers', collar: 'none' },
         // 6. Beige Draped Fine-Knit Cardigan
         { x: 0.20, mat: this.materials.cardiganCamel, len: 0.76, type: 'cardigan', collar: 'shawl' },
         // 7. Neutral Sand/Camel Structured Blazer
         { x: 0.40, mat: this.materials.linenBeige, len: 0.80, type: 'blazer', collar: 'lapel' },
-        // 8. Soft Heather Grey Tailored Jacket
-        { x: 0.60, mat: this.materials.blazerGrey, len: 0.82, type: 'blazer', collar: 'lapel' },
-        // 9. Dark Charcoal Tailored Garment
-        { x: 0.80, mat: this.materials.blazerCharcoal, len: 0.84, type: 'blazer', collar: 'lapel' }
+        // 8. Pleated Charcoal Trousers (Draped over hanger crossbar)
+        { x: 0.60, mat: this.materials.blazerCharcoal, len: 0.75, type: 'trousers', collar: 'none' },
+        // 9. Soft Heather Grey Tailored Jacket
+        { x: 0.80, mat: this.materials.blazerGrey, len: 0.82, type: 'blazer', collar: 'lapel' }
       ];
 
       garmentSpecs.forEach((spec, index) => {
@@ -567,6 +567,32 @@
       );
       hook.position.set(0, 0.016, 0);
       g.add(hook);
+
+      // Handle draped trousers over hanger bar
+      if (spec.type === 'trousers') {
+        const trouserWidth = 0.36;
+        const trouserDepth = 0.09;
+        const foldBar = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.016, 0.016, trouserWidth, 16),
+          spec.mat
+        );
+        foldBar.rotation.z = Math.PI / 2;
+        foldBar.position.set(0, -0.05, 0);
+        foldBar.castShadow = true;
+        g.add(foldBar);
+
+        [-1, 1].forEach(side => {
+          const leg = new THREE.Mesh(
+            new THREE.BoxGeometry(trouserWidth, spec.len * 0.90, trouserDepth / 2),
+            spec.mat
+          );
+          leg.position.set(0, -0.05 - (spec.len * 0.90) / 2, side * 0.022);
+          leg.castShadow = true;
+          leg.receiveShadow = true;
+          g.add(leg);
+        });
+        return g;
+      }
 
       // 2. Volumetric Garment Body Mesh with natural fabric curves
       const garmentBody = new THREE.Group();

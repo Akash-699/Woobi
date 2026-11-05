@@ -1353,66 +1353,99 @@
               <button class="cat-pill active" onclick="app.filterWardrobeCategory('All', this)">All</button>
               <button class="cat-pill" onclick="app.filterWardrobeCategory('Clean', this)">✨ Clean</button>
               <button class="cat-pill" onclick="app.filterWardrobeCategory('Laundry', this)">🧺 In Laundry</button>
-              <button class="cat-pill" onclick="app.filterWardrobeCategory('Tops', this)">Tops</button>
-              <button class="cat-pill" onclick="app.filterWardrobeCategory('Bottoms', this)">Bottoms</button>
-              <button class="cat-pill" onclick="app.filterWardrobeCategory('Shoes', this)">Shoes</button>
-              <button class="cat-pill" onclick="app.filterWardrobeCategory('Accessories', this)">Accessories</button>
+              <button class="cat-pill" onclick="app.filterWardrobeCategory('Shirts', this)">👕 Shirts</button>
+              <button class="cat-pill" onclick="app.filterWardrobeCategory('Trousers', this)">👖 Trousers</button>
+              <button class="cat-pill" onclick="app.filterWardrobeCategory('Footwear', this)">👟 Footwear</button>
+              <button class="cat-pill" onclick="app.filterWardrobeCategory('Accessories', this)">👜 Accessories</button>
             </div>
 
-            <div class="wardrobe-2col-grid" id="wardrobeCardsGrid">
-              <div class="wardrobe-item-box" onclick="app.goToScreen('edit-item')">
-                <div class="w-img-wrap"><img src="assets/navy_shirt.jpg" alt="Navy shirt"></div>
-                <div class="w-meta">
-                  <div class="w-name">Navy shirt</div>
-                  <div class="w-sub">Top</div>
+            <div class="wardrobe-sections-wrapper" id="wardrobeCardsGrid">
+              <!-- Section 1: Shirts -->
+              <section class="wardrobe-category-section" id="wardrobeSecShirts">
+                <div class="wardrobe-category-header">
+                  <div class="wardrobe-category-title">
+                    <span class="cat-icon">👕</span>
+                    <span>Shirts</span>
+                  </div>
+                  <span class="wardrobe-category-count" id="wardrobeCountShirts">2 items</span>
                 </div>
-                <button class="w-dots">⋮</button>
-              </div>
+                <div class="wardrobe-2col-grid wardrobe-section-grid" id="wardrobeGridShirts">
+                  <div class="wardrobe-item-box" onclick="app.goToScreen('edit-item')">
+                    <div class="w-img-wrap"><img src="assets/navy_shirt.jpg" alt="Navy shirt"></div>
+                    <div class="w-meta">
+                      <div class="w-name">Navy shirt</div>
+                      <div class="w-sub">Shirts · Top</div>
+                    </div>
+                    <button class="w-dots">⋮</button>
+                  </div>
+                  <div class="wardrobe-item-box">
+                    <div class="w-img-wrap"><img src="assets/white_linen_shirt.jpg" alt="White linen shirt"></div>
+                    <div class="w-meta">
+                      <div class="w-name">White linen shirt</div>
+                      <div class="w-sub">Shirts · Top</div>
+                    </div>
+                    <button class="w-dots">⋮</button>
+                  </div>
+                </div>
+              </section>
 
-              <div class="wardrobe-item-box">
-                <div class="w-img-wrap"><img src="assets/beige_chinos.jpg" alt="Beige trousers"></div>
-                <div class="w-meta">
-                  <div class="w-name">Beige trousers</div>
-                  <div class="w-sub">Bottom</div>
+              <!-- Section 2: Trousers (Dedicated section below shirts) -->
+              <section class="wardrobe-category-section" id="wardrobeSecTrousers">
+                <div class="wardrobe-category-header">
+                  <div class="wardrobe-category-title">
+                    <span class="cat-icon">👖</span>
+                    <span>Trousers</span>
+                  </div>
+                  <span class="wardrobe-category-count" id="wardrobeCountTrousers">2 items</span>
                 </div>
-                <button class="w-dots">⋮</button>
-              </div>
+                <div class="wardrobe-2col-grid wardrobe-section-grid" id="wardrobeGridTrousers">
+                  <div class="wardrobe-item-box">
+                    <div class="w-img-wrap"><img src="assets/beige_chinos.jpg" alt="Beige trousers"></div>
+                    <div class="w-meta">
+                      <div class="w-name">Beige trousers</div>
+                      <div class="w-sub">Trousers · Bottom</div>
+                    </div>
+                    <button class="w-dots">⋮</button>
+                  </div>
+                  <div class="wardrobe-item-box">
+                    <div class="w-img-wrap"><img src="assets/dark_skirt.jpg" alt="Dark skirt"></div>
+                    <div class="w-meta">
+                      <div class="w-name">Dark skirt</div>
+                      <div class="w-sub">Trousers · Bottom</div>
+                    </div>
+                    <button class="w-dots">⋮</button>
+                  </div>
+                </div>
+              </section>
 
-              <div class="wardrobe-item-box">
-                <div class="w-img-wrap"><img src="assets/olive_kurta.jpg" alt="Cream kurta"></div>
-                <div class="w-meta">
-                  <div class="w-name">Cream kurta</div>
-                  <div class="w-sub">Top</div>
+              <!-- Section 3: Footwear (Dedicated section below trousers) -->
+              <section class="wardrobe-category-section" id="wardrobeSecFootwear">
+                <div class="wardrobe-category-header">
+                  <div class="wardrobe-category-title">
+                    <span class="cat-icon">👟</span>
+                    <span>Footwear</span>
+                  </div>
+                  <span class="wardrobe-category-count" id="wardrobeCountFootwear">2 items</span>
                 </div>
-                <button class="w-dots">⋮</button>
-              </div>
-
-              <div class="wardrobe-item-box">
-                <div class="w-img-wrap"><img src="assets/white_sneakers.jpg" alt="White sneakers"></div>
-                <div class="w-meta">
-                  <div class="w-name">White sneakers</div>
-                  <div class="w-sub">Shoes</div>
+                <div class="wardrobe-2col-grid wardrobe-section-grid" id="wardrobeGridFootwear">
+                  <div class="wardrobe-item-box">
+                    <div class="w-img-wrap"><img src="assets/white_sneakers.jpg" alt="White sneakers"></div>
+                    <div class="w-meta">
+                      <div class="w-name">White sneakers</div>
+                      <div class="w-sub">Footwear · Shoes</div>
+                    </div>
+                    <button class="w-dots">⋮</button>
+                  </div>
+                  <div class="wardrobe-item-box">
+                    <div class="w-img-wrap"><img src="assets/tan_loafers.jpg" alt="Tan loafers"></div>
+                    <div class="w-meta">
+                      <div class="w-name">Tan loafers</div>
+                      <div class="w-sub">Footwear · Shoes</div>
+                    </div>
+                    <button class="w-dots">⋮</button>
+                  </div>
                 </div>
-                <button class="w-dots">⋮</button>
-              </div>
-
-              <div class="wardrobe-item-box">
-                <div class="w-img-wrap"><img src="assets/maroon_top.jpg" alt="Maroon top"></div>
-                <div class="w-meta">
-                  <div class="w-name">Maroon top</div>
-                  <div class="w-sub">Top</div>
-                </div>
-                <button class="w-dots">⋮</button>
-              </div>
-
-              <div class="wardrobe-item-box">
-                <div class="w-img-wrap"><img src="assets/dark_skirt.jpg" alt="Dark skirt"></div>
-                <div class="w-meta">
-                  <div class="w-name">Dark skirt</div>
-                  <div class="w-sub">Bottom</div>
-                </div>
-                <button class="w-dots">⋮</button>
-              </div>
+              </section>
             </div>
           </div>
 

@@ -65,7 +65,9 @@
     { id: 'item_13', name: 'Cream palazzo', category: 'Bottoms', photo: 'assets/cream_palazzo.jpg', condition: 'clean', fit: 'loose' },
     { id: 'item_14', name: 'Indigo kurti', category: 'Tops', photo: 'assets/indigo_kurti.jpg', condition: 'dirty', fit: 'perfect' },
     { id: 'item_15', name: 'Terracotta tee', category: 'Tops', photo: 'assets/terracotta_tee.jpg', condition: 'dirty', fit: 'tight' },
-    { id: 'item_16', name: 'Tailored blazer', category: 'Tops', photo: 'assets/smart_blazer.jpg', condition: 'clean', fit: 'tight' }
+    { id: 'item_16', name: 'Tailored blazer', category: 'Tops', photo: 'assets/smart_blazer.jpg', condition: 'clean', fit: 'tight' },
+    { id: 'item_17', name: 'Tailored taupe trousers', category: 'Bottoms', photo: 'assets/beige_chinos.jpg', condition: 'clean', fit: 'perfect' },
+    { id: 'item_18', name: 'Minimalist court sneakers', category: 'Shoes', photo: 'assets/white_sneakers.jpg', condition: 'clean', fit: 'perfect' }
   ];
 
   // Pre-calculated AI Stylist Curations for "Need an outfit?" alternative cycling
@@ -864,59 +866,148 @@
   // =========================================================================
   // 6. WARDROBE GRID & CONDITION (CLEAN / DIRTY / FIT) MANAGEMENT
   // =========================================================================
+  function createWardrobeItemBox(item) {
+    const box = document.createElement('div');
+    box.className = 'wardrobe-item-box';
+
+    const isClean = item.condition === 'clean';
+    const statusBadge = isClean
+      ? `<span class="badge-status clean" onclick="event.stopPropagation(); app.toggleItemCondition('${item.id}')" title="Tap to mark in laundry">✨ Clean</span>`
+      : `<span class="badge-status dirty" onclick="event.stopPropagation(); app.toggleItemCondition('${item.id}')" title="Tap to mark clean">🧺 In Laundry</span>`;
+
+    const fitBadge = item.fit === 'tight'
+      ? `<span class="badge-fit tight">Tight</span>`
+      : item.fit === 'loose'
+        ? `<span class="badge-fit loose">Loose</span>`
+        : `<span class="badge-fit">Perfect fit</span>`;
+
+    box.innerHTML = `
+      <div class="w-img-wrap" onclick="app.openConditionModal('${item.id}')">
+        <img src="${item.photo}" alt="${item.name}" loading="lazy">
+      </div>
+      <div class="w-meta" onclick="app.openConditionModal('${item.id}')">
+        <div class="w-name">${item.name}</div>
+        <div class="w-sub" style="display:flex; gap:4px; margin-top:4px; flex-wrap:wrap;">
+          ${statusBadge}
+          ${fitBadge}
+        </div>
+      </div>
+      <button class="w-dots" onclick="event.stopPropagation(); app.openConditionModal('${item.id}')">⋮</button>
+    `;
+    return box;
+  }
+
   function renderWardrobeGrid(category = state.wardrobeActiveCategory, query = '') {
     const container = document.getElementById('wardrobeCardsGrid');
     if (!container) return;
 
     let items = WARDROBE_ITEMS.slice();
 
-    // Category Filter
+    // Condition filter
     if (category === 'Clean') {
       items = items.filter(i => i.condition === 'clean');
     } else if (category === 'Laundry') {
       items = items.filter(i => i.condition === 'dirty');
-    } else if (category && category !== 'All') {
-      items = items.filter(i => i.category.toLowerCase() === category.toLowerCase());
     }
 
-    // Search Query Filter
+    // Search query filter
     if (query && query.trim() !== '') {
       const q = query.toLowerCase().trim();
       items = items.filter(i => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q));
     }
 
+    const catNormalized = (category || 'all').toLowerCase();
+    const isSingleCategory = catNormalized !== 'all' && catNormalized !== 'clean' && catNormalized !== 'laundry';
+
+    // Partition items into balanced clothing categories
+    const isShirt = i => {
+      const c = (i.category || '').toLowerCase();
+      return c === 'tops' || c === 'shirts' || c === 'shirt';
+    };
+    const isTrouser = i => {
+      const c = (i.category || '').toLowerCase();
+      return c === 'bottoms' || c === 'trousers' || c === 'trouser' || c === 'pants' || c === 'pant';
+    };
+    const isFootwear = i => {
+      const c = (i.category || '').toLowerCase();
+      return c === 'shoes' || c === 'footwear' || c === 'shoe';
+    };
+    const isAccessory = i => {
+      const c = (i.category || '').toLowerCase();
+      return c === 'accessories' || c === 'accessory';
+    };
+
+    const shirtsItems = items.filter(isShirt);
+    const trousersItems = items.filter(isTrouser);
+    const footwearItems = items.filter(isFootwear);
+    const accessoriesItems = items.filter(isAccessory);
+
     container.innerHTML = '';
-    items.forEach(item => {
-      const box = document.createElement('div');
-      box.className = 'wardrobe-item-box';
+    container.className = 'wardrobe-sections-wrapper';
 
-      const isClean = item.condition === 'clean';
-      const statusBadge = isClean
-        ? `<span class="badge-status clean" onclick="event.stopPropagation(); app.toggleItemCondition('${item.id}')" title="Tap to mark in laundry">✨ Clean</span>`
-        : `<span class="badge-status dirty" onclick="event.stopPropagation(); app.toggleItemCondition('${item.id}')" title="Tap to mark clean">🧺 In Laundry</span>`;
+    function buildSection(id, icon, title, secItems) {
+      if (secItems.length === 0) return null;
+      const sec = document.createElement('section');
+      sec.className = 'wardrobe-category-section';
+      sec.id = id;
 
-      const fitBadge = item.fit === 'tight'
-        ? `<span class="badge-fit tight">Tight</span>`
-        : item.fit === 'loose'
-          ? `<span class="badge-fit loose">Loose</span>`
-          : `<span class="badge-fit">Perfect fit</span>`;
-
-      box.innerHTML = `
-        <div class="w-img-wrap" onclick="app.openConditionModal('${item.id}')">
-          <img src="${item.photo}" alt="${item.name}">
+      const header = document.createElement('div');
+      header.className = 'wardrobe-category-header';
+      header.innerHTML = `
+        <div class="wardrobe-category-title">
+          <span class="cat-icon">${icon}</span>
+          <span>${title}</span>
         </div>
-        <div class="w-meta" onclick="app.openConditionModal('${item.id}')">
-          <div class="w-name">${item.name}</div>
-          <div class="w-sub" style="display:flex; gap:4px; margin-top:4px; flex-wrap:wrap;">
-            ${statusBadge}
-            ${fitBadge}
-          </div>
-        </div>
-        <button class="w-dots" onclick="event.stopPropagation(); app.openConditionModal('${item.id}')">⋮</button>
+        <span class="wardrobe-category-count">${secItems.length} item${secItems.length === 1 ? '' : 's'}</span>
       `;
+      sec.appendChild(header);
 
-      container.appendChild(box);
-    });
+      const grid = document.createElement('div');
+      grid.className = 'wardrobe-2col-grid wardrobe-section-grid';
+      secItems.forEach(item => grid.appendChild(createWardrobeItemBox(item)));
+      sec.appendChild(grid);
+
+      return sec;
+    }
+
+    let renderedAny = false;
+
+    // 1. Dedicated Shirts Section
+    if (!isSingleCategory || catNormalized === 'shirts' || catNormalized === 'tops') {
+      const sec = buildSection('wardrobeSecShirts', '👕', 'Shirts', shirtsItems);
+      if (sec) { container.appendChild(sec); renderedAny = true; }
+    }
+
+    // 2. Dedicated Trousers Section (directly below Shirts)
+    if (!isSingleCategory || catNormalized === 'trousers' || catNormalized === 'bottoms' || catNormalized === 'pants') {
+      const sec = buildSection('wardrobeSecTrousers', '👖', 'Trousers', trousersItems);
+      if (sec) { container.appendChild(sec); renderedAny = true; }
+    }
+
+    // 3. Dedicated Footwear Section (directly below Trousers)
+    if (!isSingleCategory || catNormalized === 'footwear' || catNormalized === 'shoes') {
+      const sec = buildSection('wardrobeSecFootwear', '👟', 'Footwear', footwearItems);
+      if (sec) { container.appendChild(sec); renderedAny = true; }
+    }
+
+    // 4. Dedicated Accessories Section (below Footwear)
+    if (!isSingleCategory || catNormalized === 'accessories') {
+      const sec = buildSection('wardrobeSecAccessories', '👜', 'Accessories', accessoriesItems);
+      if (sec) { container.appendChild(sec); renderedAny = true; }
+    }
+
+    // Empty state fallback when no items match
+    if (!renderedAny) {
+      const emptyBox = document.createElement('div');
+      emptyBox.className = 'wardrobe-empty-state';
+      emptyBox.innerHTML = `
+        <div style="font-size: 2rem; margin-bottom: 8px;">🧺</div>
+        <strong>No clothing items found</strong>
+        <p>${query ? `No items matching "${query}" in this view.` : 'No items found in this category.'}</p>
+        ${query ? `<button class="btn-olive-primary" style="margin-top:12px; padding:6px 14px; font-size:0.8rem; border-radius:999px;" onclick="document.getElementById('wardrobeSearchInput').value=''; app.filterWardrobeGrid();">Clear search</button>` : ''}
+      `;
+      container.appendChild(emptyBox);
+    }
 
     updateWardrobeCounts();
   }
@@ -1968,7 +2059,7 @@
       }
     }
 
-    grid.innerHTML = items.map(item => `
+    const renderCard = item => `
       <div class="seren-garment-item" onclick="app.serenWearGarment('${item.cat}', '${item.id}', ${item.is3D})" title="Wear ${item.name}">
         <div class="garment-thumb-box">
           <img src="${item.photo}" alt="${item.name}" onerror="this.src='assets/navy_shirt.jpg'">
@@ -1979,7 +2070,60 @@
           <span class="garment-item-sub">${item.sub}</span>
         </div>
       </div>
-    `).join('');
+    `;
+
+    if (serenCurrentCat === 'all') {
+      const tops = items.filter(i => i.cat === 'tops' || i.cat === 'shirts');
+      const bottoms = items.filter(i => i.cat === 'bottoms' || i.cat === 'trousers');
+      const shoes = items.filter(i => i.cat === 'shoes' || i.cat === 'footwear');
+      const outerwear = items.filter(i => i.cat === 'outerwear');
+
+      grid.innerHTML = `
+        <div class="seren-cat-section" style="grid-column: 1 / -1; margin-bottom: 12px;">
+          <div class="seren-cat-section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid rgba(220, 208, 192, 0.5);">
+            <span style="font-weight:700; font-size:0.86rem; color:#2F241A;">👕 Shirts &amp; Tops</span>
+            <span style="font-size:0.72rem; color:#726353; background:rgba(0,0,0,0.04); padding:2px 8px; border-radius:999px;">${tops.length} items</span>
+          </div>
+          <div class="seren-garment-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:12px;">
+            ${tops.map(renderCard).join('')}
+          </div>
+        </div>
+
+        <div class="seren-cat-section" style="grid-column: 1 / -1; margin-top: 8px; margin-bottom: 12px;">
+          <div class="seren-cat-section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid rgba(220, 208, 192, 0.5);">
+            <span style="font-weight:700; font-size:0.86rem; color:#2F241A;">👖 Trousers &amp; Bottoms</span>
+            <span style="font-size:0.72rem; color:#726353; background:rgba(0,0,0,0.04); padding:2px 8px; border-radius:999px;">${bottoms.length} items</span>
+          </div>
+          <div class="seren-garment-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:12px;">
+            ${bottoms.map(renderCard).join('')}
+          </div>
+        </div>
+
+        <div class="seren-cat-section" style="grid-column: 1 / -1; margin-top: 8px; margin-bottom: 12px;">
+          <div class="seren-cat-section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid rgba(220, 208, 192, 0.5);">
+            <span style="font-weight:700; font-size:0.86rem; color:#2F241A;">👟 Footwear &amp; Shoes</span>
+            <span style="font-size:0.72rem; color:#726353; background:rgba(0,0,0,0.04); padding:2px 8px; border-radius:999px;">${shoes.length} items</span>
+          </div>
+          <div class="seren-garment-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:12px;">
+            ${shoes.map(renderCard).join('')}
+          </div>
+        </div>
+
+        ${outerwear.length > 0 ? `
+          <div class="seren-cat-section" style="grid-column: 1 / -1; margin-top: 8px;">
+            <div class="seren-cat-section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid rgba(220, 208, 192, 0.5);">
+              <span style="font-weight:700; font-size:0.86rem; color:#2F241A;">🧥 Outerwear</span>
+              <span style="font-size:0.72rem; color:#726353; background:rgba(0,0,0,0.04); padding:2px 8px; border-radius:999px;">${outerwear.length} items</span>
+            </div>
+            <div class="seren-garment-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:12px;">
+              ${outerwear.map(renderCard).join('')}
+            </div>
+          </div>
+        ` : ''}
+      `;
+    } else {
+      grid.innerHTML = items.map(renderCard).join('');
+    }
   }
 
   function serenFilterCat(cat, btn) {
