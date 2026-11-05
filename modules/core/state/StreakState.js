@@ -747,4 +747,3 @@ export function getStreakState() {
 
 export const streakState = getStreakState();
 export default streakState;
-
