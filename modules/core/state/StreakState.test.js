@@ -288,6 +288,7 @@ describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
     assert.strictEqual(streakState.state.currentStreak, 136);
     assert.strictEqual(streakState.state.bestStreak, 136);
     assert.strictEqual(streakState.state.isTestUser, true);
+    assert.ok(streakState.state.deadline > Date.now(), 'Seeded test-user deadline should remain active');
     assert.strictEqual(streakState.isTestUser(), true);
 
     const status = streakState.getStreakStatus();
@@ -355,4 +356,3 @@ describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
     assert.strictEqual(brokenStatus.savedPreviousStreak, 2);
   });
 });
-
