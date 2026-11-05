@@ -13,6 +13,8 @@ export const ACCOUNT_EVENTS = {
 
 export const SUBSCRIPTION_PLANS = {
   FREE: 'free',
+  BASIC: 'basic',
+  PRO: 'pro',
   MONTHLY: 'monthly',
   ANNUAL: 'annual'
 };
