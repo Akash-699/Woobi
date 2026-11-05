@@ -1184,19 +1184,19 @@
 
   const PLAN_PRICING = {
     free: {
-      yearly: { sym: '$', amount: '0', cadence: '', num: 0 },
-      monthly: { sym: '$', amount: '0', cadence: '', num: 0 },
-      lifetime: { sym: '$', amount: '0', cadence: '', num: 0 }
+      yearly: { sym: '₹', amount: '0', cadence: '', num: 0 },
+      monthly: { sym: '₹', amount: '0', cadence: '', num: 0 },
+      lifetime: { sym: '₹', amount: '0', cadence: '', num: 0 }
     },
     basic: {
-      yearly: { sym: '$', amount: '173', cadence: '/ year', num: 173 },
-      monthly: { sym: '$', amount: '19', cadence: '/ month', num: 19 },
-      lifetime: { sym: '$', amount: '299', cadence: 'once', num: 299 }
+      yearly: { sym: '₹', amount: '1,740', cadence: '/ year', num: 1740 },
+      monthly: { sym: '₹', amount: '174', cadence: '/ month', num: 174 },
+      lifetime: { sym: '₹', amount: '8,763', cadence: 'once', num: 8763 }
     },
     pro: {
-      yearly: { sym: '$', amount: '387', cadence: '/ year', num: 387 },
-      monthly: { sym: '$', amount: '39', cadence: '/ month', num: 39 },
-      lifetime: { sym: '$', amount: '499', cadence: 'once', num: 499 }
+      yearly: { sym: '₹', amount: '3,870', cadence: '/ year', num: 3870 },
+      monthly: { sym: '₹', amount: '387', cadence: '/ month', num: 387 },
+      lifetime: { sym: '₹', amount: '15,397', cadence: 'once', num: 15397 }
     }
   };
 
@@ -1216,9 +1216,9 @@
     const bulletsEl = document.getElementById('subModalBullets');
 
     if (planId === 'basic') {
-      if (titleEl) titleEl.textContent = 'Upgrade to Woobi Basic';
+      if (titleEl) titleEl.textContent = 'Upgrade to Woobi Standard';
       if (badgeEl) badgeEl.textContent = 'MOST POPULAR';
-      if (nameEl) nameEl.textContent = 'Woobi Basic';
+      if (nameEl) nameEl.textContent = 'Woobi Standard';
       if (priceEl) priceEl.textContent = pricing.amount;
       if (cadenceEl) cadenceEl.textContent = pricing.cadence || 'billed yearly';
       if (bulletsEl) {
@@ -1231,7 +1231,7 @@
         `;
       }
     } else {
-      if (titleEl) titleEl.textContent = 'Get Woobi Pro 👑';
+      if (titleEl) titleEl.textContent = 'Upgrade to Woobi Pro 👑';
       if (badgeEl) badgeEl.textContent = 'VIP COUTURE ACCESS';
       if (nameEl) nameEl.textContent = 'Woobi Pro';
       if (priceEl) priceEl.textContent = pricing.amount;
@@ -1253,7 +1253,8 @@
 
   function closeUpgradeConfirmation() {
     const modal = document.getElementById('subUpgradeModal');
-    if (modal) modal.classList.add('hidden');
+    if (!modal) return;
+    modal.classList.add('hidden');
   }
 
   function confirmPlanPreference() {
@@ -1262,9 +1263,9 @@
     state.selectedPlanPreference = plan;
     closeUpgradeConfirmation();
 
-    const planData = (PLAN_PRICING[plan] && PLAN_PRICING[plan][cycle]) || { amount: '387', cadence: '/ year' };
-    const planLabel = plan === 'pro' ? 'Pro' : 'Basic';
-    showToast(`✓ Preference recorded for Woobi ${planLabel} ($${planData.amount} ${planData.cadence})! Payment gateway integration coming soon.`);
+    const planData = (PLAN_PRICING[plan] && PLAN_PRICING[plan][cycle]) || { amount: '3,870', cadence: '/ year' };
+    const planLabel = plan === 'pro' ? 'Pro' : 'Standard';
+    showToast(`✓ Preference recorded for Woobi ${planLabel} (₹${planData.amount} ${planData.cadence})! Payment gateway integration coming soon.`);
 
     updateSubscriptionUI();
   }
@@ -1288,9 +1289,9 @@
 
     // Update Free price display
     const freeEl = document.getElementById('priceDisplayFree');
-    if (freeEl) freeEl.textContent = '$0';
+    if (freeEl) freeEl.textContent = '₹0';
 
-    // Update Basic price display
+    // Update Standard (Basic) price display
     const basicEl = document.getElementById('priceDisplayBasic');
     if (basicEl) {
       const basicData = PLAN_PRICING.basic[cycle] || PLAN_PRICING.basic.yearly;
@@ -1327,7 +1328,7 @@
         btnBasic.disabled = true;
         btnBasic.classList.add('current-plan-btn');
       } else {
-        btnBasic.textContent = 'Choose Basic';
+        btnBasic.textContent = 'Choose Standard';
         btnBasic.disabled = false;
         btnBasic.classList.remove('current-plan-btn');
       }

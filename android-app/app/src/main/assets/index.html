@@ -2196,11 +2196,11 @@
             <p class="seren-plan-subtitle">Unfold curated styling, daily inspo, and a sustainable wardrobe</p>
           </div>
 
-          <!-- Billing Cadence Switcher (Monthly | Yearly (Save 20%) | Lifetime) -->
+          <!-- Billing Cadence Switcher (Monthly | Yearly (2 Months Free) | Lifetime) -->
           <div class="seren-cadence-switcher-wrap">
             <div class="seren-cadence-pill" id="serenCadencePill">
               <button type="button" class="seren-cadence-tab" id="cadenceMonthly" onclick="app.setBillingCycle('monthly')">Monthly</button>
-              <button type="button" class="seren-cadence-tab active" id="cadenceYearly" onclick="app.setBillingCycle('yearly')">Yearly (Save 20%)</button>
+              <button type="button" class="seren-cadence-tab active" id="cadenceYearly" onclick="app.setBillingCycle('yearly')">Yearly (2 Months Free)</button>
               <button type="button" class="seren-cadence-tab" id="cadenceLifetime" onclick="app.setBillingCycle('lifetime')">Lifetime</button>
             </div>
           </div>
@@ -2211,7 +2211,7 @@
             <div class="seren-plan-card seren-card-free" id="cardPlanFree">
               <div class="seren-card-top-row">
                 <h3 class="seren-card-tier-name">Free</h3>
-                <div class="seren-card-price-display" id="priceDisplayFree">$0</div>
+                <div class="seren-card-price-display" id="priceDisplayFree">₹0</div>
               </div>
               <ul class="seren-card-feature-list">
                 <li>Daily style feeds</li>
@@ -2222,15 +2222,15 @@
               </button>
             </div>
 
-            <!-- 2. Basic Card (Most Popular) -->
+            <!-- 2. Standard Card (Most Popular) -->
             <div class="seren-plan-card seren-card-basic" id="cardPlanBasic">
               <div class="seren-card-badge-row">
                 <span class="seren-popular-badge">MOST POPULAR</span>
               </div>
               <div class="seren-card-top-row">
-                <h3 class="seren-card-tier-name">Basic</h3>
+                <h3 class="seren-card-tier-name">Standard</h3>
                 <div class="seren-card-price-display" id="priceDisplayBasic">
-                  <span class="seren-price-num">$173</span>
+                  <span class="seren-price-num">₹1,740</span>
                   <span class="seren-price-cadence">/ year</span>
                 </div>
               </div>
@@ -2240,7 +2240,7 @@
                 <li>Virtual try-on tools</li>
               </ul>
               <button type="button" class="seren-card-btn seren-btn-basic" id="btnPlanBasic" onclick="app.openUpgradeConfirmation('basic')">
-                Choose Basic
+                Choose Standard
               </button>
             </div>
 
@@ -2249,7 +2249,7 @@
               <div class="seren-card-top-row">
                 <h3 class="seren-card-tier-name">Pro</h3>
                 <div class="seren-card-price-display" id="priceDisplayPro">
-                  <span class="seren-price-num">$387</span>
+                  <span class="seren-price-num">₹3,870</span>
                   <span class="seren-price-cadence">/ year</span>
                 </div>
               </div>
@@ -2269,8 +2269,9 @@
             <div class="seren-trust-meta">
               <span>Secure payment. Cancel anytime.</span>
               <span class="seren-payment-pills">
+                <span class="seren-badge-pay">UPI</span>
+                <span class="seren-badge-pay">Cards</span>
                 <span class="seren-badge-pay">Pay</span>
-                <span class="seren-badge-pay">VISA</span>
               </span>
             </div>
             <div class="seren-trust-links">
