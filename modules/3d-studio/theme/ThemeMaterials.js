@@ -36,8 +36,9 @@ export class ThemeMaterials {
     this.disposables.push(this.floorMat);
 
     // 2. Smooth Architectural Wall Material (Authentic Red-Brown Brick Wall with Plaster Fallback)
+    const wallTexture = this.textures.brickWall || this.textures.sandPlaster || null;
     this.wallMat = new THREE.MeshStandardMaterial({
-      map: this.textures.brickWall || this.textures.sandPlaster || null,
+      map: wallTexture,
       bumpMap: this.textures.wallBump || this.textures.stoneBump || null,
       bumpScale: 0.0020,
       color: this.textures.brickWall ? 0xFFFFFF : preset.wall.color,
@@ -92,7 +93,12 @@ export class ThemeMaterials {
     }
 
     if (this.wallMat) {
-      this.wallMat.color.set(preset.wall.color);
+      if (!this.textures.brickWall) {
+        this.wallMat.color.set(preset.wall.color);
+      } else {
+        this.wallMat.color.setHex(0xFFFFFF);
+        this.wallMat.map = this.textures.brickWall;
+      }
       this.wallMat.roughness = preset.wall.roughness;
       this.wallMat.metalness = preset.wall.metalness;
       this.wallMat.needsUpdate = true;

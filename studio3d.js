@@ -608,16 +608,20 @@
       this.textures.wallBump.wrapT = THREE.ClampToEdgeWrapping;
       this.textures.wallBump.repeat.set(2, 1);
 
-      // 3.7. Authentic Red-Brown Brick Wall Texture (Screenshot 2 reference)
+      // 3.7. Authentic Red-Brown Brick Wall Texture (User-Uploaded Reference)
+      const brickSrc = (typeof window !== 'undefined' && window.WOOBI_BRICK_WALL_DATA)
+        ? window.WOOBI_BRICK_WALL_DATA
+        : 'assets/brick_wall.jpg';
+
       if (typeof THREE.TextureLoader !== 'undefined') {
         const textureLoader = new THREE.TextureLoader();
         const brickTex = textureLoader.load(
-          'assets/brick_wall.jpg',
+          brickSrc,
           (loadedTex) => {
             loadedTex.wrapS = THREE.RepeatWrapping;
             loadedTex.wrapT = THREE.RepeatWrapping;
-            // Cylindrical wall is 34m wide x 8m high; repeat 8 horizontally and 2 vertically
-            loadedTex.repeat.set(8, 2);
+            // Cylindrical wall is 34m wide x 8m high; repeat 6 horizontally and 2 vertically
+            loadedTex.repeat.set(6, 2);
             if (THREE.sRGBEncoding) {
               loadedTex.encoding = THREE.sRGBEncoding;
             }
@@ -639,12 +643,12 @@
           },
           undefined,
           (err) => {
-            console.warn('Studio3D: Could not load assets/brick_wall.jpg, falling back to procedural wall texture.', err);
+            console.warn('Studio3D: Could not load brick wall texture, falling back to procedural wall texture.', err);
           }
         );
         brickTex.wrapS = THREE.RepeatWrapping;
         brickTex.wrapT = THREE.RepeatWrapping;
-        brickTex.repeat.set(8, 2);
+        brickTex.repeat.set(6, 2);
         this.textures.brickWall = brickTex;
       }
 
@@ -867,6 +871,7 @@
       const windowShadowGroup = new THREE.Group();
       windowShadowGroup.position.set(1.4, 2.1, -1.8);
       windowShadowGroup.rotation.set(-0.25, 0.45, -0.2);
+      windowShadowGroup.visible = false; // Hidden to remove window glare projection from wall and mirror
 
       const shadowBarMat = new THREE.MeshBasicMaterial({
         color: 0x3D2B1E, // Deep espresso contrast accent (#3D2B1E)
