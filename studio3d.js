@@ -497,35 +497,160 @@
       this.textures.oakBump.wrapT = THREE.RepeatWrapping;
       this.textures.oakBump.repeat.set(1.5, 2.0);
 
-      // 3.5. Mediterranean Desert Sand Plaster Texture (512x512) - #DCC5A3
+      // 3.5. Premium Architectural Interior Wall Limewash Plaster Texture (1024x512)
+      // Soft warm beige, ivory, and light greige artisan wall finish
       const plasterCanvas = document.createElement('canvas');
-      plasterCanvas.width = 512;
+      plasterCanvas.width = 1024;
       plasterCanvas.height = 512;
       const pCtx = plasterCanvas.getContext('2d');
-      pCtx.fillStyle = '#DCC5A3';
-      pCtx.fillRect(0, 0, 512, 512);
 
-      const pImg = pCtx.getImageData(0, 0, 512, 512);
+      // Base: Elegant warm greige-ivory neutral (#E2D8CB) with seamless horizontal gradient
+      const pBaseGrad = pCtx.createLinearGradient(0, 0, 1024, 0);
+      pBaseGrad.addColorStop(0.0, '#E3D9CC');
+      pBaseGrad.addColorStop(0.35, '#E0D5C7');
+      pBaseGrad.addColorStop(0.70, '#E5DCCD');
+      pBaseGrad.addColorStop(1.0, '#E3D9CC'); // Seamless horizontal wrap
+      pCtx.fillStyle = pBaseGrad;
+      pCtx.fillRect(0, 0, 1024, 512);
+
+      // Subtle multi-scale artisan trowel sweeps (soft, organic, feathered blending)
+      // Avoids repetitive blobs or harsh geometric seams
+      const trowelPasses = [
+        { x: 180, y: 140, rx: 320, ry: 90, rot: -0.08, col: 'rgba(242, 237, 229, 0.18)' }, // Warm ivory highlight
+        { x: 740, y: 160, rx: 340, ry: 100, rot: 0.06, col: 'rgba(240, 234, 225, 0.16)' },
+        { x: 420, y: 380, rx: 360, ry: 110, rot: -0.05, col: 'rgba(218, 207, 193, 0.14)' }, // Gentle greige undertone
+        { x: 890, y: 390, rx: 280, ry: 85, rot: 0.08, col: 'rgba(238, 232, 222, 0.15)' },
+        { x: 110, y: 410, rx: 260, ry: 80, rot: -0.04, col: 'rgba(219, 208, 194, 0.13)' },
+        { x: 530, y: 220, rx: 290, ry: 95, rot: 0.03, col: 'rgba(244, 239, 232, 0.14)' },
+        { x: 0, y: 250, rx: 240, ry: 90, rot: 0.02, col: 'rgba(224, 214, 201, 0.12)' },
+        { x: 1024, y: 250, rx: 240, ry: 90, rot: 0.02, col: 'rgba(224, 214, 201, 0.12)' } // Seamless edge wrap
+      ];
+
+      for (let t = 0; t < trowelPasses.length; t++) {
+        const tp = trowelPasses[t];
+        pCtx.save();
+        pCtx.beginPath();
+        pCtx.ellipse(tp.x, tp.y, tp.rx, tp.ry, tp.rot, 0, Math.PI * 2);
+        pCtx.fillStyle = tp.col;
+        pCtx.fill();
+        pCtx.restore();
+      }
+
+      // Fine artisan lime pigment micro-grain (subtle organic tooth without harsh contrast)
+      const pImg = pCtx.getImageData(0, 0, 1024, 512);
       const pd = pImg.data;
       for (let i = 0; i < pd.length; i += 4) {
-        const noise = (Math.random() - 0.5) * 16;
+        const noise = (Math.random() - 0.5) * 8.0;
         pd[i] = Math.min(255, Math.max(0, pd[i] + noise));
-        pd[i + 1] = Math.min(255, Math.max(0, pd[i + 1] + noise * 0.88));
-        pd[i + 2] = Math.min(255, Math.max(0, pd[i + 2] + noise * 0.72));
+        pd[i + 1] = Math.min(255, Math.max(0, pd[i + 1] + noise * 0.92));
+        pd[i + 2] = Math.min(255, Math.max(0, pd[i + 2] + noise * 0.82));
+      }
+
+      // Seamless horizontal edge blend across 48px boundary to guarantee zero visible tiling seam
+      const seamWidth = 48;
+      for (let y = 0; y < 512; y++) {
+        for (let x = 0; x < seamWidth; x++) {
+          const leftIdx = (y * 1024 + x) * 4;
+          const rightIdx = (y * 1024 + (1024 - seamWidth + x)) * 4;
+          const blendFactor = x / seamWidth;
+          for (let c = 0; c < 3; c++) {
+            const avg = pd[leftIdx + c] * (1 - blendFactor) + pd[rightIdx + c] * blendFactor;
+            pd[leftIdx + c] = avg;
+            pd[rightIdx + c] = avg;
+          }
+        }
       }
       pCtx.putImageData(pImg, 0, 0);
 
-      // Warm beige plaster waves
-      pCtx.fillStyle = 'rgba(203, 177, 141, 0.15)';
-      for (let w = 0; w < 6; w++) {
-        pCtx.beginPath();
-        pCtx.ellipse(100 + w * 60, 80 + w * 70, 180, 50, w * 0.4, 0, Math.PI * 2);
-        pCtx.fill();
-      }
       this.textures.sandPlaster = new THREE.CanvasTexture(plasterCanvas);
       this.textures.sandPlaster.wrapS = THREE.RepeatWrapping;
-      this.textures.sandPlaster.wrapT = THREE.RepeatWrapping;
-      this.textures.sandPlaster.repeat.set(3, 3);
+      this.textures.sandPlaster.wrapT = THREE.ClampToEdgeWrapping;
+      this.textures.sandPlaster.repeat.set(2, 1);
+
+      // 3.6. Dedicated Architectural Wall Plaster Bump Map (512x256)
+      // Delicate micro-stipple relief for soft, matte light dispersion
+      const wallBumpCanvas = document.createElement('canvas');
+      wallBumpCanvas.width = 512;
+      wallBumpCanvas.height = 256;
+      const wbCtx = wallBumpCanvas.getContext('2d');
+      wbCtx.fillStyle = '#808080';
+      wbCtx.fillRect(0, 0, 512, 256);
+
+      const wbImg = wbCtx.getImageData(0, 0, 512, 256);
+      const wbd = wbImg.data;
+      for (let i = 0; i < wbd.length; i += 4) {
+        const bNoise = (Math.random() - 0.5) * 12.0;
+        const val = Math.min(255, Math.max(0, 128 + bNoise));
+        wbd[i] = val;
+        wbd[i + 1] = val;
+        wbd[i + 2] = val;
+      }
+
+      // Seamless edge blend for bump map
+      for (let y = 0; y < 256; y++) {
+        for (let x = 0; x < 24; x++) {
+          const leftIdx = (y * 512 + x) * 4;
+          const rightIdx = (y * 512 + (512 - 24 + x)) * 4;
+          const blendFactor = x / 24;
+          const avg = wbd[leftIdx] * (1 - blendFactor) + wbd[rightIdx] * blendFactor;
+          wbd[leftIdx] = avg;
+          wbd[leftIdx + 1] = avg;
+          wbd[leftIdx + 2] = avg;
+          wbd[rightIdx] = avg;
+          wbd[rightIdx + 1] = avg;
+          wbd[rightIdx + 2] = avg;
+        }
+      }
+      wbCtx.putImageData(wbImg, 0, 0);
+
+      this.textures.wallBump = new THREE.CanvasTexture(wallBumpCanvas);
+      this.textures.wallBump.wrapS = THREE.RepeatWrapping;
+      this.textures.wallBump.wrapT = THREE.ClampToEdgeWrapping;
+      this.textures.wallBump.repeat.set(2, 1);
+
+      // 3.7. Authentic Red-Brown Brick Wall Texture (User-Uploaded Reference)
+      const brickSrc = (typeof window !== 'undefined' && window.WOOBI_BRICK_WALL_DATA)
+        ? window.WOOBI_BRICK_WALL_DATA
+        : 'assets/brick_wall.jpg';
+
+      if (typeof THREE.TextureLoader !== 'undefined') {
+        const textureLoader = new THREE.TextureLoader();
+        const brickTex = textureLoader.load(
+          brickSrc,
+          (loadedTex) => {
+            loadedTex.wrapS = THREE.RepeatWrapping;
+            loadedTex.wrapT = THREE.RepeatWrapping;
+            // Cylindrical wall is 34m wide x 8m high; repeat 6 horizontally and 2 vertically
+            loadedTex.repeat.set(6, 2);
+            if (THREE.sRGBEncoding) {
+              loadedTex.encoding = THREE.sRGBEncoding;
+            }
+            if (this.themeModel && this.themeModel.materials && this.themeModel.materials.wallMat) {
+              this.themeModel.materials.wallMat.map = loadedTex;
+              this.themeModel.materials.wallMat.color.setHex(0xFFFFFF);
+              this.themeModel.materials.wallMat.needsUpdate = true;
+            }
+            if (this.themeModel && this.themeModel.backWall && this.themeModel.backWall.material) {
+              this.themeModel.backWall.material.map = loadedTex;
+              this.themeModel.backWall.material.color.setHex(0xFFFFFF);
+              this.themeModel.backWall.material.needsUpdate = true;
+            }
+            if (this.fallbackWallMat) {
+              this.fallbackWallMat.map = loadedTex;
+              this.fallbackWallMat.color.setHex(0xFFFFFF);
+              this.fallbackWallMat.needsUpdate = true;
+            }
+          },
+          undefined,
+          (err) => {
+            console.warn('Studio3D: Could not load brick wall texture, falling back to procedural wall texture.', err);
+          }
+        );
+        brickTex.wrapS = THREE.RepeatWrapping;
+        brickTex.wrapT = THREE.RepeatWrapping;
+        brickTex.repeat.set(6, 2);
+        this.textures.brickWall = brickTex;
+      }
 
       // 4. Warm Beige Limestone / Travertine for Vanity Countertop (#CBB18D)
       const mCanvas = document.createElement('canvas');
@@ -708,15 +833,15 @@
         return;
       }
 
-      // 1. Champagne Stone Architectural Ground Plane (#CDB594) with Tactile Relief
+      // 1. Darker Neutral Matte Grey Architectural Ground Plane (#616161) with Tactile Relief
       const floorGeo = new THREE.PlaneGeometry(28, 28);
       const floorMat = new THREE.MeshStandardMaterial({
-        map: this.textures.champagneStone || this.textures.sandPlaster,
+        map: null,
         bumpMap: this.textures.stoneBump || null,
-        bumpScale: 0.007,
-        roughness: 0.68,
-        metalness: 0.02,
-        color: 0xCDB594
+        bumpScale: 0.003,
+        roughness: 0.82,
+        metalness: 0.01,
+        color: 0x616161
       });
       const floor = new THREE.Mesh(floorGeo, floorMat);
       floor.rotation.x = -Math.PI / 2;
@@ -724,16 +849,17 @@
       floor.receiveShadow = true;
       this.scene.add(floor);
 
-      // 2. Desert Sand Architectural Wall Plaster with Micro-Relief (#DCC5A3)
-      const wallMat = new THREE.MeshStandardMaterial({
-        map: this.textures.sandPlaster || null,
-        bumpMap: this.textures.stoneBump || null,
-        bumpScale: 0.0025,
-        color: 0xDCC5A3, // Desert sand Mediterranean limewash plaster
-        roughness: 0.90,
+      // 2. Architectural Wall Material (Authentic Brick Wall with Plaster Fallback)
+      this.fallbackWallMat = new THREE.MeshStandardMaterial({
+        map: this.textures.brickWall || this.textures.sandPlaster || null,
+        bumpMap: this.textures.wallBump || this.textures.stoneBump || null,
+        bumpScale: 0.0020,
+        color: this.textures.brickWall ? 0xFFFFFF : 0xDCC5A3,
+        roughness: 0.85,
         metalness: 0.01,
         side: THREE.BackSide
       });
+      const wallMat = this.fallbackWallMat;
       const wallGeo = new THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
       const backWall = new THREE.Mesh(wallGeo, wallMat);
       backWall.position.set(0, 4.0, 8.2);
@@ -745,6 +871,7 @@
       const windowShadowGroup = new THREE.Group();
       windowShadowGroup.position.set(1.4, 2.1, -1.8);
       windowShadowGroup.rotation.set(-0.25, 0.45, -0.2);
+      windowShadowGroup.visible = false; // Hidden to remove window glare projection from wall and mirror
 
       const shadowBarMat = new THREE.MeshBasicMaterial({
         color: 0x3D2B1E, // Deep espresso contrast accent (#3D2B1E)

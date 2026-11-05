@@ -13,6 +13,9 @@ export class StorageService {
     this.options = {
       baseDir: path.resolve('uploads'),
       inMemoryOnly: false,
+      supabaseUrl: options.supabaseUrl || process.env.SUPABASE_URL,
+      supabaseKey: options.supabaseKey || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY,
+      supabaseBucket: options.supabaseBucket || process.env.SUPABASE_STORAGE_BUCKET || 'Troys Assets',
       ...options
     };
 
@@ -70,8 +73,8 @@ export class StorageService {
 
     // Check WebP (RIFF....WEBP)
     if (buffer.length >= 12 &&
-        magic.RIFF.every((byte, idx) => buffer[idx] === byte) &&
-        magic.WEBP.every((byte, idx) => buffer[idx + 8] === byte)) {
+      magic.RIFF.every((byte, idx) => buffer[idx] === byte) &&
+      magic.WEBP.every((byte, idx) => buffer[idx + 8] === byte)) {
       return 'image/webp';
     }
 
@@ -131,6 +134,45 @@ export class StorageService {
     };
     const ext = extMap[validation.detectedMime] || '.bin';
     const safeFilename = `${Date.now()}_${crypto.randomBytes(6).toString('hex')}${ext}`;
+
+    // If Supabase is configured, upload to your 'Troys Assets' bucket
+    if (this.options.supabaseUrl && this.options.supabaseKey) {
+      try {
+        const bucket = this.options.supabaseBucket;
+        const objectPath = `${userId}/${safeFilename}`;
+        const uploadEndpoint = `${this.options.supabaseUrl}/storage/v1/object/${encodeURIComponent(bucket)}/${objectPath}`;
+
+        const resp = await fetch(uploadEndpoint, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.options.supabaseKey}`,
+            'apikey': this.options.supabaseKey,
+            'Content-Type': validation.detectedMime,
+            'x-upsert': 'true'
+          },
+          body: buffer
+        });
+
+        if (resp.ok) {
+          const publicUrl = `${this.options.supabaseUrl}/storage/v1/object/public/${encodeURIComponent(bucket)}/${objectPath}`;
+          this.emit(STORAGE_EVENTS.FILE_UPLOADED, { userId, filename: safeFilename, url: publicUrl });
+          return {
+            success: true,
+            file: {
+              filename: safeFilename,
+              mimeType: validation.detectedMime,
+              size: buffer.length,
+              url: publicUrl
+            }
+          };
+        } else {
+          const errText = await resp.text();
+          console.warn(`Supabase storage upload returned status ${resp.status}:`, errText);
+        }
+      } catch (err) {
+        console.warn('Supabase storage upload error:', err.message);
+      }
+    }
 
     if (this.options.inMemoryOnly) {
       const key = `${userId}:${safeFilename}`;
