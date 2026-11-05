@@ -1333,47 +1333,64 @@
       }
     }
 
-    initPlanCarouselSync();
+    initPlanSwipeGestures();
   }
 
-  function scrollPlanCard(index) {
-    const stack = document.getElementById('subCardsStack');
-    if (!stack) return;
-    const cards = stack.querySelectorAll('.sub-plan-card');
-    if (cards[index]) {
-      cards[index].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  function switchPlanView(planId) {
+    const track = document.getElementById('planCardsSliderTrack');
+    const pill = document.getElementById('segmentedSlidePill');
+    const btnFree = document.getElementById('segBtnFree');
+    const btnBasic = document.getElementById('segBtnBasic');
+    const btnPro = document.getElementById('segBtnPro');
+
+    const btns = [btnFree, btnBasic, btnPro];
+    btns.forEach(b => b && b.classList.remove('active'));
+
+    if (pill) {
+      pill.classList.remove('pill-free', 'pill-basic', 'pill-pro');
     }
-    updateCarouselDots(index);
+
+    if (planId === 'free') {
+      if (btnFree) btnFree.classList.add('active');
+      if (pill) pill.classList.add('pill-free');
+      if (track) track.style.transform = 'translateX(0%)';
+    } else if (planId === 'basic') {
+      if (btnBasic) btnBasic.classList.add('active');
+      if (pill) pill.classList.add('pill-basic');
+      if (track) track.style.transform = 'translateX(-33.333333%)';
+    } else if (planId === 'pro') {
+      if (btnPro) btnPro.classList.add('active');
+      if (pill) pill.classList.add('pill-pro');
+      if (track) track.style.transform = 'translateX(-66.666666%)';
+    }
   }
 
-  function updateCarouselDots(activeIndex) {
-    const dots = document.querySelectorAll('#plansCarouselDots .plan-dot');
-    dots.forEach((dot, idx) => {
-      dot.classList.toggle('active', idx === activeIndex);
-    });
-  }
+  function initPlanSwipeGestures() {
+    const viewport = document.getElementById('planCardsViewport');
+    if (!viewport || viewport.dataset.swipeInit) return;
+    viewport.dataset.swipeInit = 'true';
 
-  function initPlanCarouselSync() {
-    const dots = document.getElementById('plansCarouselDots');
-    if (!dots) return;
-    const stack = document.getElementById('subCardsStack');
-    if (!stack || stack.dataset.carouselInit) return;
-    stack.dataset.carouselInit = 'true';
-    stack.addEventListener('scroll', () => {
-      const cards = stack.querySelectorAll('.sub-plan-card');
-      if (!cards.length) return;
-      const center = stack.scrollLeft + stack.offsetWidth / 2;
-      let closestIdx = 0;
-      let closestDist = Infinity;
-      cards.forEach((card, idx) => {
-        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-        const dist = Math.abs(center - cardCenter);
-        if (dist < closestDist) {
-          closestDist = dist;
-          closestIdx = idx;
+    let startX = 0;
+    const plans = ['free', 'basic', 'pro'];
+
+    viewport.addEventListener('touchstart', (e) => {
+      startX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    viewport.addEventListener('touchend', (e) => {
+      const endX = e.changedTouches[0].screenX;
+      const diff = startX - endX;
+      let activeIndex = 0;
+      if (document.getElementById('segBtnBasic')?.classList.contains('active')) activeIndex = 1;
+      else if (document.getElementById('segBtnPro')?.classList.contains('active')) activeIndex = 2;
+
+      if (Math.abs(diff) > 40) {
+        if (diff > 0 && activeIndex < plans.length - 1) {
+          switchPlanView(plans[activeIndex + 1]);
+        } else if (diff < 0 && activeIndex > 0) {
+          switchPlanView(plans[activeIndex - 1]);
         }
-      });
-      updateCarouselDots(closestIdx);
+      }
     }, { passive: true });
   }
 
@@ -4645,7 +4662,8 @@
     confirmPlanPreference,
     toggleFaq,
     updateSubscriptionUI,
-    scrollPlanCard,
+    switchPlanView,
+    scrollPlanCard: switchPlanView,
     saveReminderPreferences,
     exportWardrobe,
     exportUserData,

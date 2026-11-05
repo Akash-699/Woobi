@@ -1775,142 +1775,155 @@
           </div>
 
           <div class="premium-scroll-content">
-            <!-- Vertical Subscription Plan Cards -->
-            <div class="subscription-cards-stack" id="subCardsStack">
-              <!-- PLAN 1: FREE -->
-              <div class="sub-plan-card plan-free" id="planCardFree">
-                <div class="plan-header">
-                  <div class="plan-label-row">
-                    <span class="plan-pill-tag">Free Forever</span>
-                  </div>
-                  <h3 class="plan-heading-bold">FREE</h3>
-                  <p class="plan-description">Essential wardrobe digitization and everyday streak tracking.</p>
-                  <div class="plan-pricing-display">
-                    <span class="currency">₹</span>
-                    <span class="amount">0</span>
-                    <span class="cadence">/ month</span>
-                  </div>
-                </div>
-
-                <div class="plan-highlight-strip">
-                  <span>Includes 3D Studio & daily outfit streak tracking</span>
-                </div>
-
-                <div class="plan-body">
-                  <span class="features-label">Included Features:</span>
-                  <ul class="plan-features">
-                    <li><span class="check-bullet">✓</span> Basic digital wardrobe</li>
-                    <li><span class="check-bullet">✓</span> Limited outfit recommendations</li>
-                    <li><span class="check-bullet">✓</span> Basic Style Hint access</li>
-                    <li><span class="check-bullet">✓</span> Standard 3D Studio access</li>
-                    <li><span class="check-bullet">✓</span> Daily outfit streak tracking</li>
-                    <li><span class="check-bullet">✓</span> Basic outfit photo gallery</li>
-                  </ul>
-                </div>
-
-                <div class="plan-footer">
-                  <button class="btn-sub-tier btn-plan-play btn-plan-current" id="btnPlanFree" onclick="app.selectSubscriptionPlan('free')" disabled>
-                    <span class="play-btn-circle check-circle">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                    </span>
-                    <span class="btn-tier-text">Current Plan</span>
-                  </button>
-                </div>
+            <!-- Top Sliding Segmented Button Switcher -->
+            <div class="plan-switcher-container">
+              <div class="plan-segmented-slider" id="planSegmentedSlider">
+                <div class="segmented-slide-pill pill-free" id="segmentedSlidePill"></div>
+                <button class="plan-segment-btn active" id="segBtnFree" onclick="app.switchPlanView('free')">Free</button>
+                <button class="plan-segment-btn" id="segBtnBasic" onclick="app.switchPlanView('basic')">Basic</button>
+                <button class="plan-segment-btn" id="segBtnPro" onclick="app.switchPlanView('pro')">Pro 👑</button>
               </div>
+            </div>
 
-              <!-- PLAN 2: BASIC -->
-              <div class="sub-plan-card plan-basic" id="planCardBasic">
-                <div class="plan-header">
-                  <div class="plan-label-row">
-                    <span class="plan-pill-tag basic-tag">Basic</span>
+            <!-- Single Card Viewport (Cards in the Same Fixed Size) -->
+            <div class="plan-cards-viewport" id="planCardsViewport">
+              <div class="plan-cards-slider-track" id="planCardsSliderTrack">
+
+                <!-- PLAN 1: FREE -->
+                <div class="sub-plan-card plan-free" id="planCardFree">
+                  <div class="plan-header">
+                    <div class="plan-label-row">
+                      <span class="plan-pill-tag">Free Forever</span>
+                    </div>
+                    <h3 class="plan-heading-bold">FREE</h3>
+                    <p class="plan-description">Essential wardrobe digitization and everyday streak tracking.</p>
+                    <div class="plan-pricing-display">
+                      <span class="amount free-text-amount">Free</span>
+                      <span class="cadence">Forever</span>
+                    </div>
                   </div>
-                  <h3 class="plan-heading-bold">BASIC</h3>
-                  <p class="plan-description">Expanded digital closet capacity & frequent AI outfit suggestions.</p>
-                  <div class="plan-pricing-display">
-                    <span class="currency">₹</span>
-                    <span class="amount">179</span>
-                    <span class="cadence">/ month</span>
+
+                  <div class="plan-highlight-strip">
+                    <span>Includes 3D Studio & daily outfit streak tracking</span>
                   </div>
-                </div>
 
-                <div class="plan-highlight-strip">
-                  <span>Expanded wardrobe capacity + Ad-free experience</span>
-                </div>
-
-                <div class="plan-body">
-                  <span class="features-label">Everything in Free, plus:</span>
-                  <ul class="plan-features">
-                    <li><span class="check-bullet">✓</span> <strong>Everything in Free</strong></li>
-                    <li><span class="check-bullet">✓</span> More daily AI recommendations</li>
-                    <li><span class="check-bullet">✓</span> Expanded digital wardrobe capacity</li>
-                    <li><span class="check-bullet">✓</span> More Style Hint suggestions</li>
-                    <li><span class="check-bullet">✓</span> Advanced outfit combinations</li>
-                    <li><span class="check-bullet">✓</span> Ad-free experience</li>
-                  </ul>
-                </div>
-
-                <div class="plan-footer">
-                  <button class="btn-sub-tier btn-plan-play btn-plan-upgrade" id="btnPlanBasic" onclick="app.openUpgradeConfirmation('basic')">
-                    <span class="play-btn-circle play-triangle">
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-                        <polygon points="5 3 19 12 5 21 5 3"/>
-                      </svg>
-                    </span>
-                    <span class="btn-tier-text">Upgrade to Basic</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- PLAN 3: PRO -->
-              <div class="sub-plan-card plan-pro featured-pro-card" id="planCardPro">
-                <div class="pro-crown-ribbon">
-                  <span class="crown-icon">👑</span>
-                  <span class="ribbon-text">Most Popular / Best Experience</span>
-                </div>
-
-                <div class="plan-header">
-                  <div class="plan-label-row">
-                    <span class="plan-pill-tag pro-tag">Woobi Pro</span>
+                  <div class="plan-body">
+                    <span class="features-label">Included Features:</span>
+                    <ul class="plan-features">
+                      <li><span class="check-bullet">✓</span> Basic digital wardrobe</li>
+                      <li><span class="check-bullet">✓</span> Limited outfit recommendations</li>
+                      <li><span class="check-bullet">✓</span> Basic Style Hint access</li>
+                      <li><span class="check-bullet">✓</span> Standard 3D Studio access</li>
+                      <li><span class="check-bullet">✓</span> Daily outfit streak tracking</li>
+                      <li><span class="check-bullet">✓</span> Basic outfit photo gallery</li>
+                    </ul>
                   </div>
-                  <h3 class="plan-heading-bold pro-heading-bold">
-                    PRO <span class="crown-icon-inline">👑</span>
-                  </h3>
-                  <p class="plan-description">The ultimate AI personal stylist and limitless virtual couture experience.</p>
-                  <div class="plan-pricing-display pro-pricing">
-                    <span class="currency">₹</span>
-                    <span class="amount gold-amount">387</span>
-                    <span class="cadence">/ month</span>
+
+                  <div class="plan-footer">
+                    <button class="btn-sub-tier btn-plan-play btn-plan-current" id="btnPlanFree" onclick="app.selectSubscriptionPlan('free')" disabled>
+                      <span class="play-btn-circle check-circle">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      </span>
+                      <span class="btn-tier-text">Current Plan</span>
+                    </button>
                   </div>
                 </div>
 
-                <div class="plan-highlight-strip gold-strip">
-                  <span>👑 AI Personal Stylist + Unlimited combinations</span>
+                <!-- PLAN 2: BASIC -->
+                <div class="sub-plan-card plan-basic" id="planCardBasic">
+                  <div class="plan-header">
+                    <div class="plan-label-row">
+                      <span class="plan-pill-tag basic-tag">Basic</span>
+                    </div>
+                    <h3 class="plan-heading-bold">BASIC</h3>
+                    <p class="plan-description">Expanded digital closet capacity & frequent AI outfit suggestions.</p>
+                    <div class="plan-pricing-display">
+                      <span class="currency">₹</span>
+                      <span class="amount">179</span>
+                      <span class="cadence">/ month</span>
+                    </div>
+                  </div>
+
+                  <div class="plan-highlight-strip">
+                    <span>Expanded wardrobe capacity + Ad-free experience</span>
+                  </div>
+
+                  <div class="plan-body">
+                    <span class="features-label">Everything in Free, plus:</span>
+                    <ul class="plan-features">
+                      <li><span class="check-bullet">✓</span> <strong>Everything in Free</strong></li>
+                      <li><span class="check-bullet">✓</span> More daily AI recommendations</li>
+                      <li><span class="check-bullet">✓</span> Expanded digital wardrobe capacity</li>
+                      <li><span class="check-bullet">✓</span> More Style Hint suggestions</li>
+                      <li><span class="check-bullet">✓</span> Advanced outfit combinations</li>
+                      <li><span class="check-bullet">✓</span> Ad-free experience</li>
+                    </ul>
+                  </div>
+
+                  <div class="plan-footer">
+                    <button class="btn-sub-tier btn-plan-play btn-plan-upgrade" id="btnPlanBasic" onclick="app.openUpgradeConfirmation('basic')">
+                      <span class="play-btn-circle play-triangle">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                          <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                      </span>
+                      <span class="btn-tier-text">Upgrade to Basic</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div class="plan-body">
-                  <span class="features-label">Everything in Basic, plus:</span>
-                  <ul class="plan-features">
-                    <li><span class="check-bullet gold">✓</span> <strong>Everything in Basic</strong></li>
-                    <li><span class="check-bullet gold">✓</span> Advanced AI Personal Stylist</li>
-                    <li><span class="check-bullet gold">✓</span> Weather & occasion recommendations</li>
-                    <li><span class="check-bullet gold">✓</span> Advanced color & combo generator</li>
-                    <li><span class="check-bullet gold">✓</span> Premium 3D Studio & virtual try-on</li>
-                    <li><span class="check-bullet gold">✓</span> Unlimited saved looks & VIP support</li>
-                  </ul>
+                <!-- PLAN 3: PRO -->
+                <div class="sub-plan-card plan-pro featured-pro-card" id="planCardPro">
+                  <div class="pro-crown-ribbon">
+                    <span class="crown-icon">👑</span>
+                    <span class="ribbon-text">Most Popular / Best Experience</span>
+                  </div>
+
+                  <div class="plan-header">
+                    <div class="plan-label-row">
+                      <span class="plan-pill-tag pro-tag">Woobi Pro</span>
+                    </div>
+                    <h3 class="plan-heading-bold pro-heading-bold">
+                      PRO <span class="crown-icon-inline">👑</span>
+                    </h3>
+                    <p class="plan-description">The ultimate AI personal stylist and limitless virtual couture experience.</p>
+                    <div class="plan-pricing-display pro-pricing">
+                      <span class="currency">₹</span>
+                      <span class="amount gold-amount">387</span>
+                      <span class="cadence">/ month</span>
+                    </div>
+                  </div>
+
+                  <div class="plan-highlight-strip gold-strip">
+                    <span>👑 AI Personal Stylist + Unlimited combinations</span>
+                  </div>
+
+                  <div class="plan-body">
+                    <span class="features-label">Everything in Basic, plus:</span>
+                    <ul class="plan-features">
+                      <li><span class="check-bullet gold">✓</span> <strong>Everything in Basic</strong></li>
+                      <li><span class="check-bullet gold">✓</span> Advanced AI Personal Stylist</li>
+                      <li><span class="check-bullet gold">✓</span> Weather & occasion recommendations</li>
+                      <li><span class="check-bullet gold">✓</span> Advanced color & combo generator</li>
+                      <li><span class="check-bullet gold">✓</span> Premium 3D Studio & virtual try-on</li>
+                      <li><span class="check-bullet gold">✓</span> Unlimited saved looks & VIP support</li>
+                    </ul>
+                  </div>
+
+                  <div class="plan-footer">
+                    <button class="btn-sub-tier btn-plan-play btn-plan-pro-gold" id="btnPlanPro" onclick="app.openUpgradeConfirmation('pro')">
+                      <span class="play-btn-circle play-triangle gold-play">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                          <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                      </span>
+                      <span class="btn-tier-text">Get Woobi Pro</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div class="plan-footer">
-                  <button class="btn-sub-tier btn-plan-play btn-plan-pro-gold" id="btnPlanPro" onclick="app.openUpgradeConfirmation('pro')">
-                    <span class="play-btn-circle play-triangle gold-play">
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-                        <polygon points="5 3 19 12 5 21 5 3"/>
-                      </svg>
-                    </span>
-                    <span class="btn-tier-text">Get Woobi Pro</span>
-                  </button>
-                </div>
               </div>
             </div>
           </div>
