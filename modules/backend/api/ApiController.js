@@ -169,7 +169,7 @@ export class ApiController {
         );
       }
 
-      const isPremium = requestedPlan === 'monthly' || requestedPlan === 'annual';
+      const isPremium = requestedPlan === 'monthly' || requestedPlan === 'annual' || requestedPlan === 'basic' || requestedPlan === 'pro';
       const entitlement = await this.db.subscriptions.setEntitlement(authUser.userId, {
         plan: requestedPlan || 'free',
         isPremium,

@@ -144,7 +144,9 @@
       photo: 'assets/tan_loafers.jpg'
     },
     savedBookmarks: new Set(['look_1', 'look_2', 'look_3']),
-    currentPlan: 'monthly',
+    currentPlan: 'free',
+    selectedPlanPreference: null,
+    pendingUpgradePlan: 'pro',
     isPremium: false,
     wearHistoryCount: 6
   };
@@ -197,6 +199,8 @@
       initVirtualStudio();
     } else if (screenId === 'weekly-planning') {
       renderWeeklyCalendar();
+    } else if (screenId === 'premium') {
+      updateSubscriptionUI();
     }
 
     // Update Bottom Nav active tab indicator if applicable
@@ -233,10 +237,14 @@
       'saved': 'saved',
       'offline-mode': 'saved',
 
+      'style-hint': 'hint',
+
+      'premium': 'premium',
+      'subscription': 'premium',
+      'manage-subscription': 'premium',
+
       'profile': 'profile',
       'wear-history': 'profile',
-      'premium': 'profile',
-      'manage-subscription': 'profile',
       'reminders': 'profile',
       'account-privacy': 'profile',
       'help-support': 'profile',
@@ -249,6 +257,12 @@
       const isMatch = btn.textContent.toLowerCase().includes(targetTab);
       btn.classList.toggle('active', isMatch);
     });
+
+    // Also update Seren floating pill bar tabs if on today screen
+    const serenHint = document.getElementById('serenTabHint');
+    const serenPremium = document.getElementById('serenTabPremium');
+    if (serenHint) serenHint.classList.toggle('active', targetTab === 'hint');
+    if (serenPremium) serenPremium.classList.toggle('active', targetTab === 'premium');
   }
 
   // =========================================================================
@@ -1139,6 +1153,228 @@
       sm.account.updateSubscription(state.currentPlan, true);
     }
     setTimeout(() => goToScreen('today'), 800);
+  }
+
+  // =========================================================================
+  // WOOBI PREMIUM SUBSCRIPTION & STYLE HINT ORCHESTRATION
+  // =========================================================================
+  function openStyleHint() {
+    if (state.currentScreen !== 'today') {
+      goToScreen('today');
+    }
+    serenOpenStylingReview();
+  }
+
+  function selectSubscriptionPlan(planId) {
+    if (planId === 'free') {
+      showToast('You are currently on the Free Forever plan.');
+      return;
+    }
+    openUpgradeConfirmation(planId);
+  }
+
+  function openUpgradeConfirmation(planId) {
+    state.pendingUpgradePlan = planId;
+    const modal = document.getElementById('subUpgradeModal');
+    if (!modal) return;
+
+    const titleEl = document.getElementById('subModalTitle');
+    const badgeEl = document.getElementById('subModalBadge');
+    const nameEl = document.getElementById('subModalPlanName');
+    const priceEl = document.getElementById('subModalPrice');
+    const bulletsEl = document.getElementById('subModalBullets');
+
+    if (planId === 'basic') {
+      if (titleEl) titleEl.textContent = 'Upgrade to Woobi Basic';
+      if (badgeEl) badgeEl.textContent = 'BASIC MEMBERSHIP';
+      if (nameEl) nameEl.textContent = 'Woobi Basic';
+      if (priceEl) priceEl.textContent = '179';
+      if (bulletsEl) {
+        bulletsEl.innerHTML = `
+          <li><span class="check-bullet">✓</span> Everything in Free tier</li>
+          <li><span class="check-bullet">✓</span> More daily AI outfit recommendations</li>
+          <li><span class="check-bullet">✓</span> Expanded digital wardrobe capacity</li>
+          <li><span class="check-bullet">✓</span> More Style Hint suggestions & combinations</li>
+          <li><span class="check-bullet">✓</span> Additional outfit history and gallery features</li>
+          <li><span class="check-bullet">✓</span> Ad-free experience</li>
+        `;
+      }
+    } else {
+      // Pro plan default
+      if (titleEl) titleEl.textContent = 'Get Woobi Pro 👑';
+      if (badgeEl) badgeEl.textContent = 'MOST POPULAR / BEST EXPERIENCE';
+      if (nameEl) nameEl.textContent = 'Woobi Pro';
+      if (priceEl) priceEl.textContent = '387';
+      if (bulletsEl) {
+        bulletsEl.innerHTML = `
+          <li><span class="check-bullet gold">✓</span> Everything in Basic tier</li>
+          <li><span class="check-bullet gold">✓</span> Advanced AI personal stylist (occasion & weather tuned)</li>
+          <li><span class="check-bullet gold">✓</span> Generous / unlimited AI outfit recommendations</li>
+          <li><span class="check-bullet gold">✓</span> Advanced colour matching & palette engine</li>
+          <li><span class="check-bullet gold">✓</span> Premium Style Hint with detailed suggestions</li>
+          <li><span class="check-bullet gold">✓</span> Advanced virtual try-on features</li>
+          <li><span class="check-bullet gold">✓</span> Premium 3D mannequin customisation & exclusive themes</li>
+          <li><span class="check-bullet gold">✓</span> Save unlimited favourite outfit combinations</li>
+          <li><span class="check-bullet gold">✓</span> Priority access to new features & VIP support</li>
+        `;
+      }
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeUpgradeConfirmation() {
+    const modal = document.getElementById('subUpgradeModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function confirmPlanPreference() {
+    const plan = state.pendingUpgradePlan || 'pro';
+    state.selectedPlanPreference = plan;
+    closeUpgradeConfirmation();
+
+    const planLabel = plan === 'pro' ? 'Pro (₹387/mo)' : 'Basic (₹179/mo)';
+    showToast(`✓ Preference recorded for Woobi ${planLabel}! Payment gateway integration coming soon.`);
+
+    updateSubscriptionUI();
+  }
+
+  function toggleFaq(element) {
+    if (!element) return;
+    element.classList.toggle('open');
+  }
+
+  function updateSubscriptionUI() {
+    const current = state.isPremium ? (state.currentPlan || 'pro') : 'free';
+    const pref = state.selectedPlanPreference;
+
+    // Status bar update
+    const tierEl = document.getElementById('subStatusTier');
+    const badgeEl = document.getElementById('subStatusBadge');
+    const captionEl = document.getElementById('subStatusCaption');
+    const pricePill = document.getElementById('subStatusPricePill');
+
+    if (tierEl) {
+      if (current === 'free') {
+        tierEl.textContent = 'Free Forever Plan';
+        if (pricePill) pricePill.innerHTML = '₹0 <span class="per-txt">/ mo</span>';
+        if (captionEl) {
+          if (pref) {
+            const prefLabel = pref === 'pro' ? 'Woobi Pro (₹387/mo)' : 'Woobi Basic (₹179/mo)';
+            captionEl.textContent = `Active: Free Forever • Preference: ${prefLabel} (Gateway in progress)`;
+          } else {
+            captionEl.textContent = 'Standard 3D studio, wardrobe & daily streak features';
+          }
+        }
+      } else if (current === 'basic') {
+        tierEl.textContent = 'Woobi Basic Plan';
+        if (pricePill) pricePill.innerHTML = '₹179 <span class="per-txt">/ mo</span>';
+        if (captionEl) captionEl.textContent = 'Expanded wardrobe & daily AI outfit recommendations';
+      } else {
+        tierEl.textContent = 'Woobi Pro VIP Plan 👑';
+        if (pricePill) pricePill.innerHTML = '₹387 <span class="per-txt">/ mo</span>';
+        if (captionEl) captionEl.textContent = 'Full AI stylist, unlimited combinations & virtual try-on';
+      }
+    }
+
+    // Update buttons on the plan cards preserving play button markup
+    function updateTierButton(btn, text, isPro, isCurrent) {
+      if (!btn) return;
+      const textSpan = btn.querySelector('.btn-tier-text');
+      if (textSpan) {
+        textSpan.textContent = text;
+      } else {
+        const iconHtml = isCurrent
+          ? `<span class="play-btn-circle check-circle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>`
+          : `<span class="play-btn-circle play-triangle${isPro ? ' gold-play' : ''}"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>`;
+        btn.innerHTML = `${iconHtml}<span class="btn-tier-text">${text}</span>`;
+      }
+    }
+
+    const btnFree = document.getElementById('btnPlanFree');
+    const btnBasic = document.getElementById('btnPlanBasic');
+    const btnPro = document.getElementById('btnPlanPro');
+
+    if (btnFree) {
+      if (current === 'free') {
+        updateTierButton(btnFree, 'Current Plan', false, true);
+        btnFree.disabled = true;
+        btnFree.classList.add('btn-plan-current');
+      } else {
+        updateTierButton(btnFree, 'Switch to Free', false, false);
+        btnFree.disabled = false;
+        btnFree.classList.remove('btn-plan-current');
+      }
+    }
+
+    if (btnBasic) {
+      if (current === 'basic') {
+        updateTierButton(btnBasic, 'Current Plan', false, true);
+        btnBasic.disabled = true;
+        btnBasic.classList.add('btn-plan-current');
+      } else {
+        const txt = (pref === 'basic') ? 'Preference Saved (₹179/mo)' : 'Upgrade to Basic';
+        updateTierButton(btnBasic, txt, false, false);
+        btnBasic.disabled = false;
+        btnBasic.classList.remove('btn-plan-current');
+      }
+    }
+
+    if (btnPro) {
+      if (current === 'pro') {
+        updateTierButton(btnPro, 'Current Plan 👑', true, true);
+        btnPro.disabled = true;
+        btnPro.classList.add('btn-plan-current');
+      } else {
+        const txt = (pref === 'pro') ? 'Preference Saved (₹387/mo)' : 'Get Woobi Pro';
+        updateTierButton(btnPro, txt, true, false);
+        btnPro.disabled = false;
+        btnPro.classList.remove('btn-plan-current');
+      }
+    }
+
+    initPlanCarouselSync();
+  }
+
+  function scrollPlanCard(index) {
+    const stack = document.getElementById('subCardsStack');
+    if (!stack) return;
+    const cards = stack.querySelectorAll('.sub-plan-card');
+    if (cards[index]) {
+      cards[index].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+    updateCarouselDots(index);
+  }
+
+  function updateCarouselDots(activeIndex) {
+    const dots = document.querySelectorAll('#plansCarouselDots .plan-dot');
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === activeIndex);
+    });
+  }
+
+  function initPlanCarouselSync() {
+    const dots = document.getElementById('plansCarouselDots');
+    if (!dots) return;
+    const stack = document.getElementById('subCardsStack');
+    if (!stack || stack.dataset.carouselInit) return;
+    stack.dataset.carouselInit = 'true';
+    stack.addEventListener('scroll', () => {
+      const cards = stack.querySelectorAll('.sub-plan-card');
+      if (!cards.length) return;
+      const center = stack.scrollLeft + stack.offsetWidth / 2;
+      let closestIdx = 0;
+      let closestDist = Infinity;
+      cards.forEach((card, idx) => {
+        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+        const dist = Math.abs(center - cardCenter);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestIdx = idx;
+        }
+      });
+      updateCarouselDots(closestIdx);
+    }, { passive: true });
   }
 
   function saveProfile() {
@@ -4402,6 +4638,14 @@
     filterWardrobeGrid,
     selectPlan,
     activatePremium,
+    openStyleHint,
+    selectSubscriptionPlan,
+    openUpgradeConfirmation,
+    closeUpgradeConfirmation,
+    confirmPlanPreference,
+    toggleFaq,
+    updateSubscriptionUI,
+    scrollPlanCard,
     saveReminderPreferences,
     exportWardrobe,
     exportUserData,
