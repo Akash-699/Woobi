@@ -1126,9 +1126,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-outfit-details">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('today')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('today')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Outfit Details</span>
             <button class="btn-icon-right" onclick="app.toggleBookmarkCurrent()" title="Save outfit">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
             </button>
@@ -1182,9 +1183,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-swap-item">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('outfit-details')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('outfit-details')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Swap Garment</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -1599,65 +1601,87 @@
              SCREEN 12: PROFILE
              =================================================================== -->
         <section class="phone-screen" id="screen-profile">
-          <div class="screen-body-padded" style="padding-top: 20px;">
+          <div class="screen-body-padded" style="padding-top: 18px;">
+            <div class="profile-header-wrap" style="margin-bottom: 16px;">
+              <h1 class="screen-headline-serif" style="margin-bottom: 2px;">Profile & Settings</h1>
+              <p class="screen-caption-sub" style="margin-bottom: 14px;">Manage your wardrobe styling, studio environment, and personal account.</p>
+            </div>
+
+            <!-- User Account Card -->
             <div class="profile-user-card">
               <div class="user-avatar-circle">S</div>
               <div class="user-meta-info">
-                <h2 class="user-name">Suriya</h2>
-                <span class="user-plan-label">Free plan</span>
+                <h2 class="user-name" id="profileDisplayName">Suriya</h2>
+                <span class="user-plan-label" id="profileUserPlan">Free plan</span>
               </div>
               <button class="btn-upgrade-link" onclick="app.goToScreen('premium')">
                 Upgrade ›
               </button>
             </div>
 
-            <div class="profile-menu-list">
-              <div class="menu-item-row" onclick="app.goToScreen('style-pref')">
-                <span class="menu-icon">⚙️</span>
-                <span class="menu-text">Style preferences</span>
-                <span class="menu-chevron">›</span>
+            <!-- Group 1: Wardrobe & Styling -->
+            <div class="settings-group-section" style="margin-bottom: 16px;">
+              <span class="control-sublabel" style="display: block; margin-bottom: 8px;">Wardrobe &amp; Styling</span>
+              <div class="profile-menu-list">
+                <div class="menu-item-row" onclick="app.goToScreen('style-pref')">
+                  <span class="menu-icon">👗</span>
+                  <span class="menu-text">Style preferences</span>
+                  <span class="menu-chevron">›</span>
+                </div>
+                <div class="menu-item-row" onclick="app.goToScreen('weekly-planning')">
+                  <span class="menu-icon">🗓️</span>
+                  <span class="menu-text">Weekly planning</span>
+                  <span class="menu-chevron">›</span>
+                </div>
+                <div class="menu-item-row" onclick="app.goToScreen('wear-history')">
+                  <span class="menu-icon">📅</span>
+                  <span class="menu-text">Wear history</span>
+                  <span class="menu-chevron">›</span>
+                </div>
               </div>
+            </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('weekly-planning')">
-                <span class="menu-icon">🗓️</span>
-                <span class="menu-text">Weekly planning</span>
-                <span class="menu-chevron">›</span>
+            <!-- Group 2: 3D Studio & Experience -->
+            <div class="settings-group-section" style="margin-bottom: 16px;">
+              <span class="control-sublabel" style="display: block; margin-bottom: 8px;">Studio &amp; Visuals</span>
+              <div class="profile-menu-list">
+                <div class="menu-item-row" onclick="app.goToScreen('appearance-settings')">
+                  <span class="menu-icon">🎨</span>
+                  <span class="menu-text">Appearance &amp; 3D themes</span>
+                  <span class="menu-chevron">›</span>
+                </div>
+                <div class="menu-item-row" onclick="app.goToScreen('performance-settings')">
+                  <span class="menu-icon">⚡</span>
+                  <span class="menu-text">Performance &amp; graphics</span>
+                  <span class="menu-chevron">›</span>
+                </div>
               </div>
+            </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('wear-history')">
-                <span class="menu-icon">📅</span>
-                <span class="menu-text">Wear history</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.goToScreen('reminders')">
-                <span class="menu-icon">🔔</span>
-                <span class="menu-text">Reminders</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.goToScreen('help-support')">
-                <span class="menu-icon">❓</span>
-                <span class="menu-text">Help and support</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.goToScreen('appearance-settings')">
-                <span class="menu-icon">🎨</span>
-                <span class="menu-text">Appearance & 3D themes</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.goToScreen('performance-settings')">
-                <span class="menu-icon">⚡</span>
-                <span class="menu-text">Performance & graphics</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.goToScreen('account-privacy')">
-                <span class="menu-icon">⚙️</span>
-                <span class="menu-text">Account and privacy</span>
-                <span class="menu-chevron">›</span>
+            <!-- Group 3: Account & Support -->
+            <div class="settings-group-section" style="margin-bottom: 18px;">
+              <span class="control-sublabel" style="display: block; margin-bottom: 8px;">Account &amp; Preferences</span>
+              <div class="profile-menu-list">
+                <div class="menu-item-row" onclick="app.goToScreen('reminders')">
+                  <span class="menu-icon">🔔</span>
+                  <span class="menu-text">Reminders &amp; alerts</span>
+                  <span class="menu-chevron">›</span>
+                </div>
+                <div class="menu-item-row" onclick="app.goToScreen('account-privacy')">
+                  <span class="menu-icon">🛡️</span>
+                  <span class="menu-text">Account and privacy</span>
+                  <span class="menu-chevron">›</span>
+                </div>
+                <div class="menu-item-row" onclick="app.goToScreen('help-support')">
+                  <span class="menu-icon">💬</span>
+                  <span class="menu-text">Help and support</span>
+                  <span class="menu-chevron">›</span>
+                </div>
+                <div class="menu-item-row" onclick="app.signOut()">
+                  <span class="menu-icon">🚪</span>
+                  <span class="menu-text" style="color: var(--text-muted);">Sign out</span>
+                  <span class="menu-chevron">›</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1688,9 +1712,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-signin">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('welcome')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('welcome')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Sign In</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -1738,9 +1763,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-premium">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Woobi Premium</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -1819,9 +1845,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-reminders">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Reminders</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -1896,9 +1923,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-account-privacy">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Account &amp; Privacy</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -1989,9 +2017,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-appearance-settings">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Appearance</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2070,9 +2099,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-performance-settings">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Performance</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2653,9 +2683,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-help-support">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Help &amp; Support</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2736,9 +2767,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-manage-subscription">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Subscription</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2798,9 +2830,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-outfit-feedback">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('today')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('today')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Outfit Feedback</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2866,9 +2899,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-create-account">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('welcome')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('signin')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Create Account</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2928,9 +2962,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-reset-password">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('signin')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('signin')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Reset Password</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2968,9 +3003,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-crop-photo">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('add-wardrobe')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('add-wardrobe')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Crop Photo</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -3175,15 +3211,22 @@
 
           <!-- Live Camera Controls (before snapshot) -->
           <div class="camera-controls-row" id="cameraLiveControls">
-            <button class="btn-camera-upload-mini" onclick="app.triggerFileInputClick()" title="Upload from Device">
+            <button type="button" class="btn-camera-upload-mini" onclick="app.triggerFileInputClick()" title="Upload from Device">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="17 8 12 3 7 8"/>
                 <line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
             </button>
-            <button class="btn-camera-shutter" id="btnCameraShutter" onclick="app.captureCameraSnapshot()" title="Capture Outfit">
+            <button type="button" class="btn-camera-shutter" id="btnCameraShutter" onclick="app.captureCameraSnapshot()" title="Capture Outfit">
               <div class="shutter-inner"></div>
+            </button>
+            <button type="button" class="btn-camera-sample-mini" onclick="app.loadSampleOutfitLook()" title="Use Sample Look">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
             </button>
           </div>
 
