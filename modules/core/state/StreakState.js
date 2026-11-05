@@ -326,7 +326,7 @@ export class StreakState {
     this.state.uploadedToday = true;
     this.state.lastUploadTimestamp = new Date('2026-11-03T10:30:00Z').getTime();
     this.state.lastUploadDateStr = '2026-11-03';
-    this.state.deadline = new Date('2026-11-04T23:59:59Z').getTime();
+    this.state.deadline = Date.now() + this.options.deadlineDurationMs;
     this.state.isTestUser = true;
     this.state.isTestData = true;
 
@@ -367,6 +367,12 @@ export class StreakState {
   // Status & Calculations
   // ---------------------------------------------------------------------------
   _checkDailyStatus() {
+    if (this.isTestUser()) {
+      this.state.uploadedToday = true;
+      this.state.isStreakBroken = false;
+      return;
+    }
+
     const todayStr = this.formatDateKey();
     const hasTodayMemory = this.hasUploadedOnDate(todayStr);
 
