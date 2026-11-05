@@ -20,7 +20,7 @@ export class ThemeMaterials {
 
     const preset = THEME_PRESETS[presetName] || THEME_PRESETS[DEFAULT_THEME_PRESET];
 
-    // 1. Flooring Material (Darker neutral matte grey #7A7A7A floor with subtle roughness and tactile relief)
+    // 1. Flooring Material (Darker neutral matte grey #616161 floor with subtle roughness and tactile relief)
     const floorTexture = (presetName === 'nordic-minimal' || presetName === 'warm-terracotta')
       ? (this.textures.champagneStone || this.textures.creamMarble || null)
       : null;

@@ -53,7 +53,7 @@ export const THEME_PRESETS = {
       metalness: 0.02
     },
     floor: {
-      color: 0x7A7A7A, // Darker neutral matte grey (#7A7A7A)
+      color: 0x616161, // Darker neutral matte grey (#616161)
       roughness: 0.82,
       metalness: 0.01
     },
@@ -92,7 +92,7 @@ export const THEME_PRESETS = {
       metalness: 0.01
     },
     floor: {
-      color: 0x7A7A7A, // Darker neutral matte grey (#7A7A7A)
+      color: 0x616161, // Darker neutral matte grey (#616161)
       roughness: 0.82,
       metalness: 0.01
     },
