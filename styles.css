@@ -6188,9 +6188,9 @@ body {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 364px;
+  max-width: 384px;
   height: 60px;
-  padding: 0 6px;
+  padding: 0 8px;
   box-sizing: border-box;
 }
 
@@ -9353,17 +9353,17 @@ body {
 /* 10. Top Navigation Arched Glass Visor (Camera | Calendar | Streak | Gallery | Profile matching Reference 2) */
 .streak-trio-row {
   position: absolute;
-  top: 14px;
+  top: max(env(safe-area-inset-top, 0px) + 20px, 32px);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 350px;
-  max-width: calc(100% - 24px);
-  height: 56px;
-  padding: 0 10px;
+  justify-content: space-between;
+  gap: 10px;
+  width: 384px;
+  max-width: calc(100% - 16px);
+  height: 58px;
+  padding: 0 14px;
   box-sizing: border-box;
   background: transparent;
   border: none;
@@ -9378,7 +9378,7 @@ body {
   height: 100%;
   pointer-events: none;
   z-index: 1;
-  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 14px rgba(220, 130, 30, 0.35));
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.48)) drop-shadow(0 0 16px rgba(235, 140, 25, 0.4));
 }
 
 .streak-trio-btn {
@@ -9407,34 +9407,38 @@ body {
 
 /* Visor arc vertical curvature offsets */
 .streak-camera-btn {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   color: #FFFFFF;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
   transform: translateY(3.5px);
 }
 
 .streak-calendar-btn {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   color: #FFFFFF;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
   transform: translateY(1px);
 }
 
 .streak-gallery-btn {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   color: #FFFFFF;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
   transform: translateY(1px);
 }
 
 .streak-account-btn {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   color: #FFFFFF;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
   transform: translateY(3.5px);
 }
 
@@ -9442,26 +9446,26 @@ body {
 .streak-calendar-btn:hover,
 .streak-gallery-btn:hover,
 .streak-account-btn:hover {
-  filter: drop-shadow(0 0 8px rgba(255, 230, 160, 0.9));
-  opacity: 0.95;
+  filter: drop-shadow(0 0 10px rgba(255, 230, 160, 0.95)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+  opacity: 0.96;
 }
 
 /* Raised Amber Capsule Streak Button */
 .streak-flame-btn {
-  height: 34px;
-  padding: 0 14px 0 10px;
-  gap: 6px;
-  background: linear-gradient(180deg, #FF9F1B 0%, #D86208 100%);
-  border: 1.5px solid #FFE79A;
+  height: 36px;
+  padding: 0 16px 0 12px;
+  gap: 7px;
+  background: linear-gradient(180deg, #FFA922 0%, #D86004 100%);
+  border: 2px solid #FFEAA0;
   border-radius: 999px;
-  box-shadow: 0 0 18px rgba(255, 145, 20, 0.85), inset 0 1.5px 2px rgba(255, 255, 240, 0.95), inset 0 -1.5px 2px rgba(170, 60, 0, 0.4);
+  box-shadow: 0 0 20px rgba(255, 140, 0, 0.9), inset 0 2px 2px rgba(255, 255, 245, 0.95), inset 0 -2px 2px rgba(180, 60, 0, 0.45);
   color: #FFFFFF;
   transform: translateY(-2px);
 }
 
 .streak-flame-btn:hover {
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 0 22px rgba(255, 160, 30, 0.95), inset 0 1.5px 2px #FFFFFF;
+  box-shadow: 0 0 24px rgba(255, 160, 30, 0.98), inset 0 2px 2px #FFFFFF;
 }
 
 .streak-flame-btn.broken-streak {
@@ -9472,11 +9476,12 @@ body {
 
 .streak-flame-btn .streak-count {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.92rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 800;
   color: #FFFFFF;
   line-height: 1;
-  text-shadow: 0 1px 2px rgba(80, 30, 0, 0.5);
+  letter-spacing: 0.2px;
+  text-shadow: 0 1px 2px rgba(80, 25, 0, 0.6);
 }
 
 .streak-flame-btn.broken-streak .streak-count {
@@ -9486,12 +9491,13 @@ body {
 
 .streak-count-label {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.92rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 800;
   color: #FFFFFF;
   margin-left: 1px;
   line-height: 1;
-  text-shadow: 0 1px 2px rgba(80, 30, 0, 0.5);
+  letter-spacing: 0.2px;
+  text-shadow: 0 1px 2px rgba(80, 25, 0, 0.6);
 }
 
 .streak-flame-btn:hover .streak-count-label {
