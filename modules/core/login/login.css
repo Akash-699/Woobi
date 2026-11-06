@@ -84,8 +84,15 @@ body{height:var(--view-height,100dvh);min-height:0;overflow:hidden;position:rela
  .intro{margin-bottom:8px}h1{font-size:33px}
 }
 
+
 /* Pull the pleats along a rail while the loose hem follows and swings back. */
 @media screen and (prefers-reduced-motion: no-preference) {
+  body {
+    --curtain-duration: 2.7s;
+    --curtain-delay: .12s;
+    --curtain-stagger: .08s;
+    --reveal-start: calc(var(--curtain-delay) + .3s);
+  }
   body::before, body::after {
     content: "";
     position: fixed;
@@ -101,8 +108,8 @@ body{height:var(--view-height,100dvh);min-height:0;overflow:hidden;position:rela
       repeating-linear-gradient(0deg, transparent 0 2px, #ffc5bd0c 2px 3px),
       repeating-linear-gradient(92deg, #680d20 0%, #9b192b 4%, #cc3945 8%,
         #b82a38 11%, #881426 15%, #530a1a 18%, #680d20 21%);
-    animation: gather-velvet 3.9s cubic-bezier(.42,0,.24,1) .25s both,
-               sway-velvet 3.9s linear .25s both;
+    animation: gather-velvet var(--curtain-duration) cubic-bezier(.42,0,.24,1) var(--curtain-delay) both,
+               sway-velvet var(--curtain-duration) linear var(--curtain-delay) both;
   }
   body::after {
     left: auto;
@@ -110,9 +117,23 @@ body{height:var(--view-height,100dvh);min-height:0;overflow:hidden;position:rela
     --mirror: -1;
     --compressed: -.2;
     --travel: 64%;
-    animation-delay: .38s;
+    animation-delay: calc(var(--curtain-delay) + var(--curtain-stagger));
   }
   body:focus-within::before, body:focus-within::after { visibility: hidden; }
+  body:not(.entrance-complete) :is(
+    .page-header > *, .piece, .doodle, .scribble, .login-note,
+    .tape, .corner-sparkle, .note-number, .note-heading > *,
+    .field, #submit, .divider, #google, .switch-copy, .config-note,
+    .play-controls > *, .page-footer > *
+  ) {
+    animation: pop-component 2.3s cubic-bezier(.4,0,.2,1) var(--reveal-start) backwards;
+  }
+  @keyframes pop-component {
+    from { opacity: 0; translate: 0 30px; scale: .82; }
+    60% { opacity: 1; translate: 0 -5px; scale: 1.06; }
+    82% { opacity: 1; translate: 0 2px; scale: .985; }
+    to { opacity: 1; translate: 0; scale: 1; }
+  }
   @keyframes gather-velvet {
     from { translate: 0; scale: var(--mirror, 1) 1; }
     to { translate: var(--travel, -64%) 0; scale: var(--compressed, .2) 1; visibility: hidden; }

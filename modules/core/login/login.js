@@ -5,9 +5,18 @@ window.WOOBI_AUTH_COPY = {
 (() => {
   const pieces = [...document.querySelectorAll('.piece')];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const finishEntrance = () => document.body.classList.add('entrance-complete');
+  document.body.addEventListener('animationend', event => {
+    if (event.animationName === 'pop-component' && event.target.id === 'motion-toggle') {
+      finishEntrance();
+    }
+  });
+  // Keyboard and pointer focus reveal controls immediately for interaction.
+  document.body.addEventListener('focusin', finishEntrance, { once: true });
   const toggle = document.getElementById('motion-toggle');
   let paused = reduced.matches;
   function renderMotion() {
+    if (reduced.matches) finishEntrance();
     document.body.classList.toggle('paused', paused);
     toggle.textContent = paused ? 'Resume motion' : 'Pause motion';
     toggle.setAttribute('aria-pressed', String(paused));

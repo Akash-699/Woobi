@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
             }
             webViewClient = WebViewClient()
             webChromeClient = WebChromeClient()
-            loadUrl("file:///android_asset/login/index.html")
+            loadUrl("file:///android_asset/index.html")
         }
         webView = view
         setContentView(view)
@@ -47,5 +47,11 @@ class MainActivity : ComponentActivity() {
         } else {
             super.onBackPressed()
         }
+    }
+
+    override fun onDestroy() {
+        webView?.destroy()
+        webView = null
+        super.onDestroy()
     }
 }

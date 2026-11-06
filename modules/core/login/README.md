@@ -17,7 +17,9 @@ Step-by-step manual checks, expected outcomes, live Firebase tests and handoff
 limitations are in [TESTING.md](TESTING.md). Setup instructions are also included
 as comments in [firebase-config.example.js](firebase-config.example.js).
 
-Open http://localhost:5050/login/. The login page includes floating transparent garment cutouts, pointer/touch dragging, arrow-key movement (Home resets), shuffle, pause, and reduced-motion support. The login note stays above decorations so fields remain usable. Mobile shows six of the eight pieces to avoid crowding.
+Open http://localhost:8085/login/ (or use the port printed by `npm start`). The login page includes floating transparent garment cutouts, pointer/touch dragging, arrow-key movement (Home resets), shuffle, pause, and reduced-motion support. The login note stays above decorations so fields remain usable. Mobile shows six of the eight pieces to avoid crowding.
+
+See [entry and redirect behavior](../app/welcome/README.md) for the browser, welcome preview, and Android routes, plus the remaining session integration work.
 
 The page uses a fixed viewport with no page scrolling. The note fits the remaining space with a ResizeObserver; validation messages and auth-mode changes are included in the fit. Short landscape screens use a wider card with two columns. Visual viewport resize events adjust for mobile keyboard space; very small available heights can still make the scaled form small.
 
@@ -35,7 +37,7 @@ Only client configuration belongs here. Never provide Firebase Admin SDK credent
 
 ## Android integration
 
-The Android activity opens a bundled copy of this login page at `file:///android_asset/login/index.html`. The bundled copy includes the wardrobe images and a safe configuration stub; it never packages the local `firebase-config.js`. The footer opens the bundled wardrobe homepage for UI review. Android sign-in is still pending: the WebView deliberately rejects browser Firebase authentication on `file:` pages. For native Android Google sign-in, register `com.example.aurawardrobe` (or the agreed final application ID) in the same Firebase project, configure signing certificate fingerprints, and obtain Android app configuration and the web OAuth client ID. Implement native authentication and a deliberate session handoff before treating the login page as an access gate. Never pass passwords or tokens in URLs.
+The Android activity opens the bundled homepage at `file:///android_asset/index.html`, where the app welcome waits for Enter Woobi before revealing the dashboard. The login page is available separately at `file:///android_asset/login/index.html`. Its bundled copy includes the wardrobe images and a safe configuration stub; it never packages the local `firebase-config.js`. Android sign-in is still pending. For native Android Google sign-in, register `com.example.aurawardrobe` (or the agreed final application ID) in the same Firebase project, configure signing certificate fingerprints, and obtain Android app configuration and the web OAuth client ID. Implement native authentication and a deliberate session handoff before treating the login page as an access gate. Never pass passwords or tokens in URLs.
 
 When changing the login design, copy `index.html`, `login.css`, `login.js`, `auth.js`, `auth-feedback.css`, `user-profile.js`, and the two wardrobe atlases into `android-app/app/src/main/assets/login/`. Keep the Android `firebase-config.js` stub in that directory; do not copy the local Web config.
 
