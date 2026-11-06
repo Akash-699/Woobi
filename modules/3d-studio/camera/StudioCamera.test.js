@@ -188,9 +188,9 @@ test('STUDIO_OVERVIEW and WARDROBE_CLOSEUP match baseline studio coordinates', (
   assert.strictEqual(overview.target.y, 1.08);
 
   const wardrobe = CAMERA_PRESETS.WARDROBE_CLOSEUP;
-  assert.strictEqual(wardrobe.position.x, -1.20);
+  assert.strictEqual(wardrobe.position.x, -1.65);
   assert.strictEqual(wardrobe.position.y, 1.25);
-  assert.strictEqual(wardrobe.position.z, -0.20);
+  assert.strictEqual(wardrobe.position.z, -1.30);
 });
 
 // 4. Default Preset Fallback
@@ -273,10 +273,10 @@ test('CameraTransitions setPreset switches target coordinates', () => {
   const ok = trans.setPreset('VANITY_VIEW');
   assert.strictEqual(ok, true);
   assert.strictEqual(trans.currentPreset, 'VANITY_VIEW');
-  assert.strictEqual(trans.targetCameraPos.x, 0.95);
+  assert.strictEqual(trans.targetCameraPos.x, 1.35);
   assert.strictEqual(trans.targetCameraPos.y, 1.25);
-  assert.strictEqual(trans.targetCameraPos.z, -0.65);
-  assert.strictEqual(trans.targetCameraLookAt.x, 1.15);
+  assert.strictEqual(trans.targetCameraPos.z, -1.75);
+  assert.strictEqual(trans.targetCameraLookAt.x, 1.60);
 });
 
 // 13. CameraTransitions setPreset Invalid Handling
@@ -319,12 +319,12 @@ test('CameraTransitions update lerps camera position and lookAt towards targets'
   const camera = new MockPerspectiveCamera(50, 1);
   camera.position.set(0, 0, 0);
 
-  trans.setPreset('WARDROBE_CLOSEUP'); // target x: -1.20
+  trans.setPreset('WARDROBE_CLOSEUP'); // target x: -1.65
   trans.update(camera, 1.0);
 
   // Position should have moved halfway towards target
   assert.ok(camera.position.x < 0);
-  assert.ok(Math.abs(camera.position.x - (-0.60)) < 0.01);
+  assert.ok(Math.abs(camera.position.x - (-0.825)) < 0.01);
 });
 
 // 17. CameraTransitions FOV Damping & Clamping [26, 66]

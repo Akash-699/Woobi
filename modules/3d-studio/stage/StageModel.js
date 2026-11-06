@@ -18,6 +18,8 @@ export const STAGE_CONFIG = {
   rotationArcOpacity: 0.60,     // Guide arc opacity
   accentRugPosition: { x: 0, y: 0.004, z: 0 },
   accentRugRadius: 1.12,
+  shagRugRadius: 1.50,          // Large plush circular white/cream wool shag rug
+  shagRugThickness: 0.012,      // 1.2 cm plush pile depth
   glbPaths: ['3D - Stage by Astra/seren_stage.glb', 'seren_stage.glb']
 };
 
@@ -59,6 +61,17 @@ export class StageModel {
     shadowDisc.position.y = 0.002;
     this.group.add(shadowDisc);
     this.disposables.push(shadowGeo, shadowMat);
+
+    // 1.5. Large Plush White Shaggy Bouclé Circular Rug (Ground level beneath dais)
+    const shagRadius = this.config.shagRugRadius || 1.50;
+    const shagThickness = this.config.shagRugThickness || 0.012;
+    const shagGeo = new THREE.CylinderGeometry(shagRadius, shagRadius + 0.015, shagThickness, 64);
+    const shagMat = StageMaterials.createShagRugMaterial(THREE, textures.shagRug, textures.shagRugBump || textures.stoneBump);
+    this.shagRugMesh = new THREE.Mesh(shagGeo, shagMat);
+    this.shagRugMesh.position.y = shagThickness / 2;
+    this.shagRugMesh.receiveShadow = true;
+    this.group.add(this.shagRugMesh);
+    this.disposables.push(shagGeo, shagMat);
 
     // 2. Procedural Woven Elevated Stage Platform
     const rugGeo = new THREE.CylinderGeometry(radius, radius + 0.012, thickness, 64);

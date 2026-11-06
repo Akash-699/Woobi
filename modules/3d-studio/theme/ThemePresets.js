@@ -53,9 +53,9 @@ export const THEME_PRESETS = {
       metalness: 0.02
     },
     floor: {
-      color: 0x616161, // Darker neutral matte grey (#616161)
-      roughness: 0.82,
-      metalness: 0.01
+      color: 0xFFFFFF, // European Oak Herringbone Parquet (#FFFFFF enables full texture color fidelity)
+      roughness: 0.58, // Satin luxury timber sheen
+      metalness: 0.02
     },
     accent: {
       color: 0x98816B // Warm taupe
@@ -92,9 +92,9 @@ export const THEME_PRESETS = {
       metalness: 0.01
     },
     floor: {
-      color: 0x616161, // Darker neutral matte grey (#616161)
-      roughness: 0.82,
-      metalness: 0.01
+      color: 0xFFFFFF, // European Oak Herringbone Parquet (#FFFFFF enables full texture color fidelity)
+      roughness: 0.58, // Satin luxury timber sheen
+      metalness: 0.02
     },
     windowShadow: {
       color: 0x4A3A2A,

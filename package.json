@@ -8,7 +8,10 @@
     "start": "node server.js",
     "test": "node scripts/testing/run-all-tests.js",
     "test:e2e": "node scripts/testing/test-backend-e2e.js",
-    "validate:boundaries": "powershell -ExecutionPolicy Bypass -File scripts/validation/validate-boundaries.ps1"
+    "validate:boundaries": "powershell -ExecutionPolicy Bypass -File scripts/validation/validate-boundaries.ps1",
+    "sync:android": "powershell -ExecutionPolicy Bypass -File scripts/sync-android-assets.ps1",
+    "build:apk": "npm run sync:android && cd android-app && gradlew.bat assembleDebug && cd .. && copy android-app\\app\\build\\outputs\\apk\\debug\\app-debug.apk woobi.apk",
+    "build:bundle": "npm run sync:android && cd android-app && gradlew.bat bundleRelease && cd .. && copy android-app\\app\\build\\outputs\\bundle\\release\\app-release.aab woobi.aab"
   },
   "keywords": [
     "fashion",
@@ -18,5 +21,9 @@
     "troyz-solutions"
   ],
   "author": "Troyz Solutions",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "meshoptimizer": "^0.18.1",
+    "three": "^0.128.0"
+  }
 }

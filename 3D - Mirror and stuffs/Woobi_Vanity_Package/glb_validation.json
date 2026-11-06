@@ -1,0 +1,21 @@
+{
+  "glb_import": "PASS",
+  "required_hierarchy": "PASS",
+  "staging_excluded": "PASS",
+  "mesh_objects": 45,
+  "triangles": 63584,
+  "bounds_min_m": [
+    -0.699999988079071,
+    -0.8600000143051147,
+    0.0
+  ],
+  "bounds_max_m": [
+    0.699999988079071,
+    0.24199999868869781,
+    2.4700000286102295
+  ],
+  "images": [
+    "Boucle_MicroNormal_1K",
+    "Ivory_Marble_BaseColor_1K"
+  ]
+}

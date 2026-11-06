@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Woobi — Architectural, Engineering & Operations Report</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 16mm 14mm 16mm 14mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      background: #ffffff;
+      line-height: 1.55;
+      font-size: 12.5px;
+      margin: 0;
+      padding: 0;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+    .header-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      color: #ffffff;
+      padding: 26px 28px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+    }
+    .header-banner h1 {
+      margin: 0 0 6px 0;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .header-banner h2 {
+      margin: 0 0 14px 0;
+      font-size: 14px;
+      font-weight: 400;
+      color: #94a3b8;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      font-size: 11px;
+    }
+    .meta-item strong {
+      display: block;
+      color: #cbd5e1;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .badge-pass { background: #dcfce7; color: #166534; }
+    .badge-warn { background: #fef3c7; color: #92400e; }
+    .badge-info { background: #e0e7ff; color: #3730a3; }
+    .badge-purple { background: #f3e8ff; color: #6b21a8; }
+    
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 20px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    h4 {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #334155;
+      margin: 14px 0 6px 0;
+    }
+    p {
+      margin: 0 0 10px 0;
+    }
+    .card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+    .card-accent {
+      border-left: 4px solid #6366f1;
+    }
+    .card-success {
+      border-left: 4px solid #10b981;
+      background: #f0fdf4;
+    }
+    .card-warning {
+      border-left: 4px solid #f59e0b;
+      background: #fffbeb;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px 0;
+      font-size: 11.5px;
+    }
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    th {
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+    }
+    code {
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 14px;
+      border-radius: 6px;
+      overflow-x: auto;
+      line-height: 1.45;
+      margin: 10px 0 14px 0;
+    }
+    .diagram-box {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 10.5px;
+      line-height: 1.35;
+      white-space: pre;
+      margin: 12px 0;
+      overflow-x: auto;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    .stat-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 24px;
+      font-weight: 800;
+      color: #4f46e5;
+      margin-bottom: 2px;
+    }
+    .stat-label {
+      font-size: 10.5px;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .footer {
+      margin-top: 24px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 10px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER BANNER -->
+  <div class="header-banner">
+    <h1>WOOBI — MONOREPO ARCHITECTURE REPORT</h1>
+    <h2>Enterprise Modularization, Multi-Process Safety, Prevention Mechanisms & Operations Guide</h2>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <strong>Organization</strong>
+        Troyz Solutions
+      </div>
+      <div class="meta-item">
+        <strong>Canonical Repo</strong>
+        Troyz-Solutions/Woobi
+      </div>
+      <div class="meta-item">
+        <strong>Release Branch</strong>
+        feature/phase-9-production-readiness
+      </div>
+      <div class="meta-item">
+        <strong>Commit SHA</strong>
+        7035ad1 (Phases 1–9)
+      </div>
+    </div>
+  </div>
+
+  <!-- EXECUTIVE SCORECARD -->
+  <div class="grid-3">
+    <div class="stat-card">
+      <div class="stat-number">642 / 642</div>
+      <div class="stat-label">Automated Tests Passed (31 Suites)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">14 / 14</div>
+      <div class="stat-label">Real HTTP E2E Scenarios Passed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">0</div>
+      <div class="stat-label">Module Boundary Violations</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: WHAT WAS DONE -->
+  <h3>1. Executive Overview: What Was Accomplished</h3>
+  <p>
+    Woobi has completed a full 10-phase enterprise monorepo transformation. The codebase was re-architected from legacy unsegmented monolithic scripts into a clean, modular corporate monorepo structured across <strong>5 physical domains</strong>. All historical features (3D studio, wardrobe, lighting, mirrors, avatar rigs, recommendation algorithms, lookbook storage, and mobile Android WebView packaging) were fully preserved and verified with 0 regressions.
+  </p>
+  
+  <div class="card card-success">
+    <strong>Key Milestone Deliverables:</strong>
+    <ul style="margin: 6px 0 0 0; padding-left: 20px;">
+      <li><strong>5 Physical Architectural Domains</strong> established with strict public interfaces (<code>index.js</code>).</li>
+      <li><strong>Master Test Runner</strong> upgraded to 31 test suites covering 642 unit, integration, and user-journey tests.</li>
+      <li><strong>Real Backend HTTP Suite</strong> covering 14 live network scenarios over local socket connections.</li>
+      <li><strong>Architectural Boundary Enforcer</strong> (<code>validate-boundaries.ps1</code>) blocking deep private imports, circular dependencies, and browser-to-backend leakage.</li>
+      <li><strong>Multi-Process Database Durability</strong> implementing kernel-level OS file locking and automatic <code>.bak</code> recovery.</li>
+      <li><strong>Upstream Integration PR #6 & PR #7</strong> published on GitHub with unbroken linear ancestry.</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 2: MONOREPO DIRECTORY STRUCTURE -->
+  <h3>2. Monorepo Structural Anatomy</h3>
+  <p>The repository enforces strict separation of concerns across 5 domains:</p>
+
+  <div class="diagram-box">Woobi/
+├── modules/
+│   ├── core/                        # Domain 1: Authoritative Reactive Store & Routing
+│   │   ├── state/Store.js           # Central reactive store & localStorage persistence
+│   │   ├── navigation/Router.js     # Screen routing, lifecycle hooks & DOM bridges
+│   │   └── index.js                 # Public Core interface
+│   ├── 3d-studio/                   # Domain 2: Physical Three.js 3D Studio Engine
+│   │   ├── stage/                   # Podium, ground plane, shadows, backdrops
+│   │   ├── wardrobe/                # Wardrobe closet 3D asset & door kinematics
+│   │   ├── mirror-vanity/           # Vanity table, mirror reflection & vanity lighting
+│   │   ├── avatar/                  # Mannequin 3D mesh, bone rigs, skin shaders
+│   │   ├── lighting/                # 3-point studio lighting (Key, Fill, Rim)
+│   │   ├── theme/                   # Environmental backdrop materials & studio themes
+│   │   ├── camera/                  # Cinematic camera presets (Overview, Closeup, Focus)
+│   │   └── index.js                 # Unified Studio3D orchestrator (182 Tests)
+│   ├── 3d-studio-features/          # Domain 3: High-Level User 3D Studio Features
+│   │   ├── virtual-try-on/          # Layered garment fitting, equips & catalog
+│   │   ├── garment-interactions/    # Three.js raycasting, pointer selection & hover highlights
+│   │   ├── outfit-recommendations/  # Color harmony pairing & occasion outfit rules
+│   │   ├── avatar-customization/    # Skin tones, hairstyles, gender presentation
+│   │   ├── animations/              # Idle breathing, fashion poses & transitions
+│   │   ├── saved-looks/             # Lookbook manager, outfit serialization & recall
+│   │   └── index.js                 # Unified Features orchestrator (159 Tests)
+│   ├── settings/                    # Domain 4: User Configuration & Preferences
+│   │   ├── account/                 # Profile metadata, email updates & auth bridges
+│   │   ├── appearance/              # Theme selection & lighting preset persistence
+│   │   ├── privacy/                 # Consent toggles, cache purging & JSON data export
+│   │   ├── notifications/           # Streak alerts, style briefings & reminder schedules
+│   │   ├── performance/             # Graphics presets, shadow toggles & battery saver
+│   │   └── index.js                 # Unified Settings orchestrator (134 Tests)
+│   └── backend/                     # Domain 5: Backend, Auth, DB & Security Architecture
+│       ├── security/                # Rate limiting, security headers, CORS, sanitization
+│       ├── auth/                    # Password hashing, JWT tokens, persistent revocation
+│       ├── database/                # OS file locks, atomic rename writes, .bak auto-healing
+│       ├── storage/                 # Upload sandboxing, image mime checks & asset storage
+│       ├── api/                     # REST router, parameter parser, ApiClient SDK
+│       └── index.js                 # Unified Backend service & SDK (140 Tests)
+├── scripts/
+│   ├── testing/                     # Master Runner, HTTP E2E, User Journeys & Concurrency
+│   └── validation/                  # AST-based architectural boundary validator
+├── android-app/                     # Native Android Client (Gradle / Kotlin / WebView)
+├── docs/PRODUCTION_RUNBOOK.md       # Nginx TLS proxy, PM2, disaster backups, rollback
+├── CONTRIBUTING.md                  # Contributor handbook, branch rules & code tutorial
+└── ecosystem.config.cjs             # PM2 process manager configuration (instances: 1)</div>
+
+  <!-- SECTION 3: HOW IT WORKS -->
+  <div class="page-break"></div>
+  <h3>3. How the Architecture Works: Interactions & Lifecycle</h3>
+  
+  <div class="grid-2">
+    <div class="card card-accent">
+      <h4>1. Core State & Routing</h4>
+      <p>
+        <code>Store.js</code> provides a reactive single source of truth. All user actions (changing outfits, selecting occasions, recording daily streaks) update state and trigger subscribers. State automatically writes to <code>localStorage</code> with legacy key migration adapters.
+      </p>
+    </div>
+    <div class="card card-accent">
+      <h4>2. 3D Studio Engine</h4>
+      <p>
+        The Three.js engine binds lighting, camera framing, stage geometry, and rigged avatar meshes. When garments are equipped, geometry is dynamically bound to the avatar skeleton and shaders automatically adapt to the active studio lighting preset.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card card-accent">
+      <h4>3. High-Level Studio Features</h4>
+      <p>
+        Virtual Try-On disposes of replaced garment meshes cleanly from GPU memory to prevent WebGL memory leaks. Garment interactions run raycasting on pointer move for hover states without stalling camera orbit controls.
+      </p>
+    </div>
+    <div class="card card-accent">
+      <h4>4. Browser-Safe Backend Client SDK</h4>
+      <p>
+        Frontend code never accesses server internals directly. Communication occurs exclusively through <code>createApiClient()</code> over HTTP REST. Responses use standard JSON envelopes (<code>{ success, data, error }</code>).
+      </p>
+    </div>
+  </div>
+
+  <!-- SECTION 4: HOW IT PREVENTS ISSUES -->
+  <h3>4. How It Prevents Issues: Safety, Durability & Hardening</h3>
+  
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 28%;">Hazard / Risk</th>
+        <th style="width: 32%;">Prevention Mechanism</th>
+        <th>Engineering Verification</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Circular Dependencies & Module Leaks</strong></td>
+        <td>AST Boundary Enforcer (<code>validate-boundaries.ps1</code>) enforces public-only <code>index.js</code> imports and blocks browser imports of backend files.</td>
+        <td>Automated CI step checks all 5 primary domains. <span class="badge badge-pass">0 Violations</span></td>
+      </tr>
+      <tr>
+        <td><strong>Multi-Process Concurrent Write Collisions</strong></td>
+        <td>Kernel-level OS directory locking (<code>.oslock</code> via <code>fs.mkdirSync</code>) + temporary staging files with atomic <code>fs.renameSync</code>.</td>
+        <td><code>test-multiprocess-concurrency.js</code> executes 4 simultaneous worker processes with 0 lost writes.</td>
+      </tr>
+      <tr>
+        <td><strong>Sudden Server Crash / Corrupted JSON</strong></td>
+        <td>Dual snapshot rotation writes <code>.bak</code> copies before any file modification. If JSON parsing fails, <code>readCollection</code> auto-restores from backup.</td>
+        <td>Simulated crash test corrupts primary JSON; auto-healing recovers data and emits <code>RECOVERED_FROM_BACKUP</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Stale Multi-Process Cache Drift</strong></td>
+        <td><code>readCollection()</code> verifies physical file <code>mtimeMs</code> against in-memory cache timestamps. Disk changes immediately invalidate cache.</td>
+        <td>Cross-process revocation test confirms changes by Worker 1 are immediately observed by Worker 2.</td>
+      </tr>
+      <tr>
+        <td><strong>Unauthorized Entitlement Tampering</strong></td>
+        <td><code>NODE_ENV === 'production'</code> strictly blocks developer verification bypass keys (<code>DEVELOPMENT_BYPASS_KEY</code>) for premium features.</td>
+        <td>HTTP scenario 14 confirms dev bypass keys return HTTP 403 Forbidden in production mode.</td>
+      </tr>
+      <tr>
+        <td><strong>Mobile WebGL Context Dropping</strong></td>
+        <td>Three.js lifecycle handlers listen for <code>webglcontextlost</code> to stop render loops, and <code>webglcontextrestored</code> to rebuild scene geometry.</td>
+        <td>User Journey 7 verifies context restoration without state loss or application crashes.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 5: HOW TO USE IT -->
+  <div class="page-break"></div>
+  <h3>5. How to Use & Operate Woobi: Developer & Operator Guide</h3>
+
+  <h4>5.1 Running Locally & Verification Commands</h4>
+  <pre><code># 1. Install Dependencies
+npm install
+
+# 2. Run the Full 31-Suite Regression Suite (642 Tests)
+npm test
+
+# 3. Run Real Backend HTTP Integration Scenarios (14 Scenarios)
+npm run test:e2e
+
+# 4. Validate Monorepo Boundaries & Circular Dependencies
+npm run validate:boundaries
+
+# 5. Run Multi-Process Concurrency & OS Lock Tests
+node --test scripts/testing/test-multiprocess-concurrency.js
+
+# 6. Start Local Development Server (Port 8080)
+npm start</code></pre>
+
+  <h4>5.2 Building the Native Android Client</h4>
+  <pre><code>cd android-app
+./gradlew assembleDebug
+
+# Output APK:
+# android-app/app/build/outputs/apk/debug/app-debug.apk</code></pre>
+
+  <h4>5.3 Production Deployment (PM2 Single-Writer Mode)</h4>
+  <p>
+    Because Woobi uses an atomic local-first JSON database, the application is strictly configured for <strong>single-process execution</strong> (<code>instances: 1</code>, <code>exec_mode: 'fork'</code>) in PM2. Multi-worker cluster mode is prohibited to eliminate concurrent worker file contention.
+  </p>
+  <pre><code># Start application under PM2 in production single-writer mode
+pm2 start ecosystem.config.cjs --env production
+
+# Persist PM2 across host server reboots
+pm2 save
+pm2 startup
+
+# Inspect live cluster logs and health
+pm2 logs woobi-backend
+pm2 status</code></pre>
+
+  <!-- SECTION 6: GITHUB INTEGRATION & STATUS -->
+  <h3>6. Canonical GitHub Integration & Release Status</h3>
+
+  <div class="card card-warning">
+    <strong>Production Gate Status: GATE HOLD (Production Deployment Not Authorized)</strong><br>
+    The codebase is fully ready for <strong>Staging</strong> deployment. However, production deployment remains held pending human CODEOWNERS review of PR #6 and real-device Android qualification.
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Pull Request</th>
+        <th>Target Base</th>
+        <th>Head Branch</th>
+        <th>Scope / Deliverables</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>PR #6</strong><br><a href="https://github.com/Troyz-Solutions/Woobi/pull/6">Troyz-Solutions/Woobi#6</a></td>
+        <td><code>main</code></td>
+        <td><code>integration/3d-studio-modular-monorepo</code></td>
+        <td>Phase 1–4 Foundation (Stage, Wardrobe, Vanity, Avatar, Lighting, Theme, Camera).</td>
+        <td><span class="badge badge-warn">Awaiting Human Codeowner Approval</span></td>
+      </tr>
+      <tr>
+        <td><strong>PR #7</strong><br><a href="https://github.com/Troyz-Solutions/Woobi/pull/7">Troyz-Solutions/Woobi#7</a></td>
+        <td><code>integration/3d-studio-modular-monorepo</code></td>
+        <td><code>feature/phase-9-production-readiness</code></td>
+        <td>Phases 5–9 Complete Architecture, User Journeys, Multi-Process Durability, Contributor Guide & Runbooks.</td>
+        <td><span class="badge badge-info">Open (Stacked on PR #6)</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>Release Sequence Roadmap</h4>
+  <ol style="margin: 0; padding-left: 20px; font-size: 11.5px; line-height: 1.6;">
+    <li>Designated code owners (<code>mosesacknals139</code>, <code>04suriya07-spec</code>) review and merge <strong>PR #6</strong> into <code>main</code>.</li>
+    <li>On GitHub, update <strong>PR #7</strong>'s base branch from <code>integration/3d-studio-modular-monorepo</code> to <code>main</code>.</li>
+    <li>Review and merge <strong>PR #7</strong> into <code>main</code>.</li>
+    <li>Deploy <code>main</code> commit to Staging server with PM2 single-writer configuration.</li>
+    <li>Sideload <code>app-debug.apk</code> onto physical Android devices to verify Three.js 60 FPS performance and touch controls.</li>
+    <li>Generate production keystore (<code>keystore.properties</code>), assemble signed release AAB, and promote to production.</li>
+  </ol>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <span>Troyz Solutions — Woobi Monorepo Engineering</span>
+    <span>Generated: November 2026</span>
+    <span>Confidential — Internal Engineering Document</span>
+  </div>
+
+</body>
+</html>
+

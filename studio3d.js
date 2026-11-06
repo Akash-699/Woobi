@@ -30,8 +30,8 @@
         fovPortrait: 56
       },
       WARDROBE_CLOSEUP: {
-        position: new THREE.Vector3(-1.20, 1.25, -0.20),
-        target: new THREE.Vector3(-1.20, 1.20, -2.40),
+        position: new THREE.Vector3(-1.65, 1.25, -1.30),
+        target: new THREE.Vector3(-1.65, 1.20, -3.50),
         fovLandscape: 38,
         fovPortrait: 54
       },
@@ -48,14 +48,14 @@
         fovPortrait: 36
       },
       VANITY_VIEW: {
-        position: new THREE.Vector3(0.95, 1.25, -0.65),
-        target: new THREE.Vector3(1.15, 1.20, -2.20),
+        position: new THREE.Vector3(1.35, 1.25, -1.75),
+        target: new THREE.Vector3(1.60, 1.20, -3.30),
         fovLandscape: 38,
         fovPortrait: 46
       },
       MIRROR_VIEW: {
-        position: new THREE.Vector3(0.95, 1.25, -0.65),
-        target: new THREE.Vector3(1.15, 1.20, -2.20),
+        position: new THREE.Vector3(1.35, 1.25, -1.75),
+        target: new THREE.Vector3(1.60, 1.20, -3.30),
         fovLandscape: 38,
         fovPortrait: 46
       }
@@ -142,7 +142,21 @@
         skinTone: '#F3D5C6',
         hairStyle: 'bun',
         hairColor: '#1E120A',
-        proportions: 'regular',
+        proportions: 'slim_fit',
+        bodyFat: 25,
+        waistDefinition: 70,
+        anatomy: {
+          female: {
+            waist: 70,
+            height: 1.70,
+            weight: 58
+          },
+          male: {
+            waist: 70,
+            height: 1.80,
+            weight: 78
+          }
+        },
         top: 'tank',
         bottom: 'wide_linen',
         shoes: 'sneakers',
@@ -152,6 +166,10 @@
           necklace: false
         }
       };
+
+      // Anatomical Feature Meshes (Breasts, Glutes, Pecs, Shoulders, Stomach)
+      this.anatomicalGroup = null;
+      this.anatomicalMeshes = {};
 
       // Pointer / Drag State
       this.isPointerDown = false;
@@ -363,6 +381,91 @@
       this.textures.creamMarble.wrapT = THREE.RepeatWrapping;
       this.textures.creamMarble.repeat.set(4, 4);
       this.textures.champagneStone = this.textures.creamMarble;
+
+      // 1.5. Authentic European Oak Herringbone Parquet Floor & White Shag Rug Textures
+      const floorSrc = (typeof window !== 'undefined' && window.WOOBI_HERRINGBONE_FLOOR_DATA)
+        ? window.WOOBI_HERRINGBONE_FLOOR_DATA
+        : 'assets/herringbone_floor.jpg';
+      const floorBumpSrc = (typeof window !== 'undefined' && window.WOOBI_HERRINGBONE_BUMP_DATA)
+        ? window.WOOBI_HERRINGBONE_BUMP_DATA
+        : 'assets/herringbone_bump.jpg';
+      const shagSrc = (typeof window !== 'undefined' && window.WOOBI_SHAG_RUG_DATA)
+        ? window.WOOBI_SHAG_RUG_DATA
+        : 'assets/shag_rug.png';
+      const shagBumpSrc = (typeof window !== 'undefined' && window.WOOBI_SHAG_RUG_BUMP_DATA)
+        ? window.WOOBI_SHAG_RUG_BUMP_DATA
+        : 'assets/shag_rug_bump.png';
+
+      if (typeof THREE.TextureLoader !== 'undefined') {
+        const texLoader = new THREE.TextureLoader();
+        const hFloorTex = texLoader.load(floorSrc, (tex) => {
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          tex.repeat.set(10, 10);
+          if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+          if (this.themeModel?.floor?.material) {
+            this.themeModel.floor.material.map = tex;
+            this.themeModel.floor.material.color.setHex(0xFFFFFF);
+            this.themeModel.floor.material.needsUpdate = true;
+          }
+          if (this.fallbackFloorMat) {
+            this.fallbackFloorMat.map = tex;
+            this.fallbackFloorMat.color.setHex(0xFFFFFF);
+            this.fallbackFloorMat.needsUpdate = true;
+          }
+        });
+        hFloorTex.wrapS = THREE.RepeatWrapping;
+        hFloorTex.wrapT = THREE.RepeatWrapping;
+        hFloorTex.repeat.set(10, 10);
+        this.textures.herringboneFloor = hFloorTex;
+
+        const hBumpTex = texLoader.load(floorBumpSrc, (tex) => {
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          tex.repeat.set(10, 10);
+          if (this.themeModel?.floor?.material) {
+            this.themeModel.floor.material.bumpMap = tex;
+            this.themeModel.floor.material.bumpScale = 0.005;
+            this.themeModel.floor.material.needsUpdate = true;
+          }
+          if (this.fallbackFloorMat) {
+            this.fallbackFloorMat.bumpMap = tex;
+            this.fallbackFloorMat.bumpScale = 0.005;
+            this.fallbackFloorMat.needsUpdate = true;
+          }
+        });
+        hBumpTex.wrapS = THREE.RepeatWrapping;
+        hBumpTex.wrapT = THREE.RepeatWrapping;
+        hBumpTex.repeat.set(10, 10);
+        this.textures.herringboneBump = hBumpTex;
+
+        const shagTex = texLoader.load(shagSrc, (tex) => {
+          if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+          if (this.stageModel?.shagRugMesh?.material) {
+            this.stageModel.shagRugMesh.material.map = tex;
+            this.stageModel.shagRugMesh.material.needsUpdate = true;
+          }
+          if (this.fallbackShagMesh?.material) {
+            this.fallbackShagMesh.material.map = tex;
+            this.fallbackShagMesh.material.needsUpdate = true;
+          }
+        });
+        this.textures.shagRug = shagTex;
+
+        const shagBumpTex = texLoader.load(shagBumpSrc, (tex) => {
+          if (this.stageModel?.shagRugMesh?.material) {
+            this.stageModel.shagRugMesh.material.bumpMap = tex;
+            this.stageModel.shagRugMesh.material.bumpScale = 0.018;
+            this.stageModel.shagRugMesh.material.needsUpdate = true;
+          }
+          if (this.fallbackShagMesh?.material) {
+            this.fallbackShagMesh.material.bumpMap = tex;
+            this.fallbackShagMesh.material.bumpScale = 0.018;
+            this.fallbackShagMesh.material.needsUpdate = true;
+          }
+        });
+        this.textures.shagRugBump = shagBumpTex;
+      }
 
       // 2. Warm Champagne Travertine Circular Dais Texture (512x512) - Archidea Home Organic Stone Decor
       const rugCanvas = document.createElement('canvas');
@@ -806,15 +909,15 @@
       this.scene.add(rimLight);
 
       // Soft Warm Interior Fill for Wardrobe (Toned down so oak wood does not blow out)
-      const wardrobeSpot = new THREE.SpotLight(0xFFF2DE, 0.30, 4.8, Math.PI / 4, 0.45, 1.2);
-      wardrobeSpot.position.set(-1.20, 3.4, -1.00);
-      wardrobeSpot.target.position.set(-1.20, 1.22, -2.40);
+      const wardrobeSpot = new THREE.SpotLight(0xFFF2DE, 0.30, 5.6, Math.PI / 4, 0.45, 1.2);
+      wardrobeSpot.position.set(-1.65, 3.4, -2.10);
+      wardrobeSpot.target.position.set(-1.65, 1.22, -3.50);
       this.scene.add(wardrobeSpot);
       this.scene.add(wardrobeSpot.target);
 
-      const vanitySpot = new THREE.SpotLight(0xFFF2DE, 0.38, 4.8, Math.PI / 4, 0.45, 1.2);
-      vanitySpot.position.set(1.15, 3.5, -0.90);
-      vanitySpot.target.position.set(1.15, 1.20, -2.20);
+      const vanitySpot = new THREE.SpotLight(0xFFF2DE, 0.38, 5.6, Math.PI / 4, 0.45, 1.2);
+      vanitySpot.position.set(1.60, 3.5, -2.00);
+      vanitySpot.target.position.set(1.60, 1.20, -3.30);
       this.scene.add(vanitySpot);
       this.scene.add(vanitySpot.target);
     }
@@ -833,16 +936,17 @@
         return;
       }
 
-      // 1. Darker Neutral Matte Grey Architectural Ground Plane (#616161) with Tactile Relief
+      // 1. European Oak Herringbone Parquet Floor with Tactile Relief
       const floorGeo = new THREE.PlaneGeometry(28, 28);
       const floorMat = new THREE.MeshStandardMaterial({
-        map: null,
-        bumpMap: this.textures.stoneBump || null,
-        bumpScale: 0.003,
-        roughness: 0.82,
-        metalness: 0.01,
-        color: 0x616161
+        map: this.textures.herringboneFloor || this.textures.champagneStone || null,
+        bumpMap: this.textures.herringboneBump || this.textures.stoneBump || null,
+        bumpScale: this.textures.herringboneFloor ? 0.005 : 0.003,
+        roughness: 0.58,
+        metalness: 0.02,
+        color: this.textures.herringboneFloor ? 0xFFFFFF : 0xC49B67
       });
+      this.fallbackFloorMat = floorMat;
       const floor = new THREE.Mesh(floorGeo, floorMat);
       floor.rotation.x = -Math.PI / 2;
       floor.position.y = 0;
@@ -862,10 +966,32 @@
       const wallMat = this.fallbackWallMat;
       const wallGeo = new THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
       const backWall = new THREE.Mesh(wallGeo, wallMat);
-      backWall.position.set(0, 4.0, 8.2);
+      backWall.position.set(0, 4.0, 7.0);
       backWall.rotation.y = Math.PI; // Orient curved wall behind avatar towards negative Z
       backWall.receiveShadow = false; // Prevents directional shadow frustum from cutting off horizontally across the curved back wall
       this.scene.add(backWall);
+
+      // Opposing Front Architectural Wall (Completes 360° Room Enclosure for Mirror Reflections)
+      const frontWallGeo = new THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.55, Math.PI * 1.1);
+      const frontWall = new THREE.Mesh(frontWallGeo, wallMat);
+      frontWall.position.set(0, 4.0, 7.0);
+      frontWall.receiveShadow = false;
+      this.scene.add(frontWall);
+
+      // Architectural Studio Ceiling
+      const ceilingGeo = new THREE.CircleGeometry(12.0, 48);
+      const ceilingMat = new THREE.MeshStandardMaterial({ color: 0xF5EFEB, roughness: 0.96, side: THREE.BackSide });
+      const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
+      ceiling.rotation.x = Math.PI / 2;
+      ceiling.position.set(0, 8.0, 7.0);
+      this.scene.add(ceiling);
+
+      // Architectural Baseboard Skirting
+      const baseboardGeo = new THREE.CylinderGeometry(11.96, 11.96, 0.22, 64, 1, true);
+      const baseboardMat = new THREE.MeshStandardMaterial({ color: 0x362518, roughness: 0.5, side: THREE.BackSide });
+      const baseboard = new THREE.Mesh(baseboardGeo, baseboardMat);
+      baseboard.position.set(0, 0.11, 7.0);
+      this.scene.add(baseboard);
 
       // 3. Diagonal Window Mullion Sunlight Shadow Projected on Wall/Floor
       const windowShadowGroup = new THREE.Group();
@@ -956,12 +1082,31 @@
       rugGroup.position.set(0, 0, 0);
       rugGroup.scale.set(0.88, 1.0, 0.88);
 
-      const shadowGeo = new THREE.CircleGeometry(1.18, 64);
+      // 1. Deep ground contact shadow disc
+      const shadowGeo = new THREE.CircleGeometry(1.65, 64);
       const shadowMat = new THREE.MeshBasicMaterial({ color: 0x22180F, transparent: true, opacity: 0.30 });
       const shadowDisc = new THREE.Mesh(shadowGeo, shadowMat);
       shadowDisc.rotation.x = -Math.PI / 2;
       shadowDisc.position.y = 0.002;
       rugGroup.add(shadowDisc);
+
+      // 1.5. Large Plush White Shaggy Bouclé Circular Rug (Ground level beneath dais)
+      const shagGeo = new THREE.CylinderGeometry(1.50, 1.515, 0.012, 64);
+      const shagMat = new THREE.MeshStandardMaterial({
+        map: this.textures.shagRug || null,
+        bumpMap: this.textures.shagRugBump || this.textures.stoneBump || null,
+        bumpScale: 0.018,
+        roughness: 0.92,
+        metalness: 0.0,
+        color: 0xFFFFFF,
+        transparent: true,
+        alphaTest: 0.02
+      });
+      const shagRug = new THREE.Mesh(shagGeo, shagMat);
+      shagRug.position.y = 0.006;
+      shagRug.receiveShadow = true;
+      rugGroup.add(shagRug);
+      this.fallbackShagMesh = shagRug;
 
       const rugRadius = 0.95;
       const rugThickness = 0.080;
@@ -1016,7 +1161,7 @@
 
       const wardrobeGroup = new THREE.Group();
       // Position naturally on left wall with angled perspective matching Reference D
-      wardrobeGroup.position.set(-1.20, 0, -2.40);
+      wardrobeGroup.position.set(-1.65, 0, -3.50);
       wardrobeGroup.rotation.y = 0.35;
 
       const scale = 2.40 / 3.00;
@@ -1385,7 +1530,7 @@
       }
 
       const vanityGroup = new THREE.Group();
-      vanityGroup.position.set(1.15, 0, -2.20);
+      vanityGroup.position.set(1.60, 0, -3.30);
       vanityGroup.rotation.y = -0.32; // Angled gracefully towards stage
 
       const brassMat = new THREE.MeshStandardMaterial({
@@ -1618,6 +1763,40 @@
       hitBox.userData = { interactiveType: 'vanity', name: 'Arched Vanity & Grooming Mirror' };
       vanityGroup.add(hitBox);
       this.interactiveObjects.push(hitBox);
+
+      // Attempt authentic Woobi Vanity GLB loading
+      if (typeof THREE.GLTFLoader !== 'undefined') {
+        const gltfLoader = new THREE.GLTFLoader();
+        const vanityPaths = [
+          '3D - Mirror and stuffs/woobi_vanity.glb',
+          'woobi_vanity.glb',
+          'seren_vanity.glb'
+        ];
+        const tryLoadGLB = (idx) => {
+          if (idx >= vanityPaths.length) return;
+          gltfLoader.load(vanityPaths[idx], (gltf) => {
+            const model = gltf.scene;
+            model.position.set(0, 0, 0);
+            model.traverse((child) => {
+              if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+                if (child.name === 'Mirror_Surface' || child.name.toLowerCase().includes('mirror_surface')) {
+                  this.mirrorGlassMesh = child;
+                }
+              }
+            });
+            topSlab.visible = false;
+            mirrorGroup.visible = false;
+            perfumeGroup.visible = false;
+            brushHolder.visible = false;
+            vaseGroup.visible = false;
+            stoolGroup.visible = false;
+            vanityGroup.add(model);
+          }, undefined, () => tryLoadGLB(idx + 1));
+        };
+        tryLoadGLB(0);
+      }
 
       this.scene.add(vanityGroup);
     }
@@ -2036,9 +2215,13 @@
             console.log('Studio3D: Rigged 3D avatar loaded successfully from', url);
             this.gltfAvatarGroup = this.avatarModel.gltfAvatarGroup;
             this.activeAvatarType = this.avatarModel.activeAvatarType;
+            this.buildAnatomicalFeatures(this.avatarConfig.gender || 'female');
+            this.updateBodyMeshScale();
           },
           (err) => {
             console.log('Studio3D: Using high-definition sculpted avatar.');
+            this.buildAnatomicalFeatures(this.avatarConfig.gender || 'female');
+            this.updateBodyMeshScale();
           }
         );
         return;
@@ -2050,8 +2233,10 @@
 
       const loader = new THREE.GLTFLoader();
       const modelUrls = [
-        'assets/models/avatar_female.glb',
-        'https://readyplayerme.github.io/visage/female.glb'
+        'Woobi_Female_Mannequin_Fixed.glb?v=human_v2',
+        'woobi_female_mannequin.glb?v=human_v2',
+        '3D - Mannequin By Astra/Woobi_Female_Mannequin.glb?v=human_v2',
+        'seren_avatar.glb'
       ];
 
       const tryLoad = (index) => {
@@ -2064,9 +2249,9 @@
             console.log('Studio3D: Rigged 3D avatar loaded successfully from', url);
             const model = gltf.scene;
 
-            // Scale & position model correctly onto the elevated stage dais
+            // Scale & position model correctly onto the elevated stage dais (avatarRoot provides the 0.080m dais elevation)
             model.scale.set(0.96, 0.96, 0.96);
-            model.position.set(0, 0.080, 0);
+            model.position.set(0, 0, 0);
 
             // Traverse and apply luxury reference styling
             model.traverse((child) => {
@@ -2087,6 +2272,12 @@
                 } else if (child.name.includes('Footwear') || child.name.includes('Shoes')) {
                   child.material.color = new THREE.Color(COLOR_PALETTE.sneakersWhite);
                 }
+
+                if (child.geometry && child.geometry.attributes && child.geometry.attributes.position) {
+                  if (!child.geometry.userData.basePositions) {
+                    child.geometry.userData.basePositions = new Float32Array(child.geometry.attributes.position.array);
+                  }
+                }
               }
             });
 
@@ -2095,6 +2286,8 @@
             this.avatarRoot.add(this.gltfAvatarGroup);
             this.sculptedAvatarGroup.visible = false;
             this.activeAvatarType = 'glb';
+            this.buildAnatomicalFeatures(this.avatarConfig.gender || 'female');
+            this.updateBodyMeshScale();
           },
           undefined,
           (err) => {
@@ -2130,8 +2323,8 @@
           magFilter: THREE.LinearFilter
         });
 
-        this.mirrorCamera = new THREE.PerspectiveCamera(24, 0.62, 1.8, 25);
-        this.mirrorCamera.position.set(1.85, 1.25, -2.40);
+        this.mirrorCamera = new THREE.PerspectiveCamera(24, 0.62, 1.8, 60);
+        this.mirrorCamera.position.set(2.25, 1.25, -3.50);
         this.mirrorCamera.lookAt(0, 1.15, 0);
         this.scene.add(this.mirrorCamera);
 
@@ -2363,60 +2556,464 @@
     }
 
     /**
-     * Avatar Customization API: Body Proportions
+     * Avatar Customization API: Body Proportions & Silhouette
      */
     setBodyProportions(preset) {
       this.avatarConfig.proportions = preset;
       if (this.avatarController && typeof this.avatarController.setBodyProportions === 'function') {
         this.avatarController.setBodyProportions(preset);
-        return;
       }
-      let scaleX = 1.0;
-      let scaleY = 1.0;
-
-      switch (preset) {
-        case 'petite':
-          scaleX = 0.94;
-          scaleY = 0.94;
-          break;
-        case 'tall':
-          scaleX = 0.98;
-          scaleY = 1.06;
-          break;
-        case 'athletic':
-          scaleX = 1.05;
-          scaleY = 1.02;
-          break;
-        case 'curvy':
-          scaleX = 1.08;
-          scaleY = 1.00;
-          break;
-        default:
-          scaleX = 1.0;
-          scaleY = 1.0;
-      }
-
-      if (this.avatarRoot) {
-        this.avatarRoot.scale.set(scaleX, scaleY, scaleX);
-      }
+      this.updateBodyMeshScale();
       this.savePreferences();
     }
 
     /**
-     * Avatar Customization API: Gender Presentation
+     * Avatar Customization API: Body Fat & Composition Adjustment
+     * Adjusts body cross-sectional girth (X & Z) smoothly while maintaining elevation
+     */
+    setBodyFat(val) {
+      const num = Math.max(0, Math.min(100, parseFloat(val) || 0));
+      this.avatarConfig.bodyFat = num;
+      if (this.avatarController && typeof this.avatarController.setBodyComposition === 'function') {
+        this.avatarController.setBodyComposition({ bodyFat: num });
+      }
+      this.updateBodyMeshScale();
+      this.savePreferences();
+      return num;
+    }
+
+    setWaistDefinition(val) {
+      const num = Math.max(0, Math.min(100, parseFloat(val) || 0));
+      this.avatarConfig.waistDefinition = num;
+      if (this.avatarController && typeof this.avatarController.setBodyComposition === 'function') {
+        this.avatarController.setBodyComposition({ waistDefinition: num });
+      }
+      this.updateBodyMeshScale();
+      this.savePreferences();
+      return num;
+    }
+
+    updateBodyMeshScale() {
+      const isMale = (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male');
+      const anatomy = this.avatarConfig.anatomy ? (isMale ? this.avatarConfig.anatomy.male : this.avatarConfig.anatomy.female) : null;
+
+      const baseHeight = isMale ? 1.80 : 1.70;
+      const baseWeight = isMale ? 78 : 58;
+      const height = (anatomy && typeof anatomy.height === 'number') ? anatomy.height : baseHeight;
+      const weight = (anatomy && typeof anatomy.weight === 'number') ? anatomy.weight : baseWeight;
+
+      const scaleY = height / baseHeight;
+      const scaleXZ = Math.sqrt(weight / (baseWeight * Math.max(0.5, scaleY)));
+
+      const preset = this.avatarConfig.proportions || (isMale ? 'athletic' : 'slim_fit');
+      let baseScaleX = 1.0;
+      let baseScaleY = 1.0;
+      let baseScaleZ = 1.0;
+
+      switch (preset) {
+        case 'slim_fit':
+          baseScaleX = 0.92;
+          baseScaleY = 1.02;
+          baseScaleZ = 0.90;
+          break;
+        case 'petite':
+          baseScaleX = 0.94;
+          baseScaleY = 0.94;
+          baseScaleZ = 0.94;
+          break;
+        case 'tall':
+          baseScaleX = 0.98;
+          baseScaleY = 1.06;
+          baseScaleZ = 0.98;
+          break;
+        case 'athletic':
+          baseScaleX = 1.05;
+          baseScaleY = 1.02;
+          baseScaleZ = 1.04;
+          break;
+        case 'curvy':
+          baseScaleX = 1.08;
+          baseScaleY = 1.00;
+          baseScaleZ = 1.08;
+          break;
+        default:
+          baseScaleX = 1.00;
+          baseScaleY = 1.00;
+          baseScaleZ = 1.00;
+      }
+
+      const fat = typeof this.avatarConfig.bodyFat === 'number' ? this.avatarConfig.bodyFat : (isMale ? 20 : 25);
+      const fatMultiplier = 0.88 + (fat / 100) * 0.32;
+
+      const waist = (anatomy && typeof anatomy.waist === 'number')
+        ? anatomy.waist
+        : (typeof this.avatarConfig.waistDefinition === 'number' ? this.avatarConfig.waistDefinition : 70);
+      const waistMultiplier = isMale ? 1.0 : (1.08 - (waist / 100) * 0.16);
+
+      const finalScaleX = baseScaleX * scaleXZ * fatMultiplier;
+      const finalScaleZ = baseScaleZ * scaleXZ * fatMultiplier;
+      const finalScaleY = baseScaleY * scaleY;
+
+      if (this.avatarRoot) {
+        this.avatarRoot.scale.set(finalScaleX, finalScaleY, finalScaleZ);
+        this.avatarRoot.position.y = 0.080;
+      }
+
+      if (this.gltfAvatarGroup) {
+        this.gltfAvatarGroup.position.set(0, 0, 0);
+      }
+
+      this.updateAnatomy();
+    }
+
+    /**
+     * Avatar Customization API: Gender Presentation (Swaps Female / Male Mannequin)
      */
     setGenderPresentation(gender) {
-      this.avatarConfig.gender = gender;
-      if (this.avatarController && typeof this.avatarController.setGenderPresentation === 'function') {
-        this.avatarController.setGenderPresentation(gender);
-        return;
-      }
-      if (gender === 'masculine') {
+      const isMale = (gender === 'masculine' || gender === 'male');
+      const targetGender = isMale ? 'male' : 'female';
+      this.avatarConfig.gender = targetGender;
+
+      if (isMale) {
+        this.loadMannequin('male');
         this.setBodyProportions('athletic');
       } else {
-        this.setBodyProportions('regular');
+        this.loadMannequin('female');
+        this.setBodyProportions('slim_fit');
       }
+
+      if (this.avatarController && typeof this.avatarController.setGenderPresentation === 'function') {
+        this.avatarController.setGenderPresentation(gender);
+      }
+
+      this.buildAnatomicalFeatures(targetGender);
+      this.updateBodyMeshScale();
       this.savePreferences();
+    }
+
+    /**
+     * Model Display Mode: Stylized Avatar vs. Astra Tailoring Mannequin
+     */
+    setModelType(type) {
+      this.avatarConfig.modelType = type;
+      if (type === 'mannequin_female' || type === 'female_mannequin') {
+        this.loadMannequin('female');
+      } else if (type === 'mannequin_male' || type === 'male_mannequin') {
+        this.loadMannequin('male');
+      } else {
+        // Return to standard avatar
+        if (this.gltfAvatarGroup && this.avatarRoot) {
+          this.avatarRoot.remove(this.gltfAvatarGroup);
+          this.gltfAvatarGroup = null;
+        }
+        if (this.sculptedAvatarGroup) {
+          this.sculptedAvatarGroup.visible = true;
+        }
+        this.activeAvatarType = 'sculpted';
+        this.avatarConfig.modelType = 'avatar';
+        this.loadRiggedAvatarGLB();
+        this.buildAnatomicalFeatures(this.avatarConfig.gender || 'female');
+        this.savePreferences();
+      }
+    }
+
+    /**
+     * Smoothly rotates the active avatar/mannequin to an exact target yaw angle (in radians)
+     */
+    setAvatarRotation(rad) {
+      this.targetRotationY = Number(rad) || 0;
+    }
+
+    /**
+     * Creates matching warm porcelain PBR material for seamless anatomical blending
+     */
+    createPorcelainAnatomyMaterial() {
+      const mat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(0xD9CDBC), // Warm Ivory matching Astra
+        roughness: 0.74,
+        metalness: 0.02,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1
+      });
+
+      if (this.gltfAvatarGroup) {
+        this.gltfAvatarGroup.traverse((child) => {
+          if (child.isMesh && child.material && !child.material.map) {
+            mat.color.copy(child.material.color);
+            mat.roughness = child.material.roughness;
+            mat.metalness = child.material.metalness;
+          }
+        });
+      }
+      return mat;
+    }
+
+    /**
+     * Ensures clean, properly fitted basic underwear presentation
+     * Male: plain boxer briefs
+     * Female: full-coverage briefs & matching bra
+     */
+    buildMannequinUndergarments(targetGender = 'female') {
+      if (!this.gltfAvatarGroup) return;
+
+      const isMale = (targetGender === 'male' || targetGender === 'masculine');
+
+      // Style and configure undergarment meshes with realistic PBR fabric material
+      const fabricColor = new THREE.Color(0x222428); // Refined neutral matte charcoal
+      this.gltfAvatarGroup.traverse((child) => {
+        if (child.isMesh && (child.name === 'Woobi_Female_Brassiere' || child.name === 'Woobi_Female_Briefs' || child.name === 'Woobi_Male_Underwear')) {
+          child.visible = true;
+          child.castShadow = true;
+          child.receiveShadow = true;
+          if (child.material) {
+            if (Array.isArray(child.material)) {
+              child.material.forEach((mat) => {
+                mat.color.copy(fabricColor);
+                mat.roughness = 0.78;
+                mat.metalness = 0.0;
+              });
+            } else {
+              child.material.color.copy(fabricColor);
+              child.material.roughness = 0.78;
+              child.material.metalness = 0.0;
+            }
+          }
+        }
+      });
+    }
+
+    /**
+     * Builds and attaches natural features.
+     * Mannequins natively feature understated, graceful, natural contours.
+     * Guarantees zero unnatural muscle bumps, zero crude additions, and zero z-fighting.
+     */
+    buildAnatomicalFeatures(gender = 'female') {
+      const isMale = (gender === 'male' || gender === 'masculine');
+      const targetGender = isMale ? 'male' : 'female';
+
+      // Clean up previous anatomical group to guarantee zero extraneous objects
+      if (this.anatomicalGroup) {
+        if (this.avatarRoot) {
+          this.avatarRoot.remove(this.anatomicalGroup);
+        }
+        this.anatomicalGroup.traverse((child) => {
+          if (child.isMesh) {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+              if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+              else child.material.dispose();
+            }
+          }
+        });
+        this.anatomicalGroup = null;
+        this.anatomicalMeshes = {};
+      }
+
+      this.buildMannequinUndergarments(targetGender);
+      this.updateAnatomy();
+    }
+
+    /**
+     * Guarantees that the 3D mannequin mesh remains smooth, natural, and pristine.
+     * Applies subtle, organic waistline silhouette contouring based on tailoring parameters.
+     */
+    applyAnatomicalVertexMorphs() {
+      if (!this.gltfAvatarGroup) return;
+
+      const isMale = (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male');
+      const anatomy = this.avatarConfig.anatomy ? (isMale ? this.avatarConfig.anatomy.male : this.avatarConfig.anatomy.female) : null;
+      const waist = (anatomy && typeof anatomy.waist === 'number')
+        ? anatomy.waist
+        : (typeof this.avatarConfig.waistDefinition === 'number' ? this.avatarConfig.waistDefinition : 70);
+
+      // Natural waist factor: 70 is natural baseline (1.0), 90 is slim fit (~0.968), 30 is relaxed (~1.064)
+      const waistFactor = 1.0 - ((waist - 70) / 100) * 0.16;
+      const waistCenterY = isMale ? 1.08 : 1.04;
+      const waistSigma = isMale ? 0.14 : 0.12;
+
+      this.gltfAvatarGroup.traverse((child) => {
+        if (!child.isMesh || !child.geometry || !child.geometry.attributes || !child.geometry.attributes.position) return;
+        const geom = child.geometry;
+        const posAttr = geom.attributes.position;
+        if (!geom.userData.basePositions) {
+          geom.userData.basePositions = new Float32Array(posAttr.array);
+        }
+
+        const base = geom.userData.basePositions;
+        const count = posAttr.count;
+
+        // If waist is standard baseline, restore base positions cleanly
+        if (Math.abs(waist - 70) < 0.5) {
+          posAttr.array.set(base);
+        } else {
+          for (let i = 0; i < count; i++) {
+            const bx = base[i * 3];
+            const by = base[i * 3 + 1];
+            const bz = base[i * 3 + 2];
+
+            // Gaussian falloff around waistline
+            const dy = by - waistCenterY;
+            const bell = Math.exp(-(dy * dy) / (waistSigma * waistSigma));
+
+            const scale = 1.0 + (waistFactor - 1.0) * bell;
+            posAttr.setX(i, bx * scale);
+            posAttr.setY(i, by);
+            posAttr.setZ(i, bz * (1.0 + (waistFactor - 1.0) * bell * 0.70));
+          }
+        }
+        posAttr.needsUpdate = true;
+        geom.computeVertexNormals();
+      });
+    }
+
+    /**
+     * Synchronizes natural mannequin geometry and proportions
+     */
+    updateAnatomy() {
+      this.applyAnatomicalVertexMorphs();
+    }
+
+    /**
+     * Sets specific sizing parameters (height, weight, waist) and updates whole-body scaling
+     */
+    setAnatomy(key, val, gender = null) {
+      const g = gender || (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male' ? 'male' : 'female');
+      if (!this.avatarConfig.anatomy) {
+        this.avatarConfig.anatomy = {
+          female: { waist: 70, height: 1.70, weight: 58 },
+          male: { waist: 70, height: 1.80, weight: 78 }
+        };
+      }
+      if (!this.avatarConfig.anatomy[g]) {
+        this.avatarConfig.anatomy[g] = {};
+      }
+      this.avatarConfig.anatomy[g][key] = parseFloat(val);
+      this.updateAnatomy();
+      this.updateBodyMeshScale();
+      try {
+        localStorage.removeItem('seren_avatar_prefs');
+        localStorage.removeItem('seren_avatar_prefs_v2');
+      } catch (_) {}
+      this.savePreferences();
+    }
+
+    /**
+     * Resets avatar anatomy, proportions, and body shape to pristine natural mannequin shape
+     */
+    resetAnatomyToNormal() {
+      const isMale = (this.avatarConfig.gender === 'masculine' || this.avatarConfig.gender === 'male');
+      this.avatarConfig.anatomy = {
+        female: { waist: 70, height: 1.70, weight: 58 },
+        male: { waist: 70, height: 1.80, weight: 78 }
+      };
+      this.avatarConfig.proportions = isMale ? 'athletic' : 'slim_fit';
+      this.avatarConfig.bodyFat = isMale ? 20 : 25;
+      this.avatarConfig.waistDefinition = 70;
+
+      // Restore base vertex positions directly (0 displacement = pristine natural model)
+      if (this.gltfAvatarGroup) {
+        this.gltfAvatarGroup.traverse((child) => {
+          if (child.isMesh && child.geometry && child.geometry.userData && child.geometry.userData.basePositions) {
+            const posAttr = child.geometry.attributes.position;
+            posAttr.array.set(child.geometry.userData.basePositions);
+            posAttr.needsUpdate = true;
+            child.geometry.computeVertexNormals();
+          }
+        });
+      }
+
+      this.updateAnatomy();
+      this.updateBodyMeshScale();
+      try {
+        localStorage.removeItem('seren_avatar_prefs');
+        localStorage.removeItem('seren_avatar_prefs_v2');
+        localStorage.removeItem('seren_avatar_prefs_v3');
+      } catch (_) {}
+      this.savePreferences();
+    }
+
+    /**
+     * Loads Astra Mannequin (Female or Male)
+     */
+    loadMannequin(gender = 'female') {
+      if (typeof THREE.GLTFLoader === 'undefined') return;
+
+      const isMale = (gender === 'male' || gender === 'masculine');
+      const targetGender = isMale ? 'male' : 'female';
+      this.avatarConfig.gender = targetGender;
+
+      const loader = new THREE.GLTFLoader();
+      const urls = isMale
+        ? [
+            'woobi_male_mannequin.glb?v=human_v2',
+            '3D - Mannequin By Astra/Woobi_Male_Mannequin.glb?v=human_v2',
+            '3D - Mannequin By Astra/male/Woobi_Male_Mannequin.glb?v=human_v2'
+          ]
+        : [
+            'Woobi_Female_Mannequin_Fixed.glb?v=human_v2',
+            'woobi_female_mannequin.glb?v=human_v2',
+            '3D - Mannequin By Astra/Woobi_Female_Mannequin.glb?v=human_v2',
+            '3D - Mannequin By Astra/female/Woobi_Female_Mannequin.glb?v=human_v2'
+          ];
+
+      const tryLoad = (idx) => {
+        if (idx >= urls.length) return;
+        const url = urls[idx];
+        loader.load(
+          url,
+          (gltf) => {
+            console.log(`Studio3D: Astra ${targetGender} mannequin loaded successfully from`, url);
+            const model = gltf.scene;
+
+            // Remove existing gltfAvatarGroup if present
+            if (this.gltfAvatarGroup && this.avatarRoot) {
+              this.avatarRoot.remove(this.gltfAvatarGroup);
+            }
+
+            // Position model cleanly on the dais (avatarRoot provides the 0.080m dais elevation)
+            model.position.set(0, 0, 0);
+
+            model.traverse((child) => {
+              if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+                if (child.geometry && child.geometry.attributes && child.geometry.attributes.position) {
+                  if (!child.geometry.userData.basePositions) {
+                    child.geometry.userData.basePositions = new Float32Array(child.geometry.attributes.position.array);
+                  }
+                }
+              }
+            });
+
+            this.gltfAvatarGroup = model;
+            if (this.avatarRoot) {
+              this.avatarRoot.add(this.gltfAvatarGroup);
+            }
+            if (this.avatarModel) {
+              this.avatarModel.gltfAvatarGroup = model;
+              if (this.avatarModel.animations && typeof this.avatarModel.animations.setGLTFModel === 'function') {
+                this.avatarModel.animations.setGLTFModel(this.gltfAvatarGroup);
+              }
+            }
+            if (this.sculptedAvatarGroup) {
+              this.sculptedAvatarGroup.visible = false;
+            }
+            this.activeAvatarType = 'mannequin';
+            this.avatarConfig.modelType = `mannequin_${targetGender}`;
+
+            // Build distinct anatomical contours
+            this.buildAnatomicalFeatures(targetGender);
+
+            this.updateBodyMeshScale();
+            this.savePreferences();
+          },
+          undefined,
+          () => tryLoad(idx + 1)
+        );
+      };
+
+      tryLoad(0);
     }
 
     /**
@@ -2453,10 +3050,11 @@
      */
     loadSavedPreferences() {
       try {
-        const saved = localStorage.getItem('seren_avatar_prefs');
+        const saved = localStorage.getItem('seren_avatar_prefs_v4');
         if (saved) {
           const parsed = JSON.parse(saved);
           this.avatarConfig = Object.assign(this.avatarConfig, parsed);
+          this.updateBodyMeshScale();
         }
       } catch (e) {
         console.warn('Studio3D: Could not read avatar prefs from storage', e);
@@ -2465,7 +3063,7 @@
 
     savePreferences() {
       try {
-        localStorage.setItem('seren_avatar_prefs', JSON.stringify(this.avatarConfig));
+        localStorage.setItem('seren_avatar_prefs_v4', JSON.stringify(this.avatarConfig));
       } catch (e) {
         console.warn('Studio3D: Could not persist avatar prefs', e);
       }
@@ -2544,6 +3142,9 @@
         if (this.avatarController) {
           this.avatarController.setTargetRotation(this.targetRotationY);
         }
+        if (this.avatarModel.animations && this.gltfAvatarGroup && typeof this.avatarModel.animations.setGLTFModel === 'function') {
+          this.avatarModel.animations.setGLTFModel(this.gltfAvatarGroup);
+        }
         this.avatarModel.update(delta, time);
         if (this.features && typeof this.features.update === 'function') {
           this.features.update(delta, time);
@@ -2557,13 +3158,40 @@
           this.avatarRoot.rotation.y = this.avatarRotationY;
         }
 
-        // 2. Subtle Idle Breathing Motion
+        // 2. Continuous Organic Respiration & Living Postural Micro-Sway (Living Mannequin Presence)
+        const breathSpeed = 1.365; // Relaxed respiration: ~13 breaths/min, 4.6s full cycle
         const breath = Math.sin(time * 1.6) * 0.003;
+        const breathCycle = (time * breathSpeed) % (Math.PI * 2);
+        // Asymmetric respiration waveform (active inhalation, smooth passive elastic recoil)
+        const breathNormalized = Math.sin(breathCycle - Math.sin(breathCycle) * 0.28);
+
+        // Biomechanical postural sway angles (inverted pendulum from ankle pivot)
+        const swayZ = Math.sin(time * 0.95) * 0.016; // Coronal lateral weight shift between feet (6.6s cycle, ~0.92 deg)
+        const swayX = Math.sin(time * 1.365 + 0.45) * 0.011 + Math.sin(time * 2.73) * 0.0025; // Sagittal postural lean synchronized with deep breath (~0.77 deg)
+        const swayY = Math.cos(time * 0.74) * 0.012; // Natural idle presence yaw drift (8.5s cycle, ~0.69 deg)
+
         if (this.chestGroup) {
           this.chestGroup.position.y = 1.22 + breath;
+          this.chestGroup.scale.set(1.0 + breathNormalized * 0.015, 1.0, 1.0 + breathNormalized * 0.025);
         }
         if (this.headGroup) {
           this.headGroup.position.y = 1.54 + breath * 0.6;
+          this.headGroup.rotation.z = swayZ * 0.50;
+          this.headGroup.rotation.x = swayX * 0.50;
+        }
+
+        // Animate loaded GLTF human mannequin (Organic breathing & living postural slow movements)
+        if (this.gltfAvatarGroup) {
+          // Thoracic breathing: Ribcage expansion and vertical elevation anchored at feet (y=0)
+          this.gltfAvatarGroup.scale.set(
+            1.0 + breathNormalized * 0.018, // 1.8% lateral ribcage expansion
+            1.0 + breathNormalized * 0.012, // 1.2% (~2.1cm) vertical thoracic rise and fall
+            1.0 + breathNormalized * 0.034  // 3.4% chest and bust forward expansion
+          );
+          // Natural living slow movements: graceful postural sway & weight shift from ankle/hip pivot
+          this.gltfAvatarGroup.rotation.x = swayX;
+          this.gltfAvatarGroup.rotation.z = swayZ;
+          this.gltfAvatarGroup.rotation.y = swayY;
         }
 
         // 3. Natural Periodic Eyelid Blinking
@@ -2628,12 +3256,22 @@
         this.vanityModel.reflection.update(this.renderer, this.scene, this.camera);
       } else if (this.mirrorRenderTarget && this.mirrorCamera && activeMirrorMesh) {
         activeMirrorMesh.visible = false;
-        this.mirrorCamera.position.set(1.85, 1.25, -2.40);
+        this.mirrorCamera.position.set(2.25, 1.25, -3.50);
         this.mirrorCamera.lookAt(0, 1.15, 0); // Looking towards avatar torso from optical reflection position
+        this.mirrorCamera.far = 60.0;
+
+        const origFog = this.scene.fog;
+        if (origFog && typeof origFog.color !== 'undefined') {
+          this.scene.fog = new THREE.Fog(origFog.color, 18.0, 60.0);
+        }
 
         this.renderer.setRenderTarget(this.mirrorRenderTarget);
         this.renderer.render(this.scene, this.mirrorCamera);
         this.renderer.setRenderTarget(null);
+
+        if (origFog) {
+          this.scene.fog = origFog;
+        }
 
         activeMirrorMesh.visible = true;
       }
