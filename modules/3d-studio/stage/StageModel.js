@@ -16,8 +16,8 @@ export const STAGE_CONFIG = {
   rimThickness: 0.012,          // Stitched trim tube thickness
   rotationArcRadius: 0.72,      // 360-degree rotation guide arc radius
   rotationArcOpacity: 0.60,     // Guide arc opacity
-  accentRugPosition: { x: 1.45, y: 0.008, z: 1.6 },
-  accentRugRadius: 0.75,
+  accentRugPosition: { x: 0, y: 0.004, z: 0 },
+  accentRugRadius: 1.12,
   glbPaths: ['3D - Stage by Astra/seren_stage.glb', 'seren_stage.glb']
 };
 
@@ -44,6 +44,10 @@ export class StageModel {
     this.group = new THREE.Group();
     this.group.name = 'woobi_stage_root';
     this.group.position.set(0, 0, 0);
+    // Proportionally scale horizontal footprint (X/Z) by ~12% to prevent visual dominance while strictly preserving 8cm elevation (Y=1)
+    if (this.group.scale && typeof this.group.scale.set === 'function') {
+      this.group.scale.set(0.88, 1.0, 0.88);
+    }
 
     const { radius, thickness, shadowRadius, shadowOpacity, daisElevation } = this.config;
 
@@ -58,7 +62,7 @@ export class StageModel {
 
     // 2. Procedural Woven Elevated Stage Platform
     const rugGeo = new THREE.CylinderGeometry(radius, radius + 0.012, thickness, 64);
-    const rugMat = StageMaterials.createDaisMaterial(THREE, textures.wovenRug);
+    const rugMat = StageMaterials.createDaisMaterial(THREE, textures.champagneStone || textures.wovenRug, textures.stoneBump);
     const rugMesh = new THREE.Mesh(rugGeo, rugMat);
     rugMesh.position.y = thickness / 2;
     rugMesh.receiveShadow = true;
@@ -88,8 +92,8 @@ export class StageModel {
       this.disposables.push(arcGeo);
     });
 
-    // 5. Secondary peeking accent rug at foreground right
-    const accentGeo = new THREE.CylinderGeometry(this.config.accentRugRadius, this.config.accentRugRadius + 0.01, 0.016, 48);
+    // 5. Complete concentric architectural base circle beneath dais
+    const accentGeo = new THREE.CylinderGeometry(this.config.accentRugRadius, this.config.accentRugRadius + 0.012, 0.008, 64);
     const accentRug = new THREE.Mesh(accentGeo, rugMat);
     accentRug.position.set(this.config.accentRugPosition.x, this.config.accentRugPosition.y, this.config.accentRugPosition.z);
     accentRug.receiveShadow = true;
@@ -106,6 +110,64 @@ export class StageModel {
           (gltf) => {
             const stageModel = gltf.scene;
             stageModel.position.set(0, 0, 0);
+            stageModel.traverse((child) => {
+              if (child.isMesh && child.material) {
+                // Generate planar UVs for horizontal stage geometry if missing (seren_stage.glb has no UV attributes)
+                if (child.geometry && !child.geometry.attributes?.uv && child.geometry.attributes?.position && typeof THREE.BufferAttribute !== 'undefined') {
+                  const pos = child.geometry.attributes.position;
+                  if (typeof child.geometry.computeBoundingBox === 'function') {
+                    child.geometry.computeBoundingBox();
+                  }
+                  const bb = child.geometry.boundingBox;
+                  const minX = bb ? bb.min.x : -0.956;
+                  const maxX = bb ? bb.max.x : 0.956;
+                  const minZ = bb ? bb.min.z : -0.956;
+                  const maxZ = bb ? bb.max.z : 0.956;
+                  const spanX = (maxX - minX) || 1.912;
+                  const spanZ = (maxZ - minZ) || 1.912;
+
+                  const uvs = new Float32Array(pos.count * 2);
+                  for (let i = 0; i < pos.count; i++) {
+                    const x = pos.getX(i);
+                    const z = pos.getZ(i);
+                    uvs[i * 2] = (x - minX) / spanX;
+                    uvs[i * 2 + 1] = (z - minZ) / spanZ;
+                  }
+                  child.geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+                }
+
+                if (child.name.includes('Rug_Surface') || child.name.includes('Stage_Base') || child.name.includes('Ring')) {
+                  if (child.material.color && typeof child.material.color.setHex === 'function') {
+                    child.material.color.setHex(0xD2BEA0); // Champagne stone
+                  }
+                  if (textures && (textures.champagneStone || textures.wovenRug)) {
+                    child.material.map = textures.champagneStone || textures.wovenRug;
+                  }
+                  if (textures && textures.stoneBump) {
+                    child.material.bumpMap = textures.stoneBump;
+                    child.material.bumpScale = 0.012;
+                  }
+                  child.material.roughness = 0.70;
+                  if (typeof child.material.sheen !== 'undefined') {
+                    child.material.sheen = 0;
+                  }
+                  child.material.needsUpdate = true;
+                } else if (child.name.includes('Rug_Edge')) {
+                  if (child.material.color && typeof child.material.color.setHex === 'function') {
+                    child.material.color.setHex(0xCBB18D); // Warm beige trim
+                  }
+                  if (textures && textures.stoneBump) {
+                    child.material.bumpMap = textures.stoneBump;
+                    child.material.bumpScale = 0.008;
+                  }
+                  child.material.roughness = 0.75;
+                  if (typeof child.material.sheen !== 'undefined') {
+                    child.material.sheen = 0;
+                  }
+                  child.material.needsUpdate = true;
+                }
+              }
+            });
             this.group.add(stageModel);
             this.glbLoaded = true;
             rugMesh.visible = false;

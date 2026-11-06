@@ -1,5 +1,5 @@
 /**
- * AURA Wardrobe — Exact Replica Prototype Application Logic
+ * Woobi — 3D Virtual Fashion Studio & Monorepo Application by Troyz Solutions
  * Full Production System with:
  * - 01 Setup & First Outfit: Welcome, Style preferences, Add your wardrobe, Review item
  * - 02 Daily Outfit Studio: Today, Outfit details, Swap an item, Outfit ready
@@ -116,7 +116,7 @@
     }
   ];
 
-  const state = {
+  const rawState = {
     currentScreen: 'welcome',
     todayCanvasMode: 'model', // 'model' or 'flat'
     stylistViewMode: 'model', // 'model' or 'flat'
@@ -149,11 +149,24 @@
     wearHistoryCount: 6
   };
 
+  const state = new Proxy(rawState, {
+    set(target, prop, value) {
+      target[prop] = value;
+      if (typeof window !== 'undefined' && window.woobiStore) {
+        window.woobiStore.setState({ [prop]: value });
+      }
+      return true;
+    }
+  });
+
   // =========================================================================
   // 2. SCREEN ROUTER & NAVIGATION
   // =========================================================================
   function goToScreen(screenId) {
     state.currentScreen = screenId;
+    if (typeof window !== 'undefined' && window.navigationRouter) {
+      window.navigationRouter.currentScreen = screenId;
+    }
 
     // Update screen selector dropdown if present
     const select = document.getElementById('screenSelect');
@@ -180,6 +193,10 @@
     } else if (screenId === 'custom-builder') {
       renderBuilderGrid();
       updateBuilderTray();
+    } else if (screenId === 'today' || screenId === 'virtual-studio') {
+      initVirtualStudio();
+    } else if (screenId === 'weekly-planning') {
+      renderWeeklyCalendar();
     }
 
     // Update Bottom Nav active tab indicator if applicable
@@ -203,6 +220,7 @@
       'not-enough-items': 'today',
       'outfit-feedback': 'today',
       'weekly-planning': 'today',
+      'virtual-studio': 'today',
 
       'wardrobe': 'wardrobe',
       'review-item': 'wardrobe',
@@ -329,6 +347,38 @@
     if (rBot) rBot.src = look.bottom.photo;
     if (rShoe) rShoe.src = look.footwear.photo;
     if (rAcc) rAcc.src = look.accessory.photo;
+
+    // Daily Drawer Recommendation Card Mount
+    const mount = document.getElementById('todayOutfitCardMount');
+    if (mount) {
+      mount.innerHTML = `
+        <div class="rec-outfit-preview-card">
+          <div class="rec-card-top-row">
+            <span class="rec-look-title">${look.title}</span>
+            <span class="rec-look-tag">Look ${state.currentLookIndex + 1} of ${LOOKS_DATA.length}</span>
+          </div>
+          <p class="rec-look-caption">${look.caption}</p>
+          <div class="outfit-board-card" style="margin-bottom: 12px;">
+            <div class="quad-item top-left"><img src="${look.top.photo}" alt="${look.top.name}"></div>
+            <div class="quad-item top-right"><img src="${look.bottom.photo}" alt="${look.bottom.name}"></div>
+            <div class="quad-item bot-left"><img src="${look.footwear.photo}" alt="${look.footwear.name}"></div>
+            <div class="quad-item bot-right"><img src="${look.accessory.photo}" alt="${look.accessory.name}"></div>
+          </div>
+          <div class="rec-card-actions">
+            <button class="btn-camera-upload" onclick="app.triggerOutfitPhotoUpload()" title="Upload outfit photo to increase streak">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span>Upload Today's Outfit (+1 🔥)</span>
+            </button>
+            <button class="btn-outline-white" onclick="app.goToScreen('outfit-details'); app.serenToggleDailyLooks(false);">
+              View Look Details & Swap Pieces
+            </button>
+          </div>
+        </div>
+      `;
+    }
   }
 
   function setTodayOccasion(occ, btn) {
@@ -1055,31 +1105,299 @@
   }
 
   // =========================================================================
-  // 9. PROFILE, SETTINGS & UTILITIES
+  // 9. PROFILE, SETTINGS & UTILITIES (PHASE 6 MODULAR SETTINGS SUITE)
   // =========================================================================
+  let _settingsManagerInstance = null;
+  function getSettingsManager() {
+    if (_settingsManagerInstance) return _settingsManagerInstance;
+    if (typeof window !== 'undefined' && window.WoobiSettings && typeof window.WoobiSettings.createSettings === 'function') {
+      const store = (typeof window !== 'undefined' && window.woobiStore) ? window.woobiStore : null;
+      const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+      _settingsManagerInstance = window.WoobiSettings.createSettings(store, studio);
+      window.woobiSettings = _settingsManagerInstance;
+      return _settingsManagerInstance;
+    }
+    return null;
+  }
+
   function selectPlan(planType) {
     state.currentPlan = planType;
     document.querySelectorAll('.pricing-option-card').forEach(card => card.classList.remove('selected'));
     const target = planType === 'annual' ? document.getElementById('planAnnual') : document.getElementById('planMonthly');
     if (target) target.classList.add('selected');
+    const sm = getSettingsManager();
+    if (sm && sm.account) {
+      sm.account.updateSubscription(planType, state.isPremium);
+    }
   }
 
   function activatePremium() {
     state.isPremium = true;
-    showToast('🎉 Welcome to AURA Premium! All features unlocked.');
+    showToast('🎉 Welcome to Woobi Premium! All features unlocked.');
+    const sm = getSettingsManager();
+    if (sm && sm.account) {
+      sm.account.updateSubscription(state.currentPlan, true);
+    }
     setTimeout(() => goToScreen('today'), 800);
   }
 
+  function saveProfile() {
+    const nameInput = document.getElementById('inputProfileName');
+    const emailInput = document.getElementById('inputProfileEmail');
+    const name = nameInput ? nameInput.value.trim() : '';
+    const email = emailInput ? emailInput.value.trim() : '';
+    const sm = getSettingsManager();
+    if (sm && sm.account) {
+      const result = sm.account.updateProfile({ displayName: name, email: email });
+      if (result.success) {
+        showToast('✓ Profile successfully updated');
+        const nameHeader = document.querySelector('.profile-user-name');
+        if (nameHeader) nameHeader.textContent = name;
+      } else {
+        showToast(`✕ ${result.error || 'Failed to update profile'}`);
+      }
+    } else {
+      showToast('✓ Profile saved');
+    }
+  }
+
+  function updatePrivacyConsent() {
+    const sm = getSettingsManager();
+    const analytics = document.getElementById('toggleAnalyticsConsent');
+    const crash = document.getElementById('toggleCrashReporting');
+    if (sm && sm.privacy) {
+      sm.privacy.updateConsent({
+        analyticsConsent: analytics ? analytics.checked : false,
+        crashReporting: crash ? crash.checked : true
+      });
+      showToast('✓ Privacy preferences saved');
+    }
+  }
+
+  function exportUserData() {
+    const sm = getSettingsManager();
+    showToast('📦 Preparing data export package...');
+    setTimeout(() => {
+      let exportPayload = null;
+      if (sm && sm.privacy) {
+        const result = sm.privacy.exportUserData();
+        if (result.success) exportPayload = result.data;
+      }
+      if (!exportPayload) {
+        exportPayload = {
+          exportedAt: new Date().toISOString(),
+          profile: { displayName: 'Suriya', email: 'suriya@example.com' },
+          storageMode: 'client_local_only'
+        };
+      }
+      try {
+        const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `woobi-user-data-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        console.warn('Could not trigger browser download', e);
+      }
+      showToast('✓ User data package exported');
+    }, 600);
+  }
+
+  function clearSavedLooksCache() {
+    const sm = getSettingsManager();
+    if (sm && sm.privacy) {
+      sm.privacy.clearSavedLooksCache();
+    }
+    showToast('✓ Saved looks cache cleared');
+  }
+
+  function clearAvatarPreferencesCache() {
+    const sm = getSettingsManager();
+    if (sm && sm.privacy) {
+      sm.privacy.clearAvatarPreferencesCache();
+    }
+    showToast('✓ Avatar preferences reset to default');
+  }
+
+  function signOut() {
+    const sm = getSettingsManager();
+    if (sm && sm.account) {
+      sm.account.signOut();
+    }
+    showToast('Signed out of session');
+    goToScreen('welcome');
+  }
+
+  function setAppTheme(theme) {
+    const sm = getSettingsManager();
+    if (sm && sm.appearance) {
+      sm.appearance.setAppTheme(theme);
+    }
+    ['btnThemeLight', 'btnThemeDark', 'btnThemeSystem'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.remove('active');
+    });
+    const activeBtn = document.getElementById(theme === 'light' ? 'btnThemeLight' : theme === 'dark' ? 'btnThemeDark' : 'btnThemeSystem');
+    if (activeBtn) activeBtn.classList.add('active');
+    showToast(`Theme switched to ${theme}`);
+  }
+
+  function setStudioTheme(theme) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.appearance) {
+      sm.appearance.setStudioTheme(theme, studio);
+    }
+    ['theme-check-luxury', 'theme-check-nordic', 'theme-check-terracotta'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '';
+    });
+    const checkId = theme === 'luxury-cream' ? 'theme-check-luxury' : theme === 'nordic-minimal' ? 'theme-check-nordic' : 'theme-check-terracotta';
+    const target = document.getElementById(checkId);
+    if (target) target.textContent = '✓';
+    showToast(`3D Studio atmosphere set to ${theme}`);
+  }
+
+  function setStudioLighting(preset) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.appearance) {
+      sm.appearance.setStudioLighting(preset, studio);
+    }
+    ['btnLightSoft', 'btnLightAtelier', 'btnLightGolden', 'btnLightDramatic', 'btnLightClean'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.remove('active');
+    });
+    const map = {
+      'editorial_soft': 'btnLightSoft',
+      'warm_atelier': 'btnLightAtelier',
+      'golden_hour': 'btnLightGolden',
+      'dramatic_chiaroscuro': 'btnLightDramatic',
+      'high_key_clean': 'btnLightClean'
+    };
+    const target = document.getElementById(map[preset]);
+    if (target) target.classList.add('active');
+    showToast(`Studio lighting: ${preset.replace(/_/g, ' ')}`);
+  }
+
+  function toggleHighContrast(enabled) {
+    const sm = getSettingsManager();
+    if (sm && sm.appearance) {
+      sm.appearance.toggleHighContrast(enabled);
+    }
+    showToast(enabled ? 'High contrast enabled' : 'High contrast disabled');
+  }
+
+  function resetAppearance() {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.appearance) {
+      sm.appearance.resetAppearance(studio);
+    }
+    setAppTheme('light');
+    setStudioTheme('luxury-cream');
+    setStudioLighting('editorial_soft');
+    const toggle = document.getElementById('toggleHighContrast');
+    if (toggle) toggle.checked = false;
+    showToast('Appearance reset to default');
+  }
+
+  function setPerformancePreset(preset) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    let applied = preset;
+    if (sm && sm.performance) {
+      applied = sm.performance.setPreset(preset, studio);
+    }
+    ['btnPerfHigh', 'btnPerfMedium', 'btnPerfLow', 'btnPerfBattery', 'btnPerfAuto'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.remove('active');
+    });
+    const map = {
+      'high': 'btnPerfHigh',
+      'medium': 'btnPerfMedium',
+      'low': 'btnPerfLow',
+      'battery_saver': 'btnPerfBattery',
+      'auto': 'btnPerfAuto'
+    };
+    const target = document.getElementById(map[preset]);
+    if (target) target.classList.add('active');
+
+    if (sm && sm.performance) {
+      const current = sm.performance.getSettings();
+      const shadowEl = document.getElementById('toggleShadows');
+      if (shadowEl) shadowEl.checked = current.shadows !== 'off';
+      const reflEl = document.getElementById('toggleReflections');
+      if (reflEl) reflEl.checked = current.reflections !== 'off';
+      const idleEl = document.getElementById('toggleIdleMotion');
+      if (idleEl) idleEl.checked = current.idleAnimations !== false;
+    }
+    showToast(`Graphics profile: ${applied}`);
+  }
+
+  function toggleShadowQuality(enabled) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.performance) {
+      sm.performance.setShadowQuality(enabled ? 'soft' : 'off', studio);
+    }
+    showToast(enabled ? 'Real-time soft shadows on' : 'Shadows turned off');
+  }
+
+  function toggleReflectionQuality(enabled) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.performance) {
+      sm.performance.setReflectionQuality(enabled ? 'full' : 'off', studio);
+    }
+    showToast(enabled ? 'Mirror reflections on' : 'Reflections off');
+  }
+
+  function toggleIdleAnimations(enabled) {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.performance) {
+      sm.performance.toggleIdleAnimations(enabled, studio);
+    }
+    showToast(enabled ? 'Breathing animations on' : 'Idle animations paused');
+  }
+
+  function resetPerformance() {
+    const sm = getSettingsManager();
+    const studio = (typeof window !== 'undefined' && (window.Studio3D || window.studio3d)) ? (window.Studio3D || window.studio3d) : null;
+    if (sm && sm.performance) {
+      sm.performance.resetPerformance(studio);
+    }
+    setPerformancePreset('high');
+    showToast('Graphics settings restored to High');
+  }
+
+  async function requestNotificationPermission() {
+    const sm = getSettingsManager();
+    if (sm && sm.notifications) {
+      const res = await sm.notifications.requestBrowserPermission();
+      showToast(`Notifications permission: ${res.status}`);
+      return res;
+    }
+    return { granted: false, status: 'unsupported' };
+  }
+
   function saveReminderPreferences() {
+    const sm = getSettingsManager();
+    const reminderToggle = document.getElementById('toggleReminder');
+    if (sm && sm.notifications) {
+      sm.notifications.setCategoryEnabled('morningOutfits', reminderToggle ? reminderToggle.checked : true);
+    }
     showToast('✓ Reminder preferences updated.');
     goToScreen('profile');
   }
 
   function exportWardrobe() {
-    showToast('📦 Preparing wardrobe data package...');
-    setTimeout(() => {
-      showToast('✓ Export ready! 16 garments packaged.');
-    }, 1000);
+    exportUserData();
   }
 
   function deleteAccount() {
@@ -1146,7 +1464,7 @@
   }
 
   function tryReconnect() {
-    showToast('📶 Reconnecting to AURA Cloud...');
+    showToast('📶 Reconnecting to Woobi Cloud...');
     setTimeout(() => {
       showToast('Online! Synchronizing latest suggestions.');
       goToScreen('today');
@@ -1154,6 +1472,11 @@
   }
 
   function confirmDeleteAccount() {
+    const sm = getSettingsManager();
+    if (sm) {
+      if (sm.privacy) sm.privacy.clearAllLocalData('CONFIRM_DELETE_ALL');
+      if (sm.account) sm.account.deleteAccountData('CONFIRM_DELETE');
+    }
     showToast('Account data deleted. Resetting to setup...');
     setTimeout(() => {
       goToScreen('welcome');
@@ -1161,28 +1484,2213 @@
   }
 
   // Toast Notification Helper
-  function showToast(msg) {
+  function showToast(msg, type = 'info', duration = 3200) {
+    if (typeof window !== 'undefined' && window.toastService && typeof window.toastService.show === 'function') {
+      window.toastService.show(msg, type, duration);
+    }
     const toast = document.getElementById('toastPopup');
     if (!toast) return;
     toast.textContent = msg;
     toast.classList.add('visible');
     setTimeout(() => {
       toast.classList.remove('visible');
-    }, 3200);
+    }, duration);
   }
 
   // =========================================================================
-  // 10. INITIALIZATION
+  // 07. INTERACTIVE 3D VIRTUAL FASHION STUDIO ENGINE
   // =========================================================================
+  const studioState = {
+    selectedTop: WARDROBE_ITEMS.find(i => i.id === 'item_1') || WARDROBE_ITEMS[0],
+    selectedBottom: WARDROBE_ITEMS.find(i => i.id === 'item_2') || WARDROBE_ITEMS[1],
+    selectedShoes: WARDROBE_ITEMS.find(i => i.id === 'item_4') || WARDROBE_ITEMS[3],
+    selectedAccessory: WARDROBE_ITEMS.find(i => i.id === 'item_10') || null,
+    activeCategory: 'Tops',
+    isDrawerOpen: true,
+    avatarRotation: 0,
+    isGenerating: false,
+    currentModelPhoto: 'assets/model_tryon_navy.jpg',
+    presetIndex: 0
+  };
+
+  const STUDIO_PRESETS = [
+    {
+      name: 'Navy Everyday Contrast',
+      modelPhoto: 'assets/model_tryon_navy.jpg',
+      topId: 'item_1',
+      bottomId: 'item_2',
+      shoeId: 'item_4',
+      accId: 'item_10',
+      score: 92,
+      headline: 'A breathable, crisp contrast look perfectly suited for Chennai heat.',
+      pros: ['High-contrast navy and beige palette', 'Breathable lightweight cotton prevents heat retention', 'All items 100% clean and prepped'],
+      cons: ['Casual footwear - swap to loafers for boardroom meetings']
+    },
+    {
+      name: 'Crisp Linen Tailored',
+      modelPhoto: 'assets/model_tryon_linen.jpg',
+      topId: 'item_7',
+      bottomId: 'item_2',
+      shoeId: 'item_9',
+      accId: 'item_10',
+      score: 95,
+      headline: 'Refined modern tailoring with relaxed natural drape.',
+      pros: ['Pure linen weave maximizes natural airflow', 'Earthy tan loafers harmonize beautifully with beige chinos', 'Sharp minimalist watch accentuates clean cuffs'],
+      cons: ['Wrinkle-sensitive in humid weather - iron gently']
+    },
+    {
+      name: 'Modern Heritage Kurta',
+      modelPhoto: 'assets/model_tryon_kurta.jpg',
+      topId: 'item_3',
+      bottomId: 'item_13',
+      shoeId: 'item_9',
+      accId: 'item_10',
+      score: 89,
+      headline: 'Elevated traditional drape with contemporary styling.',
+      pros: ['Subtle olive tone flatters Indian skin tones', 'Comfortable relaxed silhouette for cultural celebrations', 'Supple leather loafers anchor the festive look'],
+      cons: ['Palazzo pants require careful hem clearance outdoors']
+    },
+    {
+      name: 'Terracotta Urban Street',
+      modelPhoto: 'assets/model_tryon_maroon.jpg',
+      topId: 'item_5',
+      bottomId: 'item_6',
+      shoeId: 'item_4',
+      accId: 'item_10',
+      score: 84,
+      headline: 'Warm rich tones balanced with structured monochrome.',
+      pros: ['Deep rich jewel tone adds visual warmth', 'Athletic sneakers ground the silhouette for walking ease', 'Clean wrist accessory adds subtle polish'],
+      cons: ['Garment fit is slightly snug around shoulders']
+    }
+  ];
+
+  
+  // ===================================================================
+  // SÉRÉN 3D VIRTUAL FASHION STUDIO CONTROLLER
+  // ===================================================================
+
+  const SEREN_GARMENTS = [
+    { id: 'cardigan', cat: 'tops', name: 'Cream Knit Cardigan', photo: 'assets/style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
+    { id: 'blazer', cat: 'tops', name: 'Camel Smart Blazer', photo: 'assets/smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
+    { id: 'navy_shirt', cat: 'tops', name: 'Navy Oxford Shirt', photo: 'assets/navy_shirt.jpg', is3D: true, sub: 'Crisp button-down collar' },
+    { id: 'striped_sweater', cat: 'tops', name: 'Breton Striped Sweater', photo: 'assets/style_casual.jpg', is3D: true, sub: 'French nautical knit' },
+    { id: 'tank', cat: 'tops', name: 'Ribbed Ivory Tank', photo: 'assets/welcome_hero.jpg', is3D: true, sub: 'Scoop neck luxury cotton' },
+
+    { id: 'taupe_wide', cat: 'bottoms', name: 'Tailored Taupe Trousers', photo: 'assets/beige_chinos.jpg', is3D: true, sub: 'Pleated high-waisted drape' },
+    { id: 'dark_denim', cat: 'bottoms', name: 'Dark Indigo Straight Jeans', photo: 'assets/blue_jeans.jpg', is3D: true, sub: 'Tailored Japanese denim' },
+    { id: 'white_chinos', cat: 'bottoms', name: 'Crisp Ivory Chinos', photo: 'assets/beige_chinos.jpg', is3D: true, sub: 'Clean minimalist cut' },
+
+    { id: 'blazer', cat: 'outerwear', name: 'Camel Smart Blazer', photo: 'assets/smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
+    { id: 'cardigan', cat: 'outerwear', name: 'Cream Knit Cardigan', photo: 'assets/style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
+
+    { id: 'loafers', cat: 'shoes', name: 'Caramel Leather Loafers', photo: 'assets/smart_blazer.jpg', is3D: true, sub: 'Polished brass horsebit' },
+    { id: 'sneakers', cat: 'shoes', name: 'Clean White Sneakers', photo: 'assets/welcome_hero.jpg', is3D: true, sub: 'Minimalist court leather' }
+  ];
+
+  const STYLING_REVIEWS = {
+    'cardigan': {
+      score: 94,
+      summary: 'Elevated quiet luxury with rich textural harmony and soft tonal drape.',
+      works: [
+        'Cream ribbed knit texture complements fluid high-waisted trousers',
+        'Tortoiseshell buttons create subtle grounding vertical interest',
+        'Soft drop shoulder softens the silhouette naturally'
+      ],
+      improve: [
+        'Add a slender caramel leather belt for tailored definition',
+        'Gold huggie earrings would catch the studio light beautifully'
+      ],
+      altTop: 'blazer',
+      altShoe: 'loafers'
+    },
+    'blazer': {
+      score: 96,
+      summary: 'Sharply tailored modernism with flawless proportion and warmth.',
+      works: [
+        'Structured camel wool shoulder line frames the posture with authority',
+        'Crisp peaked lapels elongate the neckline',
+        'Striking contrast against neutral trousers'
+      ],
+      improve: [
+        'Push blazer sleeves up to forearm for effortless sprezzatura flair',
+        'Pair with minimal leather envelope clutch for formal polish'
+      ],
+      altTop: 'navy_shirt',
+      altShoe: 'loafers'
+    },
+    'navy_shirt': {
+      score: 91,
+      summary: 'Crisp coastal elegance with rich Mediterranean tone depth.',
+      works: [
+        'Deep navy poplin offers high visual contrast',
+        'Pointed collar frames the jawline cleanly',
+        'Timeless tailored silhouette'
+      ],
+      improve: [
+        'Unbutton the top two buttons for relaxed movement',
+        'Roll sleeves to mid-arm for an inspired weekend touch'
+      ],
+      altTop: 'cardigan',
+      altShoe: 'sneakers'
+    },
+    'striped_sweater': {
+      score: 89,
+      summary: 'Playful French nautical ease with effortless everyday charm.',
+      works: [
+        'Breton stripe rhythm introduces dynamic optical dimension',
+        'Clean crewneck balances wide-leg trouser volume',
+        'Approachable, timeless weekend aesthetic'
+      ],
+      improve: [
+        'Drape loosely over shoulders if layered over a clean tee',
+        'Pair with clean white sneakers to anchor the nautical vibe'
+      ],
+      altTop: 'cardigan',
+      altShoe: 'sneakers'
+    },
+    'tank': {
+      score: 84,
+      summary: 'Pure minimalist studio silhouette with clean architectural lines.',
+      works: [
+        'Ribbed knit vertical lines flatter the waistline taper',
+        'Contrasting warm taupe trousers ground the soft ivory top',
+        'Effortless base layer for summer warmth'
+      ],
+      improve: [
+        'Shoulders are open — consider layering the cream knit cardigan for evening warmth',
+        'A minimal pendant necklace would accent the scoop neckline'
+      ],
+      altTop: 'cardigan',
+      altShoe: 'loafers'
+    }
+  };
+
+  let serenCurrentCat = 'all';
+
+  function initVirtualStudio() {
+    if (window.Studio3D) {
+      setTimeout(() => {
+        window.Studio3D.init('seren3dContainer', 'seren3dCanvas');
+      }, 50);
+    }
+    renderSerenGarments('all');
+    updateSerenGreeting();
+  }
+
+  function renderSerenGarments(cat) {
+    const grid = document.getElementById('serenGarmentGrid');
+    if (!grid) return;
+
+    serenCurrentCat = cat || 'all';
+
+    let items = SEREN_GARMENTS;
+    if (serenCurrentCat !== 'all') {
+      items = items.filter(i => i.cat === serenCurrentCat);
+    }
+
+    if (state.wardrobe && state.wardrobe.length > 0) {
+      const userItems = state.wardrobe.map(item => ({
+        id: item.id,
+        cat: item.category ? item.category.toLowerCase() : 'tops',
+        name: item.name,
+        photo: item.photo,
+        is3D: false,
+        sub: 'Closet Photo'
+      }));
+
+      if (serenCurrentCat === 'all') {
+        items = [...items, ...userItems];
+      } else {
+        items = [...items, ...userItems.filter(i => i.cat === serenCurrentCat)];
+      }
+    }
+
+    grid.innerHTML = items.map(item => `
+      <div class="seren-garment-item" onclick="app.serenWearGarment('${item.cat}', '${item.id}', ${item.is3D})" title="Wear ${item.name}">
+        <div class="garment-thumb-box">
+          <img src="${item.photo}" alt="${item.name}" onerror="this.src='assets/navy_shirt.jpg'">
+          ${item.is3D ? '<span class="ready-3d-badge">3D READY</span>' : '<span class="ready-2d-badge">2D PHOTO</span>'}
+        </div>
+        <div class="garment-item-info">
+          <strong class="garment-item-name">${item.name}</strong>
+          <span class="garment-item-sub">${item.sub}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function serenFilterCat(cat, btn) {
+    if (btn) {
+      document.querySelectorAll('.seren-cat-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    renderSerenGarments(cat);
+  }
+
+  function serenToggleWardrobe(forceOpen) {
+    const sheet = document.getElementById('serenWardrobeSheet');
+    if (!sheet) return;
+
+    if (forceOpen === undefined) {
+      sheet.classList.toggle('hidden');
+      if (!sheet.classList.contains('hidden')) {
+        setStudioCamera('WARDROBE_CLOSEUP');
+      } else {
+        setStudioCamera('STUDIO_OVERVIEW');
+      }
+    } else if (forceOpen) {
+      sheet.classList.remove('hidden');
+      setStudioCamera('WARDROBE_CLOSEUP');
+    } else {
+      sheet.classList.add('hidden');
+      setStudioCamera('STUDIO_OVERVIEW');
+    }
+  }
+
+  function serenToggleDailyLooks(forceOpen) {
+    const drawer = document.getElementById('dailyLooksDrawer');
+    if (!drawer) return;
+
+    if (forceOpen === undefined) {
+      drawer.classList.toggle('hidden');
+    } else if (forceOpen) {
+      drawer.classList.remove('hidden');
+      renderCurrentLook();
+    } else {
+      drawer.classList.add('hidden');
+    }
+  }
+
+  function serenWearGarment(cat, garmentId, is3D) {
+    if (is3D && window.Studio3D) {
+      let engineCat = 'top';
+      if (cat === 'bottoms' || cat === 'bottom') engineCat = 'bottom';
+      else if (cat === 'shoes' || cat === 'shoe') engineCat = 'shoes';
+      else engineCat = 'top';
+
+      const mappedId = garmentId === 'wide_linen' ? 'taupe_wide' : garmentId;
+      window.Studio3D.equipGarment(engineCat, mappedId);
+      window.Studio3D.setCameraState('AVATAR_FULL_BODY');
+
+      const itemRecord = SEREN_GARMENTS.find(g => g.id === garmentId);
+      const displayName = itemRecord ? itemRecord.name : garmentId.replace('_', ' ');
+      showToast(`Equipped: ${displayName} ♡`);
+
+      const thumb = document.getElementById('serenReviewThumb');
+      if (thumb) {
+        if (garmentId === 'cardigan') thumb.src = 'assets/style_casual.jpg';
+        else if (garmentId === 'blazer') thumb.src = 'assets/smart_blazer.jpg';
+        else if (garmentId === 'navy_shirt') thumb.src = 'assets/navy_shirt.jpg';
+        else if (garmentId === 'striped_sweater') thumb.src = 'assets/style_casual.jpg';
+        else if (garmentId === 'tank') thumb.src = 'assets/welcome_hero.jpg';
+      }
+    } else {
+      showToast(`2D item selected. Previewing in wardrobe catalog.`);
+    }
+
+    setTimeout(() => {
+      serenToggleWardrobe(false);
+    }, 450);
+  }
+
+  function serenOpenStylingReview() {
+    const modal = document.getElementById('serenReviewModal');
+    if (!modal) return;
+
+    // Dynamically calculate score & feedback based on worn 3D outfit
+    const currentTop = (window.Studio3D && window.Studio3D.activeGarments) ? window.Studio3D.activeGarments.top : 'tank';
+    const review = STYLING_REVIEWS[currentTop] || STYLING_REVIEWS['tank'];
+
+    const scoreVal = document.getElementById('serenScoreVal');
+    const scoreSummary = document.getElementById('serenScoreSummary');
+    const worksList = document.getElementById('serenWorksList');
+    const improveList = document.getElementById('serenImproveList');
+
+    if (scoreVal) scoreVal.innerText = review.score;
+    if (scoreSummary) scoreSummary.innerText = review.summary;
+    if (worksList) {
+      worksList.innerHTML = review.works.map(w => `<li>${w}</li>`).join('');
+    }
+    if (improveList) {
+      improveList.innerHTML = review.improve.map(i => `<li>${i}</li>`).join('');
+    }
+
+    modal.classList.remove('hidden');
+    if (window.Studio3D) window.Studio3D.setCameraState('MIRROR_VIEW');
+  }
+
+  function serenCloseReview() {
+    const modal = document.getElementById('serenReviewModal');
+    if (modal) modal.classList.add('hidden');
+    if (window.Studio3D) window.Studio3D.setCameraState('STUDIO_OVERVIEW');
+  }
+
+  function serenApplySuggestion() {
+    if (window.Studio3D) {
+      const currentTop = window.Studio3D.activeGarments ? window.Studio3D.activeGarments.top : 'tank';
+      const review = STYLING_REVIEWS[currentTop] || STYLING_REVIEWS['tank'];
+
+      window.Studio3D.equipGarment('top', review.altTop || 'blazer');
+      window.Studio3D.equipGarment('shoes', review.altShoe || 'loafers');
+      window.Studio3D.setCameraState('AVATAR_FULL_BODY');
+
+      showToast('Complementary styling suggestion applied! ✨');
+    }
+    serenCloseReview();
+  }
+
+  function serenSaveCurrentLook() {
+    const currentOutfit = {
+      id: 'look_' + Date.now(),
+      name: 'Woobi Studio Look',
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      occasion: 'Everyday Luxury',
+      items: [
+        { name: 'Crop Tank', photo: 'assets/welcome_hero.jpg' },
+        { name: 'Cream Cardigan', photo: 'assets/style_casual.jpg' },
+        { name: 'Wide Linen Trousers', photo: 'assets/beige_chinos.jpg' }
+      ]
+    };
+
+    if (!state.savedLooks) state.savedLooks = [];
+    state.savedLooks.unshift(currentOutfit);
+    showToast('Look saved to your collection! ♡');
+  }
+
+  function serenCenterAction() {
+    // Quick action: Toggle wardrobe or cycle through curated looks
+    const wardrobeSheet = document.getElementById('serenWardrobeSheet');
+    if (wardrobeSheet && !wardrobeSheet.classList.contains('hidden')) {
+      serenToggleWardrobe(false);
+    } else {
+      serenToggleWardrobe(true);
+    }
+  }
+
+  function onStudioCameraChanged(stateName) {
+    const backBtn = document.getElementById('serenBackStudioBtn');
+    const dragHint = document.getElementById('serenDragHint');
+    const greeting = document.getElementById('serenFloatingGreeting');
+    const tagline = document.querySelector('.seren-editorial-tagline-wrap');
+
+    if (stateName === 'STUDIO_OVERVIEW') {
+      if (backBtn) backBtn.classList.add('hidden');
+      if (dragHint) dragHint.style.display = '';
+      if (greeting) greeting.style.display = 'none';
+      if (tagline) tagline.style.display = 'none';
+    } else {
+      if (backBtn) backBtn.classList.remove('hidden');
+      if (dragHint) dragHint.style.display = 'none';
+      if (greeting) greeting.style.display = 'none';
+      if (tagline) tagline.style.display = 'none';
+    }
+  }
+
+  function setStudioCamera(stateName) {
+    if (window.Studio3D) {
+      window.Studio3D.setCameraState(stateName);
+    }
+    onStudioCameraChanged(stateName);
+  }
+
+  function serenInteract(type) {
+    if (type === 'vanity' || type === 'mirror') {
+      serenOpenVanity(true);
+    } else if (type === 'wardrobe') {
+      if (window.Studio3D && window.Studio3D.currentCameraState === 'WARDROBE_CLOSEUP') {
+        serenToggleWardrobe(true);
+      } else {
+        setStudioCamera('WARDROBE_CLOSEUP');
+      }
+    } else if (window.Studio3D) {
+      if (typeof window.Studio3D.handleCanvasClick === 'function') {
+        window.Studio3D.handleCanvasClick();
+      }
+    }
+  }
+
+  // =========================================================================
+  // VANITY & PERSONALIZED AVATAR CUSTOMIZATION SYSTEM
+  // =========================================================================
+  function serenOpenVanity(forceOpen) {
+    const sheet = document.getElementById('serenVanitySheet');
+    if (!sheet) return;
+
+    if (forceOpen === undefined) {
+      sheet.classList.toggle('hidden');
+    } else if (forceOpen) {
+      sheet.classList.remove('hidden');
+      if (window.Studio3D) window.Studio3D.setCameraState('VANITY_VIEW');
+    } else {
+      sheet.classList.add('hidden');
+      if (window.Studio3D) window.Studio3D.setCameraState('STUDIO_OVERVIEW');
+    }
+  }
+
+  function serenCloseVanity() {
+    serenOpenVanity(false);
+  }
+
+  function serenSwitchVanityTab(tabName, btn) {
+    document.querySelectorAll('.vanity-seg-tab').forEach(t => t.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    const appView = document.getElementById('vanityAppearanceView');
+    const photoView = document.getElementById('vanityPhotoView');
+
+    if (tabName === 'appearance') {
+      if (appView) appView.style.display = 'block';
+      if (photoView) photoView.style.display = 'none';
+    } else {
+      if (appView) appView.style.display = 'none';
+      if (photoView) photoView.style.display = 'block';
+    }
+  }
+
+  function serenSetGender(gender, btn) {
+    if (btn) {
+      btn.parentElement.querySelectorAll('.vanity-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    if (window.Studio3D) window.Studio3D.setGenderPresentation(gender);
+    showToast(`Gender presentation set to ${gender}.`);
+  }
+
+  function serenSetSkinTone(hex, btn) {
+    if (btn) {
+      document.querySelectorAll('#skinToneSwatches .skin-swatch').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    if (window.Studio3D) window.Studio3D.setSkinTone(hex);
+  }
+
+  function serenSetHairStyle(styleName, btn) {
+    if (btn) {
+      document.querySelectorAll('#hairStyleChips .vanity-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    if (window.Studio3D) window.Studio3D.setHairstyle(styleName);
+  }
+
+  function serenSetHairColor(hex, btn) {
+    if (btn) {
+      document.querySelectorAll('#hairColorSwatches .skin-swatch').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    if (window.Studio3D) window.Studio3D.setHairColor(hex);
+  }
+
+  function serenSetProportions(preset, btn) {
+    if (btn) {
+      document.querySelectorAll('#proportionChips .vanity-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    if (window.Studio3D) window.Studio3D.setBodyProportions(preset);
+    showToast(`Body proportions adjusted to ${preset}.`);
+  }
+
+  function serenToggleAccessory(name, btn) {
+    if (btn) {
+      btn.classList.toggle('active');
+      const isActive = btn.classList.contains('active');
+      if (window.Studio3D) window.Studio3D.toggleAccessory(name, isActive);
+      showToast(`${name.charAt(0).toUpperCase() + name.slice(1)} ${isActive ? 'equipped' : 'removed'}.`);
+    }
+  }
+
+  function serenSaveAvatarCustomization() {
+    if (window.Studio3D) {
+      window.Studio3D.savePreferences();
+    }
+    serenCloseVanity();
+    showToast('Avatar appearance saved to your profile! ✨');
+  }
+
+  // Consent-Based Photo Match Integration
+  let currentDetectedPhotoTone = '#F3D5C6';
+  let currentDetectedHairTone = '#1E120A';
+
+  function serenHandlePhotoUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const dataUrl = e.target.result;
+      const previewImg = document.getElementById('photoPreviewImg');
+      const dropzoneEmpty = document.getElementById('dropzoneEmpty');
+      const dropzonePreview = document.getElementById('dropzonePreview');
+      const analysisBox = document.getElementById('photoAnalysisBox');
+
+      if (previewImg) previewImg.src = dataUrl;
+      if (dropzoneEmpty) dropzoneEmpty.classList.add('hidden');
+      if (dropzonePreview) dropzonePreview.classList.remove('hidden');
+
+      // Local Canvas Tone Analysis (No server upload - 100% consent and privacy maintained)
+      const img = new Image();
+      img.onload = function() {
+        const c = document.createElement('canvas');
+        c.width = 64;
+        c.height = 64;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, 64, 64);
+        const p1 = ctx.getImageData(32, 28, 1, 1).data;
+        const p2 = ctx.getImageData(32, 8, 1, 1).data;
+
+        const toHex = (r, g, b) => '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+        currentDetectedPhotoTone = toHex(p1[0], p1[1], p1[2]);
+        currentDetectedHairTone = toHex(p2[0], p2[1], p2[2]);
+
+        const skinEl = document.getElementById('detectedSkinColor');
+        const hairEl = document.getElementById('detectedHairColor');
+        if (skinEl) skinEl.style.background = currentDetectedPhotoTone;
+        if (hairEl) hairEl.style.background = currentDetectedHairTone;
+
+        if (analysisBox) analysisBox.classList.remove('hidden');
+        showToast('✓ Photo analyzed locally with complete privacy.');
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function serenApplyPhotoMatch() {
+    if (window.Studio3D) {
+      window.Studio3D.setSkinTone(currentDetectedPhotoTone);
+      window.Studio3D.setHairColor(currentDetectedHairTone);
+      window.Studio3D.savePreferences();
+      showToast('Personalized likeness tones applied to 3D avatar! ✨');
+    }
+    serenCloseVanity();
+  }
+
+  function updateSerenGreeting() {
+    const greetingTimeTag = document.getElementById('greetingTimeTag');
+    if (!greetingTimeTag) return;
+    const hour = new Date().getHours();
+    let timeGreeting = 'Good morning';
+    if (hour >= 12 && hour < 17) {
+      timeGreeting = 'Good afternoon';
+    } else if (hour >= 17) {
+      timeGreeting = 'Good evening';
+    }
+    const userName = (state && state.profile && state.profile.name) ? state.profile.name : 'Suriya';
+    greetingTimeTag.textContent = `${timeGreeting}, ${userName}`;
+  }
+
+  // =========================================================================
+  // 9. DAILY OUTFIT-UPLOAD STREAK & COUNTDOWN TIMER SYSTEM
+  // =========================================================================
+  const STREAK_STORAGE_KEY = 'woobi_outfit_streak_v2';
+
+  // Helper: Determine calendar monthly restore cycle key (refreshes on 3rd of every month)
+  function getMonthlyRestoreCycleKey(dateObj) {
+    const d = dateObj || new Date();
+    const year = d.getFullYear();
+    const month = d.getMonth(); // 0-indexed (0 = Jan, 9 = Oct)
+    const day = d.getDate();
+
+    if (day >= 3) {
+      // Current cycle starts on 3rd of this month
+      return `${year}-${String(month + 1).padStart(2, '0')}`;
+    } else {
+      // Prior cycle: belongs to cycle starting on 3rd of previous month
+      const prev = new Date(year, month - 1, 3);
+      return `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+    }
+  }
+
+  // ==========================================================================
+  // DAILY OUTFIT STREAK, CAMERA, MEMORIES & CIRCULAR CALENDAR SYSTEM
+  // ==========================================================================
+
+  let currentCalYear = new Date().getFullYear();
+  let currentCalMonth = new Date().getMonth(); // 0-indexed
+  let cameraStream = null;
+  let capturedPhotoDataUrl = null;
+
+  function getStreakEngine() {
+    if (typeof window !== 'undefined' && window.WoobiCore && window.WoobiCore.streak) {
+      return window.WoobiCore.streak;
+    }
+    return null;
+  }
+
+  function getStreakStatusSafe(engine) {
+    if (!engine) return null;
+    if (typeof engine.getStatus === 'function') return engine.getStatus();
+    if (typeof engine.getStreakStatus === 'function') return engine.getStreakStatus();
+    return engine.state || null;
+  }
+
+  function initStreakState() {
+    const engine = getStreakEngine();
+    if (engine) {
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.removeItem('woobi_streak_user_mode');
+        } catch (e) {}
+      }
+      if (engine.userId === 'test_user_136' || (engine.state && (engine.state.isTestUser || engine.state.isTestData || engine.state.currentStreak === 136))) {
+        if (typeof engine.switchToRealUser === 'function') {
+          engine.switchToRealUser(null);
+        } else {
+          engine.userId = null;
+        }
+      }
+      state.streak = getStreakStatusSafe(engine);
+      if (typeof engine.on === 'function') {
+        engine.on('streak:updated', (data) => {
+          state.streak = getStreakStatusSafe(engine);
+          updateStreakUI();
+        });
+        engine.on('streak:broken', (data) => {
+          state.streak = getStreakStatusSafe(engine);
+          triggerFlameBlowoutAnimation();
+          updateStreakUI();
+          if (state.streak && state.streak.hasEarnedStreak && state.streak.savedPreviousStreak > 0) {
+            setTimeout(() => showMissedStreakModal(), 1000);
+          }
+        });
+        engine.on('streak:restored', () => {
+          state.streak = getStreakStatusSafe(engine);
+          updateStreakUI();
+        });
+      }
+    } else {
+      // Local fallback state
+      if (!state.streak) {
+        state.streak = {
+          currentStreak: 0,
+          bestStreak: 0,
+          savedPreviousStreak: 0,
+          isStreakBroken: false,
+          hasEarnedStreak: false,
+          uploadedToday: false,
+          deadline: Date.now() + 24 * 3600 * 1000
+        };
+      }
+    }
+
+    // Start 1-second countdown ticker
+    if (window._streakTicker) clearInterval(window._streakTicker);
+    window._streakTicker = setInterval(tickStreakCountdown, 1000);
+
+    // Initial UI render
+    updateStreakUI();
+
+    // Wire up header buttons directly for bulletproof responsiveness
+    const streakBtn = document.getElementById('streakHeaderPill');
+    if (streakBtn) {
+      streakBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        handleStreakIconClick();
+      };
+    }
+    const cameraBtn = document.getElementById('streakCameraBtn');
+    if (cameraBtn) {
+      cameraBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        openCameraModal();
+      };
+    }
+    const galleryBtn = document.getElementById('streakGalleryBtn');
+    if (galleryBtn) {
+      galleryBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        openMemoriesModal();
+      };
+    }
+    const calendarBtn = document.getElementById('streakCalendarBtn');
+    if (calendarBtn) {
+      calendarBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        openStreakModal();
+      };
+    }
+    const accountBtn = document.getElementById('streakAccountBtn');
+    if (accountBtn) {
+      accountBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        goToScreen('profile');
+      };
+    }
+
+    // Only show missed streak modal if user had earned a streak previously!
+    if (state.streak && state.streak.isStreakBroken && state.streak.savedPreviousStreak > 0) {
+      setTimeout(() => showMissedStreakModal(), 800);
+    }
+  }
+
+  function tickStreakCountdown() {
+    const engine = getStreakEngine();
+    if (engine) {
+      state.streak = getStreakStatusSafe(engine);
+    }
+    checkStreakUrgency();
+    updateStreakUI();
+  }
+
+  function checkStreakUrgency() {
+    const streak = state.streak;
+    if (!streak || streak.isStreakBroken || streak.uploadedToday) return;
+
+    const msRemaining = Math.max(0, streak.deadline - Date.now());
+    const TWO_HOURS_MS = 2 * 3600 * 1000;
+
+    if (msRemaining <= TWO_HOURS_MS && msRemaining > 0 && !streak.urgentReminderSent) {
+      streak.urgentReminderSent = true;
+      sendDailyNotification(
+        '⚠️ 2 Hours Left on Your Outfit Streak!',
+        `Only 2 hours left to snap today's outfit before your 🔥 ${streak.currentStreak}-day streak ends!`,
+        true
+      );
+    }
+  }
+
+  function triggerFlameBlowoutAnimation() {
+    const fireImg = document.getElementById('streakHeaderFireImg');
+    const smokeImg = document.getElementById('streakHeaderSmokeImg');
+    if (fireImg) fireImg.classList.add('hidden');
+    if (smokeImg) smokeImg.classList.remove('hidden');
+
+    const heroFire = document.getElementById('modalHeroFireImg');
+    const heroSmoke = document.getElementById('modalHeroSmokeImg');
+    if (heroFire) heroFire.classList.add('hidden');
+    if (heroSmoke) heroSmoke.classList.remove('hidden');
+
+    const pill = document.getElementById('streakHeaderPill');
+    if (pill) pill.classList.remove('urgent', 'completed');
+  }
+
+  function triggerFlameReigniteAnimation() {
+    const fireImg = document.getElementById('streakHeaderFireImg');
+    const smokeImg = document.getElementById('streakHeaderSmokeImg');
+    if (smokeImg) smokeImg.classList.add('hidden');
+    if (fireImg) {
+      fireImg.classList.remove('hidden');
+      fireImg.style.animation = 'none';
+      void fireImg.offsetWidth; // Trigger reflow
+      fireImg.style.animation = 'realisticFlameFlicker 0.6s ease-in-out infinite alternate';
+      setTimeout(() => {
+        if (fireImg) fireImg.style.animation = 'realisticFlameFlicker 2.2s ease-in-out infinite alternate';
+      }, 1200);
+    }
+
+    const pill = document.getElementById('streakHeaderPill');
+    if (pill) pill.classList.remove('broken-streak');
+  }
+
+  function updateStreakUI() {
+    const engine = getStreakEngine();
+    let streak = null;
+    if (engine) {
+      streak = getStreakStatusSafe(engine);
+      state.streak = streak;
+    } else {
+      streak = state.streak;
+    }
+    if (!streak) return;
+
+    const count = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
+    const streakCountEl = document.getElementById('streakCount');
+    const streakCountLabelEl = document.getElementById('streakCountLabel');
+    const streakPillEl = document.getElementById('streakHeaderPill');
+    const fireImg = document.getElementById('streakHeaderFireImg');
+    const smokeImg = document.getElementById('streakHeaderSmokeImg');
+
+    if (streakCountEl) streakCountEl.textContent = count;
+    if (streakCountLabelEl) {
+      streakCountLabelEl.textContent = count === 1 ? 'Streak' : 'Streaks';
+    }
+
+    // Determine current fire level for trio header icon
+    let headerLevel = 1;
+    if (engine && typeof engine.getFireLevel === 'function') {
+      headerLevel = engine.getFireLevel(count);
+    } else {
+      if (count >= 100) headerLevel = 5;
+      else if (count >= 50) headerLevel = 4;
+      else if (count >= 30) headerLevel = 3;
+      else if (count >= 10) headerLevel = 2;
+      else headerLevel = 1;
+    }
+
+    // Only show broken streak (wood & rising smoke) if user had previously earned a streak!
+    // A new user who has never earned a streak must NOT be shown a broken streak.
+    const isBroken = streak.isStreakBroken && streak.hasEarnedStreak && streak.savedPreviousStreak > 0;
+
+    if (isBroken) {
+      if (fireImg) fireImg.classList.add('hidden');
+      if (smokeImg) smokeImg.classList.remove('hidden');
+      if (streakPillEl) {
+        streakPillEl.classList.add('broken-streak');
+        streakPillEl.title = 'Streak broken! Click to restore your streak';
+      }
+    } else {
+      if (fireImg) {
+        fireImg.classList.remove('hidden');
+        fireImg.src = `assets/streak/fire_level_${headerLevel}.png`;
+        fireImg.className = `streak-header-icon-img fire-lvl-${headerLevel}`;
+      }
+      if (smokeImg) smokeImg.classList.add('hidden');
+      if (streakPillEl) {
+        streakPillEl.classList.remove('broken-streak');
+        streakPillEl.title = `Daily Outfit Streak: ${count} ${count === 1 ? 'Streak' : 'Streaks'} (Click to view calendar)`;
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // WOOBI STREAK CALENDAR & CIRCULAR FIRE/SMOKE ANIMATION
+  // --------------------------------------------------------------------------
+  function handleStreakIconClick() {
+    const engine = getStreakEngine();
+    const status = getStreakStatusSafe(engine) || state.streak;
+
+    // When streak is broken, clicking the wood and smoke icon opens the Restore option!
+    if (status && status.isStreakBroken && status.hasEarnedStreak && status.savedPreviousStreak > 0) {
+      showMissedStreakModal();
+    } else {
+      // Active streak opens the calendar
+      openStreakModal();
+    }
+  }
+
+  function openStreakModal() {
+    const modal = document.getElementById('streakDetailsModal');
+    if (!modal) return;
+    renderStreakCalendar();
+    modal.classList.remove('hidden');
+  }
+
+  function closeStreakModal() {
+    const modal = document.getElementById('streakDetailsModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function prevCalendarMonth() {
+    currentCalMonth -= 1;
+    if (currentCalMonth < 0) {
+      currentCalMonth = 11;
+      currentCalYear -= 1;
+    }
+    renderStreakCalendar();
+  }
+
+  function nextCalendarMonth() {
+    currentCalMonth += 1;
+    if (currentCalMonth > 11) {
+      currentCalMonth = 0;
+      currentCalYear += 1;
+    }
+    renderStreakCalendar();
+  }
+
+  function renderStreakCalendar() {
+    const engine = getStreakEngine();
+    const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
+    const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
+
+    let tierLevel = 1;
+    let tierName = 'First Fire';
+    if (engine && typeof engine.getFireLevel === 'function') {
+      tierLevel = engine.getFireLevel(curStreak);
+      tierName = engine.getFireLevelName(curStreak);
+    } else {
+      if (curStreak >= 100) { tierLevel = 5; tierName = 'Final Fire'; }
+      else if (curStreak >= 50) { tierLevel = 4; tierName = 'Fourth Fire'; }
+      else if (curStreak >= 30) { tierLevel = 3; tierName = 'Third Fire'; }
+      else if (curStreak >= 10) { tierLevel = 2; tierName = 'Second Fire'; }
+      else { tierLevel = 1; tierName = 'First Fire'; }
+    }
+
+    const tierTextEl = document.getElementById('calTierText');
+    if (tierTextEl) {
+      tierTextEl.textContent = `${curStreak} ${curStreak === 1 ? 'Day' : 'Days'} Streak • ${tierName}`;
+    }
+    const badge = document.getElementById('calHeaderStreakBadge');
+    if (badge && !tierTextEl) {
+      badge.textContent = `🔥 Current Streak: ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}`;
+    }
+
+    let calData = null;
+    if (engine && typeof engine.getMonthlyCalendarData === 'function') {
+      calData = engine.getMonthlyCalendarData(currentCalYear, currentCalMonth);
+    } else {
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const firstDay = new Date(currentCalYear, currentCalMonth, 1).getDay();
+      const totalDays = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
+      const now = new Date();
+      const isCurMonth = now.getFullYear() === currentCalYear && now.getMonth() === currentCalMonth;
+      const todayDate = now.getDate();
+      const days = [];
+      let runningStreak = 0;
+      let activeDays = 0;
+      let brokenDays = 0;
+      let upcomingDays = 0;
+
+      for (let d = 1; d <= totalDays; d++) {
+        let status = 'upcoming';
+        let fireLvl = 1;
+        if (isCurMonth && d === todayDate) {
+          status = 'today';
+          upcomingDays++;
+        } else if (isCurMonth && d < todayDate) {
+          status = 'completed';
+          activeDays++;
+          runningStreak++;
+          if (runningStreak >= 100) fireLvl = 5;
+          else if (runningStreak >= 50) fireLvl = 4;
+          else if (runningStreak >= 30) fireLvl = 3;
+          else if (runningStreak >= 10) fireLvl = 2;
+          else fireLvl = 1;
+        } else {
+          upcomingDays++;
+        }
+        days.push({ day: d, status, fireLevel: fireLvl });
+      }
+
+      calData = {
+        year: currentCalYear,
+        month: currentCalMonth,
+        monthName: monthNames[currentCalMonth],
+        totalDays,
+        firstDayOfWeek: firstDay,
+        days,
+        stats: { activeDays, brokenDays, upcomingDays }
+      };
+    }
+
+    const titleEl = document.getElementById('streakCalMonthTitle');
+    const gridEl = document.getElementById('streakCalendarGrid');
+    const activeEl = document.getElementById('calActiveCount');
+    const brokenEl = document.getElementById('calBrokenCount');
+    const upcomingEl = document.getElementById('calUpcomingCount');
+
+    if (titleEl) {
+      titleEl.textContent = `${calData.monthName} ${calData.year} ▾`;
+    }
+
+    if (activeEl) activeEl.textContent = calData.stats.activeDays;
+    if (brokenEl) brokenEl.textContent = calData.stats.brokenDays;
+    if (upcomingEl) upcomingEl.textContent = calData.stats.upcomingDays;
+
+    if (!gridEl) return;
+    gridEl.innerHTML = '';
+
+    // Helper: Creates high-performance animated SVG with flowing fire streaks
+    function createFlowingFireElement(level = 1) {
+      const wrap = document.createElement('div');
+      wrap.className = `flowing-fire-wrap fire-lvl-${level}`;
+      wrap.innerHTML = `
+        <svg class="flowing-fire-svg" viewBox="0 0 38 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="flameOuterGrad" x1="19" y1="44" x2="19" y2="2" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FF2E00"/>
+              <stop offset="30%" stop-color="#FF6A00"/>
+              <stop offset="70%" stop-color="#FFA600"/>
+              <stop offset="100%" stop-color="#FFF3A5"/>
+            </linearGradient>
+            <linearGradient id="flameCoreGrad" x1="19" y1="42" x2="19" y2="16" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FF8A00"/>
+              <stop offset="50%" stop-color="#FFDE3B"/>
+              <stop offset="100%" stop-color="#FFFFFF"/>
+            </linearGradient>
+            <linearGradient id="flameStreakGrad" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stop-color="#FF4500" stop-opacity="0.1"/>
+              <stop offset="45%" stop-color="#FFB800" stop-opacity="0.95"/>
+              <stop offset="100%" stop-color="#FFFFE8" stop-opacity="0.1"/>
+            </linearGradient>
+          </defs>
+          <ellipse cx="19" cy="39" rx="14" ry="6" fill="#FFA500" class="fire-ambient-glow"/>
+          <path class="flame-body-path" fill="url(#flameOuterGrad)"
+            d="M19 2 C16 9 9 16 9 27 C9 36 13 42 19 43 C25 42 29 36 29 27 C29 16 22 9 19 2 Z"/>
+          <path class="fire-flowing-streak streak-left" fill="url(#flameStreakGrad)"
+            d="M14 36 C12 30 11 23 17 15 C15 21 14 28 16 35 Z"/>
+          <path class="fire-flowing-streak streak-right" fill="url(#flameStreakGrad)"
+            d="M24 36 C26 30 27 23 21 15 C23 21 24 28 22 35 Z"/>
+          <path class="fire-flowing-streak streak-center" fill="url(#flameStreakGrad)"
+            d="M18 32 C16 24 18 14 19 5 C20 14 22 24 20 32 Z"/>
+          <path class="flame-core-path" fill="url(#flameCoreGrad)"
+            d="M19 21 C16 26 14 30 14 36 C14 41 16 42 19 42 C22 42 24 41 24 36 C24 30 22 26 19 21 Z"/>
+          <circle cx="15" cy="20" r="1.1" fill="#FFF4A3" class="flowing-ember ember-1"/>
+          <circle cx="23" cy="16" r="1.0" fill="#FFCF5C" class="flowing-ember ember-2"/>
+          <circle cx="19" cy="9"  r="1.2" fill="#FFFFFF" class="flowing-ember ember-3"/>
+        </svg>
+      `;
+      return wrap;
+    }
+
+    // 1. Render empty offset slots for start of month (soft recessed placeholder tiles)
+    for (let i = 0; i < calData.firstDayOfWeek; i++) {
+      const emptySlot = document.createElement('div');
+      emptySlot.className = 'date-tile-empty-recessed streak-cal-slot-empty';
+      gridEl.appendChild(emptySlot);
+    }
+
+    // 2. Render each day in 3D Recessed Tile format with circular Crater Sockets
+    calData.days.forEach(dayInfo => {
+      const tile = document.createElement('div');
+      tile.className = `date-tile-recessed ${dayInfo.status}`;
+      tile.title = `${calData.monthName} ${dayInfo.day}: ${dayInfo.status.toUpperCase()}`;
+
+      // Date number at top-left
+      const numSpan = document.createElement('span');
+      numSpan.className = 'date-tile-num';
+      numSpan.textContent = dayInfo.day;
+      tile.appendChild(numSpan);
+
+      // Inner circular crater socket
+      const crater = document.createElement('div');
+      crater.className = `crater-socket ${dayInfo.status}-crater`;
+
+      if (dayInfo.status === 'completed') {
+        const lvl = dayInfo.fireLevel || 1;
+        const delay = ((dayInfo.day * 0.17) % 1.5).toFixed(2);
+
+        const fireWrap = document.createElement('div');
+        fireWrap.className = `streak-cell-fire-wrap fire-lvl-${lvl} burning-flow-active fire-shaking-active`;
+        fireWrap.style.animationDelay = `${delay}s`;
+
+        const fireImg = document.createElement('img');
+        fireImg.src = `assets/streak/fire_level_${lvl}.png`;
+        fireImg.alt = `Streak Fire Level ${lvl}`;
+        fireImg.className = `streak-cell-fire-img fire-lvl-${lvl}-img`;
+        fireImg.style.animationDelay = `${delay}s`;
+        fireImg.onerror = () => {
+          fireImg.src = 'assets/streak/realistic_fire.png';
+          fireImg.onerror = () => {
+            fireImg.src = 'assets/streak/reference_flame_sample.png';
+          };
+        };
+
+        const streaks = document.createElement('div');
+        streaks.className = 'flowing-flame-streaks';
+        streaks.innerHTML = `
+          <span class="flame-streak-ribbon ribbon-1" style="animation-delay: ${delay}s"></span>
+          <span class="flame-streak-ribbon ribbon-2" style="animation-delay: ${(Number(delay) + 0.15).toFixed(2)}s"></span>
+          <span class="flame-streak-ribbon ribbon-3" style="animation-delay: ${(Number(delay) + 0.35).toFixed(2)}s"></span>
+        `;
+
+        fireWrap.appendChild(fireImg);
+        fireWrap.appendChild(streaks);
+        crater.appendChild(fireWrap);
+      } else if (dayInfo.status === 'missed') {
+        const delay = ((dayInfo.day * 0.23) % 2.1).toFixed(2);
+
+        const bonfireWrap = document.createElement('div');
+        bonfireWrap.className = 'streak-cell-bonfire-wrap bonfire-smoke-active';
+        bonfireWrap.style.animationDelay = `${delay}s`;
+
+        const bonfireImg = document.createElement('img');
+        bonfireImg.src = 'assets/streak/bonfire_smoke.png';
+        bonfireImg.alt = 'Missed Bonfire Smoke';
+        bonfireImg.className = 'crater-bonfire-img animated-bonfire-smoke';
+        bonfireImg.style.animationDelay = `${delay}s`;
+        bonfireImg.onerror = () => {
+          bonfireImg.src = 'assets/streak_bonfire_smoke.png';
+        };
+
+        bonfireWrap.appendChild(bonfireImg);
+        crater.appendChild(bonfireWrap);
+      } else if (dayInfo.status === 'today') {
+        const dot = document.createElement('div');
+        dot.className = 'today-pulse-dot';
+        crater.appendChild(dot);
+      }
+
+      tile.appendChild(crater);
+
+      // Interactive Click Handling
+      tile.addEventListener('click', () => {
+        if (dayInfo.status === 'completed' && dayInfo.memory) {
+          openMemoryDetail(dayInfo.memory.id);
+        } else if (dayInfo.status === 'today') {
+          closeStreakModal();
+          openCameraModal();
+        } else if (dayInfo.status === 'missed') {
+          showMissedStreakModal();
+        } else {
+          showToast(`📅 ${calData.monthName} ${dayInfo.day}: ${dayInfo.status.charAt(0).toUpperCase() + dayInfo.status.slice(1)}`);
+        }
+      });
+
+      gridEl.appendChild(tile);
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // DAILY STREAK CAMERA & CAPTURE
+  // --------------------------------------------------------------------------
+  async function openCameraModal() {
+    const modal = document.getElementById('outfitCameraModal');
+    if (!modal) return;
+
+    capturedPhotoDataUrl = null;
+
+    // Reset controls visibility
+    const liveControls = document.getElementById('cameraLiveControls');
+    const reviewControls = document.getElementById('cameraReviewContainer');
+    const previewImg = document.getElementById('cameraCapturedPreview');
+    const videoEl = document.getElementById('cameraVideo');
+    const fallbackCard = document.getElementById('cameraFallbackCard');
+    const overlayFrame = document.getElementById('cameraOverlayFrame');
+
+    if (liveControls) liveControls.classList.remove('hidden');
+    if (reviewControls) reviewControls.classList.add('hidden');
+    if (previewImg) previewImg.classList.add('hidden');
+    if (overlayFrame) overlayFrame.classList.remove('hidden');
+
+    // Update streak advance numbers in review
+    const currVal = document.getElementById('cameraCurrentStreakVal');
+    const newVal = document.getElementById('cameraNewStreakVal');
+    const engine = getStreakEngine();
+    const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
+    const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
+    const isAlreadyLogged = engine && typeof engine.hasUploadedToday === 'function' ? engine.hasUploadedToday() : false;
+
+    if (currVal) currVal.textContent = curStreak;
+    if (newVal) {
+      newVal.textContent = isAlreadyLogged ? curStreak : (curStreak + 1);
+    }
+
+    const dupWarning = document.getElementById('cameraDuplicateWarning');
+    const btnConfirm = document.getElementById('btnConfirmCapturedOutfit');
+
+    if (dupWarning) {
+      dupWarning.classList.toggle('hidden', !isAlreadyLogged);
+      if (isAlreadyLogged) {
+        dupWarning.innerHTML = `<span>✨ Streak for today completed (🔥 ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}). Extra photos are saved to your Gallery!</span>`;
+      }
+    }
+    if (btnConfirm) {
+      btnConfirm.disabled = false;
+      btnConfirm.textContent = isAlreadyLogged ? 'Add Photo to Gallery 📸' : 'Confirm & Log Outfit 🔥';
+    }
+
+    modal.classList.remove('hidden');
+
+    // Initialize Camera Stream
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1440 } }
+        });
+        if (videoEl) {
+          videoEl.srcObject = cameraStream;
+          videoEl.classList.remove('hidden');
+          videoEl.play();
+        }
+        if (fallbackCard) fallbackCard.classList.add('hidden');
+      } catch (err) {
+        console.warn('Camera stream inaccessible, activating fallback:', err.message);
+        if (videoEl) videoEl.classList.add('hidden');
+        if (fallbackCard) fallbackCard.classList.remove('hidden');
+      }
+    } else {
+      if (videoEl) videoEl.classList.add('hidden');
+      if (fallbackCard) fallbackCard.classList.remove('hidden');
+    }
+  }
+
+  function closeCameraModal() {
+    const modal = document.getElementById('outfitCameraModal');
+    if (modal) modal.classList.add('hidden');
+
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+  }
+
+  function captureCameraSnapshot() {
+    const videoEl = document.getElementById('cameraVideo');
+    const canvas = document.getElementById('cameraCanvas');
+    const previewImg = document.getElementById('cameraCapturedPreview');
+    const overlayFrame = document.getElementById('cameraOverlayFrame');
+    const liveControls = document.getElementById('cameraLiveControls');
+    const reviewControls = document.getElementById('cameraReviewContainer');
+
+    if (!videoEl || !canvas || videoEl.classList.contains('hidden') || !videoEl.videoWidth) {
+      // Fallback: load curated outfit look
+      loadSampleOutfitLook();
+      return;
+    }
+
+    canvas.width = videoEl.videoWidth;
+    canvas.height = videoEl.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+    capturedPhotoDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    if (previewImg) {
+      previewImg.src = capturedPhotoDataUrl;
+      previewImg.classList.remove('hidden');
+    }
+
+    if (videoEl) videoEl.classList.add('hidden');
+    if (overlayFrame) overlayFrame.classList.add('hidden');
+    if (liveControls) liveControls.classList.add('hidden');
+    if (reviewControls) reviewControls.classList.remove('hidden');
+  }
+
+  function triggerFileInputClick() {
+    const fileInput = document.getElementById('outfitPhotoInput');
+    if (fileInput) {
+      fileInput.value = '';
+      fileInput.click();
+    }
+  }
+
+  function handleOutfitPhotoSelected(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      capturedPhotoDataUrl = e.target.result;
+      const previewImg = document.getElementById('cameraCapturedPreview');
+      const videoEl = document.getElementById('cameraVideo');
+      const overlayFrame = document.getElementById('cameraOverlayFrame');
+      const fallbackCard = document.getElementById('cameraFallbackCard');
+      const liveControls = document.getElementById('cameraLiveControls');
+      const reviewControls = document.getElementById('cameraReviewContainer');
+
+      if (previewImg) {
+        previewImg.src = capturedPhotoDataUrl;
+        previewImg.classList.remove('hidden');
+      }
+      if (videoEl) videoEl.classList.add('hidden');
+      if (fallbackCard) fallbackCard.classList.add('hidden');
+      if (overlayFrame) overlayFrame.classList.add('hidden');
+      if (liveControls) liveControls.classList.add('hidden');
+      if (reviewControls) reviewControls.classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function loadSampleOutfitLook() {
+    const samples = [
+      { img: 'assets/navy_shirt.jpg', note: 'Tailored Navy Oxford & Sand Chinos' },
+      { img: 'assets/white_linen_shirt.jpg', note: 'Relaxed White Linen Classic' },
+      { img: 'assets/smart_blazer.jpg', note: 'Executive Structured Autumn Blazer' },
+      { img: 'assets/terracotta_tee.jpg', note: 'Casual Earth Tone Terracotta Tee' },
+      { img: 'assets/indigo_kurti.jpg', note: 'Festive Indigo Silk Ensemble' }
+    ];
+    const picked = samples[Math.floor(Math.random() * samples.length)];
+    capturedPhotoDataUrl = picked.img;
+
+    const previewImg = document.getElementById('cameraCapturedPreview');
+    const noteInput = document.getElementById('cameraOutfitNoteInput');
+    const videoEl = document.getElementById('cameraVideo');
+    const overlayFrame = document.getElementById('cameraOverlayFrame');
+    const fallbackCard = document.getElementById('cameraFallbackCard');
+    const liveControls = document.getElementById('cameraLiveControls');
+    const reviewControls = document.getElementById('cameraReviewContainer');
+
+    if (previewImg) {
+      previewImg.src = capturedPhotoDataUrl;
+      previewImg.classList.remove('hidden');
+    }
+    if (noteInput) noteInput.value = picked.note;
+
+    if (videoEl) videoEl.classList.add('hidden');
+    if (fallbackCard) fallbackCard.classList.add('hidden');
+    if (overlayFrame) overlayFrame.classList.add('hidden');
+    if (liveControls) liveControls.classList.add('hidden');
+    if (reviewControls) reviewControls.classList.remove('hidden');
+  }
+
+  function retakeCameraPhoto() {
+    capturedPhotoDataUrl = null;
+    const previewImg = document.getElementById('cameraCapturedPreview');
+    const videoEl = document.getElementById('cameraVideo');
+    const overlayFrame = document.getElementById('cameraOverlayFrame');
+    const liveControls = document.getElementById('cameraLiveControls');
+    const reviewControls = document.getElementById('cameraReviewContainer');
+
+    if (previewImg) previewImg.classList.add('hidden');
+    if (videoEl) videoEl.classList.remove('hidden');
+    if (overlayFrame) overlayFrame.classList.remove('hidden');
+    if (liveControls) liveControls.classList.remove('hidden');
+    if (reviewControls) reviewControls.classList.add('hidden');
+  }
+
+  function confirmCapturedOutfit() {
+    const engine = getStreakEngine();
+    const noteInput = document.getElementById('cameraOutfitNoteInput');
+    const note = noteInput ? noteInput.value : '';
+
+    if (!engine) {
+      showToast('⚠️ Streak state engine initializing...');
+      return;
+    }
+
+    const res = engine.recordDailyOutfitUpload({
+      photoUrl: capturedPhotoDataUrl || 'assets/welcome_hero.jpg',
+      note: note.trim()
+    });
+
+    closeCameraModal();
+    triggerFlameReigniteAnimation();
+    updateStreakUI();
+
+    if (!res.success && res.alreadyUploaded) {
+      showToast(`📸 Outfit photo added to Gallery! Streak remains at ${res.streak} (1 per day).`);
+      return;
+    }
+
+    showToast(`🔥 Streak increased to ${res.streak}! Outfit memory saved!`);
+  }
+
+  // --------------------------------------------------------------------------
+  // OUTFIT MEMORIES GALLERY & LIGHTBOX
+  // --------------------------------------------------------------------------
+  function openMemoriesModal() {
+    renderOutfitMemories();
+    const modal = document.getElementById('outfitMemoriesModal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeMemoriesModal() {
+    const modal = document.getElementById('outfitMemoriesModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function renderOutfitMemories() {
+    const engine = getStreakEngine();
+    const memories = (engine && typeof engine.getAllMemories === 'function') ? engine.getAllMemories() : [];
+    const gridEl = document.getElementById('memoriesGridContainer');
+    const countBadge = document.getElementById('memoriesTotalCountBadge');
+
+    if (countBadge) countBadge.textContent = `${memories.length} Memories Logged`;
+    if (!gridEl) return;
+
+    gridEl.innerHTML = '';
+
+    if (memories.length === 0) {
+      gridEl.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px 10px; color: #8C755E;">
+          <span style="font-size: 2.2rem; display: block; margin-bottom: 8px;">📷</span>
+          <p style="font-size: 0.9rem; margin: 0;">No memories logged yet. Snap your first outfit today to start your streak!</p>
+        </div>
+      `;
+      return;
+    }
+
+    memories.forEach(mem => {
+      const card = document.createElement('div');
+      card.className = 'memory-card';
+      card.innerHTML = `
+        <div class="memory-thumb-wrap">
+          <img src="${mem.photoUrl}" class="memory-thumb-img" alt="${mem.note}" />
+          <span class="memory-streak-badge">Day ${mem.streakDay || 1} 🔥</span>
+        </div>
+        <div class="memory-card-meta">
+          <span class="memory-card-date">${formatReadableDate(mem.date)}</span>
+          <span class="memory-card-note">${mem.note || 'Outfit Look'}</span>
+        </div>
+      `;
+      card.addEventListener('click', () => openMemoryDetail(mem.id));
+      gridEl.appendChild(card);
+    });
+  }
+
+  function formatReadableDate(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const d = new Date(parts[0], parseInt(parts[1], 10) - 1, parts[2]);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    }
+    return dateStr;
+  }
+
+  function openMemoryDetail(memoryId) {
+    const engine = getStreakEngine();
+    if (!engine) return;
+
+    const memory = engine.memories.find(m => m.id === memoryId) || engine.memories[0];
+    if (!memory) return;
+
+    const modal = document.getElementById('memoryDetailModal');
+    const imgEl = document.getElementById('memoryDetailImg');
+    const dateTitle = document.getElementById('memoryDetailDateTitle');
+    const streakTag = document.getElementById('memoryDetailStreakTag');
+    const noteEl = document.getElementById('memoryDetailNote');
+    const timeEl = document.getElementById('memoryDetailTimestamp');
+
+    if (imgEl) imgEl.src = memory.photoUrl;
+    if (dateTitle) dateTitle.textContent = formatReadableDate(memory.date);
+    if (streakTag) streakTag.textContent = `Day ${memory.streakDay || 1} 🔥`;
+    if (noteEl) noteEl.textContent = memory.note || 'Daily Outfit Look';
+    if (timeEl) timeEl.textContent = `Logged on ${memory.date}`;
+
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeMemoryDetailModal() {
+    const modal = document.getElementById('memoryDetailModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  // --------------------------------------------------------------------------
+  // MISSED STREAK & MONTHLY RESTORATION LOGIC
+  // --------------------------------------------------------------------------
+  function showMissedStreakModal() {
+    const streak = state.streak;
+    // DO NOT show lost streak to new user who has never earned one!
+    if (!streak || !streak.hasEarnedStreak || (streak.currentStreak === 0 && streak.savedPreviousStreak === 0)) {
+      return;
+    }
+
+    const modal = document.getElementById('missedStreakModal');
+    if (!modal) return;
+
+    const lostCountEl = document.getElementById('missedStreakLostCount');
+    const statusCard = document.getElementById('restoreStatusCard');
+    const statusIcon = document.getElementById('restoreStatusIcon');
+    const statusTitle = document.getElementById('restoreStatusTitle');
+    const statusSubtitle = document.getElementById('restoreStatusSubtitle');
+    const btnRestore = document.getElementById('btnRestoreStreak');
+
+    if (lostCountEl) lostCountEl.textContent = `${streak.savedPreviousStreak || 1} Days`;
+
+    const engine = getStreakEngine();
+    const isEligible = engine ? engine.isMonthlyRestoreAvailable() : true;
+    const nextRefresh = engine ? engine.getNextRestoreRefreshDateStr() : 'the 3rd';
+
+    if (isEligible) {
+      if (statusCard) statusCard.classList.remove('ineligible');
+      if (statusIcon) statusIcon.textContent = '✨';
+      if (statusTitle) statusTitle.textContent = 'Monthly Restoration Available!';
+      if (statusSubtitle) statusSubtitle.textContent = 'You have 1 free restore for this monthly cycle. (Refreshes on the 3rd of every month)';
+      if (btnRestore) {
+        btnRestore.disabled = false;
+        btnRestore.textContent = `Restore Streak (${streak.savedPreviousStreak || 1} Days) 🔥`;
+      }
+    } else {
+      if (statusCard) statusCard.classList.add('ineligible');
+      if (statusIcon) statusIcon.textContent = '🔒';
+      if (statusTitle) statusTitle.textContent = 'Monthly Restore Used for this Cycle';
+      if (statusSubtitle) statusSubtitle.textContent = `Your free restore refreshes on ${nextRefresh}.`;
+      if (btnRestore) {
+        btnRestore.disabled = true;
+        btnRestore.textContent = `Restore Used (Refreshes ${nextRefresh})`;
+      }
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeMissedStreakModal() {
+    const modal = document.getElementById('missedStreakModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function restoreMonthlyStreak() {
+    const engine = getStreakEngine();
+    if (!engine) return;
+
+    if (!engine.isMonthlyRestoreAvailable()) {
+      showToast(`⚠️ Monthly restore unavailable: Already used for this calendar month. Refreshes on ${engine.getNextRestoreRefreshDateStr()}.`);
+      return;
+    }
+
+    const previousStreak = engine.state.savedPreviousStreak || 1;
+    const confirmed = window.confirm(
+      `Restore your previous streak of ${previousStreak} days?\n\nNote: You can only restore your streak once per calendar month.`
+    );
+    if (!confirmed) return;
+
+    const res = engine.restoreMonthlyStreak();
+    if (!res.success) {
+      showToast(`⚠️ ${res.error || 'Monthly restore unavailable.'}`);
+      return;
+    }
+
+    closeMissedStreakModal();
+    triggerFlameReigniteAnimation();
+    updateStreakUI();
+    renderStreakCalendar();
+    showToast(`✨ Streak restored to ${res.streak} days! Your burning flame is back! 🔥`);
+  }
+
+  function startNewStreak() {
+    const engine = getStreakEngine();
+    if (engine) engine.startFreshStreak();
+
+    closeMissedStreakModal();
+    updateStreakUI();
+    showToast('Starting a fresh streak! Upload today\'s outfit to light your 🔥 flame.');
+  }
+
+  // --------------------------------------------------------------------------
+  // DAILY NOTIFICATIONS & REMINDER SYSTEM
+  // --------------------------------------------------------------------------
+  function sendDailyNotification(title, body, isUrgent) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, { body, icon: 'assets/streak_fire.jpg' });
+      } catch (e) {
+        console.warn('System notification error', e);
+      }
+    }
+
+    const banner = document.getElementById('inAppReminderBanner');
+    const titleEl = document.getElementById('reminderBannerTitle');
+    const bodyEl = document.getElementById('reminderBannerBody');
+    const iconEl = document.getElementById('reminderBannerIcon');
+
+    if (titleEl) titleEl.textContent = title;
+    if (bodyEl) bodyEl.textContent = body;
+    if (iconEl) iconEl.innerHTML = isUrgent ? '<span>⚠️</span>' : '<span>🔥</span>';
+
+    if (banner) {
+      banner.classList.toggle('urgent', isUrgent);
+      banner.classList.remove('hidden');
+    }
+  }
+
+  function dismissReminderBanner() {
+    const banner = document.getElementById('inAppReminderBanner');
+    if (banner) banner.classList.add('hidden');
+  }
+
+  // --------------------------------------------------------------------------
+  // QA SIMULATION TOOLS
+  // --------------------------------------------------------------------------
+  function devSimulateUpload() {
+    openCameraModal();
+    loadSampleOutfitLook();
+  }
+
+  function devSimulateTwoHoursLeft() {
+    const engine = getStreakEngine();
+    if (!engine) return;
+    engine.state.deadline = Date.now() + (1 * 3600 * 1000 + 59 * 60 * 1000);
+    engine.state.urgentReminderSent = false;
+    engine.state.uploadedToday = false;
+    engine.state.isStreakBroken = false;
+    engine.save();
+    updateStreakUI();
+    showToast('⏱️ Simulated: Exactly 1h 59m remaining (2-hour warning triggered)');
+  }
+
+  function devSimulateStreakBreak() {
+    const engine = getStreakEngine();
+    if (!engine) return;
+    if (engine.state.currentStreak > 0) {
+      engine.state.savedPreviousStreak = engine.state.currentStreak;
+    }
+    engine.state.deadline = Date.now() - 1000;
+    engine.state.uploadedToday = false;
+    engine.state.isStreakBroken = true;
+    engine.state.currentStreak = 0;
+    engine.save();
+    triggerFlameBlowoutAnimation();
+    updateStreakUI();
+    showToast('💥 Simulated deadline expiration: Streak broken!');
+    setTimeout(() => showMissedStreakModal(), 600);
+  }
+
+  function devToggleRestoreToken() {
+    const engine = getStreakEngine();
+    if (!engine) return;
+    const currentCycle = engine.getMonthlyRestoreCycleKey();
+    if (engine.state.lastRestoredCycleKey === currentCycle) {
+      engine.state.lastRestoredCycleKey = null;
+      showToast('🔄 Restored Monthly Token: Now ELIGIBLE for 3rd date cycle!');
+    } else {
+      engine.state.lastRestoredCycleKey = currentCycle;
+      showToast('🔒 Marked Monthly Token as USED for current cycle.');
+    }
+    engine.save();
+    updateStreakUI();
+  }
+
+  function devResetStreak() {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(STREAK_STORAGE_KEY);
+      localStorage.removeItem('woobi_outfit_streak_v2');
+      localStorage.removeItem('woobi_outfit_memories_v1');
+    }
+    const engine = getStreakEngine();
+    if (engine) {
+      engine.state.currentStreak = 0;
+      engine.state.bestStreak = 0;
+      engine.state.savedPreviousStreak = 0;
+      engine.state.isStreakBroken = false;
+      engine.state.hasEarnedStreak = false;
+      engine.state.uploadedToday = false;
+      engine.state.lastUploadDateStr = null;
+      engine.state.lastRestoredCycleKey = null;
+      engine.memories = [];
+      engine.save();
+    }
+    initStreakState();
+    showToast('🗑️ Reset streak to fresh starter state (0 days, no lost streak).');
+  }
+
+  function resetTestData() {
+    const engine = getStreakEngine();
+    if (engine && typeof engine.resetTestData === 'function') {
+      engine.resetTestData();
+    }
+    state.streak = getStreakStatusSafe(engine);
+    updateStreakUI();
+    renderStreakCalendar();
+    showToast('🔥 Reset 136-day test data (June 21 – Today) with Level 5 fire!');
+  }
+
+  function toggleTestUserMode() {
+    const engine = getStreakEngine();
+    if (!engine) return;
+    const isTest = typeof engine.isTestUser === 'function' ? engine.isTestUser() : false;
+    if (isTest) {
+      if (typeof engine.switchToRealUser === 'function') {
+        engine.switchToRealUser('user_real');
+      }
+      showToast('Switched to Real User mode (Authentic streaks).');
+    } else {
+      if (typeof engine.loadTestUserStreak136 === 'function') {
+        engine.loadTestUserStreak136();
+      }
+      showToast('Switched to Test User (136-day streak with Level 5 fire)!');
+    }
+    state.streak = getStreakStatusSafe(engine);
+    updateStreakUI();
+    renderStreakCalendar();
+  }
+
+  // Legacy compatibility helpers
+  function triggerOutfitPhotoUpload() {
+    openCameraModal();
+  }
+
+  function openPhotoConfirmModal(imgUrl) {
+    capturedPhotoDataUrl = imgUrl;
+    openCameraModal();
+  }
+
+  function closePhotoConfirmModal() {
+    closeCameraModal();
+  }
+
+  function confirmOutfitPhotoUpload() {
+    confirmCapturedOutfit();
+  }
+
+  // =========================================================================
+  // 10. INTERACTIVE WEEKLY PLANNER & CALENDAR ENGINE
+  // =========================================================================
+  const PLANNER_STORAGE_KEY = 'woobi_weekly_calendar_v1';
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  const PLANNER_SAMPLE_OUTFITS = [
+    {
+      id: 'look_easy_everyday',
+      title: 'Easy everyday',
+      occasion: 'College',
+      tag: 'Casual',
+      caption: 'A relaxed navy cotton shirt paired with beige chinos and white sneakers.',
+      previewPhoto: 'assets/model_tryon_navy.jpg',
+      items: [
+        { name: 'Navy shirt', photo: 'assets/navy_shirt.jpg' },
+        { name: 'Beige chinos', photo: 'assets/beige_chinos.jpg' },
+        { name: 'White sneakers', photo: 'assets/white_sneakers.jpg' },
+        { name: 'Leather watch', photo: 'assets/leather_watch.jpg' }
+      ]
+    },
+    {
+      id: 'look_office_ready',
+      title: 'Office ready',
+      occasion: 'Office',
+      tag: 'Work',
+      caption: 'Crisp breathable white linen tailored with beige chinos and tan loafers.',
+      previewPhoto: 'assets/model_tryon_linen.jpg',
+      items: [
+        { name: 'White linen shirt', photo: 'assets/white_linen_shirt.jpg' },
+        { name: 'Beige chinos', photo: 'assets/beige_chinos.jpg' },
+        { name: 'Tan loafers', photo: 'assets/tan_loafers.jpg' },
+        { name: 'Leather watch', photo: 'assets/leather_watch.jpg' }
+      ]
+    },
+    {
+      id: 'look_weekend_casual',
+      title: 'Weekend casual',
+      occasion: 'Weekend',
+      tag: 'Weekend',
+      caption: 'Lightweight breathable olive kurta with relaxed cream palazzo.',
+      previewPhoto: 'assets/model_tryon_kurta.jpg',
+      items: [
+        { name: 'Olive kurta', photo: 'assets/olive_kurta.jpg' },
+        { name: 'Cream palazzo', photo: 'assets/cream_palazzo.jpg' },
+        { name: 'Tan loafers', photo: 'assets/tan_loafers.jpg' }
+      ]
+    },
+    {
+      id: 'look_urban_minimal',
+      title: 'Relaxed Urban Minimal',
+      occasion: 'City Casual',
+      tag: 'Casual',
+      caption: 'Deep maroon top paired with dark pleated skirt and white sneakers.',
+      previewPhoto: 'assets/model_tryon_maroon.jpg',
+      items: [
+        { name: 'Maroon top', photo: 'assets/maroon_top.jpg' },
+        { name: 'Dark skirt', photo: 'assets/dark_skirt.jpg' },
+        { name: 'White sneakers', photo: 'assets/white_sneakers.jpg' }
+      ]
+    },
+    {
+      id: 'look_tailored_blazer',
+      title: 'Smart Tailored Blazer',
+      occasion: 'Meeting',
+      tag: 'Work',
+      caption: 'Structured smart blazer with dark denim and black trainers.',
+      previewPhoto: 'assets/smart_blazer.jpg',
+      items: [
+        { name: 'Tailored blazer', photo: 'assets/smart_blazer.jpg' },
+        { name: 'Dark denim', photo: 'assets/dark_denim.jpg' },
+        { name: 'Black trainers', photo: 'assets/black_trainers.jpg' }
+      ]
+    },
+    {
+      id: 'look_heritage_kurti',
+      title: 'Heritage Indigo Kurti',
+      occasion: 'Celebration',
+      tag: 'Ethnic',
+      caption: 'Handcrafted indigo kurti paired with cream palazzo and brown sandals.',
+      previewPhoto: 'assets/indigo_kurti.jpg',
+      items: [
+        { name: 'Indigo kurti', photo: 'assets/indigo_kurti.jpg' },
+        { name: 'Cream palazzo', photo: 'assets/cream_palazzo.jpg' },
+        { name: 'Brown sandals', photo: 'assets/brown_sandals.jpg' }
+      ]
+    },
+    {
+      id: 'look_terracotta_street',
+      title: 'Terracotta City Walk',
+      occasion: 'Everyday',
+      tag: 'Weekend',
+      caption: 'Warm earthy terracotta tee paired with dark denim and white sneakers.',
+      previewPhoto: 'assets/terracotta_tee.jpg',
+      items: [
+        { name: 'Terracotta tee', photo: 'assets/terracotta_tee.jpg' },
+        { name: 'Dark denim', photo: 'assets/dark_denim.jpg' },
+        { name: 'White sneakers', photo: 'assets/white_sneakers.jpg' }
+      ]
+    }
+  ];
+
+  const plannerState = {
+    weekOffset: 0,
+    selectedDateKey: null,
+    assigningForDateKey: null,
+    filterCategory: 'All',
+    plannedOutfits: {}
+  };
+
+  function getPlannerWeekDays(weekOffset = 0) {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 is Sun, 1 is Mon, ... 6 is Sat
+    const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + distanceToMonday + (weekOffset * 7));
+    monday.setHours(0, 0, 0, 0);
+
+    const days = [];
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const dateNum = String(d.getDate()).padStart(2, '0');
+      const dateKey = `${year}-${month}-${dateNum}`;
+      const isToday = d.toDateString() === now.toDateString();
+
+      days.push({
+        dateObj: d,
+        dateKey,
+        dayName: dayNames[i],
+        dayNum: d.getDate(),
+        dateDisplay: `${d.getDate()} ${monthNames[d.getMonth()]}`,
+        fullDisplay: `${dayNames[i]}, ${d.getDate()} ${monthNames[d.getMonth()]}`,
+        isToday
+      });
+    }
+    return days;
+  }
+
+  function initPlannerState() {
+    try {
+      const saved = localStorage.getItem(PLANNER_STORAGE_KEY);
+      if (saved) {
+        plannerState.plannedOutfits = JSON.parse(saved);
+      } else {
+        // Initialize with standard starting looks on Monday and Tuesday of current week
+        const currentDays = getPlannerWeekDays(0);
+        plannerState.plannedOutfits = {
+          [currentDays[0].dateKey]: PLANNER_SAMPLE_OUTFITS[0],
+          [currentDays[1].dateKey]: PLANNER_SAMPLE_OUTFITS[1]
+        };
+        savePlannerState();
+      }
+    } catch (e) {
+      console.warn('Could not read planner state:', e);
+      plannerState.plannedOutfits = {};
+    }
+
+    if (!plannerState.selectedDateKey) {
+      const currentDays = getPlannerWeekDays(0);
+      const todayDay = currentDays.find(d => d.isToday);
+      plannerState.selectedDateKey = todayDay ? todayDay.dateKey : currentDays[0].dateKey;
+    }
+  }
+
+  function savePlannerState() {
+    try {
+      localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(plannerState.plannedOutfits));
+    } catch (e) {
+      console.warn('Could not save planner state:', e);
+    }
+  }
+
+  function renderWeeklyCalendar() {
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const stripEl = document.getElementById('plannerWeekStrip');
+    const streamEl = document.getElementById('weeklyScheduleStream');
+    const titleEl = document.getElementById('plannerWeekTitle');
+    const subEl = document.getElementById('plannerWeekSub');
+    const countEl = document.getElementById('plannerSummaryCount');
+    const badgeEl = document.getElementById('plannerSelectedDateBadge');
+    const fillEl = document.getElementById('plannerProgressFill');
+
+    // Title & Subtitle for Week Range
+    if (titleEl) {
+      const first = days[0];
+      const last = days[6];
+      titleEl.textContent = `${first.dateDisplay} – ${last.dateDisplay}, ${first.dateObj.getFullYear()}`;
+    }
+    if (subEl) {
+      if (plannerState.weekOffset === 0) {
+        subEl.textContent = 'This Week (Current)';
+      } else if (plannerState.weekOffset === 1) {
+        subEl.textContent = 'Next Week';
+      } else if (plannerState.weekOffset === -1) {
+        subEl.textContent = 'Last Week';
+      } else if (plannerState.weekOffset > 1) {
+        subEl.textContent = `In ${plannerState.weekOffset} Weeks`;
+      } else {
+        subEl.textContent = `${Math.abs(plannerState.weekOffset)} Weeks Ago`;
+      }
+    }
+
+    // Ensure selected date is set
+    const hasSelectedInWeek = days.some(d => d.dateKey === plannerState.selectedDateKey);
+    if (!hasSelectedInWeek) {
+      const todayDay = days.find(d => d.isToday);
+      plannerState.selectedDateKey = todayDay ? todayDay.dateKey : days[0].dateKey;
+    }
+
+    const selectedDayObj = days.find(d => d.dateKey === plannerState.selectedDateKey) || days[0];
+    if (badgeEl) {
+      badgeEl.textContent = `Selected: ${selectedDayObj.fullDisplay}`;
+    }
+
+    // Count planned days in this active week
+    let plannedInWeekCount = 0;
+    days.forEach(d => {
+      if (plannerState.plannedOutfits[d.dateKey]) {
+        plannedInWeekCount++;
+      }
+    });
+
+    if (countEl) {
+      countEl.innerHTML = `<strong>${plannedInWeekCount} of 7</strong> days planned`;
+    }
+    if (fillEl) {
+      const percent = Math.round((plannedInWeekCount / 7) * 100);
+      fillEl.style.width = `${percent}%`;
+    }
+
+    // Render Weekly Strip
+    if (stripEl) {
+      stripEl.innerHTML = days.map(day => {
+        const isSelected = day.dateKey === plannerState.selectedDateKey;
+        const hasPlan = !!plannerState.plannedOutfits[day.dateKey];
+        return `
+          <div class="day-col ${isSelected ? 'selected-day-col' : ''} ${day.isToday ? 'is-today' : ''}" 
+               onclick="app.selectPlannerDate('${day.dateKey}', true)"
+               title="${day.fullDisplay}${hasPlan ? ' (Outfit Planned)' : ''}">
+            <span class="d-name">${day.dayName}</span>
+            <span class="d-num ${isSelected ? 'active-bubble' : ''}">${day.dayNum}</span>
+            <span class="d-dot ${hasPlan ? 'has-plan' : ''}"></span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Daily Schedule Cards
+    if (streamEl) {
+      streamEl.innerHTML = days.map(day => {
+        const isSelected = day.dateKey === plannerState.selectedDateKey;
+        const outfit = plannerState.plannedOutfits[day.dateKey];
+
+        if (outfit) {
+          const thumbsHtml = (outfit.items || []).slice(0, 4).map(it => 
+            `<img src="${escapeHtml(it.photo)}" alt="${escapeHtml(it.name)}" title="${escapeHtml(it.name)}">`
+          ).join('');
+
+          return `
+            <div class="day-plan-card has-outfit ${isSelected ? 'selected-day' : ''}" 
+                 id="card-${day.dateKey}" 
+                 onclick="app.selectPlannerDate('${day.dateKey}', false)">
+              <div class="dp-day-info">
+                <strong>${day.dayName}</strong>
+                <span>${day.dateDisplay}</span>
+                ${day.isToday ? '<span class="dp-today-tag">Today</span>' : ''}
+              </div>
+              <div class="dp-outfit-preview">
+                <div class="dp-outfit-meta">
+                  <div class="dp-title-row">
+                    <span class="dp-outfit-title">${escapeHtml(outfit.title)}</span>
+                    <span class="dp-occ-tag">${escapeHtml(outfit.occasion || outfit.tag || 'Casual')}</span>
+                  </div>
+                  <div class="dp-thumbs-row">
+                    ${thumbsHtml}
+                  </div>
+                </div>
+              </div>
+              <div class="dp-actions-row" onclick="event.stopPropagation()">
+                <button class="btn-plan-replace" onclick="app.openPlannerOutfitModal('${day.dateKey}')" title="Replace outfit for ${day.fullDisplay}">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                  <span>Replace</span>
+                </button>
+                <button class="btn-plan-remove" onclick="app.removePlannerOutfit('${day.dateKey}')" title="Remove outfit for ${day.fullDisplay}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="day-plan-card empty-day ${isSelected ? 'selected-day' : ''}" 
+                 id="card-${day.dateKey}" 
+                 onclick="app.selectPlannerDate('${day.dateKey}', false)">
+              <div class="dp-day-info">
+                <strong>${day.dayName}</strong>
+                <span>${day.dateDisplay}</span>
+                ${day.isToday ? '<span class="dp-today-tag">Today</span>' : ''}
+              </div>
+              <span class="dp-empty-text">No outfit planned yet</span>
+              <button class="btn-plan-add" onclick="event.stopPropagation(); app.openPlannerOutfitModal('${day.dateKey}')" title="Plan outfit for ${day.fullDisplay}">
+                <span class="btn-plus-icon">+</span>
+                <span>Plan</span>
+              </button>
+            </div>
+          `;
+        }
+      }).join('');
+    }
+  }
+
+  function selectPlannerDate(dateKey, shouldScroll = true) {
+    plannerState.selectedDateKey = dateKey;
+    renderWeeklyCalendar();
+
+    if (shouldScroll) {
+      const card = document.getElementById(`card-${dateKey}`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }
+
+  function plannerChangeWeek(delta) {
+    plannerState.weekOffset += delta;
+    renderWeeklyCalendar();
+  }
+
+  function plannerJumpToToday() {
+    plannerState.weekOffset = 0;
+    const days = getPlannerWeekDays(0);
+    const todayDay = days.find(d => d.isToday);
+    plannerState.selectedDateKey = todayDay ? todayDay.dateKey : days[0].dateKey;
+    renderWeeklyCalendar();
+    showToast('📅 Jumped to current week.');
+  }
+
+  function weeklyPlannerGoBack() {
+    goToScreen('today');
+  }
+
+  function openPlannerOutfitModal(dateKey) {
+    plannerState.assigningForDateKey = dateKey;
+    plannerState.selectedDateKey = dateKey;
+    plannerState.filterCategory = 'All';
+
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const dayObj = days.find(d => d.dateKey === dateKey) || {
+      fullDisplay: dateKey
+    };
+
+    const modal = document.getElementById('plannerOutfitModal');
+    const titleEl = document.getElementById('plannerModalTitle');
+    const subEl = document.getElementById('plannerModalSub');
+    const existingOutfit = plannerState.plannedOutfits[dateKey];
+
+    if (subEl) {
+      subEl.textContent = existingOutfit ? 'Replace Outfit' : 'Plan Outfit';
+    }
+    if (titleEl) {
+      titleEl.textContent = existingOutfit 
+        ? `Replace look for ${dayObj.fullDisplay}`
+        : `Choose look for ${dayObj.fullDisplay}`;
+    }
+
+    // Reset filter tabs active state
+    document.querySelectorAll('#plannerFilterTabs .planner-filter-tab').forEach((b, idx) => {
+      b.classList.toggle('active', idx === 0);
+    });
+
+    renderPlannerOutfitsList();
+
+    if (modal) {
+      modal.classList.remove('hidden');
+    }
+  }
+
+  function closePlannerOutfitModal() {
+    const modal = document.getElementById('plannerOutfitModal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+    plannerState.assigningForDateKey = null;
+  }
+
+  function filterPlannerOutfits(category, btnEl) {
+    plannerState.filterCategory = category;
+    document.querySelectorAll('#plannerFilterTabs .planner-filter-tab').forEach(b => {
+      b.classList.toggle('active', b === btnEl);
+    });
+    renderPlannerOutfitsList();
+  }
+
+  function renderPlannerOutfitsList() {
+    const gridEl = document.getElementById('plannerOutfitsGrid');
+    if (!gridEl) return;
+
+    const dateKey = plannerState.assigningForDateKey;
+    const currentOutfit = dateKey ? plannerState.plannedOutfits[dateKey] : null;
+
+    let filtered = PLANNER_SAMPLE_OUTFITS;
+    if (plannerState.filterCategory && plannerState.filterCategory !== 'All') {
+      filtered = PLANNER_SAMPLE_OUTFITS.filter(o => 
+        (o.tag && o.tag.toLowerCase() === plannerState.filterCategory.toLowerCase()) ||
+        (o.occasion && o.occasion.toLowerCase() === plannerState.filterCategory.toLowerCase())
+      );
+    }
+
+    gridEl.innerHTML = filtered.map(outfit => {
+      const isCurrentlyAssigned = currentOutfit && currentOutfit.id === outfit.id;
+      const thumbsHtml = (outfit.items || []).slice(0, 4).map(it => 
+        `<img src="${escapeHtml(it.photo)}" alt="${escapeHtml(it.name)}" title="${escapeHtml(it.name)}">`
+      ).join('');
+
+      return `
+        <div class="planner-outfit-pick-card ${isCurrentlyAssigned ? 'currently-assigned' : ''}" 
+             onclick="app.assignPlannerOutfit('${escapeHtml(outfit.id)}')">
+          <img src="${escapeHtml(outfit.previewPhoto)}" class="pick-card-photo" alt="${escapeHtml(outfit.title)}">
+          <div class="pick-card-body">
+            <div class="pick-card-header">
+              <span class="pick-card-title">${escapeHtml(outfit.title)}</span>
+              <span class="dp-occ-tag">${escapeHtml(outfit.occasion || outfit.tag)}</span>
+            </div>
+            <p class="pick-card-caption">${escapeHtml(outfit.caption)}</p>
+            <div class="pick-card-thumbs">
+              ${thumbsHtml}
+            </div>
+          </div>
+          ${isCurrentlyAssigned 
+            ? '<span class="badge-current-assigned">✓ Assigned</span>' 
+            : `<button class="btn-pick-assign" onclick="event.stopPropagation(); app.assignPlannerOutfit('${escapeHtml(outfit.id)}')">${currentOutfit ? 'Select' : 'Assign'}</button>`
+          }
+        </div>
+      `;
+    }).join('');
+  }
+
+  function assignPlannerOutfit(outfitId) {
+    const dateKey = plannerState.assigningForDateKey || plannerState.selectedDateKey;
+    if (!dateKey) return;
+
+    const outfit = PLANNER_SAMPLE_OUTFITS.find(o => o.id === outfitId);
+    if (!outfit) return;
+
+    plannerState.plannedOutfits[dateKey] = outfit;
+    savePlannerState();
+    closePlannerOutfitModal();
+    renderWeeklyCalendar();
+
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const dayObj = days.find(d => d.dateKey === dateKey);
+    const dayName = dayObj ? dayObj.fullDisplay : dateKey;
+    showToast(`✓ "${outfit.title}" assigned to ${dayName}`);
+  }
+
+  function removePlannerOutfit(dateKey) {
+    if (!dateKey || !plannerState.plannedOutfits[dateKey]) return;
+
+    const outfit = plannerState.plannedOutfits[dateKey];
+    delete plannerState.plannedOutfits[dateKey];
+    savePlannerState();
+    renderWeeklyCalendar();
+
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const dayObj = days.find(d => d.dateKey === dateKey);
+    const dayName = dayObj ? dayObj.fullDisplay : dateKey;
+    showToast(`🗑️ Removed "${outfit.title}" from ${dayName}`);
+  }
+
   function init() {
+    if (typeof window !== 'undefined' && window.appBootstrap && typeof window.appBootstrap.start === 'function') {
+      window.appBootstrap.start();
+    }
+    initStreakState();
+    initPlannerState();
+
     renderCurrentLook();
     renderWardrobeGrid();
     updateWardrobeCounts();
-    goToScreen('welcome');
+
+    // Check URL parameters for direct screen access
+    const params = new URLSearchParams(window.location.search);
+    const requestedScreen = params.get('screen');
+    if (requestedScreen) {
+      goToScreen(requestedScreen === 'virtual-studio' ? 'today' : requestedScreen);
+    } else {
+      // Default to Sérén 3D Virtual Studio on Today Homepage
+      goToScreen('today');
+    }
   }
 
   // Expose public API to window for inline HTML onclick handlers
-  window.app = {
+  const appExports = {
     goToScreen,
     setTodayCanvasMode,
     cycleLook,
@@ -1202,6 +3710,24 @@
     activatePremium,
     saveReminderPreferences,
     exportWardrobe,
+    exportUserData,
+    saveProfile,
+    updatePrivacyConsent,
+    clearSavedLooksCache,
+    clearAvatarPreferencesCache,
+    signOut,
+    setAppTheme,
+    setStudioTheme,
+    setStudioLighting,
+    toggleHighContrast,
+    resetAppearance,
+    setPerformancePreset,
+    toggleShadowQuality,
+    toggleReflectionQuality,
+    toggleIdleAnimations,
+    resetPerformance,
+    requestNotificationPermission,
+    getSettingsManager,
     deleteAccount,
     showHelpSupport,
     rotateCropImage,
@@ -1229,14 +3755,123 @@
     confirmCustomOutfit,
     backToBuilderSelection,
 
+
     // Wardrobe Condition & Fit API
     toggleItemCondition,
     openConditionModal,
     closeConditionModal,
     selectModalCondition,
     selectModalFit,
-    saveModalConditionChanges
+    saveModalConditionChanges,
+
+    // Sérén 3D Virtual Studio API
+    initVirtualStudio,
+    renderSerenGarments,
+    serenFilterCat,
+    serenToggleWardrobe,
+    serenToggleDailyLooks,
+    serenWearGarment,
+    serenOpenStylingReview,
+    serenOpenReview: serenOpenStylingReview,
+    serenCloseReview,
+    serenApplySuggestion,
+    serenSaveCurrentLook,
+    serenSaveLook: serenSaveCurrentLook,
+    serenCenterAction,
+    serenQuickAction: serenCenterAction,
+    serenCycleLooks: () => serenToggleDailyLooks(true),
+    setStudioCamera,
+    onStudioCameraChanged,
+    serenInteract,
+    serenOpenVanity,
+    serenCloseVanity,
+    serenSwitchVanityTab,
+    serenSetGender,
+    serenSetSkinTone,
+    serenSetHairStyle,
+    serenSetHairColor,
+    serenSetProportions,
+    serenToggleAccessory,
+    serenSaveAvatarCustomization,
+    serenHandlePhotoUpload,
+    serenApplyPhotoMatch,
+    updateSerenGreeting,
+
+    // Daily Outfit-Upload Streak, Camera, Memories & Circular Calendar API
+    handleStreakIconClick,
+    openStreakModal,
+    closeStreakModal,
+    prevCalendarMonth,
+    nextCalendarMonth,
+    renderStreakCalendar,
+    seedStreakJun21ToToday: () => {
+      const eng = getStreakEngine();
+      if (eng && typeof eng.seedStreakJun21ToToday === 'function') {
+        eng.seedStreakJun21ToToday();
+      }
+      renderStreakCalendar();
+      updateStreakUI();
+    },
+    openCameraModal,
+    closeCameraModal,
+    captureCameraSnapshot,
+    triggerFileInputClick,
+    handleCameraFileSelected: handleOutfitPhotoSelected,
+    loadSampleOutfitLook,
+    confirmCapturedOutfit,
+    retakeCameraPhoto,
+    openMemoriesModal,
+    closeMemoriesModal,
+    openMemoryDetail,
+    closeMemoryDetailModal,
+    triggerOutfitPhotoUpload,
+    handleOutfitPhotoSelected,
+    openPhotoConfirmModal,
+    closePhotoConfirmModal,
+    confirmOutfitPhotoUpload,
+    showMissedStreakModal,
+    closeMissedStreakModal,
+    restoreMonthlyStreak,
+    startNewStreak,
+    dismissReminderBanner,
+    devSimulateUpload,
+    devSimulateTwoHoursLeft,
+    devSimulateStreakBreak,
+    devToggleRestoreToken,
+    devResetStreak,
+    resetTestData,
+    toggleTestUserMode,
+    loadTestUserStreak136: () => {
+      const eng = getStreakEngine();
+      if (eng && typeof eng.loadTestUserStreak136 === 'function') {
+        eng.loadTestUserStreak136();
+      }
+      renderStreakCalendar();
+      updateStreakUI();
+    },
+    switchToRealUser: (id) => {
+      const eng = getStreakEngine();
+      if (eng && typeof eng.switchToRealUser === 'function') {
+        eng.switchToRealUser(id);
+      }
+      renderStreakCalendar();
+      updateStreakUI();
+    },
+
+    // Interactive Weekly Calendar & Outfit Planner API
+    renderWeeklyCalendar,
+    selectPlannerDate,
+    plannerChangeWeek,
+    plannerJumpToToday,
+    weeklyPlannerGoBack,
+    openPlannerOutfitModal,
+    closePlannerOutfitModal,
+    filterPlannerOutfits,
+    assignPlannerOutfit,
+    removePlannerOutfit
   };
+
+  window.app = Object.assign(window.app || {}, appExports);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

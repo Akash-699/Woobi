@@ -31,7 +31,7 @@
   
   <!-- Woobi Core Shared Design Tokens -->
   <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
-  <link rel="stylesheet" href="styles.css?v=20261031_2">
+  <link rel="stylesheet" href="styles.css?v=20261104_6">
 </head>
 <body>
 
@@ -372,31 +372,60 @@
         <section class="phone-screen active" id="screen-today">
           <!-- Sérén Studio Minimal Header Overlay -->
           <header class="seren-header">
-            <div class="seren-header-left">
+            <!-- Hidden Branding Mark to remove visual text at top left while preserving compatibility -->
+            <div class="seren-header-left" style="display: none;" hidden>
               <div class="seren-branding">
                 <span class="seren-brand-name">woobi</span>
                 <span class="seren-brand-sub">3D STUDIO</span>
               </div>
             </div>
-            <!-- Daily Outfit Streak & Countdown Timer Pill -->
-            <!-- Daily Outfit Streak Pill (Matching Reference) -->
-            <div class="streak-header-pill" id="streakHeaderPill" onclick="app.openStreakModal()" title="View Daily Outfit Streak & Upload">
-              <span class="streak-flame-emoji" id="streakFlameIcon">🔥</span>
-              <span class="streak-count" id="streakCount">0</span>
-              <span class="streak-sep">|</span>
-              <span class="streak-status-text" id="streakStatusText"><span class="check-mark">✓</span> Done</span>
-            </div>
 
-            <div class="seren-header-right">
-              <button class="seren-icon-btn" onclick="app.serenToggleWardrobe()" title="Wardrobe Closet">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <path d="M12 4a3 3 0 0 0-3 3v2h6V7a3 3 0 0 0-3-3z"/>
-                  <path d="M20 21V9a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12"/>
-                  <path d="M12 9v12"/>
+            <!-- Dynamic Island: Only Streak, Camera, Gallery (Centered at Top) -->
+            <div class="streak-trio-row" id="streakTrioRow">
+              <!-- 1. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when zero or broken) -->
+              <button type="button" class="streak-trio-btn streak-flame-btn broken-streak" id="streakHeaderPill" onclick="app.handleStreakIconClick()" title="Daily Outfit Streak: 0 Streaks">
+                <div class="streak-flame-wrapper" id="streakFlameWrapper">
+                  <img src="assets/streak/fire_level_1.png" class="streak-header-icon-img fire-lvl-1 hidden" id="streakHeaderFireImg" alt="Streak Fire" />
+                  <img src="assets/streak/bonfire_smoke.png" class="streak-header-icon-img" id="streakHeaderSmokeImg" alt="Streak Wood & Smoke" />
+                </div>
+                <span class="streak-count" id="streakCount">0</span>
+                <span class="streak-count-label" id="streakCountLabel">Streaks</span>
+              </button>
+
+              <!-- 2. 📷 Camera Icon: Opens Camera Screen Only -->
+              <button type="button" class="streak-trio-btn streak-camera-btn" id="streakCameraBtn" onclick="app.openCameraModal()" title="Take Outfit Photo">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
                 </svg>
               </button>
-              <button class="seren-icon-btn" onclick="app.goToScreen('profile')" title="User Profile">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+
+              <!-- 3. 🖼️ Gallery Icon: Opens Outfit Memories Gallery -->
+              <button type="button" class="streak-trio-btn streak-gallery-btn" id="streakGalleryBtn" onclick="app.openMemoriesModal()" title="View Outfit Memories">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Outside Dynamic Island (Top Right Actions): Calendar & Account -->
+            <div class="seren-header-right">
+              <!-- 4. 📅 Calendar Icon: Opens Woobi Streak Calendar -->
+              <button type="button" class="seren-icon-btn streak-calendar-btn" id="streakCalendarBtn" onclick="app.openStreakModal()" title="View Streak Calendar">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                  <line x1="16" x2="16" y1="2" y2="6"/>
+                  <line x1="8" x2="8" y1="2" y2="6"/>
+                  <line x1="3" x2="21" y1="10" y2="10"/>
+                  <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+                </svg>
+              </button>
+
+              <!-- 5. 👤 Account Icon: Opens Profile -->
+              <button type="button" class="seren-icon-btn streak-account-btn" id="streakAccountBtn" onclick="app.goToScreen('profile')" title="User Profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
                 </svg>
@@ -409,12 +438,20 @@
             <!-- Real Three.js 3D WebGL Canvas -->
             <canvas id="seren3dCanvas" class="seren-3d-canvas"></canvas>
 
-            <!-- Floating Editorial Tagline & Greeting Card (Upper-Right matching Target Reference) -->
-            <div class="seren-editorial-tagline-wrap">
+            <!-- Three.js / WebGL Fallback Overlay -->
+            <div class="seren-3d-fallback" id="seren3dFallback" hidden>
+              <div class="seren-3d-fallback__icon">✦</div>
+              <strong>3D Studio Unavailable</strong>
+              <p id="seren3dFallbackMessage">The 3D studio is unavailable offline or without WebGL. You can continue using the rest of your wardrobe.</p>
+              <button type="button" class="btn-seren-retry" onclick="window.retryStudio3D && window.retryStudio3D()">Retry 3D Studio</button>
+            </div>
+
+            <!-- Floating Editorial Tagline & Greeting Card (Hidden to remove unwanted floating popups) -->
+            <div class="seren-editorial-tagline-wrap" style="display: none;" hidden>
               <span class="seren-editorial-tagline">Style a kinder you</span>
               <span class="seren-editorial-heart">♡</span>
             </div>
-            <div class="seren-floating-greeting" id="serenFloatingGreeting">
+            <div class="seren-floating-greeting" id="serenFloatingGreeting" style="display: none;" hidden>
               <div class="greeting-sun-icon">☀️</div>
               <div class="greeting-content">
                 <span class="greeting-time-tag" id="greetingTimeTag">Good morning!</span>
@@ -422,14 +459,14 @@
               </div>
             </div>
 
-            <!-- 3D Spatial Floating Interactive Hotspots matching Target Reference -->
-            <button class="spatial-3d-hint wardrobe-hint" onclick="app.serenInteract('wardrobe')" title="Explore Wardrobe">
+            <!-- 3D Spatial Floating Interactive Hotspots (Wardrobe & Vanity popups hidden to eliminate clutter) -->
+            <button class="spatial-3d-hint wardrobe-hint" onclick="app.serenInteract('wardrobe')" title="Explore Wardrobe" style="display: none;" hidden>
               <span class="hint-icon">👕</span>
               <span class="hint-text">Wardrobe</span>
               <span class="hint-arrow">›</span>
             </button>
 
-            <button class="spatial-3d-hint mirror-hint" onclick="app.serenInteract('vanity')" title="Vanity & Grooming">
+            <button class="spatial-3d-hint mirror-hint" onclick="app.serenInteract('vanity')" title="Vanity & Grooming" style="display: none;" hidden>
               <span class="hint-icon">🪞</span>
               <span class="hint-text">Vanity</span>
               <span class="hint-arrow">›</span>
@@ -490,23 +527,24 @@
                 </svg>
               </button>
 
-              <button class="seren-bar-tab" id="serenTabSave" onclick="app.serenSaveCurrentLook()">
+              <button class="seren-bar-tab" id="serenTabHint" onclick="app.openStyleHint()" title="Style Hint">
                 <div class="seren-tab-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                  </svg>
-                </div>
-                <span class="seren-tab-label">Save</span>
-                <span class="seren-tab-dot"></span>
-              </button>
-
-              <button class="seren-bar-tab" id="serenTabHint" onclick="app.serenOpenStylingReview()">
-                <div class="seren-tab-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
                   </svg>
                 </div>
                 <span class="seren-tab-label">Style Hint</span>
+                <span class="seren-tab-dot"></span>
+              </button>
+
+              <button class="seren-bar-tab" id="serenTabPro" onclick="app.goToScreen('premium')" title="Pro">
+                <div class="seren-tab-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/>
+                    <path d="M5 19h14"/>
+                  </svg>
+                </div>
+                <span class="seren-tab-label">Pro</span>
                 <span class="seren-tab-dot"></span>
               </button>
             </nav>
@@ -1089,9 +1127,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-outfit-details">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('today')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('today')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Outfit Details</span>
             <button class="btn-icon-right" onclick="app.toggleBookmarkCurrent()" title="Save outfit">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
             </button>
@@ -1145,9 +1184,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-swap-item">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('outfit-details')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('outfit-details')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Swap Garment</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -1263,9 +1303,18 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
               <span>Wardrobe</span>
             </button>
-            <button class="nav-tab" onclick="app.goToScreen('saved')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              <span>Saved</span>
+            <button class="nav-tab" onclick="app.openStyleHint()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+              <span>Style Hint</span>
+            </button>
+            <button class="nav-tab" onclick="app.goToScreen('premium')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/>
+                <path d="M5 19h14"/>
+              </svg>
+              <span>Pro</span>
             </button>
             <button class="nav-tab" onclick="app.goToScreen('profile')">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -1377,9 +1426,18 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
               <span>Wardrobe</span>
             </button>
-            <button class="nav-tab" onclick="app.goToScreen('saved')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              <span>Saved</span>
+            <button class="nav-tab" onclick="app.openStyleHint()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+              <span>Style Hint</span>
+            </button>
+            <button class="nav-tab" onclick="app.goToScreen('premium')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/>
+                <path d="M5 19h14"/>
+              </svg>
+              <span>Pro</span>
             </button>
             <button class="nav-tab" onclick="app.goToScreen('profile')">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -1459,9 +1517,18 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
               <span>Wardrobe</span>
             </button>
-            <button class="nav-tab active" onclick="app.goToScreen('saved')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              <span>Saved</span>
+            <button class="nav-tab" onclick="app.openStyleHint()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+              <span>Style Hint</span>
+            </button>
+            <button class="nav-tab" onclick="app.goToScreen('premium')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/>
+                <path d="M5 19h14"/>
+              </svg>
+              <span>Pro</span>
             </button>
             <button class="nav-tab" onclick="app.goToScreen('profile')">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -1546,9 +1613,18 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
               <span>Wardrobe</span>
             </button>
-            <button class="nav-tab" onclick="app.goToScreen('saved')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              <span>Saved</span>
+            <button class="nav-tab" onclick="app.openStyleHint()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+              <span>Style Hint</span>
+            </button>
+            <button class="nav-tab" onclick="app.goToScreen('premium')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/>
+                <path d="M5 19h14"/>
+              </svg>
+              <span>Pro</span>
             </button>
             <button class="nav-tab" onclick="app.goToScreen('profile')">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -1562,65 +1638,87 @@
              SCREEN 12: PROFILE
              =================================================================== -->
         <section class="phone-screen" id="screen-profile">
-          <div class="screen-body-padded" style="padding-top: 20px;">
+          <div class="screen-body-padded" style="padding-top: 18px;">
+            <div class="profile-header-wrap" style="margin-bottom: 16px;">
+              <h1 class="screen-headline-serif" style="margin-bottom: 2px;">Profile & Settings</h1>
+              <p class="screen-caption-sub" style="margin-bottom: 14px;">Manage your wardrobe styling, studio environment, and personal account.</p>
+            </div>
+
+            <!-- User Account Card -->
             <div class="profile-user-card">
               <div class="user-avatar-circle">S</div>
               <div class="user-meta-info">
-                <h2 class="user-name">Suriya</h2>
-                <span class="user-plan-label">Free plan</span>
+                <h2 class="user-name" id="profileDisplayName">Suriya</h2>
+                <span class="user-plan-label" id="profileUserPlan">Free plan</span>
               </div>
               <button class="btn-upgrade-link" onclick="app.goToScreen('premium')">
                 Upgrade ›
               </button>
             </div>
 
-            <div class="profile-menu-list">
-              <div class="menu-item-row" onclick="app.goToScreen('style-pref')">
-                <span class="menu-icon">⚙️</span>
-                <span class="menu-text">Style preferences</span>
-                <span class="menu-chevron">›</span>
+            <!-- Group 1: Wardrobe & Styling -->
+            <div class="settings-group-section" style="margin-bottom: 16px;">
+              <span class="control-sublabel" style="display: block; margin-bottom: 8px;">Wardrobe &amp; Styling</span>
+              <div class="profile-menu-list">
+                <div class="menu-item-row" onclick="app.goToScreen('style-pref')">
+                  <span class="menu-icon">👗</span>
+                  <span class="menu-text">Style preferences</span>
+                  <span class="menu-chevron">›</span>
+                </div>
+                <div class="menu-item-row" onclick="app.goToScreen('weekly-planning')">
+                  <span class="menu-icon">🗓️</span>
+                  <span class="menu-text">Weekly planning</span>
+                  <span class="menu-chevron">›</span>
+                </div>
+                <div class="menu-item-row" onclick="app.goToScreen('wear-history')">
+                  <span class="menu-icon">📅</span>
+                  <span class="menu-text">Wear history</span>
+                  <span class="menu-chevron">›</span>
+                </div>
               </div>
+            </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('weekly-planning')">
-                <span class="menu-icon">🗓️</span>
-                <span class="menu-text">Weekly planning</span>
-                <span class="menu-chevron">›</span>
+            <!-- Group 2: 3D Studio & Experience -->
+            <div class="settings-group-section" style="margin-bottom: 16px;">
+              <span class="control-sublabel" style="display: block; margin-bottom: 8px;">Studio &amp; Visuals</span>
+              <div class="profile-menu-list">
+                <div class="menu-item-row" onclick="app.goToScreen('appearance-settings')">
+                  <span class="menu-icon">🎨</span>
+                  <span class="menu-text">Appearance &amp; 3D themes</span>
+                  <span class="menu-chevron">›</span>
+                </div>
+                <div class="menu-item-row" onclick="app.goToScreen('performance-settings')">
+                  <span class="menu-icon">⚡</span>
+                  <span class="menu-text">Performance &amp; graphics</span>
+                  <span class="menu-chevron">›</span>
+                </div>
               </div>
+            </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('wear-history')">
-                <span class="menu-icon">📅</span>
-                <span class="menu-text">Wear history</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.goToScreen('reminders')">
-                <span class="menu-icon">🔔</span>
-                <span class="menu-text">Reminders</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.goToScreen('help-support')">
-                <span class="menu-icon">❓</span>
-                <span class="menu-text">Help and support</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.goToScreen('appearance-settings')">
-                <span class="menu-icon">🎨</span>
-                <span class="menu-text">Appearance & 3D themes</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.goToScreen('performance-settings')">
-                <span class="menu-icon">⚡</span>
-                <span class="menu-text">Performance & graphics</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.goToScreen('account-privacy')">
-                <span class="menu-icon">⚙️</span>
-                <span class="menu-text">Account and privacy</span>
-                <span class="menu-chevron">›</span>
+            <!-- Group 3: Account & Support -->
+            <div class="settings-group-section" style="margin-bottom: 18px;">
+              <span class="control-sublabel" style="display: block; margin-bottom: 8px;">Account &amp; Preferences</span>
+              <div class="profile-menu-list">
+                <div class="menu-item-row" onclick="app.goToScreen('reminders')">
+                  <span class="menu-icon">🔔</span>
+                  <span class="menu-text">Reminders &amp; alerts</span>
+                  <span class="menu-chevron">›</span>
+                </div>
+                <div class="menu-item-row" onclick="app.goToScreen('account-privacy')">
+                  <span class="menu-icon">🛡️</span>
+                  <span class="menu-text">Account and privacy</span>
+                  <span class="menu-chevron">›</span>
+                </div>
+                <div class="menu-item-row" onclick="app.goToScreen('help-support')">
+                  <span class="menu-icon">💬</span>
+                  <span class="menu-text">Help and support</span>
+                  <span class="menu-chevron">›</span>
+                </div>
+                <div class="menu-item-row" onclick="app.signOut()">
+                  <span class="menu-icon">🚪</span>
+                  <span class="menu-text" style="color: var(--text-muted);">Sign out</span>
+                  <span class="menu-chevron">›</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1634,9 +1732,18 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
               <span>Wardrobe</span>
             </button>
-            <button class="nav-tab" onclick="app.goToScreen('saved')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              <span>Saved</span>
+            <button class="nav-tab" onclick="app.openStyleHint()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+              <span>Style Hint</span>
+            </button>
+            <button class="nav-tab" onclick="app.goToScreen('premium')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/>
+                <path d="M5 19h14"/>
+              </svg>
+              <span>Pro</span>
             </button>
             <button class="nav-tab active" onclick="app.goToScreen('profile')">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -1651,9 +1758,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-signin">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('welcome')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('welcome')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Sign In</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -1697,83 +1805,203 @@
         </section>
 
         <!-- ===================================================================
-             SCREEN 14: PREMIUM
+             SCREEN 14: WOOBI PREMIUM SUBSCRIPTION (SPOTIFY-INSPIRED DARK LUXE)
              =================================================================== -->
         <section class="phone-screen" id="screen-premium">
-          <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          <!-- Sticky Minimal Header Overlay -->
+          <div class="premium-sticky-header">
+            <button class="nav-back-arrow premium-back-btn" onclick="app.goToScreen('today')" aria-label="Back" title="Back">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
             </button>
-            <div style="width: 20px;"></div>
+            <div class="premium-header-brand">
+              <span class="luxe-sparkle">✦</span>
+              <span class="luxe-brand-text">WOOBI PREMIUM</span>
+            </div>
+            <button class="premium-header-action" onclick="app.goToScreen('manage-subscription')" title="Manage subscription">
+              Manage
+            </button>
           </div>
 
-          <div class="screen-body-padded">
-            <h1 class="screen-headline-serif">More possibilities from your wardrobe.</h1>
-
-            <div class="premium-hero-card">
-              <img src="assets/navy_shirt.jpg" class="p-top" alt="Shirt">
-              <img src="assets/beige_chinos.jpg" class="p-bot" alt="Chinos">
-              <img src="assets/white_sneakers.jpg" class="p-shoe" alt="Sneakers">
-            </div>
-
-            <div class="premium-features-list">
-              <div class="p-feat-row">
-                <div class="feat-icon-bubble">👔</div>
-                <div class="feat-text-box">
-                  <strong>Larger wardrobe</strong>
-                  <p>Keep all your outfits in one place.</p>
-                </div>
-              </div>
-
-              <div class="p-feat-row">
-                <div class="feat-icon-bubble">🪟</div>
-                <div class="feat-text-box">
-                  <strong>More daily outfit choices</strong>
-                  <p>Get fresh outfit ideas from what you own.</p>
-                </div>
-              </div>
-
-              <div class="p-feat-row">
-                <div class="feat-icon-bubble">📅</div>
-                <div class="feat-text-box">
-                  <strong>Weekly outfit planning</strong>
-                  <p>Plan ahead and save time each week.</p>
-                </div>
+          <div class="premium-scroll-content">
+            <!-- Top Sliding Segmented Button Switcher -->
+            <div class="plan-switcher-container">
+              <div class="plan-segmented-slider" id="planSegmentedSlider">
+                <div class="segmented-slide-pill pill-free" id="segmentedSlidePill"></div>
+                <button class="plan-segment-btn active" id="segBtnFree" onclick="app.switchPlanView('free')">Free</button>
+                <button class="plan-segment-btn" id="segBtnBasic" onclick="app.switchPlanView('basic')">Basic</button>
+                <button class="plan-segment-btn" id="segBtnPro" onclick="app.switchPlanView('pro')">Pro 👑</button>
               </div>
             </div>
 
-            <div class="premium-pricing-choices">
-              <label class="pricing-radio-card active" onclick="app.selectPlan('monthly', this)">
-                <input type="radio" name="planChoice" checked>
-                <span class="custom-radio"></span>
-                <span class="plan-price-label">₹149 / month</span>
-              </label>
+            <!-- Single Card Viewport (Cards in the Same Fixed Size) -->
+            <div class="plan-cards-viewport" id="planCardsViewport">
+              <div class="plan-cards-slider-track" id="planCardsSliderTrack">
 
-              <label class="pricing-radio-card" onclick="app.selectPlan('annual', this)">
-                <input type="radio" name="planChoice">
-                <span class="custom-radio"></span>
-                <span class="plan-price-label">₹999 / year</span>
-              </label>
-            </div>
+                <!-- PLAN 1: FREE -->
+                <div class="sub-plan-card plan-free" id="planCardFree">
+                  <div class="plan-header">
+                    <div class="plan-label-row">
+                      <span class="plan-pill-tag">Free Forever</span>
+                    </div>
+                    <h3 class="plan-heading-bold">FREE</h3>
+                    <p class="plan-description">Essential wardrobe digitization and everyday streak tracking.</p>
+                    <div class="plan-pricing-display">
+                      <span class="currency">₹</span>
+                      <span class="amount">0</span>
+                      <span class="cadence">/ month</span>
+                    </div>
+                  </div>
 
-            <div class="screen-footer-action">
-              <button class="btn-olive-primary" id="btnContinuePlan" onclick="app.activatePremium()">
-                Continue with monthly
-              </button>
-            </div>
+                  <div class="plan-highlight-strip">
+                    <span>Includes 3D Studio & daily outfit streak tracking</span>
+                  </div>
 
-            <p class="center-hint-text" style="font-size: 0.72rem; margin-top: 8px;">
-              Renews at ₹149 each month until cancelled.
-            </p>
+                  <div class="plan-body">
+                    <span class="features-label">Included Features:</span>
+                    <ul class="plan-features">
+                      <li><span class="check-bullet">✓</span> Basic digital wardrobe</li>
+                      <li><span class="check-bullet">✓</span> Limited outfit recommendations</li>
+                      <li><span class="check-bullet">✓</span> Basic Style Hint access</li>
+                      <li><span class="check-bullet">✓</span> Standard 3D Studio access</li>
+                      <li><span class="check-bullet">✓</span> Daily outfit streak tracking</li>
+                      <li><span class="check-bullet">✓</span> Basic outfit photo gallery</li>
+                    </ul>
+                  </div>
 
-            <div class="legal-links-row">
-              <a href="#manage" onclick="event.preventDefault(); app.goToScreen('manage-subscription');">Manage subscription</a>
-              <span>|</span>
-              <a href="#terms" onclick="event.preventDefault();">Terms</a>
-              <span>|</span>
-              <a href="#privacy" onclick="event.preventDefault(); app.goToScreen('account-privacy');">Privacy</a>
+                  <div class="plan-footer">
+                    <button class="btn-sub-tier btn-plan-play btn-plan-current" id="btnPlanFree" onclick="app.selectSubscriptionPlan('free')" disabled>
+                      <span class="play-btn-circle check-circle">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      </span>
+                      <span class="btn-tier-text">Current Plan</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- PLAN 2: BASIC -->
+                <div class="sub-plan-card plan-basic" id="planCardBasic">
+                  <div class="plan-header">
+                    <div class="plan-label-row">
+                      <span class="plan-pill-tag basic-tag">Basic</span>
+                    </div>
+                    <h3 class="plan-heading-bold">BASIC</h3>
+                    <p class="plan-description">Expanded digital closet capacity & frequent AI outfit suggestions.</p>
+                    <div class="plan-pricing-display">
+                      <span class="currency">₹</span>
+                      <span class="amount">179</span>
+                      <span class="cadence">/ month</span>
+                    </div>
+                  </div>
+
+                  <div class="plan-highlight-strip">
+                    <span>Expanded wardrobe capacity + Ad-free experience</span>
+                  </div>
+
+                  <div class="plan-body">
+                    <span class="features-label">Everything in Free, plus:</span>
+                    <ul class="plan-features">
+                      <li><span class="check-bullet">✓</span> <strong>Everything in Free</strong></li>
+                      <li><span class="check-bullet">✓</span> More daily AI recommendations</li>
+                      <li><span class="check-bullet">✓</span> Expanded digital wardrobe capacity</li>
+                      <li><span class="check-bullet">✓</span> More Style Hint suggestions</li>
+                      <li><span class="check-bullet">✓</span> Advanced outfit combinations</li>
+                      <li><span class="check-bullet">✓</span> Ad-free experience</li>
+                    </ul>
+                  </div>
+
+                  <div class="plan-footer">
+                    <button class="btn-sub-tier btn-plan-play btn-plan-upgrade" id="btnPlanBasic" onclick="app.openUpgradeConfirmation('basic')">
+                      <span class="play-btn-circle play-triangle">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                          <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                      </span>
+                      <span class="btn-tier-text">Upgrade to Basic</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- PLAN 3: PRO -->
+                <div class="sub-plan-card plan-pro featured-pro-card" id="planCardPro">
+                  <div class="pro-crown-ribbon">
+                    <span class="crown-icon">👑</span>
+                    <span class="ribbon-text">Most Popular / Best Experience</span>
+                  </div>
+
+                  <div class="plan-header">
+                    <div class="plan-label-row">
+                      <span class="plan-pill-tag pro-tag">Woobi Pro</span>
+                    </div>
+                    <h3 class="plan-heading-bold pro-heading-bold">
+                      PRO <span class="crown-icon-inline">👑</span>
+                    </h3>
+                    <p class="plan-description">The ultimate AI personal stylist and limitless virtual couture experience.</p>
+                    <div class="plan-pricing-display pro-pricing">
+                      <span class="currency">₹</span>
+                      <span class="amount gold-amount">387</span>
+                      <span class="cadence">/ month</span>
+                    </div>
+                  </div>
+
+                  <div class="plan-highlight-strip gold-strip">
+                    <span>👑 AI Personal Stylist + Unlimited combinations</span>
+                  </div>
+
+                  <div class="plan-body">
+                    <span class="features-label">Everything in Basic, plus:</span>
+                    <ul class="plan-features">
+                      <li><span class="check-bullet gold">✓</span> <strong>Everything in Basic</strong></li>
+                      <li><span class="check-bullet gold">✓</span> Advanced AI Personal Stylist</li>
+                      <li><span class="check-bullet gold">✓</span> Weather & occasion recommendations</li>
+                      <li><span class="check-bullet gold">✓</span> Advanced color & combo generator</li>
+                      <li><span class="check-bullet gold">✓</span> Premium 3D Studio & virtual try-on</li>
+                      <li><span class="check-bullet gold">✓</span> Unlimited saved looks & VIP support</li>
+                    </ul>
+                  </div>
+
+                  <div class="plan-footer">
+                    <button class="btn-sub-tier btn-plan-play btn-plan-pro-gold" id="btnPlanPro" onclick="app.openUpgradeConfirmation('pro')">
+                      <span class="play-btn-circle play-triangle gold-play">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                          <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                      </span>
+                      <span class="btn-tier-text">Get Woobi Pro</span>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
             </div>
           </div>
+
+          <!-- Bottom Navigation Bar for Screen Premium -->
+          <nav class="phone-bottom-nav">
+            <button class="nav-tab" onclick="app.goToScreen('today')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+              <span>Today</span>
+            </button>
+            <button class="nav-tab" onclick="app.goToScreen('wardrobe')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
+              <span>Wardrobe</span>
+            </button>
+            <button class="nav-tab" onclick="app.openStyleHint()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              <span>Style Hint</span>
+            </button>
+            <button class="nav-tab active" onclick="app.goToScreen('premium')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M5 19h14"/></svg>
+              <span>Pro</span>
+            </button>
+            <button class="nav-tab" onclick="app.goToScreen('profile')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>Profile</span>
+            </button>
+          </nav>
           <div class="phone-home-indicator"></div>
         </section>
 
@@ -1782,9 +2010,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-reminders">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Reminders</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -1859,9 +2088,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-account-privacy">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Account &amp; Privacy</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -1952,9 +2182,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-appearance-settings">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Appearance</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2033,9 +2264,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-performance-settings">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Performance</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2327,9 +2559,18 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
               <span>Outfits</span>
             </button>
-            <button class="nav-tab active" onclick="app.goToScreen('saved')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              <span>Saved</span>
+            <button class="nav-tab" onclick="app.openStyleHint()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+              <span>Style Hint</span>
+            </button>
+            <button class="nav-tab" onclick="app.goToScreen('premium')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/>
+                <path d="M5 19h14"/>
+              </svg>
+              <span>Pro</span>
             </button>
             <button class="nav-tab" onclick="app.goToScreen('profile')">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -2421,9 +2662,18 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
               <span>Wardrobe</span>
             </button>
-            <button class="nav-tab" onclick="app.goToScreen('saved')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              <span>Saved</span>
+            <button class="nav-tab" onclick="app.openStyleHint()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+              <span>Style Hint</span>
+            </button>
+            <button class="nav-tab" onclick="app.goToScreen('premium')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/>
+                <path d="M5 19h14"/>
+              </svg>
+              <span>Pro</span>
             </button>
             <button class="nav-tab" onclick="app.goToScreen('profile')">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -2472,9 +2722,18 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
               <span>Wardrobe</span>
             </button>
-            <button class="nav-tab" onclick="app.goToScreen('saved')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              <span>Saved</span>
+            <button class="nav-tab" onclick="app.openStyleHint()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+              <span>Style Hint</span>
+            </button>
+            <button class="nav-tab" onclick="app.goToScreen('premium')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/>
+                <path d="M5 19h14"/>
+              </svg>
+              <span>Pro</span>
             </button>
             <button class="nav-tab" onclick="app.goToScreen('profile')">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -2535,93 +2794,58 @@
         </section>
 
         <!-- ===================================================================
-             SCREEN 25: WEEKLY PLANNING (NEW)
+             SCREEN 25: WEEKLY PLANNING & CALENDAR
              =================================================================== -->
         <section class="phone-screen" id="screen-weekly-planning">
-          <div class="screen-body-padded" style="padding-top: 14px;">
-            <h1 class="screen-headline-serif">Your week, dressed</h1>
-            <p class="screen-caption-sub">Plan your outfits for the days ahead.</p>
+          <div class="screen-sub-header">
+            <button class="nav-back-arrow" onclick="app.weeklyPlannerGoBack()" title="Back to Today">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <span class="sub-header-title">Weekly Planner</span>
+            <button class="btn-today-pill" onclick="app.plannerJumpToToday()" title="Jump to Today">Today</button>
+          </div>
 
-            <div class="weekly-schedule-stream">
-              <!-- Mon -->
-              <div class="day-plan-card" onclick="app.goToScreen('outfit-details')">
-                <div class="dp-day-info">
-                  <strong>Mon</strong>
-                  <span>3 Nov</span>
-                </div>
-                <div class="dp-outfit-preview">
-                  <span class="dp-occ-tag">College</span>
-                  <div class="dp-thumbs-row">
-                    <img src="assets/terracotta_tee.jpg">
-                    <img src="assets/dark_denim.jpg">
-                    <img src="assets/white_sneakers.jpg">
-                  </div>
-                </div>
-                <span class="dp-chevron">›</span>
-              </div>
+          <div class="screen-body-padded" style="padding-top: 10px; padding-bottom: 80px;">
+            <div class="planner-header-intro">
+              <h1 class="screen-headline-serif">Your week, dressed</h1>
+              <p class="screen-caption-sub">Plan outfits for upcoming days, assign looks, and stay effortlessly ready.</p>
+            </div>
 
-              <!-- Tue -->
-              <div class="day-plan-card" onclick="app.goToScreen('outfit-details')">
-                <div class="dp-day-info">
-                  <strong>Tue</strong>
-                  <span>4 Nov</span>
-                </div>
-                <div class="dp-outfit-preview">
-                  <span class="dp-occ-tag">Office</span>
-                  <div class="dp-thumbs-row">
-                    <img src="assets/navy_shirt.jpg">
-                    <img src="assets/beige_chinos.jpg">
-                    <img src="assets/tan_loafers.jpg">
-                  </div>
-                </div>
-                <span class="dp-chevron">›</span>
+            <!-- Week Navigation Controls -->
+            <div class="planner-week-ctrl-bar">
+              <button class="planner-week-btn" onclick="app.plannerChangeWeek(-1)" title="Previous Week">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
+                <span>Prev</span>
+              </button>
+              <div class="planner-week-label-box">
+                <span class="planner-week-title" id="plannerWeekTitle">Nov 2 – Nov 8, 2026</span>
+                <span class="planner-week-sub" id="plannerWeekSub">This Week (Current)</span>
               </div>
+              <button class="planner-week-btn" onclick="app.plannerChangeWeek(1)" title="Next Week">
+                <span>Next</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
 
-              <!-- Wed -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Wed</strong>
-                  <span>5 Nov</span>
-                </div>
-                <span class="dp-empty-text">Choose an outfit</span>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
+            <!-- Interactive Weekly Date Strip (Calendar Ribbon) -->
+            <div class="planner-week-strip" id="plannerWeekStrip">
+              <!-- Dynamically rendered 7 day items (Mon-Sun) with date, status dot, active state -->
+            </div>
 
-              <!-- Thu -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Thu</strong>
-                  <span>6 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
+            <!-- Planning Summary / Progress Bar -->
+            <div class="planner-summary-card" id="plannerSummaryCard">
+              <div class="planner-summary-info">
+                <span class="planner-summary-count" id="plannerSummaryCount"><strong>2 of 7</strong> days planned</span>
+                <span class="planner-selected-date-badge" id="plannerSelectedDateBadge">Selected: Mon, 2 Nov</span>
               </div>
+              <div class="planner-progress-track">
+                <div class="planner-progress-fill" id="plannerProgressFill" style="width: 28.5%;"></div>
+              </div>
+            </div>
 
-              <!-- Fri -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Fri</strong>
-                  <span>7 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
-
-              <!-- Sat -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Sat</strong>
-                  <span>8 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
-
-              <!-- Sun -->
-              <div class="day-plan-card empty-day">
-                <div class="dp-day-info">
-                  <strong>Sun</strong>
-                  <span>9 Nov</span>
-                </div>
-                <button class="btn-circle-add-sm" onclick="app.goToScreen('today')">+</button>
-              </div>
+            <!-- Dynamic Day Schedule Cards Stream -->
+            <div class="weekly-schedule-stream" id="weeklyScheduleStream">
+              <!-- Dynamically populated for all 7 days of the selected week -->
             </div>
           </div>
 
@@ -2634,9 +2858,18 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
               <span>Wardrobe</span>
             </button>
-            <button class="nav-tab" onclick="app.goToScreen('saved')">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-              <span>Saved</span>
+            <button class="nav-tab" onclick="app.openStyleHint()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              </svg>
+              <span>Style Hint</span>
+            </button>
+            <button class="nav-tab" onclick="app.goToScreen('premium')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/>
+                <path d="M5 19h14"/>
+              </svg>
+              <span>Pro</span>
             </button>
             <button class="nav-tab" onclick="app.goToScreen('profile')">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -2651,9 +2884,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-help-support">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Help &amp; Support</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2734,9 +2968,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-manage-subscription">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('profile')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('profile')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Subscription</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2796,9 +3031,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-outfit-feedback">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('today')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('today')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Outfit Feedback</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2864,9 +3100,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-create-account">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('welcome')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('signin')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Create Account</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2926,9 +3163,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-reset-password">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('signin')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('signin')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Reset Password</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -2966,9 +3204,10 @@
              =================================================================== -->
         <section class="phone-screen" id="screen-crop-photo">
           <div class="screen-sub-header">
-            <button class="nav-back-arrow" onclick="app.goToScreen('add-wardrobe')">
+            <button class="nav-back-arrow" onclick="app.goToScreen('add-wardrobe')" title="Back">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+            <span class="sub-header-title">Crop Photo</span>
             <div style="width: 20px;"></div>
           </div>
 
@@ -3122,9 +3361,257 @@
         </section>
 
       </div><!-- /.phone-screen-container -->
+
+      <!-- In-App Daily Reminder Notification Banner -->
+      <div class="in-app-reminder-banner hidden" id="inAppReminderBanner">
+        <div class="reminder-banner-content">
+          <div class="reminder-banner-icon-wrap" id="reminderBannerIcon">
+            <span>🔥</span>
+          </div>
+          <div class="reminder-banner-text">
+            <strong id="reminderBannerTitle">Upload Today's Look</strong>
+            <p id="reminderBannerBody">Snap your recommended outfit before the deadline to keep your streak going!</p>
+          </div>
+          <div class="reminder-banner-actions">
+            <button class="btn-banner-snap" onclick="app.triggerOutfitPhotoUpload()">
+              <span>📷 Snap</span>
+            </button>
+            <button class="btn-banner-close" onclick="app.dismissReminderBanner()">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden File Input for Native Camera / Gallery Upload -->
+      <input type="file" id="outfitPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="app.handleOutfitPhotoSelected(event)">
+
+      <!-- Modal 1: Daily Streak Camera & Photo Capture (Camera Screen Only) -->
+      <div class="streak-modal-backdrop hidden" id="outfitCameraModal" onclick="if(event.target === this) app.closeCameraModal()">
+        <div class="streak-modal-card streak-camera-card" onclick="event.stopPropagation()">
+          <div class="streak-modal-header">
+            <h3 class="streak-modal-title">Camera</h3>
+            <button class="streak-modal-close" onclick="app.closeCameraModal()" title="Exit Camera">✕</button>
+          </div>
+
+          <!-- Live Viewfinder / Capture Section -->
+          <div class="camera-viewfinder-container" id="cameraViewfinderContainer">
+            <video id="cameraVideo" class="camera-video-stream" autoplay playsinline muted></video>
+            <canvas id="cameraCanvas" class="hidden"></canvas>
+            <img id="cameraCapturedPreview" class="camera-captured-img hidden" alt="Captured Look" />
+
+            <!-- Framing guidelines overlay -->
+            <div class="camera-overlay-frame" id="cameraOverlayFrame">
+              <div class="camera-guide-oval"></div>
+            </div>
+
+            <!-- Camera Status / Fallback Card -->
+            <div class="camera-fallback-card hidden" id="cameraFallbackCard">
+              <span class="camera-fallback-icon">📷</span>
+              <p id="cameraFallbackMsg">Camera ready. Tap below to capture outfit photo.</p>
+            </div>
+          </div>
+
+          <!-- Live Camera Controls (before snapshot) -->
+          <div class="camera-controls-row" id="cameraLiveControls">
+            <button type="button" class="btn-camera-upload-mini" onclick="app.triggerFileInputClick()" title="Upload from Device">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </button>
+            <button type="button" class="btn-camera-shutter" id="btnCameraShutter" onclick="app.captureCameraSnapshot()" title="Capture Outfit">
+              <div class="shutter-inner"></div>
+            </button>
+            <button type="button" class="btn-camera-sample-mini" onclick="app.loadSampleOutfitLook()" title="Use Sample Look">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Post-Capture Review & Confirm Controls (after photo captured) -->
+          <div class="camera-review-container hidden" id="cameraReviewContainer">
+            <div class="camera-streak-preview" id="cameraStreakPreview">
+              <span class="camera-streak-text">
+                🔥 Current Streak: <strong id="cameraCurrentStreakVal">0</strong> ➔ New: <strong id="cameraNewStreakVal">1</strong> Streaks
+              </span>
+              <div id="cameraDuplicateWarning" class="hidden"></div>
+            </div>
+            <div class="camera-review-actions">
+              <button class="btn-olive-primary" id="btnConfirmCapturedOutfit" onclick="app.confirmCapturedOutfit()">
+                Confirm & Save Outfit 🔥
+              </button>
+              <button class="btn-outline-white" onclick="app.retakeCameraPhoto()">
+                ↺ Retake Photo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 2: Outfit Memories & Look History Gallery (Gallery Only) -->
+      <div class="streak-modal-backdrop hidden" id="outfitMemoriesModal" onclick="if(event.target === this) app.closeMemoriesModal()">
+        <div class="streak-modal-card outfit-memories-card" onclick="event.stopPropagation()">
+          <div class="streak-modal-header">
+            <h3 class="streak-modal-title">Outfit Memories</h3>
+            <button class="streak-modal-close" onclick="app.closeMemoriesModal()" title="Exit Gallery">✕</button>
+          </div>
+
+          <div class="memories-meta-bar">
+            <span class="memories-count-badge" id="memoriesTotalCountBadge">0 Memories Saved</span>
+          </div>
+
+          <!-- Memories Chronological Grid -->
+          <div class="memories-grid" id="memoriesGridContainer">
+            <!-- Rendered dynamically via app.renderOutfitMemories() -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 3: Single Memory Detail Lightbox -->
+      <div class="streak-modal-backdrop hidden" id="memoryDetailModal" onclick="if(event.target === this) app.closeMemoryDetailModal()">
+        <div class="streak-modal-card memory-detail-card" onclick="event.stopPropagation()">
+          <div class="streak-modal-header">
+            <h3 class="streak-modal-title" id="memoryDetailDateTitle">Outfit Memory</h3>
+            <button class="streak-modal-close" onclick="app.closeMemoryDetailModal()">✕</button>
+          </div>
+          <div class="memory-detail-img-wrap">
+            <img id="memoryDetailImg" src="" alt="Outfit Memory" />
+            <span class="memory-detail-streak-tag" id="memoryDetailStreakTag">Day 1 🔥</span>
+          </div>
+          <div class="memory-detail-info">
+            <h4 id="memoryDetailNote" class="memory-detail-note">Outfit Look</h4>
+            <span id="memoryDetailTimestamp" class="memory-detail-time">Logged</span>
+          </div>
+          <button class="btn-outline-white full-width" onclick="app.closeMemoryDetailModal()">Back to Memories</button>
+        </div>
+      </div>
+
+      <!-- Modal 4: Missed Upload Broken Streak & Monthly Restore -->
+      <div class="streak-modal-backdrop hidden" id="missedStreakModal" onclick="if(event.target === this) app.closeMissedStreakModal()">
+        <div class="streak-modal-card missed-streak-card" onclick="event.stopPropagation()">
+          <div class="streak-modal-header" style="justify-content: flex-end; margin-bottom: 0;">
+            <button class="streak-modal-close" onclick="app.closeMissedStreakModal()" title="Close">✕</button>
+          </div>
+          <div class="extinguished-flame-wrap">
+            <img src="assets/streak_bonfire_smoke.jpg" class="missed-bonfire-smoke-img" alt="Bonfire Smoke" />
+            <div class="smoke-extinguished-graphic">
+              <span class="smoke-drift d1">💨</span>
+              <span class="smoke-drift d2">💨</span>
+            </div>
+          </div>
+          <h2 class="missed-modal-headline">Oops! Your outfit streak has ended!</h2>
+          <p class="missed-modal-lead">Your streak is waiting to be restored. Keep your fashion flame alive!</p>
+          
+          <div class="lost-streak-stat-box">
+            <span class="stat-lbl">Lost Streak</span>
+            <span class="stat-num" id="missedStreakLostCount">0 Days</span>
+          </div>
+
+          <!-- Monthly Restoration Status Card -->
+          <div class="restore-status-card" id="restoreStatusCard">
+            <div class="restore-status-indicator">
+              <span class="restore-status-icon" id="restoreStatusIcon">✨</span>
+              <div class="restore-status-text">
+                <strong id="restoreStatusTitle">Monthly Restoration Available</strong>
+                <span id="restoreStatusSubtitle">Refreshes on the 3rd of every month</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="missed-modal-actions">
+            <button class="btn-olive-primary btn-restore-action" id="btnRestoreStreak" onclick="app.restoreMonthlyStreak()">
+              Restore Streak 🔥
+            </button>
+            <button class="btn-outline-white" onclick="app.startNewStreak()">
+              Start Fresh Streak
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 5: Woobi Streak Calendar (Shows Only Days and Month) -->
+      <div class="streak-modal-backdrop hidden" id="streakDetailsModal" onclick="if(event.target === this) app.closeStreakModal()">
+        <div class="streak-modal-card streak-details-card streak-calendar-modal-card woobi-calendar-card" onclick="event.stopPropagation()">
+          <!-- Clean Month Navigation & Close Button Header -->
+          <div class="streak-calendar-nav-header">
+            <div class="cal-nav-left-group">
+              <button class="btn-cal-nav btn-cal-nav-prev" onclick="app.prevCalendarMonth()" title="Previous Month" aria-label="Previous Month">❮</button>
+              <div class="streak-cal-month-title" id="streakCalMonthTitle">October 2026 ▾</div>
+              <button class="btn-cal-nav btn-cal-nav-next" onclick="app.nextCalendarMonth()" title="Next Month" aria-label="Next Month">❯</button>
+            </div>
+            <button class="streak-modal-close cal-exit-circle-btn" onclick="app.closeStreakModal()" title="Close Calendar" aria-label="Exit">✕</button>
+          </div>
+
+          <!-- Weekdays Header Row -->
+          <div class="streak-cal-weekdays-row">
+            <span>SUN</span>
+            <span>MON</span>
+            <span>TUE</span>
+            <span>WED</span>
+            <span>THU</span>
+            <span>FRI</span>
+            <span>SAT</span>
+          </div>
+
+          <!-- Dynamic 3D Recessed Crater Days Grid -->
+          <div class="streak-calendar-grid recessed-tiles-grid" id="streakCalendarGrid">
+            <!-- Rendered dynamically by app.renderStreakCalendar() -->
+          </div>
+
+          <!-- Hidden semantic elements for state synchronization -->
+          <div style="display: none;" aria-hidden="true">
+            <span id="calActiveCount">0</span>
+            <span id="calBrokenCount">0</span>
+            <span id="calUpcomingCount">0</span>
+            <div id="calHeaderStreakBadge">
+              <span id="calTierFlameIcon"></span>
+              <span id="calTierText">0 Day Streak • First Fire</span>
+            </div>
+            <h2 class="cal-main-title">Woobi Streak Calendar</h2>
+            <p class="cal-main-subtitle">Keep the flame going ✨</p>
+          </div>
+        </div>
+      </div>
   </main>
   </div><!-- /.desktop-editorial-frame -->
 <!-- /.app-viewport -->
+
+  <!-- Weekly Planner Outfit Selection Modal Sheet -->
+  <div class="planner-modal-backdrop hidden" id="plannerOutfitModal" onclick="if(event.target === this) app.closePlannerOutfitModal()">
+    <div class="planner-modal-sheet" onclick="event.stopPropagation()">
+      <div class="sheet-drag-handle"></div>
+      <div class="planner-modal-header">
+        <div>
+          <span class="planner-modal-sub" id="plannerModalSub">Assign outfit</span>
+          <h3 class="planner-modal-title" id="plannerModalTitle">Choose look for Wednesday, 5 Nov</h3>
+        </div>
+        <button class="sheet-close-btn" onclick="app.closePlannerOutfitModal()" title="Close">✕</button>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="planner-filter-tabs" id="plannerFilterTabs">
+        <button class="planner-filter-tab active" onclick="app.filterPlannerOutfits('All', this)">All</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Work', this)">Work</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Casual', this)">Casual</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Ethnic', this)">Ethnic</button>
+        <button class="planner-filter-tab" onclick="app.filterPlannerOutfits('Weekend', this)">Weekend</button>
+      </div>
+
+      <!-- Outfits Catalog Grid / Stream -->
+      <div class="planner-outfits-grid" id="plannerOutfitsGrid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <div style="text-align: center; margin-top: 10px; padding-top: 6px;">
+        <button class="btn-link-simple" style="font-size: 0.78rem; color: var(--olive-primary, #324334);" onclick="app.closePlannerOutfitModal(); app.goToScreen('custom-builder');">
+          ✦ Or build a custom outfit in Style Studio
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Item Condition & Fit Modal Sheet -->
   <div class="condition-modal-backdrop hidden" id="itemConditionModal">
@@ -3194,155 +3681,366 @@
     </div>
   </div>
 
-        <!-- ===================================================================
-             SCREEN: 3D VIRTUAL FASHION STUDIO
-             =================================================================== -->
-                
+  <!-- =========================================================================
+       CLOTHING CAPTURE & SILHOUETTE DIGITIZATION SYSTEM (MODALS)
+       ========================================================================= -->
 
-  <!-- In-App Daily Reminder Notification Banner -->
-  <div class="in-app-reminder-banner hidden" id="inAppReminderBanner">
-    <div class="reminder-banner-content">
-      <div class="reminder-banner-icon-wrap" id="reminderBannerIcon">
-        <span>🔥</span>
+  <!-- Hidden File Input for Native File Upload / Device Fallback -->
+  <input type="file" id="clothingFileInput" accept="image/*" capture="environment" style="display:none;" onchange="app.handleClothingFileSelected(event)">
+
+  <!-- 1. Category Selection Action Sheet (Step 1) -->
+  <div class="clothing-menu-modal hidden" id="clothingCaptureMenuModal" onclick="if(event.target === this) app.closeClothingCaptureMenu()">
+    <div class="clothing-menu-sheet">
+      <div class="clothing-menu-header">
+        <div>
+          <h3 class="clothing-menu-title">Add to Wardrobe</h3>
+          <p class="clothing-menu-sub">Position clothes inside the silhouette guide</p>
+        </div>
+        <button class="clothing-menu-close" onclick="app.closeClothingCaptureMenu()" title="Close">✕</button>
       </div>
-      <div class="reminder-banner-text">
-        <strong id="reminderBannerTitle">Upload Today's Look</strong>
-        <p id="reminderBannerBody">Snap your recommended outfit before the deadline to keep your streak going!</p>
-      </div>
-      <div class="reminder-banner-actions">
-        <button class="btn-banner-snap" onclick="app.triggerOutfitPhotoUpload()">
-          <span>📷 Snap</span>
+
+      <div class="clothing-options-list">
+        <!-- 1. Shirt 👕 (Max 7) -->
+        <button type="button" class="clothing-option-card" id="clothingOptShirt" onclick="app.openClothingCamera('shirt')">
+          <div class="clothing-opt-icon">👕</div>
+          <div class="clothing-opt-info">
+            <div class="clothing-opt-name">
+              <span>Shirt</span>
+            </div>
+            <div class="clothing-opt-desc">Tops • Shirts, T-shirts, Kurtas, Tops</div>
+          </div>
+          <span class="clothing-opt-badge" id="menuShirtSlots">0 / 7</span>
         </button>
-        <button class="btn-banner-close" onclick="app.dismissReminderBanner()">✕</button>
+
+        <!-- 2. Pant 👖 (Max 7) -->
+        <button type="button" class="clothing-option-card" id="clothingOptPant" onclick="app.openClothingCamera('pant')">
+          <div class="clothing-opt-icon">👖</div>
+          <div class="clothing-opt-info">
+            <div class="clothing-opt-name">
+              <span>Pant</span>
+            </div>
+            <div class="clothing-opt-desc">Bottoms • Trousers, Jeans, Chinos, Skirts</div>
+          </div>
+          <span class="clothing-opt-badge" id="menuPantSlots">0 / 7</span>
+        </button>
+
+        <!-- 3. Shoe 👟 (Max 2) -->
+        <button type="button" class="clothing-option-card" id="clothingOptShoe" onclick="app.openClothingCamera('shoe')">
+          <div class="clothing-opt-icon">👟</div>
+          <div class="clothing-opt-info">
+            <div class="clothing-opt-name">
+              <span>Shoe</span>
+            </div>
+            <div class="clothing-opt-desc">Footwear • Sneakers, Loafers, Sandals</div>
+          </div>
+          <span class="clothing-opt-badge" id="menuShoeSlots">0 / 2</span>
+        </button>
+      </div>
+
+      <div class="clothing-menu-actions">
+        <button type="button" class="clothing-menu-review-btn" id="menuReviewBtn" onclick="app.openClothingReview()" disabled>
+          <span>📋</span>
+          <span id="menuReviewBtnText">Review Captured (0 / 16)</span>
+        </button>
+        <button type="button" class="clothing-menu-wardrobe-link" onclick="app.closeClothingCaptureMenu(); app.serenToggleWardrobe(true);">
+          Explore 3D Wardrobe Closet instead
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Hidden File Input for Native Camera / Gallery Upload -->
-  <input type="file" id="outfitPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="app.handleOutfitPhotoSelected(event)">
+  <!-- 2. Clothing Silhouette Camera Modal (Steps 2, 3, 4, 5) -->
+  <div class="clothing-cam-modal hidden" id="clothingCaptureCameraModal">
+    <!-- Camera Top Bar: Switcher Tabs + Close + Review Quick Access -->
+    <div class="clothing-cam-header">
+      <button type="button" class="clothing-cam-close-btn" onclick="app.closeClothingCamera()" title="Exit Camera">✕</button>
 
-  <!-- Modal: Confirm Daily Outfit Photo Upload -->
-  <div class="streak-modal-backdrop hidden" id="outfitPhotoConfirmModal">
-    <div class="streak-modal-card">
-      <div class="streak-modal-header">
-        <h3 class="streak-modal-title">Confirm Outfit Photo</h3>
-        <button class="streak-modal-close" onclick="app.closePhotoConfirmModal()">✕</button>
-      </div>
-      <div class="streak-photo-preview-wrap">
-        <img id="outfitPhotoPreviewImg" src="" alt="Outfit Preview">
-        <div class="streak-verify-badge">
-          <span>✓ Today's Outfit Verified</span>
-        </div>
-      </div>
-      <div class="streak-confirm-meta">
-        <div class="streak-current-banner">
-          <span>Current Streak: <strong>🔥 <span id="confirmCurrentStreakVal">1</span> Days</strong></span>
-          <span class="streak-next-arrow">➔</span>
-          <span class="streak-next-highlight">New: <strong>🔥 <span id="confirmNewStreakVal">2</span> Days</strong></span>
-        </div>
-      </div>
-      <p class="streak-modal-hint">Looks sharp! Confirming this photo completes today's challenge and adds <strong>+1 🔥</strong> to your streak.</p>
-      <div class="streak-modal-actions">
-        <button class="btn-olive-primary" onclick="app.confirmOutfitPhotoUpload()">
-          Confirm Upload (+1 🔥)
+      <!-- Category Switcher Tabs (Seamless switching without losing confirmed items) -->
+      <div class="clothing-cam-tabs">
+        <button type="button" class="clothing-cam-tab active" id="camTabShirt" onclick="app.switchClothingCategory('shirt')">
+          <span>👕 Shirt</span>
+          <span class="clothing-cam-tab-badge" id="camBadgeShirt">0/7</span>
         </button>
-        <button class="btn-outline-white" onclick="app.triggerOutfitPhotoUpload()">
-          Retake Photo
+        <button type="button" class="clothing-cam-tab" id="camTabPant" onclick="app.switchClothingCategory('pant')">
+          <span>👖 Pant</span>
+          <span class="clothing-cam-tab-badge" id="camBadgePant">0/7</span>
+        </button>
+        <button type="button" class="clothing-cam-tab" id="camTabShoe" onclick="app.switchClothingCategory('shoe')">
+          <span>👟 Shoe</span>
+          <span class="clothing-cam-tab-badge" id="camBadgeShoe">0/2</span>
+        </button>
+      </div>
+
+      <button type="button" class="clothing-cam-review-pill" onclick="app.openClothingReview()" title="View Final Review">
+        <span>📋</span>
+        <span id="camReviewCountBadge">0</span>
+      </button>
+    </div>
+
+    <!-- Live Viewfinder / Silhouette Guide -->
+    <div class="clothing-viewfinder-wrap" id="clothingViewfinderContainer">
+      <video id="clothingCameraVideo" class="clothing-camera-video" autoplay playsinline muted></video>
+      <canvas id="clothingCameraCanvas" class="hidden"></canvas>
+      <img id="clothingCapturedPreview" class="clothing-captured-preview hidden" alt="Captured Garment Preview" />
+
+      <!-- Silhouette Overlay Frame (POINTER-EVENTS NONE - NEVER INCLUDED IN SAVED PHOTO) -->
+      <div class="clothing-silhouette-frame" id="clothingSilhouetteFrame">
+        <!-- Live slot badge -->
+        <div class="clothing-slot-pill" id="clothingSlotStatusPill">
+          👕 Shirt: 1 of 7 (6 remaining)
+        </div>
+
+        <!-- 1. Shirt Silhouette Vector Overlay -->
+        <svg id="silhouetteShirt" class="clothing-silhouette-svg" viewBox="0 0 300 400" fill="none" stroke="currentColor">
+          <!-- Collar / Neckline -->
+          <path d="M120 70 C135 90, 165 90, 180 70" stroke-width="2.5" stroke-linecap="round" />
+          <path d="M115 70 C130 55, 170 55, 185 70" stroke-width="2" stroke-dasharray="4 3" opacity="0.8" />
+          <!-- Shoulders, Sleeves & Torso -->
+          <path d="M120 70 L65 105 L45 155 L85 175 L95 140 L95 320 C95 330, 205 330, 205 320 L205 140 L215 175 L255 155 L235 105 L180 70 Z" 
+                stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+          <!-- Guidelines: Center & Chest -->
+          <line x1="150" y1="90" x2="150" y2="310" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.5" />
+          <line x1="95" y1="130" x2="205" y2="130" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.5" />
+          <text x="150" y="46" text-anchor="middle" font-size="11" fill="currentColor" letter-spacing="1.2">ALIGN SHOULDERS HERE</text>
+          <line x1="60" y1="55" x2="240" y2="55" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.5" />
+        </svg>
+
+        <!-- 2. Pant Silhouette Vector Overlay -->
+        <svg id="silhouettePant" class="clothing-silhouette-svg hidden" viewBox="0 0 300 400" fill="none" stroke="currentColor">
+          <!-- Waistband -->
+          <path d="M85 60 C125 56, 175 56, 215 60 L218 80 C175 76, 125 76, 82 80 Z" stroke-width="2.5" stroke-linejoin="round" />
+          <!-- Trousers / Legs Outline -->
+          <path d="M82 80 L75 140 L90 350 L132 350 L145 170 L155 170 L168 350 L210 350 L225 140 L218 80" 
+                stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" />
+          <!-- Crease Guidelines -->
+          <line x1="111" y1="140" x2="111" y2="340" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.5" />
+          <line x1="189" y1="140" x2="189" y2="340" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.5" />
+          <text x="150" y="42" text-anchor="middle" font-size="11" fill="currentColor" letter-spacing="1.2">ALIGN WAISTBAND HERE</text>
+          <line x1="75" y1="50" x2="225" y2="50" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.5" />
+        </svg>
+
+        <!-- 3. Shoe Silhouette Vector Overlay -->
+        <svg id="silhouetteShoe" class="clothing-silhouette-svg hidden" viewBox="0 0 300 400" fill="none" stroke="currentColor">
+          <!-- Left Shoe Outline -->
+          <path d="M85 85 C65 110, 60 170, 62 230 C64 280, 75 320, 95 325 C115 325, 125 285, 126 230 C127 170, 122 110, 105 85 C98 75, 92 75, 85 85 Z" 
+                stroke-width="2.6" stroke-linejoin="round" />
+          <ellipse cx="94" cy="180" rx="16" ry="32" stroke-width="1.6" stroke-dasharray="4 3" opacity="0.6" />
+          <line x1="82" y1="140" x2="106" y2="140" stroke-width="1.4" opacity="0.5" />
+          <line x1="84" y1="155" x2="104" y2="155" stroke-width="1.4" opacity="0.5" />
+
+          <!-- Right Shoe Outline -->
+          <path d="M215 85 C235 110, 240 170, 238 230 C236 280, 225 320, 205 325 C185 325, 175 285, 174 230 C173 170, 178 110, 195 85 C202 75, 208 75, 215 85 Z" 
+                stroke-width="2.6" stroke-linejoin="round" />
+          <ellipse cx="206" cy="180" rx="16" ry="32" stroke-width="1.6" stroke-dasharray="4 3" opacity="0.6" />
+          <line x1="194" y1="140" x2="218" y2="140" stroke-width="1.4" opacity="0.5" />
+          <line x1="196" y1="155" x2="216" y2="155" stroke-width="1.4" opacity="0.5" />
+
+          <text x="150" y="52" text-anchor="middle" font-size="11" fill="currentColor" letter-spacing="1.2">ALIGN FOOTWEAR PAIR</text>
+          <line x1="50" y1="340" x2="250" y2="340" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.5" />
+        </svg>
+
+        <!-- Positioning Guideline Banner -->
+        <div class="clothing-guide-banner" id="clothingGuideText">
+          👕 Lay shirt flat and align shoulders &amp; torso inside the outline
+        </div>
+      </div>
+
+      <!-- Camera Status & Permission Fallback Card -->
+      <div class="clothing-fallback-card hidden" id="clothingCameraFallback">
+        <span class="clothing-fallback-icon">📷</span>
+        <h4 style="margin: 0 0 6px 0; font-size: 1.1rem;">Camera Viewfinder Ready</h4>
+        <p style="margin: 0 0 16px 0; font-size: 0.8rem; color: #BFB5A9;">
+          Take a photo or choose an existing garment file to position.
+        </p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+          <button type="button" class="btn-outline-white" style="font-size: 0.82rem; padding: 8px 14px;" onclick="app.triggerClothingFileInput()">
+            Upload Garment File 📁
+          </button>
+          <button type="button" class="btn-outline-white" style="font-size: 0.82rem; padding: 8px 14px;" onclick="app.loadSampleClothingPhoto()">
+            Use Sample Photo 🖼️
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Camera Bottom Controls -->
+    <div class="clothing-cam-controls">
+      <!-- Live Shutter Controls (before capture) -->
+      <div class="clothing-live-controls" id="clothingCameraLiveControls">
+        <button type="button" class="clothing-control-tool-btn" onclick="app.triggerClothingFileInput()" title="Choose Photo from Device">
+          📁
+        </button>
+        
+        <button type="button" class="clothing-shutter-btn" id="clothingShutterBtn" onclick="app.captureClothingSnapshot()" title="Take Photo">
+          <div class="clothing-shutter-inner"></div>
+        </button>
+
+        <button type="button" class="clothing-control-tool-btn" onclick="app.flipClothingCamera()" title="Switch Front/Rear Camera">
+          🔄
+        </button>
+      </div>
+
+      <!-- Review & Confirm Controls (after capture) -->
+      <div class="clothing-review-controls hidden" id="clothingCameraReviewControls">
+        <button type="button" class="clothing-btn-retake" onclick="app.retakeClothingPhoto()">
+          ↺ Retake
+        </button>
+        <button type="button" class="clothing-btn-confirm" id="btnConfirmClothingPhoto" onclick="app.confirmClothingPhoto()">
+          ✓ Confirm &amp; Save Photo
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Modal: Missed Upload Broken Streak & Monthly Restore -->
-  <div class="streak-modal-backdrop hidden" id="missedStreakModal">
-    <div class="streak-modal-card missed-streak-card">
-      <div class="extinguished-flame-wrap">
-        <div class="smoke-extinguished-graphic">
-          <span class="smoke-drift d1">💨</span>
-          <span class="smoke-drift d2">💨</span>
-        </div>
-        <span class="extinguished-ember" id="missedModalEmber">🔥</span>
+  <!-- 3. Final Review Page (Step 6) -->
+  <div class="clothing-review-modal hidden" id="clothingCaptureReviewModal">
+    <div class="clothing-review-header">
+      <button type="button" class="clothing-review-back-btn" onclick="app.closeClothingReview()" title="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="clothing-review-title-box">
+        <h3 class="clothing-review-main-title">Review Clothes</h3>
+        <span class="clothing-review-total-badge" id="reviewTotalBadge">0 of 16 Selected</span>
       </div>
-      <h2 class="missed-modal-headline">Oops! Your outfit streak has ended! 🔥</h2>
-      <p class="missed-modal-lead">Your streak is waiting to be restored. Don't give up!</p>
-      
-      <div class="lost-streak-stat-box">
-        <span class="stat-lbl">Lost Streak</span>
-        <span class="stat-num" id="missedStreakLostCount">5 Days</span>
+      <div style="width: 36px;"></div>
+    </div>
+
+    <div class="clothing-review-body">
+      <!-- Section 1: Shirts (Max 7) -->
+      <section class="clothing-category-section">
+        <div class="clothing-sec-header">
+          <div class="clothing-sec-title">
+            <span>👕</span>
+            <span>Shirts</span>
+          </div>
+          <span class="clothing-sec-count-pill" id="reviewShirtCountPill">0 / 7</span>
+        </div>
+        <div class="clothing-cards-grid" id="reviewShirtsGrid">
+          <!-- Rendered dynamically via app.renderClothingReviewGrid() -->
+        </div>
+      </section>
+
+      <!-- Section 2: Pants (Max 7) -->
+      <section class="clothing-category-section">
+        <div class="clothing-sec-header">
+          <div class="clothing-sec-title">
+            <span>👖</span>
+            <span>Pants</span>
+          </div>
+          <span class="clothing-sec-count-pill" id="reviewPantCountPill">0 / 7</span>
+        </div>
+        <div class="clothing-cards-grid" id="reviewPantsGrid">
+          <!-- Rendered dynamically via app.renderClothingReviewGrid() -->
+        </div>
+      </section>
+
+      <!-- Section 3: Shoes (Max 2) -->
+      <section class="clothing-category-section">
+        <div class="clothing-sec-header">
+          <div class="clothing-sec-title">
+            <span>👟</span>
+            <span>Shoes</span>
+          </div>
+          <span class="clothing-sec-count-pill" id="reviewShoeCountPill">0 / 2</span>
+        </div>
+        <div class="clothing-cards-grid" id="reviewShoesGrid">
+          <!-- Rendered dynamically via app.renderClothingReviewGrid() -->
+        </div>
+      </section>
+    </div>
+
+    <!-- Review Footer CTA -->
+    <div class="clothing-review-footer">
+      <div class="clothing-review-tally" id="reviewTallySummary">
+        0 Shirts • 0 Pants • 0 Shoes confirmed
+      </div>
+      <button type="button" class="clothing-btn-save-all" id="btnSaveWardrobeSelection" onclick="app.saveCapturedClothingToWardrobe()" disabled>
+        Finish &amp; Save to Wardrobe ✨
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. Photo Preview Lightbox Modal -->
+  <div class="clothing-lightbox-modal hidden" id="clothingPreviewLightbox" onclick="if(event.target === this) app.closeClothingLightbox()">
+    <div class="clothing-lightbox-card">
+      <div class="clothing-lightbox-header">
+        <h4 class="clothing-lightbox-title" id="lightboxTitle">Garment Preview</h4>
+        <button type="button" class="clothing-lightbox-close" onclick="app.closeClothingLightbox()">✕</button>
+      </div>
+      <div class="clothing-lightbox-img-wrap">
+        <img id="lightboxImg" class="clothing-lightbox-img" src="" alt="Enlarged Garment" />
+      </div>
+      <div class="clothing-lightbox-actions">
+        <button type="button" class="btn-outline-white" style="font-size: 0.8rem; padding: 8px 14px;" onclick="app.closeClothingLightbox()">
+          Back
+        </button>
+        <button type="button" class="btn-outline-white" style="font-size: 0.8rem; padding: 8px 14px; color: #FF6B6B; border-color: rgba(255, 107, 107, 0.4);" id="lightboxRemoveBtn">
+          Remove Photo 🗑️
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       SUBSCRIPTION UPGRADE CONFIRMATION MODAL
+       =================================================================== -->
+  <div class="sub-modal-backdrop hidden" id="subUpgradeModal" onclick="if(event.target === this) app.closeUpgradeConfirmation()">
+    <div class="sub-modal-sheet">
+      <div class="sub-sheet-drag-handle"></div>
+      <div class="sub-modal-header">
+        <div>
+          <span class="sub-modal-badge" id="subModalBadge">PLAN CONFIRMATION</span>
+          <h3 class="sub-modal-title" id="subModalTitle">Upgrade to Woobi Pro</h3>
+        </div>
+        <button class="sub-modal-close" onclick="app.closeUpgradeConfirmation()" aria-label="Close">✕</button>
       </div>
 
-      <!-- Monthly Restoration Status Card -->
-      <div class="restore-status-card" id="restoreStatusCard">
-        <div class="restore-status-indicator">
-          <span class="restore-status-icon" id="restoreStatusIcon">✨</span>
-          <div class="restore-status-text">
-            <strong id="restoreStatusTitle">Monthly Restoration Available</strong>
-            <span id="restoreStatusSubtitle">Refreshes on the 3rd of every month</span>
+      <div class="sub-modal-body">
+        <!-- Selected Plan Highlight Box -->
+        <div class="sub-modal-plan-box" id="subModalPlanBox">
+          <div class="sub-modal-plan-info">
+            <h4 class="modal-plan-title" id="subModalPlanName">Woobi Pro</h4>
+            <span class="modal-plan-sub">Billed monthly • Cancel anytime</span>
+          </div>
+          <div class="sub-modal-price-box">
+            <span class="modal-sym">₹</span>
+            <span class="modal-num" id="subModalPrice">387</span>
+            <span class="modal-cad">/ month</span>
           </div>
         </div>
-      </div>
 
-      <div class="missed-modal-actions">
-        <button class="btn-olive-primary btn-restore-action" id="btnRestoreStreak" onclick="app.restoreMonthlyStreak()">
-          Restore Streak 🔥
-        </button>
-        <button class="btn-outline-white" onclick="app.startNewStreak()">
-          Start New Streak
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: Streak Details, History & Developer Simulation Controls -->
-  <div class="streak-modal-backdrop hidden" id="streakDetailsModal">
-    <div class="streak-modal-card streak-details-card">
-      <div class="streak-modal-header">
-        <h3 class="streak-modal-title">Outfit Upload Streak</h3>
-        <button class="streak-modal-close" onclick="app.closeStreakModal()">✕</button>
-      </div>
-      
-      <div class="streak-hero-display">
-        <div class="streak-hero-flame-box">
-          <span class="streak-hero-flame" id="modalHeroFlame">🔥</span>
+        <!-- Included Highlights -->
+        <div class="sub-modal-highlights">
+          <span class="sub-modal-section-title">Included in this tier:</span>
+          <ul class="sub-modal-checklist" id="subModalBullets">
+            <!-- Populated dynamically via JS -->
+          </ul>
         </div>
-        <div class="streak-hero-count" id="modalHeroStreakCount">5</div>
-        <div class="streak-hero-label">Days Consecutive Streak</div>
-      </div>
 
-      <div class="streak-info-grid">
-        <div class="streak-info-box">
-          <span class="info-label">TIME REMAINING</span>
-          <span class="info-val" id="modalHeroCountdown">24h 00m</span>
+        <!-- Gateway In-Progress Notice (Crucial requirement!) -->
+        <div class="payment-gateway-notice-box">
+          <div class="notice-icon-circle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <div class="notice-content">
+            <strong>Payment Integration Coming Soon</strong>
+            <p>Our secure payment gateway (UPI, Credit/Debit Cards, Net Banking) is in final development. In accordance with security standards, you will not be charged today and paid features will activate upon live deployment. Your plan preference has been recorded!</p>
+          </div>
         </div>
-        <div class="streak-info-box">
-          <span class="info-label">MONTHLY RESTORE</span>
-          <span class="info-val" id="modalHeroRestoreStatus">Available (3rd)</span>
+
+        <div class="sub-modal-action-row">
+          <button class="btn-confirm-plan-pref" id="btnConfirmPlanPref" onclick="app.confirmPlanPreference()">
+            Confirm Plan Preference
+          </button>
+          <button class="btn-cancel-modal" onclick="app.closeUpgradeConfirmation()">
+            Return to Plans
+          </button>
         </div>
       </div>
-
-      <div class="streak-rules-box">
-        <div class="rule-item">📸 Snap & upload your daily Woobi look to add +1 🔥.</div>
-        <div class="rule-item">⏰ Upload within 24 hours of your recommendation.</div>
-        <div class="rule-item">🔄 1 free streak restore per calendar month (refreshes every 3rd).</div>
-      </div>
-
-      <div class="streak-main-action">
-        <button class="btn-olive-primary" onclick="app.triggerOutfitPhotoUpload(); app.closeStreakModal();">
-          📷 Snap Today's Outfit Photo
-        </button>
-      </div>
-
-      <!-- Developer / QA Testing Controls -->
-      <details class="streak-dev-details">
-        <summary class="streak-dev-summary">⚙️ QA & Feature Testing Tools</summary>
-        <div class="streak-dev-controls">
-          <button class="dev-btn" onclick="app.devSimulateUpload()">⚡ Instant Upload (+1)</button>
-          <button class="dev-btn" onclick="app.devSimulateTwoHoursLeft()">⏱️ Set 1h 59m (2h Warning)</button>
-          <button class="dev-btn" onclick="app.devSimulateStreakBreak()">💥 Force Streak Break</button>
-          <button class="dev-btn" onclick="app.devToggleRestoreToken()">🔄 Toggle Monthly Restore</button>
-          <button class="dev-btn" onclick="app.devResetStreak()">🗑️ Reset Streak to Default</button>
-        </div>
-      </details>
     </div>
   </div>
 
@@ -3360,9 +4058,26 @@
   <script type="module" src="modules/3d-studio/camera/index.js"></script>
   <script type="module" src="modules/3d-studio-features/index.js"></script>
   <script type="module" src="modules/settings/index.js"></script>
-  <script src="wardrobe-astra-material.js?v=20261031_9"></script>
-  <script src="wardrobe3d.js?v=20261031_9"></script>
-  <script src="studio3d.js?v=20261031_9"></script>
-  <script src="app.js?v=20261031_9"></script>
+  <script src="assets/brick-wall-data.js?v=20261104_4"></script>
+  <script src="wardrobe-astra-material.js?v=20261104_4"></script>
+  <script src="wardrobe3d.js?v=20261104_4"></script>
+  <script src="studio3d.js?v=20261104_4"></script>
+  <script src="app.js?v=20261104_4"></script>
+  <script>
+    window.showStudio3DFallback = function (message) {
+      var fallback = document.getElementById('seren3dFallback');
+      var msgEl = document.getElementById('seren3dFallbackMessage');
+      if (msgEl && message) msgEl.textContent = message;
+      if (fallback) fallback.hidden = false;
+    };
+
+    window.retryStudio3D = function () {
+      var fallback = document.getElementById('seren3dFallback');
+      if (fallback) fallback.hidden = true;
+      if (window.Studio3D && typeof window.Studio3D.init === 'function') {
+        window.Studio3D.init('seren3dContainer', 'seren3dCanvas');
+      }
+    };
+  </script>
 </body>
 </html>

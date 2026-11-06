@@ -290,11 +290,12 @@ export class AvatarRig {
     this.accessories.button = button;
     this.disposables.push(buttonGeo);
 
-    // Fluid Wide Legs with Front Creases
+    // Fluid Wide Legs with Front Creases and Natural Fashion Stance
     [-1, 1].forEach((side) => {
       const legGroup = new THREE.Group();
       legGroup.name = `AvatarLegGroup_${side < 0 ? 'Left' : 'Right'}`;
-      legGroup.position.set(side * 0.076, 0.86, 0);
+      legGroup.position.set(side * 0.088, 0.86, 0);
+      legGroup.rotation.y = side * -0.06; // Subtle relaxed fashion hip and thigh angle
 
       const pantLegGeo = new THREE.CylinderGeometry(0.072, 0.098, 0.78, 28);
       const pantLeg = new THREE.Mesh(pantLegGeo, mats.trouserMat);
@@ -313,11 +314,12 @@ export class AvatarRig {
       this.sculptedAvatarGroup.add(legGroup);
     });
 
-    // 7. MINIMALIST CHUNKY WHITE PLATFORM SNEAKERS
+    // 7. MINIMALIST CHUNKY WHITE PLATFORM SNEAKERS WITH NATURAL OUTWARD TOE FLARE
     [-1, 1].forEach((side) => {
       const sneaker = new THREE.Group();
       sneaker.name = `AvatarSneaker_${side < 0 ? 'Left' : 'Right'}`;
-      sneaker.position.set(side * 0.085, 0.018, 0.035);
+      sneaker.position.set(side * 0.092, 0.018, 0.032);
+      sneaker.rotation.y = side * -0.10; // Natural 6-degree outward toe flare for relaxed grounded stance
 
       // Chunky Platform Rubber Sole with Tread
       const soleGeo = new THREE.BoxGeometry(0.082, 0.036, 0.22);
@@ -345,6 +347,34 @@ export class AvatarRig {
       this.disposables.push(tongueGeo);
 
       this.sculptedAvatarGroup.add(sneaker);
+    });
+
+    // 8. LOCALIZED HIGH-FIDELITY FOOT CONTACT SHADOWS DIRECTLY ON STAGE DAIS
+    const ShadowGeoClass = THREE.CircleGeometry || THREE.CylinderGeometry;
+    [-1, 1].forEach((side) => {
+      const shadowGeo = new ShadowGeoClass(0.062, 32);
+      const shadowMat = new THREE.MeshBasicMaterial({
+        color: 0x1A140E,
+        transparent: true,
+        opacity: 0.42,
+        depthWrite: false
+      });
+      const footShadow = new THREE.Mesh(shadowGeo, shadowMat);
+      footShadow.name = `AvatarFootContactShadow_${side < 0 ? 'Left' : 'Right'}`;
+      footShadow.rotation.x = -Math.PI / 2;
+      footShadow.rotation.z = side * 0.10; // Angle matches natural toe flare
+      footShadow.scale.set(0.70, 1.55, 1.0);
+      footShadow.position.set(side * 0.092, 0.001, 0.032);
+      this.root.add(footShadow);
+      this.disposables.push(shadowGeo, shadowMat);
+    });
+
+    // Enable complete castShadow and receiveShadow self-shadowing across all anatomical and garment meshes
+    this.root.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
     });
 
     return this.root;

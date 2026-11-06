@@ -144,7 +144,9 @@
       photo: 'assets/tan_loafers.jpg'
     },
     savedBookmarks: new Set(['look_1', 'look_2', 'look_3']),
-    currentPlan: 'monthly',
+    currentPlan: 'free',
+    selectedPlanPreference: null,
+    pendingUpgradePlan: 'pro',
     isPremium: false,
     wearHistoryCount: 6
   };
@@ -195,6 +197,10 @@
       updateBuilderTray();
     } else if (screenId === 'today' || screenId === 'virtual-studio') {
       initVirtualStudio();
+    } else if (screenId === 'weekly-planning') {
+      renderWeeklyCalendar();
+    } else if (screenId === 'premium') {
+      updateSubscriptionUI();
     }
 
     // Update Bottom Nav active tab indicator if applicable
@@ -231,10 +237,14 @@
       'saved': 'saved',
       'offline-mode': 'saved',
 
+      'style-hint': 'hint',
+
+      'premium': 'pro',
+      'subscription': 'pro',
+      'manage-subscription': 'pro',
+
       'profile': 'profile',
       'wear-history': 'profile',
-      'premium': 'profile',
-      'manage-subscription': 'profile',
       'reminders': 'profile',
       'account-privacy': 'profile',
       'help-support': 'profile',
@@ -244,9 +254,23 @@
 
     const targetTab = navMapping[screenId] || 'today';
     document.querySelectorAll('.phone-bottom-nav .nav-tab').forEach(btn => {
-      const isMatch = btn.textContent.toLowerCase().includes(targetTab);
+      const text = btn.textContent.toLowerCase();
+      let isMatch = false;
+      if (targetTab === 'pro') {
+        isMatch = text.includes('pro') || text.includes('premium');
+      } else if (targetTab === 'hint') {
+        isMatch = text.includes('hint') || text.includes('style');
+      } else {
+        isMatch = text.includes(targetTab);
+      }
       btn.classList.toggle('active', isMatch);
     });
+
+    // Also update Seren floating pill bar tabs if on today screen
+    const serenHint = document.getElementById('serenTabHint');
+    const serenPro = document.getElementById('serenTabPro') || document.getElementById('serenTabPremium');
+    if (serenHint) serenHint.classList.toggle('active', targetTab === 'hint');
+    if (serenPro) serenPro.classList.toggle('active', targetTab === 'pro');
   }
 
   // =========================================================================
@@ -602,7 +626,7 @@
 
     if (titleEl) titleEl.textContent = opt.title;
     if (capEl) capEl.textContent = opt.caption;
-    
+
     if (aiBadge) {
       if (opt.isAIGenerated) {
         aiBadge.style.display = 'inline-block';
@@ -702,8 +726,8 @@
       const fitBadge = item.fit === 'tight'
         ? '<span class="badge-fit tight">Small</span>'
         : item.fit === 'loose'
-        ? '<span class="badge-fit loose">Loose</span>'
-        : '<span class="badge-fit">Fit</span>';
+          ? '<span class="badge-fit loose">Loose</span>'
+          : '<span class="badge-fit">Fit</span>';
 
       card.innerHTML = `
         <div class="builder-item-thumb">
@@ -874,8 +898,8 @@
       const fitBadge = item.fit === 'tight'
         ? `<span class="badge-fit tight">Tight</span>`
         : item.fit === 'loose'
-        ? `<span class="badge-fit loose">Loose</span>`
-        : `<span class="badge-fit">Perfect fit</span>`;
+          ? `<span class="badge-fit loose">Loose</span>`
+          : `<span class="badge-fit">Perfect fit</span>`;
 
       box.innerHTML = `
         <div class="w-img-wrap" onclick="app.openConditionModal('${item.id}')">
@@ -1137,6 +1161,245 @@
       sm.account.updateSubscription(state.currentPlan, true);
     }
     setTimeout(() => goToScreen('today'), 800);
+  }
+
+  // =========================================================================
+  // WOOBI PREMIUM SUBSCRIPTION & STYLE HINT ORCHESTRATION
+  // =========================================================================
+  function openStyleHint() {
+    if (state.currentScreen !== 'today') {
+      goToScreen('today');
+    }
+    serenOpenStylingReview();
+  }
+
+  function selectSubscriptionPlan(planId) {
+    if (planId === 'free') {
+      showToast('You are currently on the Free Forever plan.');
+      return;
+    }
+    openUpgradeConfirmation(planId);
+  }
+
+  function openUpgradeConfirmation(planId) {
+    state.pendingUpgradePlan = planId;
+    const modal = document.getElementById('subUpgradeModal');
+    if (!modal) return;
+
+    const titleEl = document.getElementById('subModalTitle');
+    const badgeEl = document.getElementById('subModalBadge');
+    const nameEl = document.getElementById('subModalPlanName');
+    const priceEl = document.getElementById('subModalPrice');
+    const bulletsEl = document.getElementById('subModalBullets');
+
+    if (planId === 'basic') {
+      if (titleEl) titleEl.textContent = 'Upgrade to Woobi Basic';
+      if (badgeEl) badgeEl.textContent = 'BASIC MEMBERSHIP';
+      if (nameEl) nameEl.textContent = 'Woobi Basic';
+      if (priceEl) priceEl.textContent = '179';
+      if (bulletsEl) {
+        bulletsEl.innerHTML = `
+          <li><span class="check-bullet">✓</span> Everything in Free tier</li>
+          <li><span class="check-bullet">✓</span> More daily AI outfit recommendations</li>
+          <li><span class="check-bullet">✓</span> Expanded digital wardrobe capacity</li>
+          <li><span class="check-bullet">✓</span> More Style Hint suggestions & combinations</li>
+          <li><span class="check-bullet">✓</span> Additional outfit history and gallery features</li>
+          <li><span class="check-bullet">✓</span> Ad-free experience</li>
+        `;
+      }
+    } else {
+      // Pro plan default
+      if (titleEl) titleEl.textContent = 'Get Woobi Pro 👑';
+      if (badgeEl) badgeEl.textContent = 'MOST POPULAR / BEST EXPERIENCE';
+      if (nameEl) nameEl.textContent = 'Woobi Pro';
+      if (priceEl) priceEl.textContent = '387';
+      if (bulletsEl) {
+        bulletsEl.innerHTML = `
+          <li><span class="check-bullet gold">✓</span> Everything in Basic tier</li>
+          <li><span class="check-bullet gold">✓</span> Advanced AI personal stylist (occasion & weather tuned)</li>
+          <li><span class="check-bullet gold">✓</span> Generous / unlimited AI outfit recommendations</li>
+          <li><span class="check-bullet gold">✓</span> Advanced colour matching & palette engine</li>
+          <li><span class="check-bullet gold">✓</span> Premium Style Hint with detailed suggestions</li>
+          <li><span class="check-bullet gold">✓</span> Advanced virtual try-on features</li>
+          <li><span class="check-bullet gold">✓</span> Premium 3D mannequin customisation & exclusive themes</li>
+          <li><span class="check-bullet gold">✓</span> Save unlimited favourite outfit combinations</li>
+          <li><span class="check-bullet gold">✓</span> Priority access to new features & VIP support</li>
+        `;
+      }
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeUpgradeConfirmation() {
+    const modal = document.getElementById('subUpgradeModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function confirmPlanPreference() {
+    const plan = state.pendingUpgradePlan || 'pro';
+    state.selectedPlanPreference = plan;
+    closeUpgradeConfirmation();
+
+    const planLabel = plan === 'pro' ? 'Pro (₹387/mo)' : 'Basic (₹179/mo)';
+    showToast(`✓ Preference recorded for Woobi ${planLabel}! Payment gateway integration coming soon.`);
+
+    updateSubscriptionUI();
+  }
+
+  function toggleFaq(element) {
+    if (!element) return;
+    element.classList.toggle('open');
+  }
+
+  function updateSubscriptionUI() {
+    const current = state.isPremium ? (state.currentPlan || 'pro') : 'free';
+    const pref = state.selectedPlanPreference;
+
+    // Status bar update
+    const tierEl = document.getElementById('subStatusTier');
+    const badgeEl = document.getElementById('subStatusBadge');
+    const captionEl = document.getElementById('subStatusCaption');
+    const pricePill = document.getElementById('subStatusPricePill');
+
+    if (tierEl) {
+      if (current === 'free') {
+        tierEl.textContent = 'Free Forever Plan';
+        if (pricePill) pricePill.innerHTML = '₹0 <span class="per-txt">/ mo</span>';
+        if (captionEl) {
+          if (pref) {
+            const prefLabel = pref === 'pro' ? 'Woobi Pro (₹387/mo)' : 'Woobi Basic (₹179/mo)';
+            captionEl.textContent = `Active: Free Forever • Preference: ${prefLabel} (Gateway in progress)`;
+          } else {
+            captionEl.textContent = 'Standard 3D studio, wardrobe & daily streak features';
+          }
+        }
+      } else if (current === 'basic') {
+        tierEl.textContent = 'Woobi Basic Plan';
+        if (pricePill) pricePill.innerHTML = '₹179 <span class="per-txt">/ mo</span>';
+        if (captionEl) captionEl.textContent = 'Expanded wardrobe & daily AI outfit recommendations';
+      } else {
+        tierEl.textContent = 'Woobi Pro VIP Plan 👑';
+        if (pricePill) pricePill.innerHTML = '₹387 <span class="per-txt">/ mo</span>';
+        if (captionEl) captionEl.textContent = 'Full AI stylist, unlimited combinations & virtual try-on';
+      }
+    }
+
+    // Update buttons on the plan cards preserving play button markup
+    function updateTierButton(btn, text, isPro, isCurrent) {
+      if (!btn) return;
+      const textSpan = btn.querySelector('.btn-tier-text');
+      if (textSpan) {
+        textSpan.textContent = text;
+      } else {
+        const iconHtml = isCurrent
+          ? `<span class="play-btn-circle check-circle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>`
+          : `<span class="play-btn-circle play-triangle${isPro ? ' gold-play' : ''}"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>`;
+        btn.innerHTML = `${iconHtml}<span class="btn-tier-text">${text}</span>`;
+      }
+    }
+
+    const btnFree = document.getElementById('btnPlanFree');
+    const btnBasic = document.getElementById('btnPlanBasic');
+    const btnPro = document.getElementById('btnPlanPro');
+
+    if (btnFree) {
+      if (current === 'free') {
+        updateTierButton(btnFree, 'Current Plan', false, true);
+        btnFree.disabled = true;
+        btnFree.classList.add('btn-plan-current');
+      } else {
+        updateTierButton(btnFree, 'Switch to Free', false, false);
+        btnFree.disabled = false;
+        btnFree.classList.remove('btn-plan-current');
+      }
+    }
+
+    if (btnBasic) {
+      if (current === 'basic') {
+        updateTierButton(btnBasic, 'Current Plan', false, true);
+        btnBasic.disabled = true;
+        btnBasic.classList.add('btn-plan-current');
+      } else {
+        const txt = (pref === 'basic') ? 'Preference Saved (₹179/mo)' : 'Upgrade to Basic';
+        updateTierButton(btnBasic, txt, false, false);
+        btnBasic.disabled = false;
+        btnBasic.classList.remove('btn-plan-current');
+      }
+    }
+
+    if (btnPro) {
+      if (current === 'pro') {
+        updateTierButton(btnPro, 'Current Plan 👑', true, true);
+        btnPro.disabled = true;
+        btnPro.classList.add('btn-plan-current');
+      } else {
+        const txt = (pref === 'pro') ? 'Preference Saved (₹387/mo)' : 'Get Woobi Pro';
+        updateTierButton(btnPro, txt, true, false);
+        btnPro.disabled = false;
+        btnPro.classList.remove('btn-plan-current');
+      }
+    }
+
+    initPlanSwipeGestures();
+  }
+
+  function switchPlanView(planId) {
+    const track = document.getElementById('planCardsSliderTrack');
+    const pill = document.getElementById('segmentedSlidePill');
+    const btnFree = document.getElementById('segBtnFree');
+    const btnBasic = document.getElementById('segBtnBasic');
+    const btnPro = document.getElementById('segBtnPro');
+
+    const btns = [btnFree, btnBasic, btnPro];
+    btns.forEach(b => b && b.classList.remove('active'));
+
+    if (pill) {
+      pill.classList.remove('pill-free', 'pill-basic', 'pill-pro');
+    }
+
+    if (planId === 'free') {
+      if (btnFree) btnFree.classList.add('active');
+      if (pill) pill.classList.add('pill-free');
+      if (track) track.style.transform = 'translateX(0%)';
+    } else if (planId === 'basic') {
+      if (btnBasic) btnBasic.classList.add('active');
+      if (pill) pill.classList.add('pill-basic');
+      if (track) track.style.transform = 'translateX(-33.333333%)';
+    } else if (planId === 'pro') {
+      if (btnPro) btnPro.classList.add('active');
+      if (pill) pill.classList.add('pill-pro');
+      if (track) track.style.transform = 'translateX(-66.666666%)';
+    }
+  }
+
+  function initPlanSwipeGestures() {
+    const viewport = document.getElementById('planCardsViewport');
+    if (!viewport || viewport.dataset.swipeInit) return;
+    viewport.dataset.swipeInit = 'true';
+
+    let startX = 0;
+    const plans = ['free', 'basic', 'pro'];
+
+    viewport.addEventListener('touchstart', (e) => {
+      startX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    viewport.addEventListener('touchend', (e) => {
+      const endX = e.changedTouches[0].screenX;
+      const diff = startX - endX;
+      let activeIndex = 0;
+      if (document.getElementById('segBtnBasic')?.classList.contains('active')) activeIndex = 1;
+      else if (document.getElementById('segBtnPro')?.classList.contains('active')) activeIndex = 2;
+
+      if (Math.abs(diff) > 40) {
+        if (diff > 0 && activeIndex < plans.length - 1) {
+          switchPlanView(plans[activeIndex + 1]);
+        } else if (diff < 0 && activeIndex > 0) {
+          switchPlanView(plans[activeIndex - 1]);
+        }
+      }
+    }, { passive: true });
   }
 
   function saveProfile() {
@@ -1562,27 +1825,29 @@
     }
   ];
 
-  
+
   // ===================================================================
   // SÉRÉN 3D VIRTUAL FASHION STUDIO CONTROLLER
   // ===================================================================
 
+  const SUPABASE_CDN = 'https://lewsuhfhagpjootunpsa.supabase.co/storage/v1/object/public/Troys%20Assets/assets/';
+
   const SEREN_GARMENTS = [
-    { id: 'cardigan', cat: 'tops', name: 'Cream Knit Cardigan', photo: 'assets/style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
-    { id: 'blazer', cat: 'tops', name: 'Camel Smart Blazer', photo: 'assets/smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
-    { id: 'navy_shirt', cat: 'tops', name: 'Navy Oxford Shirt', photo: 'assets/navy_shirt.jpg', is3D: true, sub: 'Crisp button-down collar' },
-    { id: 'striped_sweater', cat: 'tops', name: 'Breton Striped Sweater', photo: 'assets/style_casual.jpg', is3D: true, sub: 'French nautical knit' },
-    { id: 'tank', cat: 'tops', name: 'Ribbed Ivory Tank', photo: 'assets/welcome_hero.jpg', is3D: true, sub: 'Scoop neck luxury cotton' },
+    { id: 'cardigan', cat: 'tops', name: 'Cream Knit Cardigan', photo: SUPABASE_CDN + 'style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
+    { id: 'blazer', cat: 'tops', name: 'Camel Smart Blazer', photo: SUPABASE_CDN + 'smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
+    { id: 'navy_shirt', cat: 'tops', name: 'Navy Oxford Shirt', photo: SUPABASE_CDN + 'navy_shirt.jpg', is3D: true, sub: 'Crisp button-down collar' },
+    { id: 'striped_sweater', cat: 'tops', name: 'Breton Striped Sweater', photo: SUPABASE_CDN + 'style_casual.jpg', is3D: true, sub: 'French nautical knit' },
+    { id: 'tank', cat: 'tops', name: 'Ribbed Ivory Tank', photo: SUPABASE_CDN + 'welcome_hero.jpg', is3D: true, sub: 'Scoop neck luxury cotton' },
 
-    { id: 'taupe_wide', cat: 'bottoms', name: 'Tailored Taupe Trousers', photo: 'assets/beige_chinos.jpg', is3D: true, sub: 'Pleated high-waisted drape' },
-    { id: 'dark_denim', cat: 'bottoms', name: 'Dark Indigo Straight Jeans', photo: 'assets/blue_jeans.jpg', is3D: true, sub: 'Tailored Japanese denim' },
-    { id: 'white_chinos', cat: 'bottoms', name: 'Crisp Ivory Chinos', photo: 'assets/beige_chinos.jpg', is3D: true, sub: 'Clean minimalist cut' },
+    { id: 'taupe_wide', cat: 'bottoms', name: 'Tailored Taupe Trousers', photo: SUPABASE_CDN + 'beige_chinos.jpg', is3D: true, sub: 'Pleated high-waisted drape' },
+    { id: 'dark_denim', cat: 'bottoms', name: 'Dark Indigo Straight Jeans', photo: SUPABASE_CDN + 'dark_denim.jpg', is3D: true, sub: 'Tailored Japanese denim' },
+    { id: 'white_chinos', cat: 'bottoms', name: 'Crisp Ivory Chinos', photo: SUPABASE_CDN + 'beige_chinos.jpg', is3D: true, sub: 'Clean minimalist cut' },
 
-    { id: 'blazer', cat: 'outerwear', name: 'Camel Smart Blazer', photo: 'assets/smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
-    { id: 'cardigan', cat: 'outerwear', name: 'Cream Knit Cardigan', photo: 'assets/style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
+    { id: 'blazer', cat: 'outerwear', name: 'Camel Smart Blazer', photo: SUPABASE_CDN + 'smart_blazer.jpg', is3D: true, sub: 'Structured tailored wool' },
+    { id: 'cardigan', cat: 'outerwear', name: 'Cream Knit Cardigan', photo: SUPABASE_CDN + 'style_casual.jpg', is3D: true, sub: 'Cozy drop-shoulder knit' },
 
-    { id: 'loafers', cat: 'shoes', name: 'Caramel Leather Loafers', photo: 'assets/smart_blazer.jpg', is3D: true, sub: 'Polished brass horsebit' },
-    { id: 'sneakers', cat: 'shoes', name: 'Clean White Sneakers', photo: 'assets/welcome_hero.jpg', is3D: true, sub: 'Minimalist court leather' }
+    { id: 'loafers', cat: 'shoes', name: 'Caramel Leather Loafers', photo: SUPABASE_CDN + 'tan_loafers.jpg', is3D: true, sub: 'Polished brass horsebit' },
+    { id: 'sneakers', cat: 'shoes', name: 'Clean White Sneakers', photo: SUPABASE_CDN + 'white_sneakers.jpg', is3D: true, sub: 'Minimalist court leather' }
   ];
 
   const STYLING_REVIEWS = {
@@ -1856,29 +2121,24 @@
   }
 
   function serenCenterAction() {
-    // Quick action: Toggle wardrobe or cycle through curated looks
-    const wardrobeSheet = document.getElementById('serenWardrobeSheet');
-    if (wardrobeSheet && !wardrobeSheet.classList.contains('hidden')) {
-      serenToggleWardrobe(false);
-    } else {
-      serenToggleWardrobe(true);
-    }
+    // Central Plus (+) action: Opens Clothing Capture category selector (Shirt, Pant, Shoe)
+    openClothingCaptureMenu();
   }
 
   function onStudioCameraChanged(stateName) {
     const backBtn = document.getElementById('serenBackStudioBtn');
-    const hints = document.querySelectorAll('.spatial-3d-hint');
+    const dragHint = document.getElementById('serenDragHint');
     const greeting = document.getElementById('serenFloatingGreeting');
     const tagline = document.querySelector('.seren-editorial-tagline-wrap');
 
     if (stateName === 'STUDIO_OVERVIEW') {
       if (backBtn) backBtn.classList.add('hidden');
-      hints.forEach(h => h.style.display = '');
-      if (greeting) greeting.style.display = '';
-      if (tagline) tagline.style.display = '';
+      if (dragHint) dragHint.style.display = '';
+      if (greeting) greeting.style.display = 'none';
+      if (tagline) tagline.style.display = 'none';
     } else {
       if (backBtn) backBtn.classList.remove('hidden');
-      hints.forEach(h => h.style.display = 'none');
+      if (dragHint) dragHint.style.display = 'none';
       if (greeting) greeting.style.display = 'none';
       if (tagline) tagline.style.display = 'none';
     }
@@ -2013,7 +2273,7 @@
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
       const dataUrl = e.target.result;
       const previewImg = document.getElementById('photoPreviewImg');
       const dropzoneEmpty = document.getElementById('dropzoneEmpty');
@@ -2026,7 +2286,7 @@
 
       // Local Canvas Tone Analysis (No server upload - 100% consent and privacy maintained)
       const img = new Image();
-      img.onload = function() {
+      img.onload = function () {
         const c = document.createElement('canvas');
         c.width = 64;
         c.height = 64;
@@ -2098,58 +2358,97 @@
     }
   }
 
-  // Helper: Format next refresh date string (e.g. "Nov 3, 2026")
-  function getNextRestoreRefreshDateStr(dateObj) {
-    const d = dateObj || new Date();
-    const year = d.getFullYear();
-    const month = d.getMonth();
-    const day = d.getDate();
+  // ==========================================================================
+  // DAILY OUTFIT STREAK, CAMERA, MEMORIES & CIRCULAR CALENDAR SYSTEM
+  // ==========================================================================
 
-    let targetDate;
-    if (day < 3) {
-      targetDate = new Date(year, month, 3);
-    } else {
-      targetDate = new Date(year, month + 1, 3);
+  let currentCalYear = new Date().getFullYear();
+  let currentCalMonth = new Date().getMonth(); // 0-indexed
+  let cameraStream = null;
+  let capturedPhotoDataUrl = null;
+
+  function getStreakEngine() {
+    if (typeof window !== 'undefined' && window.WoobiCore && window.WoobiCore.streak) {
+      return window.WoobiCore.streak;
     }
+    return null;
+  }
 
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${monthNames[targetDate.getMonth()]} 3, ${targetDate.getFullYear()}`;
+  function getStreakStatusSafe(engine) {
+    if (!engine) return null;
+    if (typeof engine.getStatus === 'function') return engine.getStatus();
+    if (typeof engine.getStreakStatus === 'function') return engine.getStreakStatus();
+    return engine.state || null;
   }
 
   function initStreakState() {
-    let saved = null;
-    try {
-      const raw = localStorage.getItem(STREAK_STORAGE_KEY);
-      if (raw) saved = JSON.parse(raw);
-    } catch (e) {
-      console.warn('Could not read streak from localStorage', e);
-    }
+    const engine = getStreakEngine();
+    if (engine) {
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.removeItem('woobi_streak_user_mode');
+        } catch (e) { }
+      }
 
-    const now = Date.now();
-    const defaultDeadline = now + (24 * 3600 * 1000); // 24-hour window from outfit recommendation
-
-    if (!saved) {
-      state.streak = {
-        currentStreak: 5, // Default starter streak of 5 days
-        savedPreviousStreak: 5,
-        isStreakBroken: false,
-        deadline: defaultDeadline,
-        lastUploadTimestamp: now - (12 * 3600 * 1000),
-        lastUploadDateStr: new Date(now - 12 * 3600 * 1000).toISOString().split('T')[0],
-        lastRestoredCycleKey: null, // Eligible for restore!
-        uploadedToday: false,
-        morningReminderSent: false,
-        urgentReminderSent: false
-      };
-      saveStreakState();
+      state.streak = getStreakStatusSafe(engine);
+      if (typeof engine.on === 'function') {
+        engine.on('streak:updated', (data) => {
+          state.streak = getStreakStatusSafe(engine);
+          updateStreakUI();
+          const modal = document.getElementById('streakDetailsModal');
+          if (modal && !modal.classList.contains('hidden')) {
+            renderStreakCalendar();
+          }
+        });
+        engine.on('streak:broken', (data) => {
+          state.streak = getStreakStatusSafe(engine);
+          triggerFlameBlowoutAnimation();
+          updateStreakUI();
+          if (state.streak && state.streak.hasEarnedStreak && state.streak.savedPreviousStreak > 0) {
+            setTimeout(() => showMissedStreakModal(), 1000);
+          }
+        });
+        engine.on('streak:restored', () => {
+          state.streak = getStreakStatusSafe(engine);
+          updateStreakUI();
+          const modal = document.getElementById('streakDetailsModal');
+          if (modal && !modal.classList.contains('hidden')) {
+            renderStreakCalendar();
+          }
+        });
+      }
     } else {
-      state.streak = saved;
-      const todayStr = new Date().toISOString().split('T')[0];
-      state.streak.uploadedToday = (state.streak.lastUploadDateStr === todayStr);
-    }
+      // Local fallback state while waiting for core engine
+      if (!state.streak) {
+        state.streak = {
+          currentStreak: 0,
+          bestStreak: 0,
+          savedPreviousStreak: 0,
+          isStreakBroken: false,
+          hasEarnedStreak: false,
+          uploadedToday: false,
+          deadline: Date.now() + 24 * 3600 * 1000
+        };
+      }
 
-    // Check deadline on launch
-    checkStreakDeadline();
+      // Automatically hook into core engine as soon as module mounts
+      if (typeof window !== 'undefined' && !window._coreStreakHookAttached) {
+        window._coreStreakHookAttached = true;
+        window.addEventListener('woobi:core:ready', () => {
+          initStreakState();
+        });
+        let pollCount = 0;
+        const poller = setInterval(() => {
+          pollCount++;
+          if (getStreakEngine()) {
+            clearInterval(poller);
+            initStreakState();
+          } else if (pollCount > 40) {
+            clearInterval(poller);
+          }
+        }, 50);
+      }
+    }
 
     // Start 1-second countdown ticker
     if (window._streakTicker) clearInterval(window._streakTicker);
@@ -2158,175 +2457,567 @@
     // Initial UI render
     updateStreakUI();
 
-    // If streak is already broken, surface missed upload modal
-    if (state.streak.isStreakBroken) {
-      setTimeout(() => {
-        showMissedStreakModal();
-      }, 700);
+    // Wire up header buttons directly for bulletproof responsiveness
+    const streakBtn = document.getElementById('streakHeaderPill');
+    if (streakBtn) {
+      streakBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        handleStreakIconClick();
+      };
     }
-  }
+    const cameraBtn = document.getElementById('streakCameraBtn');
+    if (cameraBtn) {
+      cameraBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        openCameraModal();
+      };
+    }
+    const galleryBtn = document.getElementById('streakGalleryBtn');
+    if (galleryBtn) {
+      galleryBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        openMemoriesModal();
+      };
+    }
+    const calendarBtn = document.getElementById('streakCalendarBtn');
+    if (calendarBtn) {
+      calendarBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        openStreakModal();
+      };
+    }
+    const accountBtn = document.getElementById('streakAccountBtn');
+    if (accountBtn) {
+      accountBtn.onclick = (e) => {
+        if (e) e.stopPropagation();
+        goToScreen('profile');
+      };
+    }
 
-  function saveStreakState() {
-    try {
-      localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(state.streak));
-    } catch (e) {
-      console.warn('Could not persist streak to localStorage', e);
+    // Only show missed streak modal if user had earned a streak previously!
+    if (state.streak && state.streak.isStreakBroken && state.streak.savedPreviousStreak > 0) {
+      setTimeout(() => showMissedStreakModal(), 800);
     }
   }
 
   function tickStreakCountdown() {
-    if (!state.streak) return;
-    checkStreakDeadline();
+    const engine = getStreakEngine();
+    if (engine) {
+      state.streak = getStreakStatusSafe(engine);
+    }
+    checkStreakUrgency();
     updateStreakUI();
   }
 
-  function checkStreakDeadline() {
+  function checkStreakUrgency() {
     const streak = state.streak;
-    if (!streak) return;
+    if (!streak || streak.isStreakBroken || streak.uploadedToday) return;
 
-    if (streak.isStreakBroken) return;
-    if (streak.uploadedToday) return;
-
-    const now = Date.now();
-    const msRemaining = streak.deadline - now;
-
-    // 1. Deadline passed: Streak breaks
-    if (msRemaining <= 0) {
-      breakStreak();
-      return;
-    }
-
-    // 2. Last 2 Hours Warning Threshold: msRemaining <= 2 hours
+    const msRemaining = Math.max(0, streak.deadline - Date.now());
     const TWO_HOURS_MS = 2 * 3600 * 1000;
-    if (msRemaining <= TWO_HOURS_MS) {
-      if (!streak.urgentReminderSent) {
-        streak.urgentReminderSent = true;
-        saveStreakState();
-        sendDailyNotification(
-          '⚠️ 2 Hours Left on Your Outfit Streak!',
-          `Only 2 hours left to upload today's outfit photo before your 🔥 ${streak.currentStreak}-day streak ends!`,
-          true
-        );
-      }
-    } else {
-      // Normal Reminder: e.g. 8 hours remaining
-      const EIGHT_HOURS_MS = 8 * 3600 * 1000;
-      if (msRemaining <= EIGHT_HOURS_MS && !streak.morningReminderSent) {
-        streak.morningReminderSent = true;
-        saveStreakState();
-        sendDailyNotification(
-          'Woobi Daily Outfit Reminder 🔥',
-          `Don't forget to snap and upload your recommended outfit to maintain your 🔥 ${streak.currentStreak}-day streak!`,
-          false
-        );
-      }
+
+    if (msRemaining <= TWO_HOURS_MS && msRemaining > 0 && !streak.urgentReminderSent) {
+      streak.urgentReminderSent = true;
+      sendDailyNotification(
+        '⚠️ 2 Hours Left on Your Outfit Streak!',
+        `Only 2 hours left to snap today's outfit before your 🔥 ${streak.currentStreak}-day streak ends!`,
+        true
+      );
     }
-  }
-
-  function breakStreak() {
-    const streak = state.streak;
-    if (streak.isStreakBroken) return;
-
-    streak.isStreakBroken = true;
-    if (streak.currentStreak > 0) {
-      streak.savedPreviousStreak = streak.currentStreak;
-    } else if (!streak.savedPreviousStreak) {
-      streak.savedPreviousStreak = 1;
-    }
-    streak.currentStreak = 0;
-    streak.uploadedToday = false;
-    saveStreakState();
-
-    // Trigger visual flame blowout and smoke animation
-    triggerFlameBlowoutAnimation();
-
-    // Show missed upload modal
-    setTimeout(() => {
-      showMissedStreakModal();
-    }, 1200);
   }
 
   function triggerFlameBlowoutAnimation() {
-    const flameWrapper = document.getElementById('streakFlameWrapper');
-    if (flameWrapper) {
-      flameWrapper.classList.remove('reignited');
-      flameWrapper.classList.add('blown-out');
+    const fireImg = document.getElementById('streakHeaderFireImg');
+    const smokeImg = document.getElementById('streakHeaderSmokeImg');
+    if (fireImg) fireImg.classList.add('hidden');
+    if (smokeImg) smokeImg.classList.remove('hidden');
+
+    const heroFire = document.getElementById('modalHeroFireImg');
+    const heroSmoke = document.getElementById('modalHeroSmokeImg');
+    if (heroFire) heroFire.classList.add('hidden');
+    if (heroSmoke) heroSmoke.classList.remove('hidden');
+
+    const pill = document.getElementById('streakHeaderPill');
+    if (pill) pill.classList.remove('urgent', 'completed');
+  }
+
+  function triggerFlameReigniteAnimation() {
+    const fireImg = document.getElementById('streakHeaderFireImg');
+    const smokeImg = document.getElementById('streakHeaderSmokeImg');
+    if (smokeImg) smokeImg.classList.add('hidden');
+    if (fireImg) {
+      fireImg.classList.remove('hidden');
+      fireImg.style.animation = 'none';
+      void fireImg.offsetWidth; // Trigger reflow
+      fireImg.style.animation = 'realisticFlameFlicker 0.6s ease-in-out infinite alternate';
+      setTimeout(() => {
+        if (fireImg) fireImg.style.animation = 'realisticFlameFlicker 2.2s ease-in-out infinite alternate';
+      }, 1200);
     }
 
     const pill = document.getElementById('streakHeaderPill');
-    if (pill) {
-      pill.classList.remove('urgent', 'completed');
-    }
-
-    const timer = document.getElementById('streakTimer');
-    if (timer) timer.textContent = '00:00:00';
+    if (pill) pill.classList.remove('broken-streak');
   }
 
   function updateStreakUI() {
-    const streak = state.streak;
+    const engine = getStreakEngine();
+    let streak = null;
+    if (engine) {
+      streak = getStreakStatusSafe(engine);
+      state.streak = streak;
+    } else {
+      streak = state.streak;
+    }
     if (!streak) return;
 
+    const count = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
     const streakCountEl = document.getElementById('streakCount');
-    const streakTimerEl = document.getElementById('streakTimer');
+    const streakCountLabelEl = document.getElementById('streakCountLabel');
     const streakPillEl = document.getElementById('streakHeaderPill');
-    const streakDrawerCountEl = document.querySelector('.streak-drawer-count');
-    const readyTimerMini = document.getElementById('streakReadyTimerMini');
-    const flameWrapper = document.getElementById('streakFlameWrapper');
+    const fireImg = document.getElementById('streakHeaderFireImg');
+    const smokeImg = document.getElementById('streakHeaderSmokeImg');
 
-    if (streakCountEl) streakCountEl.textContent = streak.currentStreak;
-    if (streakDrawerCountEl) streakDrawerCountEl.textContent = streak.currentStreak;
+    if (streakCountEl) streakCountEl.textContent = count;
+    if (streakCountLabelEl) {
+      streakCountLabelEl.textContent = count === 1 ? 'Streak' : 'Streaks';
+    }
 
-    if (streak.isStreakBroken) {
-      if (streakTimerEl) streakTimerEl.textContent = 'Ended';
+    // Determine current fire level for trio header icon
+    let headerLevel = 1;
+    if (engine && typeof engine.getFireLevel === 'function') {
+      headerLevel = engine.getFireLevel(count);
+    } else {
+      if (count >= 100) headerLevel = 5;
+      else if (count >= 50) headerLevel = 4;
+      else if (count >= 30) headerLevel = 3;
+      else if (count >= 10) headerLevel = 2;
+      else headerLevel = 1;
+    }
+
+    // If streak is zero OR broken, place the bonfire in the home icon!
+    const isBroken = Boolean(streak.isStreakBroken);
+    const shouldShowBonfire = count === 0 || isBroken;
+
+    if (shouldShowBonfire) {
+      if (fireImg) fireImg.classList.add('hidden');
+      if (smokeImg) smokeImg.classList.remove('hidden');
       if (streakPillEl) {
-        streakPillEl.classList.remove('urgent', 'completed');
+        streakPillEl.classList.add('broken-streak');
+        streakPillEl.title = isBroken
+          ? 'Streak broken! Click to restore your streak'
+          : 'Daily Outfit Streak: 0 Streaks (Click to view calendar)';
       }
-      if (flameWrapper && !flameWrapper.classList.contains('blown-out')) {
-        flameWrapper.classList.add('blown-out');
+    } else {
+      if (fireImg) {
+        fireImg.classList.remove('hidden');
+        fireImg.src = `assets/streak/fire_level_${headerLevel}.png`;
+        fireImg.className = `streak-header-icon-img fire-lvl-${headerLevel}`;
       }
-      return;
-    }
-
-    // Flame should be active
-    if (flameWrapper && flameWrapper.classList.contains('blown-out')) {
-      flameWrapper.classList.remove('blown-out');
-    }
-
-    if (streak.uploadedToday) {
-      if (streakTimerEl) streakTimerEl.textContent = '✓ Done';
+      if (smokeImg) smokeImg.classList.add('hidden');
       if (streakPillEl) {
-        streakPillEl.classList.remove('urgent');
-        streakPillEl.classList.add('completed');
+        streakPillEl.classList.remove('broken-streak');
+        streakPillEl.title = `Daily Outfit Streak: ${count} ${count === 1 ? 'Streak' : 'Streaks'} (Click to view calendar)`;
       }
-      if (readyTimerMini) readyTimerMini.textContent = '✓ Uploaded';
-      return;
-    }
-
-    const now = Date.now();
-    const diff = Math.max(0, streak.deadline - now);
-
-    const hours = Math.floor(diff / (3600 * 1000));
-    const mins = Math.floor((diff % (3600 * 1000)) / (60 * 1000));
-    const secs = Math.floor((diff % (60 * 1000)) / 1000);
-
-    const formattedTime = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    if (streakTimerEl) streakTimerEl.textContent = formattedTime;
-    if (readyTimerMini) readyTimerMini.textContent = `⏳ ${hours}h ${mins}m left`;
-
-    // Last 2 Hours Warning Threshold: <= 2 hours (7200 seconds)
-    const isUrgent = diff <= (2 * 3600 * 1000);
-    if (streakPillEl) {
-      streakPillEl.classList.toggle('urgent', isUrgent);
-      streakPillEl.classList.remove('completed');
     }
   }
 
-  // Camera upload triggers
-  function triggerOutfitPhotoUpload() {
-    const input = document.getElementById('outfitPhotoInput');
-    if (input) {
-      input.value = '';
-      input.click();
+  // --------------------------------------------------------------------------
+  // WOOBI STREAK CALENDAR & CIRCULAR FIRE/SMOKE ANIMATION
+  // --------------------------------------------------------------------------
+  function handleStreakIconClick() {
+    const engine = getStreakEngine();
+    const status = getStreakStatusSafe(engine) || state.streak;
+
+    // When streak is broken, clicking the wood and smoke icon opens the Restore option!
+    if (status && status.isStreakBroken && status.hasEarnedStreak && status.savedPreviousStreak > 0) {
+      showMissedStreakModal();
+    } else {
+      // Active streak opens the calendar
+      openStreakModal();
+    }
+  }
+
+  function openStreakModal() {
+    const modal = document.getElementById('streakDetailsModal');
+    if (!modal) return;
+    const engine = getStreakEngine();
+    // Default to reference October 2026 if user has not yet uploaded in November 2026
+    if (engine && !engine.hasUploadedToday() && (!engine.memories || !engine.memories.some(m => m.date && m.date.startsWith('2026-11')))) {
+      currentCalYear = 2026;
+      currentCalMonth = 9; // October (0-indexed)
+    }
+    renderStreakCalendar();
+    modal.classList.remove('hidden');
+  }
+
+  function closeStreakModal() {
+    const modal = document.getElementById('streakDetailsModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function prevCalendarMonth() {
+    currentCalMonth -= 1;
+    if (currentCalMonth < 0) {
+      currentCalMonth = 11;
+      currentCalYear -= 1;
+    }
+    renderStreakCalendar();
+  }
+
+  function nextCalendarMonth() {
+    currentCalMonth += 1;
+    if (currentCalMonth > 11) {
+      currentCalMonth = 0;
+      currentCalYear += 1;
+    }
+    renderStreakCalendar();
+  }
+
+  function renderStreakCalendar() {
+    const engine = getStreakEngine();
+    const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
+    const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
+
+    let tierLevel = 1;
+    let tierName = 'First Fire';
+    if (engine && typeof engine.getFireLevel === 'function') {
+      tierLevel = engine.getFireLevel(curStreak);
+      tierName = engine.getFireLevelName(curStreak);
+    } else {
+      if (curStreak >= 100) { tierLevel = 5; tierName = 'Final Fire'; }
+      else if (curStreak >= 50) { tierLevel = 4; tierName = 'Fourth Fire'; }
+      else if (curStreak >= 30) { tierLevel = 3; tierName = 'Third Fire'; }
+      else if (curStreak >= 10) { tierLevel = 2; tierName = 'Second Fire'; }
+      else { tierLevel = 1; tierName = 'First Fire'; }
+    }
+
+    const tierTextEl = document.getElementById('calTierText');
+    if (tierTextEl) {
+      tierTextEl.textContent = `${curStreak} ${curStreak === 1 ? 'Day' : 'Days'} Streak • ${tierName}`;
+    }
+    const tierFlameIconEl = document.getElementById('calTierFlameIcon');
+    if (tierFlameIconEl) {
+      tierFlameIconEl.innerHTML = `<img src="assets/streak/fire_level_${tierLevel}.png?v=20261104_4" class="cal-pill-fire-img" alt="Flame" />`;
+    }
+    const badge = document.getElementById('calHeaderStreakBadge');
+    if (badge && !tierTextEl) {
+      badge.textContent = `🔥 Current Streak: ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}`;
+    }
+
+    let calData = null;
+    if (engine && typeof engine.getMonthlyCalendarData === 'function') {
+      calData = engine.getMonthlyCalendarData(currentCalYear, currentCalMonth);
+    } else {
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const firstDay = new Date(currentCalYear, currentCalMonth, 1).getDay();
+      const totalDays = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
+      const now = new Date();
+      const isCurMonth = now.getFullYear() === currentCalYear && now.getMonth() === currentCalMonth;
+      const todayDate = now.getDate();
+      const days = [];
+      let runningStreak = 0;
+      let activeDays = 0;
+      let brokenDays = 0;
+      let upcomingDays = 0;
+
+      for (let d = 1; d <= totalDays; d++) {
+        let status = 'upcoming';
+        let fireLvl = 1;
+        if (isCurMonth && d === todayDate) {
+          status = 'today';
+          upcomingDays++;
+        } else if (isCurMonth && d < todayDate) {
+          status = 'completed';
+          activeDays++;
+          runningStreak++;
+          if (runningStreak >= 100) fireLvl = 5;
+          else if (runningStreak >= 50) fireLvl = 4;
+          else if (runningStreak >= 30) fireLvl = 3;
+          else if (runningStreak >= 10) fireLvl = 2;
+          else fireLvl = 1;
+        } else {
+          upcomingDays++;
+        }
+        days.push({ day: d, status, fireLevel: fireLvl });
+      }
+
+      calData = {
+        year: currentCalYear,
+        month: currentCalMonth,
+        monthName: monthNames[currentCalMonth],
+        totalDays,
+        firstDayOfWeek: firstDay,
+        days,
+        stats: { activeDays, brokenDays, upcomingDays }
+      };
+    }
+
+    const titleEl = document.getElementById('streakCalMonthTitle');
+    const gridEl = document.getElementById('streakCalendarGrid');
+    const activeEl = document.getElementById('calActiveCount');
+    const brokenEl = document.getElementById('calBrokenCount');
+    const upcomingEl = document.getElementById('calUpcomingCount');
+
+    if (titleEl) {
+      titleEl.textContent = `${calData.monthName} ${calData.year} ▾`;
+    }
+
+    if (activeEl) activeEl.textContent = calData.stats.activeDays;
+    if (brokenEl) brokenEl.textContent = calData.stats.brokenDays;
+    if (upcomingEl) upcomingEl.textContent = calData.stats.upcomingDays;
+
+    if (!gridEl) return;
+    gridEl.innerHTML = '';
+
+    // Helper: Creates high-performance animated SVG with flowing fire streaks
+    function createFlowingFireElement(level = 1) {
+      const wrap = document.createElement('div');
+      wrap.className = `flowing-fire-wrap fire-lvl-${level}`;
+      wrap.innerHTML = `
+        <svg class="flowing-fire-svg" viewBox="0 0 38 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="flameOuterGrad" x1="19" y1="44" x2="19" y2="2" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FF2E00"/>
+              <stop offset="30%" stop-color="#FF6A00"/>
+              <stop offset="70%" stop-color="#FFA600"/>
+              <stop offset="100%" stop-color="#FFF3A5"/>
+            </linearGradient>
+            <linearGradient id="flameCoreGrad" x1="19" y1="42" x2="19" y2="16" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FF8A00"/>
+              <stop offset="50%" stop-color="#FFDE3B"/>
+              <stop offset="100%" stop-color="#FFFFFF"/>
+            </linearGradient>
+            <linearGradient id="flameStreakGrad" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stop-color="#FF4500" stop-opacity="0.1"/>
+              <stop offset="45%" stop-color="#FFB800" stop-opacity="0.95"/>
+              <stop offset="100%" stop-color="#FFFFE8" stop-opacity="0.1"/>
+            </linearGradient>
+          </defs>
+          <ellipse cx="19" cy="39" rx="14" ry="6" fill="#FFA500" class="fire-ambient-glow"/>
+          <path class="flame-body-path" fill="url(#flameOuterGrad)"
+            d="M19 2 C16 9 9 16 9 27 C9 36 13 42 19 43 C25 42 29 36 29 27 C29 16 22 9 19 2 Z"/>
+          <path class="fire-flowing-streak streak-left" fill="url(#flameStreakGrad)"
+            d="M14 36 C12 30 11 23 17 15 C15 21 14 28 16 35 Z"/>
+          <path class="fire-flowing-streak streak-right" fill="url(#flameStreakGrad)"
+            d="M24 36 C26 30 27 23 21 15 C23 21 24 28 22 35 Z"/>
+          <path class="fire-flowing-streak streak-center" fill="url(#flameStreakGrad)"
+            d="M18 32 C16 24 18 14 19 5 C20 14 22 24 20 32 Z"/>
+          <path class="flame-core-path" fill="url(#flameCoreGrad)"
+            d="M19 21 C16 26 14 30 14 36 C14 41 16 42 19 42 C22 42 24 41 24 36 C24 30 22 26 19 21 Z"/>
+          <circle cx="15" cy="20" r="1.1" fill="#FFF4A3" class="flowing-ember ember-1"/>
+          <circle cx="23" cy="16" r="1.0" fill="#FFCF5C" class="flowing-ember ember-2"/>
+          <circle cx="19" cy="9"  r="1.2" fill="#FFFFFF" class="flowing-ember ember-3"/>
+        </svg>
+      `;
+      return wrap;
+    }
+
+    // 1. Render empty offset slots for start of month (soft recessed placeholder tiles)
+    for (let i = 0; i < calData.firstDayOfWeek; i++) {
+      const emptySlot = document.createElement('div');
+      emptySlot.className = 'date-tile-empty-recessed streak-cal-slot-empty';
+      gridEl.appendChild(emptySlot);
+    }
+
+    // 2. Render each day in 3D Recessed Tile format with circular Crater Sockets
+    calData.days.forEach(dayInfo => {
+      const tile = document.createElement('div');
+      tile.className = `date-tile-recessed ${dayInfo.status}`;
+      tile.title = `${calData.monthName} ${dayInfo.day}: ${dayInfo.status.toUpperCase()}`;
+
+      // Date number at top-left
+      const numSpan = document.createElement('span');
+      numSpan.className = 'date-tile-num';
+      numSpan.textContent = dayInfo.day;
+      tile.appendChild(numSpan);
+
+      // Inner circular crater socket
+      const crater = document.createElement('div');
+      crater.className = `crater-socket ${dayInfo.status}-crater`;
+
+      if (dayInfo.status === 'completed') {
+        const lvl = Math.min(5, Math.max(1, dayInfo.fireLevel || 1));
+        const delay = ((dayInfo.day * 0.19) % 1.6).toFixed(2);
+
+        const fireWrap = document.createElement('div');
+        fireWrap.className = `streak-cell-fire-wrap fire-lvl-${lvl} burning-flow-active fire-shaking-active`;
+        fireWrap.style.animationDelay = `${delay}s`;
+
+        const fireImg = document.createElement('img');
+        fireImg.src = `assets/streak/fire_level_${lvl}.png?v=20261104_3`;
+        fireImg.alt = `Streak Fire Level ${lvl}`;
+        fireImg.className = `streak-cell-fire-img fire-lvl-${lvl}-img`;
+        fireImg.style.animationDelay = `${delay}s`;
+        fireImg.onerror = () => {
+          fireImg.src = 'assets/streak/reference_flame_sample.png';
+        };
+
+        fireWrap.appendChild(fireImg);
+        crater.appendChild(fireWrap);
+      } else if (dayInfo.status === 'missed') {
+        const delay = ((dayInfo.day * 0.23) % 2.1).toFixed(2);
+
+        const bonfireWrap = document.createElement('div');
+        bonfireWrap.className = 'streak-cell-bonfire-wrap bonfire-smoke-active';
+        bonfireWrap.style.animationDelay = `${delay}s`;
+
+        const bonfireImg = document.createElement('img');
+        bonfireImg.src = `assets/streak/bonfire_smoke.png?v=20261104_1`;
+        bonfireImg.alt = 'Missed Bonfire Smoke';
+        bonfireImg.className = 'crater-bonfire-img animated-bonfire-smoke';
+        bonfireImg.style.animationDelay = `${delay}s`;
+        bonfireImg.onerror = () => {
+          bonfireImg.src = 'assets/streak/reference_campfire_sample.png';
+        };
+
+        bonfireWrap.appendChild(bonfireImg);
+        crater.appendChild(bonfireWrap);
+      } else if (dayInfo.status === 'today') {
+        const dot = document.createElement('div');
+        dot.className = 'today-pulse-dot';
+        crater.appendChild(dot);
+      }
+
+      tile.appendChild(crater);
+
+      // Interactive Click Handling
+      tile.addEventListener('click', () => {
+        if (dayInfo.status === 'completed' && dayInfo.memory) {
+          openMemoryDetail(dayInfo.memory.id);
+        } else if (dayInfo.status === 'today') {
+          closeStreakModal();
+          openCameraModal();
+        } else if (dayInfo.status === 'missed') {
+          showMissedStreakModal();
+        } else {
+          showToast(`📅 ${calData.monthName} ${dayInfo.day}: ${dayInfo.status.charAt(0).toUpperCase() + dayInfo.status.slice(1)}`);
+        }
+      });
+
+      gridEl.appendChild(tile);
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // DAILY STREAK CAMERA & CAPTURE
+  // --------------------------------------------------------------------------
+  async function openCameraModal() {
+    const modal = document.getElementById('outfitCameraModal');
+    if (!modal) return;
+
+    capturedPhotoDataUrl = null;
+
+    // Reset controls visibility
+    const liveControls = document.getElementById('cameraLiveControls');
+    const reviewControls = document.getElementById('cameraReviewContainer');
+    const previewImg = document.getElementById('cameraCapturedPreview');
+    const videoEl = document.getElementById('cameraVideo');
+    const fallbackCard = document.getElementById('cameraFallbackCard');
+    const overlayFrame = document.getElementById('cameraOverlayFrame');
+
+    if (liveControls) liveControls.classList.remove('hidden');
+    if (reviewControls) reviewControls.classList.add('hidden');
+    if (previewImg) previewImg.classList.add('hidden');
+    if (overlayFrame) overlayFrame.classList.remove('hidden');
+
+    // Update streak advance numbers in review
+    const currVal = document.getElementById('cameraCurrentStreakVal');
+    const newVal = document.getElementById('cameraNewStreakVal');
+    const engine = getStreakEngine();
+    const streak = getStreakStatusSafe(engine) || state.streak || { currentStreak: 0 };
+    const curStreak = typeof streak.currentStreak === 'number' ? streak.currentStreak : 0;
+    const isAlreadyLogged = engine && typeof engine.hasUploadedToday === 'function' ? engine.hasUploadedToday() : false;
+
+    if (currVal) currVal.textContent = curStreak;
+    if (newVal) {
+      newVal.textContent = isAlreadyLogged ? curStreak : (curStreak + 1);
+    }
+
+    const dupWarning = document.getElementById('cameraDuplicateWarning');
+    const btnConfirm = document.getElementById('btnConfirmCapturedOutfit');
+
+    if (dupWarning) {
+      dupWarning.classList.toggle('hidden', !isAlreadyLogged);
+      if (isAlreadyLogged) {
+        dupWarning.innerHTML = `<span>✨ Streak for today completed (🔥 ${curStreak} ${curStreak === 1 ? 'Streak' : 'Streaks'}). Extra photos are saved to your Gallery!</span>`;
+      }
+    }
+    if (btnConfirm) {
+      btnConfirm.disabled = false;
+      btnConfirm.textContent = isAlreadyLogged ? 'Add Photo to Gallery 📸' : 'Confirm & Log Outfit 🔥';
+    }
+
+    modal.classList.remove('hidden');
+
+    // Initialize Camera Stream
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1440 } }
+        });
+        if (videoEl) {
+          videoEl.srcObject = cameraStream;
+          videoEl.classList.remove('hidden');
+          videoEl.play();
+        }
+        if (fallbackCard) fallbackCard.classList.add('hidden');
+      } catch (err) {
+        console.warn('Camera stream inaccessible, activating fallback:', err.message);
+        if (videoEl) videoEl.classList.add('hidden');
+        if (fallbackCard) fallbackCard.classList.remove('hidden');
+      }
+    } else {
+      if (videoEl) videoEl.classList.add('hidden');
+      if (fallbackCard) fallbackCard.classList.remove('hidden');
+    }
+  }
+
+  function closeCameraModal() {
+    const modal = document.getElementById('outfitCameraModal');
+    if (modal) modal.classList.add('hidden');
+
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+  }
+
+  function captureCameraSnapshot() {
+    const videoEl = document.getElementById('cameraVideo');
+    const canvas = document.getElementById('cameraCanvas');
+    const previewImg = document.getElementById('cameraCapturedPreview');
+    const overlayFrame = document.getElementById('cameraOverlayFrame');
+    const liveControls = document.getElementById('cameraLiveControls');
+    const reviewControls = document.getElementById('cameraReviewContainer');
+
+    if (!videoEl || !canvas || videoEl.classList.contains('hidden') || !videoEl.videoWidth) {
+      // Fallback: load curated outfit look
+      loadSampleOutfitLook();
+      return;
+    }
+
+    canvas.width = videoEl.videoWidth;
+    canvas.height = videoEl.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+    capturedPhotoDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    if (previewImg) {
+      previewImg.src = capturedPhotoDataUrl;
+      previewImg.classList.remove('hidden');
+    }
+
+    if (videoEl) videoEl.classList.add('hidden');
+    if (overlayFrame) overlayFrame.classList.add('hidden');
+    if (liveControls) liveControls.classList.add('hidden');
+    if (reviewControls) reviewControls.classList.remove('hidden');
+  }
+
+  function triggerFileInputClick() {
+    const fileInput = document.getElementById('outfitPhotoInput');
+    if (fileInput) {
+      fileInput.value = '';
+      fileInput.click();
     }
   }
 
@@ -2336,64 +3027,206 @@
 
     const reader = new FileReader();
     reader.onload = function (e) {
-      openPhotoConfirmModal(e.target.result);
+      capturedPhotoDataUrl = e.target.result;
+      const previewImg = document.getElementById('cameraCapturedPreview');
+      const videoEl = document.getElementById('cameraVideo');
+      const overlayFrame = document.getElementById('cameraOverlayFrame');
+      const fallbackCard = document.getElementById('cameraFallbackCard');
+      const liveControls = document.getElementById('cameraLiveControls');
+      const reviewControls = document.getElementById('cameraReviewContainer');
+
+      if (previewImg) {
+        previewImg.src = capturedPhotoDataUrl;
+        previewImg.classList.remove('hidden');
+      }
+      if (videoEl) videoEl.classList.add('hidden');
+      if (fallbackCard) fallbackCard.classList.add('hidden');
+      if (overlayFrame) overlayFrame.classList.add('hidden');
+      if (liveControls) liveControls.classList.add('hidden');
+      if (reviewControls) reviewControls.classList.remove('hidden');
     };
     reader.readAsDataURL(file);
   }
 
-  function openPhotoConfirmModal(imgDataUrl) {
-    const modal = document.getElementById('outfitPhotoConfirmModal');
-    const previewImg = document.getElementById('outfitPhotoPreviewImg');
-    const currVal = document.getElementById('confirmCurrentStreakVal');
-    const newVal = document.getElementById('confirmNewStreakVal');
+  function loadSampleOutfitLook() {
+    const samples = [
+      { img: 'assets/navy_shirt.jpg', note: 'Tailored Navy Oxford & Sand Chinos' },
+      { img: 'assets/white_linen_shirt.jpg', note: 'Relaxed White Linen Classic' },
+      { img: 'assets/smart_blazer.jpg', note: 'Executive Structured Autumn Blazer' },
+      { img: 'assets/terracotta_tee.jpg', note: 'Casual Earth Tone Terracotta Tee' },
+      { img: 'assets/indigo_kurti.jpg', note: 'Festive Indigo Silk Ensemble' }
+    ];
+    const picked = samples[Math.floor(Math.random() * samples.length)];
+    capturedPhotoDataUrl = picked.img;
 
-    if (previewImg) previewImg.src = imgDataUrl || 'assets/welcome_hero.jpg';
-    if (currVal) currVal.textContent = state.streak ? state.streak.currentStreak : 0;
-    if (newVal) newVal.textContent = (state.streak ? state.streak.currentStreak : 0) + 1;
+    const previewImg = document.getElementById('cameraCapturedPreview');
+    const noteInput = document.getElementById('cameraOutfitNoteInput');
+    const videoEl = document.getElementById('cameraVideo');
+    const overlayFrame = document.getElementById('cameraOverlayFrame');
+    const fallbackCard = document.getElementById('cameraFallbackCard');
+    const liveControls = document.getElementById('cameraLiveControls');
+    const reviewControls = document.getElementById('cameraReviewContainer');
+
+    if (previewImg) {
+      previewImg.src = capturedPhotoDataUrl;
+      previewImg.classList.remove('hidden');
+    }
+    if (noteInput) noteInput.value = picked.note;
+
+    if (videoEl) videoEl.classList.add('hidden');
+    if (fallbackCard) fallbackCard.classList.add('hidden');
+    if (overlayFrame) overlayFrame.classList.add('hidden');
+    if (liveControls) liveControls.classList.add('hidden');
+    if (reviewControls) reviewControls.classList.remove('hidden');
+  }
+
+  function retakeCameraPhoto() {
+    capturedPhotoDataUrl = null;
+    const previewImg = document.getElementById('cameraCapturedPreview');
+    const videoEl = document.getElementById('cameraVideo');
+    const overlayFrame = document.getElementById('cameraOverlayFrame');
+    const liveControls = document.getElementById('cameraLiveControls');
+    const reviewControls = document.getElementById('cameraReviewContainer');
+
+    if (previewImg) previewImg.classList.add('hidden');
+    if (videoEl) videoEl.classList.remove('hidden');
+    if (overlayFrame) overlayFrame.classList.remove('hidden');
+    if (liveControls) liveControls.classList.remove('hidden');
+    if (reviewControls) reviewControls.classList.add('hidden');
+  }
+
+  function confirmCapturedOutfit() {
+    const engine = getStreakEngine();
+    const noteInput = document.getElementById('cameraOutfitNoteInput');
+    const note = noteInput ? noteInput.value : '';
+
+    if (!engine) {
+      showToast('⚠️ Streak state engine initializing...');
+      return;
+    }
+
+    const res = engine.recordDailyOutfitUpload({
+      photoUrl: capturedPhotoDataUrl || 'assets/welcome_hero.jpg',
+      note: note.trim()
+    });
+
+    closeCameraModal();
+    triggerFlameReigniteAnimation();
+    updateStreakUI();
+
+    if (!res.success && res.alreadyUploaded) {
+      showToast(`📸 Outfit photo added to Gallery! Streak remains at ${res.streak} (1 per day).`);
+      return;
+    }
+
+    showToast(`🔥 Streak increased to ${res.streak}! Outfit memory saved!`);
+  }
+
+  // --------------------------------------------------------------------------
+  // OUTFIT MEMORIES GALLERY & LIGHTBOX
+  // --------------------------------------------------------------------------
+  function openMemoriesModal() {
+    renderOutfitMemories();
+    const modal = document.getElementById('outfitMemoriesModal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeMemoriesModal() {
+    const modal = document.getElementById('outfitMemoriesModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function renderOutfitMemories() {
+    const engine = getStreakEngine();
+    const memories = (engine && typeof engine.getAllMemories === 'function') ? engine.getAllMemories() : [];
+    const gridEl = document.getElementById('memoriesGridContainer');
+    const countBadge = document.getElementById('memoriesTotalCountBadge');
+
+    if (countBadge) countBadge.textContent = `${memories.length} Memories Logged`;
+    if (!gridEl) return;
+
+    gridEl.innerHTML = '';
+
+    if (memories.length === 0) {
+      gridEl.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px 10px; color: #8C755E;">
+          <span style="font-size: 2.2rem; display: block; margin-bottom: 8px;">📷</span>
+          <p style="font-size: 0.9rem; margin: 0;">No memories logged yet. Snap your first outfit today to start your streak!</p>
+        </div>
+      `;
+      return;
+    }
+
+    memories.forEach(mem => {
+      const card = document.createElement('div');
+      card.className = 'memory-card';
+      card.innerHTML = `
+        <div class="memory-thumb-wrap">
+          <img src="${mem.photoUrl}" class="memory-thumb-img" alt="${mem.note}" />
+          <span class="memory-streak-badge">Day ${mem.streakDay || 1} 🔥</span>
+        </div>
+        <div class="memory-card-meta">
+          <span class="memory-card-date">${formatReadableDate(mem.date)}</span>
+          <span class="memory-card-note">${mem.note || 'Outfit Look'}</span>
+        </div>
+      `;
+      card.addEventListener('click', () => openMemoryDetail(mem.id));
+      gridEl.appendChild(card);
+    });
+  }
+
+  function formatReadableDate(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const d = new Date(parts[0], parseInt(parts[1], 10) - 1, parts[2]);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    }
+    return dateStr;
+  }
+
+  function openMemoryDetail(memoryId) {
+    const engine = getStreakEngine();
+    if (!engine) return;
+
+    const memory = engine.memories.find(m => m.id === memoryId) || engine.memories[0];
+    if (!memory) return;
+
+    const modal = document.getElementById('memoryDetailModal');
+    const imgEl = document.getElementById('memoryDetailImg');
+    const dateTitle = document.getElementById('memoryDetailDateTitle');
+    const streakTag = document.getElementById('memoryDetailStreakTag');
+    const noteEl = document.getElementById('memoryDetailNote');
+    const timeEl = document.getElementById('memoryDetailTimestamp');
+
+    if (imgEl) imgEl.src = memory.photoUrl;
+    if (dateTitle) dateTitle.textContent = formatReadableDate(memory.date);
+    if (streakTag) streakTag.textContent = `Day ${memory.streakDay || 1} 🔥`;
+    if (noteEl) noteEl.textContent = memory.note || 'Daily Outfit Look';
+    if (timeEl) timeEl.textContent = `Logged on ${memory.date}`;
 
     if (modal) modal.classList.remove('hidden');
   }
 
-  function closePhotoConfirmModal() {
-    const modal = document.getElementById('outfitPhotoConfirmModal');
+  function closeMemoryDetailModal() {
+    const modal = document.getElementById('memoryDetailModal');
     if (modal) modal.classList.add('hidden');
   }
 
-  function confirmOutfitPhotoUpload() {
-    closePhotoConfirmModal();
-
+  // --------------------------------------------------------------------------
+  // MISSED STREAK & MONTHLY RESTORATION LOGIC
+  // --------------------------------------------------------------------------
+  function showMissedStreakModal() {
     const streak = state.streak;
-    streak.currentStreak = (streak.currentStreak || 0) + 1;
-    streak.savedPreviousStreak = streak.currentStreak;
-    streak.isStreakBroken = false;
-    streak.uploadedToday = true;
-    streak.lastUploadTimestamp = Date.now();
-    streak.lastUploadDateStr = new Date().toISOString().split('T')[0];
-    streak.deadline = Date.now() + (24 * 3600 * 1000); // Reset next 24h deadline
-    streak.morningReminderSent = false;
-    streak.urgentReminderSent = false;
-    saveStreakState();
-
-    // Re-ignite flame animation
-    const flameWrapper = document.getElementById('streakFlameWrapper');
-    if (flameWrapper) {
-      flameWrapper.classList.remove('blown-out');
-      flameWrapper.classList.add('reignited');
-      setTimeout(() => flameWrapper.classList.remove('reignited'), 1000);
+    // DO NOT show lost streak to new user who has never earned one!
+    if (!streak || !streak.hasEarnedStreak || (streak.currentStreak === 0 && streak.savedPreviousStreak === 0)) {
+      return;
     }
 
-    updateStreakUI();
-    dismissReminderBanner();
-
-    showToast(`🔥 Streak increased to ${streak.currentStreak}! Amazing look!`);
-  }
-
-  // Missed Upload Modal and Monthly Restoration Logic
-  function showMissedStreakModal() {
     const modal = document.getElementById('missedStreakModal');
     if (!modal) return;
 
-    const streak = state.streak;
     const lostCountEl = document.getElementById('missedStreakLostCount');
     const statusCard = document.getElementById('restoreStatusCard');
     const statusIcon = document.getElementById('restoreStatusIcon');
@@ -2401,20 +3234,17 @@
     const statusSubtitle = document.getElementById('restoreStatusSubtitle');
     const btnRestore = document.getElementById('btnRestoreStreak');
 
-    if (lostCountEl) {
-      lostCountEl.textContent = `${streak.savedPreviousStreak || 1} Days`;
-    }
+    if (lostCountEl) lostCountEl.textContent = `${streak.savedPreviousStreak || 1} Days`;
 
-    // Check Monthly Restore Eligibility (Refreshes on 3rd of month)
-    const currentCycleKey = getMonthlyRestoreCycleKey(new Date());
-    const isEligible = streak.lastRestoredCycleKey !== currentCycleKey;
-    const nextRefreshDate = getNextRestoreRefreshDateStr(new Date());
+    const engine = getStreakEngine();
+    const isEligible = engine ? engine.isMonthlyRestoreAvailable() : true;
+    const nextRefresh = engine ? engine.getNextRestoreRefreshDateStr() : 'the 3rd';
 
     if (isEligible) {
       if (statusCard) statusCard.classList.remove('ineligible');
       if (statusIcon) statusIcon.textContent = '✨';
       if (statusTitle) statusTitle.textContent = 'Monthly Restoration Available!';
-      if (statusSubtitle) statusSubtitle.textContent = `You have 1 free restore for this monthly cycle. (Refreshes on the 3rd of every month)`;
+      if (statusSubtitle) statusSubtitle.textContent = 'You have 1 free restore for this monthly cycle. (Refreshes on the 3rd of every month)';
       if (btnRestore) {
         btnRestore.disabled = false;
         btnRestore.textContent = `Restore Streak (${streak.savedPreviousStreak || 1} Days) 🔥`;
@@ -2423,10 +3253,10 @@
       if (statusCard) statusCard.classList.add('ineligible');
       if (statusIcon) statusIcon.textContent = '🔒';
       if (statusTitle) statusTitle.textContent = 'Monthly Restore Used for this Cycle';
-      if (statusSubtitle) statusSubtitle.textContent = `Your free restore refreshes on ${nextRefreshDate}.`;
+      if (statusSubtitle) statusSubtitle.textContent = `Your free restore refreshes on ${nextRefresh}.`;
       if (btnRestore) {
         btnRestore.disabled = true;
-        btnRestore.textContent = `Restore Used (Refreshes ${nextRefreshDate})`;
+        btnRestore.textContent = `Restore Used (Refreshes ${nextRefresh})`;
       }
     }
 
@@ -2439,99 +3269,54 @@
   }
 
   function restoreMonthlyStreak() {
-    const streak = state.streak;
-    const currentCycleKey = getMonthlyRestoreCycleKey(new Date());
+    const engine = getStreakEngine();
+    if (!engine) return;
 
-    if (streak.lastRestoredCycleKey === currentCycleKey) {
-      showToast('⚠️ Monthly restore already used. Refreshes on the 3rd.');
+    if (!engine.isMonthlyRestoreAvailable()) {
+      showToast(`⚠️ Monthly restore unavailable: Already used for this calendar month. Refreshes on ${engine.getNextRestoreRefreshDateStr()}.`);
       return;
     }
 
-    streak.currentStreak = streak.savedPreviousStreak || 1;
-    streak.isStreakBroken = false;
-    streak.lastRestoredCycleKey = currentCycleKey;
-    streak.deadline = Date.now() + (24 * 3600 * 1000);
-    saveStreakState();
+    const previousStreak = engine.state.savedPreviousStreak || 1;
+    const confirmed = window.confirm(
+      `Restore your previous streak of ${previousStreak} days?\n\nNote: You can only restore your streak once per calendar month.`
+    );
+    if (!confirmed) return;
 
-    closeMissedStreakModal();
-
-    // Re-ignite flame
-    const flameWrapper = document.getElementById('streakFlameWrapper');
-    if (flameWrapper) {
-      flameWrapper.classList.remove('blown-out');
-      flameWrapper.classList.add('reignited');
-      setTimeout(() => flameWrapper.classList.remove('reignited'), 1200);
+    const res = engine.restoreMonthlyStreak();
+    if (!res.success) {
+      showToast(`⚠️ ${res.error || 'Monthly restore unavailable.'}`);
+      return;
     }
 
+    closeMissedStreakModal();
+    triggerFlameReigniteAnimation();
     updateStreakUI();
-    showToast(`✨ Streak restored to ${streak.currentStreak}! Your flame is back! 🔥`);
+    renderStreakCalendar();
+    showToast(`✨ Streak restored to ${res.streak} days! Your burning flame is back! 🔥`);
   }
 
   function startNewStreak() {
-    const streak = state.streak;
-    streak.currentStreak = 0;
-    streak.savedPreviousStreak = 0;
-    streak.isStreakBroken = false;
-    streak.uploadedToday = false;
-    streak.deadline = Date.now() + (24 * 3600 * 1000);
-    saveStreakState();
+    const engine = getStreakEngine();
+    if (engine) engine.startFreshStreak();
 
     closeMissedStreakModal();
     updateStreakUI();
     showToast('Starting a fresh streak! Upload today\'s outfit to light your 🔥 flame.');
   }
 
-  // Streak Details Modal
-  function openStreakModal() {
-    const modal = document.getElementById('streakDetailsModal');
-    if (!modal) return;
-
-    const streak = state.streak;
-    const heroCount = document.getElementById('modalHeroStreakCount');
-    const heroCountdown = document.getElementById('modalHeroCountdown');
-    const heroRestore = document.getElementById('modalHeroRestoreStatus');
-
-    if (heroCount) heroCount.textContent = streak.currentStreak;
-    if (heroCountdown) {
-      const now = Date.now();
-      const diff = Math.max(0, streak.deadline - now);
-      const hours = Math.floor(diff / (3600 * 1000));
-      const mins = Math.floor((diff % (3600 * 1000)) / (60 * 1000));
-      heroCountdown.textContent = streak.uploadedToday ? 'Completed Today' : `${hours}h ${mins}m`;
-    }
-
-    const currentCycleKey = getMonthlyRestoreCycleKey(new Date());
-    const isEligible = streak.lastRestoredCycleKey !== currentCycleKey;
-    if (heroRestore) {
-      heroRestore.textContent = isEligible ? 'Available (3rd)' : 'Used this month';
-    }
-
-    modal.classList.remove('hidden');
-  }
-
-  function closeStreakModal() {
-    const modal = document.getElementById('streakDetailsModal');
-    if (modal) modal.classList.add('hidden');
-  }
-
-  // Daily Reminder Notifications System
+  // --------------------------------------------------------------------------
+  // DAILY NOTIFICATIONS & REMINDER SYSTEM
+  // --------------------------------------------------------------------------
   function sendDailyNotification(title, body, isUrgent) {
-    // 1. Web Notification API if permitted
     if ('Notification' in window && Notification.permission === 'granted') {
       try {
-        new Notification(title, {
-          body: body,
-          icon: 'assets/welcome_hero.jpg'
-        });
+        new Notification(title, { body, icon: 'assets/streak_fire.jpg' });
       } catch (e) {
         console.warn('System notification error', e);
       }
-    } else if ('Notification' in window && Notification.permission === 'default') {
-      // Prompt user politely
-      Notification.requestPermission();
     }
 
-    // 2. In-App Floating Reminder Banner
     const banner = document.getElementById('inAppReminderBanner');
     const titleEl = document.getElementById('reminderBannerTitle');
     const bodyEl = document.getElementById('reminderBannerBody');
@@ -2552,60 +3337,1297 @@
     if (banner) banner.classList.add('hidden');
   }
 
-  // QA & Developer Simulation Tools
+  // --------------------------------------------------------------------------
+  // QA SIMULATION TOOLS
+  // --------------------------------------------------------------------------
   function devSimulateUpload() {
-    openPhotoConfirmModal('assets/navy_shirt.jpg');
+    openCameraModal();
+    loadSampleOutfitLook();
   }
 
   function devSimulateTwoHoursLeft() {
-    if (!state.streak) return;
-    state.streak.deadline = Date.now() + (1 * 3600 * 1000 + 59 * 60 * 1000); // 1h 59m
-    state.streak.urgentReminderSent = false;
-    state.streak.uploadedToday = false;
-    state.streak.isStreakBroken = false;
-    saveStreakState();
-    checkStreakDeadline();
+    const engine = getStreakEngine();
+    if (!engine) return;
+    engine.state.deadline = Date.now() + (1 * 3600 * 1000 + 59 * 60 * 1000);
+    engine.state.urgentReminderSent = false;
+    engine.state.uploadedToday = false;
+    engine.state.isStreakBroken = false;
+    engine.save();
     updateStreakUI();
     showToast('⏱️ Simulated: Exactly 1h 59m remaining (2-hour warning triggered)');
   }
 
   function devSimulateStreakBreak() {
-    if (!state.streak) return;
-    if (state.streak.currentStreak > 0) {
-      state.streak.savedPreviousStreak = state.streak.currentStreak;
+    const engine = getStreakEngine();
+    if (!engine) return;
+    if (engine.state.currentStreak > 0) {
+      engine.state.savedPreviousStreak = engine.state.currentStreak;
     }
-    state.streak.deadline = Date.now() - 1000;
-    saveStreakState();
-    breakStreak();
+    engine.state.deadline = Date.now() - 1000;
+    engine.state.uploadedToday = false;
+    engine.state.isStreakBroken = true;
+    engine.state.currentStreak = 0;
+    engine.save();
+    triggerFlameBlowoutAnimation();
+    updateStreakUI();
     showToast('💥 Simulated deadline expiration: Streak broken!');
+    setTimeout(() => showMissedStreakModal(), 600);
   }
 
   function devToggleRestoreToken() {
-    if (!state.streak) return;
-    const currentCycleKey = getMonthlyRestoreCycleKey(new Date());
-    if (state.streak.lastRestoredCycleKey === currentCycleKey) {
-      state.streak.lastRestoredCycleKey = null;
+    const engine = getStreakEngine();
+    if (!engine) return;
+    const currentCycle = engine.getMonthlyRestoreCycleKey();
+    if (engine.state.lastRestoredCycleKey === currentCycle) {
+      engine.state.lastRestoredCycleKey = null;
       showToast('🔄 Restored Monthly Token: Now ELIGIBLE for 3rd date cycle!');
     } else {
-      state.streak.lastRestoredCycleKey = currentCycleKey;
+      engine.state.lastRestoredCycleKey = currentCycle;
       showToast('🔒 Marked Monthly Token as USED for current cycle.');
     }
-    saveStreakState();
-    checkStreakDeadline();
+    engine.save();
     updateStreakUI();
   }
 
   function devResetStreak() {
-    localStorage.removeItem(STREAK_STORAGE_KEY);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(STREAK_STORAGE_KEY);
+      localStorage.removeItem('woobi_outfit_streak_v2');
+      localStorage.removeItem('woobi_outfit_memories_v1');
+    }
+    const engine = getStreakEngine();
+    if (engine) {
+      engine.state.currentStreak = 0;
+      engine.state.bestStreak = 0;
+      engine.state.savedPreviousStreak = 0;
+      engine.state.isStreakBroken = false;
+      engine.state.hasEarnedStreak = false;
+      engine.state.uploadedToday = false;
+      engine.state.lastUploadDateStr = null;
+      engine.state.lastRestoredCycleKey = null;
+      engine.memories = [];
+      engine.save();
+    }
     initStreakState();
-    showToast('🗑️ Reset streak to default 5-day active streak.');
+    showToast('🗑️ Reset streak to fresh starter state (0 days, no lost streak).');
+  }
+
+  function resetTestData() {
+    const engine = getStreakEngine();
+    if (engine && typeof engine.resetTestData === 'function') {
+      engine.resetTestData();
+    }
+    state.streak = getStreakStatusSafe(engine);
+    updateStreakUI();
+    renderStreakCalendar();
+    showToast('🔥 Reset 136-day test data (June 21 – Today) with Level 5 fire!');
+  }
+
+  function toggleTestUserMode() {
+    const engine = getStreakEngine();
+    if (!engine) return;
+    const isTest = typeof engine.isTestUser === 'function' ? engine.isTestUser() : false;
+    if (isTest) {
+      if (typeof engine.switchToRealUser === 'function') {
+        engine.switchToRealUser('user_real');
+      }
+      showToast('Switched to Real User mode (Authentic streaks).');
+    } else {
+      if (typeof engine.loadTestUserStreak136 === 'function') {
+        engine.loadTestUserStreak136();
+      }
+      showToast('Switched to Test User (136-day streak with Level 5 fire)!');
+    }
+    state.streak = getStreakStatusSafe(engine);
+    updateStreakUI();
+    renderStreakCalendar();
+  }
+
+  // Legacy compatibility helpers
+  function triggerOutfitPhotoUpload() {
+    openCameraModal();
+  }
+
+  function openPhotoConfirmModal(imgUrl) {
+    capturedPhotoDataUrl = imgUrl;
+    openCameraModal();
+  }
+
+  function closePhotoConfirmModal() {
+    closeCameraModal();
+  }
+
+  function confirmOutfitPhotoUpload() {
+    confirmCapturedOutfit();
+  }
+
+  // =========================================================================
+  // 9B. CLOTHING CAPTURE SYSTEM (SHIRT, PANT, SHOE SILHOUETTES & REVIEW)
+  // =========================================================================
+  let fallbackClothingState = null;
+  let clothingCameraStream = null;
+  let currentClothingPhotoDataUrl = null;
+  let clothingCameraFacingMode = 'environment';
+  let activeLightboxItem = null;
+
+  function getClothingCaptureEngine() {
+    if (typeof window !== 'undefined' && window.WoobiCore && window.WoobiCore.clothingCapture) {
+      return window.WoobiCore.clothingCapture;
+    }
+    if (!fallbackClothingState) {
+      fallbackClothingState = {
+        captured: { shirt: [], pant: [], shoe: [] },
+        activeCategory: 'shirt',
+        limits: { shirt: 7, pant: 7, shoe: 2 },
+        setActiveCategory(c) { this.activeCategory = (c || 'shirt').toLowerCase(); return this.activeCategory; },
+        getActiveCategory() { return this.activeCategory; },
+        canAdd(c = this.activeCategory) {
+          const cat = (c || 'shirt').toLowerCase();
+          return (this.captured[cat] || []).length < (this.limits[cat] || 0);
+        },
+        getRemainingSlots(c = this.activeCategory) {
+          const cat = (c || 'shirt').toLowerCase();
+          return Math.max(0, (this.limits[cat] || 0) - (this.captured[cat] || []).length);
+        },
+        getSlotSummary() {
+          const s = this.captured.shirt.length, p = this.captured.pant.length, sh = this.captured.shoe.length;
+          return {
+            shirt: { count: s, max: 7, remaining: Math.max(0, 7 - s), isFull: s >= 7 },
+            pant: { count: p, max: 7, remaining: Math.max(0, 7 - p), isFull: p >= 7 },
+            shoe: { count: sh, max: 2, remaining: Math.max(0, 2 - sh), isFull: sh >= 2 },
+            total: { count: s + p + sh, max: 16, remaining: Math.max(0, 16 - (s + p + sh)), isFull: (s + p + sh) >= 16 },
+            activeCategory: this.activeCategory
+          };
+        },
+        addConfirmedPhoto(cat, photo, meta = {}) {
+          const c = (cat || this.activeCategory).toLowerCase();
+          const limit = this.limits[c] || 7;
+          if ((this.captured[c] || []).length >= limit) {
+            return { success: false, error: `Maximum limit of ${limit} reached for ${c}` };
+          }
+          const item = {
+            id: `capture_${c}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            category: c,
+            internalCategory: c === 'shirt' ? 'Tops' : (c === 'pant' ? 'Bottoms' : 'Shoes'),
+            name: meta.name || `${c.charAt(0).toUpperCase() + c.slice(1)} #${(this.captured[c] || []).length + 1}`,
+            photo,
+            timestamp: Date.now(),
+            condition: 'clean',
+            fit: 'perfect'
+          };
+          this.captured[c].push(item);
+          return { success: true, item, summary: this.getSlotSummary() };
+        },
+        removePhoto(cat, id) {
+          const c = (cat || '').toLowerCase();
+          const list = this.captured[c] || [];
+          const idx = list.findIndex(i => i.id === id);
+          if (idx !== -1) {
+            const [removed] = list.splice(idx, 1);
+            return { success: true, removedItem: removed, freedSlot: true, summary: this.getSlotSummary() };
+          }
+          return { success: false, error: 'Item not found' };
+        },
+        getPhotos(c) {
+          const cat = (c || '').toLowerCase();
+          return cat ? [...(this.captured[cat] || [])] : {
+            shirt: [...this.captured.shirt],
+            pant: [...this.captured.pant],
+            shoe: [...this.captured.shoe]
+          };
+        },
+        getAllPhotos() {
+          return [...this.captured.shirt, ...this.captured.pant, ...this.captured.shoe];
+        },
+        getTotalCount() {
+          return this.captured.shirt.length + this.captured.pant.length + this.captured.shoe.length;
+        },
+        clearAll() {
+          this.captured = { shirt: [], pant: [], shoe: [] };
+        },
+        exportToWardrobeItems() {
+          return this.getAllPhotos().map((item, idx) => ({
+            id: `wardrobe_item_${Date.now()}_${idx}_${item.id}`,
+            name: item.name,
+            category: item.internalCategory,
+            subCategory: item.category.charAt(0).toUpperCase() + item.category.slice(1),
+            photo: item.photo,
+            condition: 'clean',
+            fit: 'perfect',
+            capturedVia: 'clothing_silhouette_capture',
+            dateAdded: new Date(item.timestamp || Date.now()).toISOString()
+          }));
+        }
+      };
+    }
+    return fallbackClothingState;
+  }
+
+  function openClothingCaptureMenu() {
+    const modal = document.getElementById('clothingCaptureMenuModal');
+    if (!modal) return;
+
+    const engine = getClothingCaptureEngine();
+    const summary = engine.getSlotSummary();
+
+    const sBadge = document.getElementById('menuShirtSlots');
+    const pBadge = document.getElementById('menuPantSlots');
+    const shBadge = document.getElementById('menuShoeSlots');
+    const reviewBtn = document.getElementById('menuReviewBtn');
+    const reviewBtnText = document.getElementById('menuReviewBtnText');
+
+    if (sBadge) {
+      sBadge.textContent = `${summary.shirt.count} / ${summary.shirt.max}`;
+      sBadge.classList.toggle('full', summary.shirt.isFull);
+    }
+    if (pBadge) {
+      pBadge.textContent = `${summary.pant.count} / ${summary.pant.max}`;
+      pBadge.classList.toggle('full', summary.pant.isFull);
+    }
+    if (shBadge) {
+      shBadge.textContent = `${summary.shoe.count} / ${summary.shoe.max}`;
+      shBadge.classList.toggle('full', summary.shoe.isFull);
+    }
+
+    if (reviewBtn && reviewBtnText) {
+      reviewBtnText.textContent = `Review Captured (${summary.total.count} / 16)`;
+      reviewBtn.disabled = summary.total.count === 0;
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeClothingCaptureMenu() {
+    const modal = document.getElementById('clothingCaptureMenuModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  async function openClothingCamera(category = 'shirt') {
+    closeClothingCaptureMenu();
+    closeClothingReview();
+
+    const modal = document.getElementById('clothingCaptureCameraModal');
+    if (!modal) return;
+
+    const engine = getClothingCaptureEngine();
+    engine.setActiveCategory(category);
+
+    modal.classList.remove('hidden');
+    switchClothingCategory(category);
+
+    const videoEl = document.getElementById('clothingCameraVideo');
+    const fallbackCard = document.getElementById('clothingCameraFallback');
+
+    // Initialize media stream with facing mode
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        if (clothingCameraStream) {
+          clothingCameraStream.getTracks().forEach(t => t.stop());
+          clothingCameraStream = null;
+        }
+
+        clothingCameraStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: clothingCameraFacingMode,
+            width: { ideal: 1080 },
+            height: { ideal: 1440 }
+          }
+        });
+
+        if (videoEl) {
+          videoEl.srcObject = clothingCameraStream;
+          videoEl.classList.remove('hidden');
+          videoEl.play();
+        }
+        if (fallbackCard) fallbackCard.classList.add('hidden');
+      } catch (err) {
+        console.warn('Clothing camera inaccessible, showing fallback controls:', err.message);
+        if (videoEl) videoEl.classList.add('hidden');
+        if (fallbackCard) fallbackCard.classList.remove('hidden');
+      }
+    } else {
+      if (videoEl) videoEl.classList.add('hidden');
+      if (fallbackCard) fallbackCard.classList.remove('hidden');
+    }
+  }
+
+  function closeClothingCamera() {
+    const modal = document.getElementById('clothingCaptureCameraModal');
+    if (modal) modal.classList.add('hidden');
+
+    if (clothingCameraStream) {
+      clothingCameraStream.getTracks().forEach(track => track.stop());
+      clothingCameraStream = null;
+    }
+
+    currentClothingPhotoDataUrl = null;
+  }
+
+  function switchClothingCategory(category) {
+    const cat = (category || 'shirt').toLowerCase();
+    const engine = getClothingCaptureEngine();
+    engine.setActiveCategory(cat);
+
+    // Update active tab buttons
+    const tabs = {
+      shirt: document.getElementById('camTabShirt'),
+      pant: document.getElementById('camTabPant'),
+      shoe: document.getElementById('camTabShoe')
+    };
+
+    Object.keys(tabs).forEach(k => {
+      if (tabs[k]) tabs[k].classList.toggle('active', k === cat);
+    });
+
+    // Update Silhouettes
+    const silShirt = document.getElementById('silhouetteShirt');
+    const silPant = document.getElementById('silhouettePant');
+    const silShoe = document.getElementById('silhouetteShoe');
+
+    if (silShirt) silShirt.classList.toggle('hidden', cat !== 'shirt');
+    if (silPant) silPant.classList.toggle('hidden', cat !== 'pant');
+    if (silShoe) silShoe.classList.toggle('hidden', cat !== 'shoe');
+
+    // Update Guidelines text
+    const guideText = document.getElementById('clothingGuideText');
+    if (guideText) {
+      if (cat === 'shirt') {
+        guideText.textContent = '👕 Lay shirt flat and align shoulders & torso inside the outline';
+      } else if (cat === 'pant') {
+        guideText.textContent = '👖 Lay pants flat and align waistband & legs inside the outline';
+      } else {
+        guideText.textContent = '👟 Place footwear pair side-by-side inside the outline';
+      }
+    }
+
+    // Reset capture review state to live
+    retakeClothingPhoto();
+
+    // Update slot counters and badges
+    updateClothingCameraBadges();
+  }
+
+  function updateClothingCameraBadges() {
+    const engine = getClothingCaptureEngine();
+    const summary = engine.getSlotSummary();
+    const activeCat = summary.activeCategory;
+    const catInfo = summary[activeCat] || summary.shirt;
+
+    const bShirt = document.getElementById('camBadgeShirt');
+    const bPant = document.getElementById('camBadgePant');
+    const bShoe = document.getElementById('camBadgeShoe');
+    const revBadge = document.getElementById('camReviewCountBadge');
+    const slotPill = document.getElementById('clothingSlotStatusPill');
+    const shutterBtn = document.getElementById('clothingShutterBtn');
+
+    if (bShirt) bShirt.textContent = `${summary.shirt.count}/${summary.shirt.max}`;
+    if (bPant) bPant.textContent = `${summary.pant.count}/${summary.pant.max}`;
+    if (bShoe) bShoe.textContent = `${summary.shoe.count}/${summary.shoe.max}`;
+    if (revBadge) revBadge.textContent = `${summary.total.count}`;
+
+    const icon = activeCat === 'shirt' ? '👕' : (activeCat === 'pant' ? '👖' : '👟');
+    const name = activeCat.charAt(0).toUpperCase() + activeCat.slice(1);
+
+    if (slotPill) {
+      if (catInfo.isFull) {
+        slotPill.textContent = `${icon} ${name} Slots Full (${catInfo.count}/${catInfo.max}) • Tap Review`;
+        slotPill.style.background = 'rgba(180, 40, 40, 0.75)';
+      } else {
+        slotPill.textContent = `${icon} ${name}: ${catInfo.count + 1} of ${catInfo.max} (${catInfo.remaining} remaining)`;
+        slotPill.style.background = 'rgba(0, 0, 0, 0.65)';
+      }
+    }
+
+    if (shutterBtn) {
+      shutterBtn.disabled = catInfo.isFull;
+    }
+  }
+
+  function captureClothingSnapshot() {
+    const engine = getClothingCaptureEngine();
+    const activeCat = engine.getActiveCategory();
+
+    if (!engine.canAdd(activeCat)) {
+      showToast(`⚠️ ${activeCat.toUpperCase()} is full. Review or remove a photo to take another.`);
+      return;
+    }
+
+    const videoEl = document.getElementById('clothingCameraVideo');
+    const canvas = document.getElementById('clothingCameraCanvas');
+    const previewImg = document.getElementById('clothingCapturedPreview');
+    const silFrame = document.getElementById('clothingSilhouetteFrame');
+    const liveControls = document.getElementById('clothingCameraLiveControls');
+    const reviewControls = document.getElementById('clothingCameraReviewControls');
+
+    if (!videoEl || !canvas || videoEl.classList.contains('hidden') || !videoEl.videoWidth) {
+      // Fallback: load sample photo
+      loadSampleClothingPhoto();
+      return;
+    }
+
+    // DRAW ONLY RAW VIDEO PIXELS TO CANVAS - SILHOUETTES ARE NEVER IN SAVED PHOTO
+    canvas.width = videoEl.videoWidth;
+    canvas.height = videoEl.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+    currentClothingPhotoDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+
+    if (previewImg) {
+      previewImg.src = currentClothingPhotoDataUrl;
+      previewImg.classList.remove('hidden');
+    }
+
+    if (videoEl) videoEl.classList.add('hidden');
+    if (silFrame) silFrame.classList.add('hidden');
+    if (liveControls) liveControls.classList.add('hidden');
+    if (reviewControls) reviewControls.classList.remove('hidden');
+  }
+
+  function retakeClothingPhoto() {
+    currentClothingPhotoDataUrl = null;
+
+    const videoEl = document.getElementById('clothingCameraVideo');
+    const previewImg = document.getElementById('clothingCapturedPreview');
+    const silFrame = document.getElementById('clothingSilhouetteFrame');
+    const liveControls = document.getElementById('clothingCameraLiveControls');
+    const reviewControls = document.getElementById('clothingCameraReviewControls');
+
+    if (previewImg) previewImg.classList.add('hidden');
+    if (silFrame) silFrame.classList.remove('hidden');
+    if (liveControls) liveControls.classList.remove('hidden');
+    if (reviewControls) reviewControls.classList.add('hidden');
+
+    if (videoEl && clothingCameraStream) {
+      videoEl.classList.remove('hidden');
+    }
+  }
+
+  function confirmClothingPhoto() {
+    if (!currentClothingPhotoDataUrl) {
+      showToast('⚠️ No photo captured to confirm');
+      return;
+    }
+
+    const engine = getClothingCaptureEngine();
+    const activeCat = engine.getActiveCategory();
+
+    const res = engine.addConfirmedPhoto(activeCat, currentClothingPhotoDataUrl);
+
+    if (!res.success) {
+      showToast(`⚠️ ${res.error}`);
+      return;
+    }
+
+    const summary = engine.getSlotSummary();
+    const catName = activeCat.charAt(0).toUpperCase() + activeCat.slice(1);
+    const catCount = summary[activeCat].count;
+    const catMax = summary[activeCat].max;
+
+    showToast(`✓ Confirmed ${catName} #${catCount} (${catCount}/${catMax}) ✨`);
+
+    // Reset viewfinder for next capture
+    retakeClothingPhoto();
+    updateClothingCameraBadges();
+
+    // If active category reached maximum, suggest next step
+    if (summary[activeCat].isFull) {
+      if (summary.total.isFull) {
+        showToast('🎉 All 16 wardrobe slots filled! Opening review...');
+        setTimeout(() => openClothingReview(), 600);
+      } else {
+        // Suggest or switch to next available category
+        let nextCat = null;
+        if (!summary.shirt.isFull) nextCat = 'shirt';
+        else if (!summary.pant.isFull) nextCat = 'pant';
+        else if (!summary.shoe.isFull) nextCat = 'shoe';
+
+        if (nextCat) {
+          showToast(`✓ ${catName} slots complete (${catMax}/${catMax}). Switched to ${nextCat.toUpperCase()} guide!`);
+          switchClothingCategory(nextCat);
+        } else {
+          openClothingReview();
+        }
+      }
+    }
+  }
+
+  function flipClothingCamera() {
+    clothingCameraFacingMode = (clothingCameraFacingMode === 'environment' ? 'user' : 'environment');
+    const engine = getClothingCaptureEngine();
+    openClothingCamera(engine.getActiveCategory());
+  }
+
+  function triggerClothingFileInput() {
+    const input = document.getElementById('clothingFileInput');
+    if (input) input.click();
+  }
+
+  function handleClothingFileSelected(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      currentClothingPhotoDataUrl = e.target.result;
+
+      const videoEl = document.getElementById('clothingCameraVideo');
+      const previewImg = document.getElementById('clothingCapturedPreview');
+      const silFrame = document.getElementById('clothingSilhouetteFrame');
+      const liveControls = document.getElementById('clothingCameraLiveControls');
+      const reviewControls = document.getElementById('clothingCameraReviewControls');
+      const fallbackCard = document.getElementById('clothingCameraFallback');
+
+      if (previewImg) {
+        previewImg.src = currentClothingPhotoDataUrl;
+        previewImg.classList.remove('hidden');
+      }
+
+      if (videoEl) videoEl.classList.add('hidden');
+      if (fallbackCard) fallbackCard.classList.add('hidden');
+      if (silFrame) silFrame.classList.add('hidden');
+      if (liveControls) liveControls.classList.add('hidden');
+      if (reviewControls) reviewControls.classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+    event.target.value = ''; // Reset input
+  }
+
+  function loadSampleClothingPhoto() {
+    const engine = getClothingCaptureEngine();
+    const activeCat = engine.getActiveCategory();
+
+    const sampleMap = {
+      shirt: 'assets/navy_shirt.jpg',
+      pant: 'assets/beige_chinos.jpg',
+      shoe: 'assets/white_sneakers.jpg'
+    };
+
+    currentClothingPhotoDataUrl = sampleMap[activeCat] || 'assets/navy_shirt.jpg';
+
+    const videoEl = document.getElementById('clothingCameraVideo');
+    const previewImg = document.getElementById('clothingCapturedPreview');
+    const silFrame = document.getElementById('clothingSilhouetteFrame');
+    const liveControls = document.getElementById('clothingCameraLiveControls');
+    const reviewControls = document.getElementById('clothingCameraReviewControls');
+    const fallbackCard = document.getElementById('clothingCameraFallback');
+
+    if (previewImg) {
+      previewImg.src = currentClothingPhotoDataUrl;
+      previewImg.classList.remove('hidden');
+    }
+
+    if (videoEl) videoEl.classList.add('hidden');
+    if (fallbackCard) fallbackCard.classList.add('hidden');
+    if (silFrame) silFrame.classList.add('hidden');
+    if (liveControls) liveControls.classList.add('hidden');
+    if (reviewControls) reviewControls.classList.remove('hidden');
+  }
+
+  function openClothingReview() {
+    closeClothingCamera();
+    closeClothingCaptureMenu();
+
+    const modal = document.getElementById('clothingCaptureReviewModal');
+    if (!modal) return;
+
+    renderClothingReviewGrid();
+    modal.classList.remove('hidden');
+  }
+
+  function closeClothingReview() {
+    const modal = document.getElementById('clothingCaptureReviewModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function renderClothingReviewGrid() {
+    const engine = getClothingCaptureEngine();
+    const summary = engine.getSlotSummary();
+
+    const totalBadge = document.getElementById('reviewTotalBadge');
+    if (totalBadge) totalBadge.textContent = `${summary.total.count} of 16 Selected`;
+
+    const sPill = document.getElementById('reviewShirtCountPill');
+    const pPill = document.getElementById('reviewPantCountPill');
+    const shPill = document.getElementById('reviewShoeCountPill');
+
+    if (sPill) sPill.textContent = `${summary.shirt.count} / ${summary.shirt.max}`;
+    if (pPill) pPill.textContent = `${summary.pant.count} / ${summary.pant.max}`;
+    if (shPill) shPill.textContent = `${summary.shoe.count} / ${summary.shoe.max}`;
+
+    const tally = document.getElementById('reviewTallySummary');
+    if (tally) {
+      tally.textContent = `${summary.shirt.count} Shirts • ${summary.pant.count} Pants • ${summary.shoe.count} Shoes confirmed`;
+    }
+
+    const saveBtn = document.getElementById('btnSaveWardrobeSelection');
+    if (saveBtn) {
+      saveBtn.disabled = summary.total.count === 0;
+      saveBtn.textContent = summary.total.count === 0
+        ? 'Capture clothes to finish'
+        : `Finish & Save ${summary.total.count} Clothes to Wardrobe ✨`;
+    }
+
+    // Render Shirts Grid
+    renderCategoryGridSection('shirt', 'reviewShirtsGrid', summary.shirt.max);
+    // Render Pants Grid
+    renderCategoryGridSection('pant', 'reviewPantsGrid', summary.pant.max);
+    // Render Shoes Grid
+    renderCategoryGridSection('shoe', 'reviewShoesGrid', summary.shoe.max);
+  }
+
+  function renderCategoryGridSection(category, containerId, maxCount) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const engine = getClothingCaptureEngine();
+    const items = engine.getPhotos(category);
+    container.innerHTML = '';
+
+    // Render Confirmed Items
+    items.forEach((item, idx) => {
+      const card = document.createElement('div');
+      card.className = 'clothing-card-item';
+      card.innerHTML = `
+        <img src="${item.photo}" class="clothing-card-img" alt="${item.name}" onclick="app.openClothingLightbox('${item.photo}', '${item.name}', '${category}', '${item.id}')" />
+        <button type="button" class="clothing-card-remove-btn" onclick="event.stopPropagation(); app.removeClothingPhoto('${category}', '${item.id}')" title="Remove this photo">✕</button>
+        <div class="clothing-card-label">${item.name}</div>
+      `;
+      container.appendChild(card);
+    });
+
+    // Render Add/Retake Empty Slot Card if under capacity
+    if (items.length < maxCount) {
+      const emptyCard = document.createElement('div');
+      emptyCard.className = 'clothing-empty-slot';
+      const label = category === 'shirt' ? 'Shirt' : (category === 'pant' ? 'Pant' : 'Shoe');
+      emptyCard.innerHTML = `
+        <span class="clothing-empty-icon">+</span>
+        <span class="clothing-empty-text">Add ${label}</span>
+      `;
+      emptyCard.onclick = () => openClothingCamera(category);
+      container.appendChild(emptyCard);
+    }
+  }
+
+  function removeClothingPhoto(category, photoId) {
+    const engine = getClothingCaptureEngine();
+    const res = engine.removePhoto(category, photoId);
+
+    if (res.success) {
+      showToast('🗑️ Photo removed. Slot freed!');
+      renderClothingReviewGrid();
+    }
+  }
+
+  function openClothingLightbox(photoUrl, title, category, photoId) {
+    const modal = document.getElementById('clothingPreviewLightbox');
+    const img = document.getElementById('lightboxImg');
+    const titleEl = document.getElementById('lightboxTitle');
+    const removeBtn = document.getElementById('lightboxRemoveBtn');
+
+    if (!modal) return;
+
+    activeLightboxItem = { category, photoId };
+    if (img) img.src = photoUrl;
+    if (titleEl) titleEl.textContent = title || 'Garment Preview';
+
+    if (removeBtn) {
+      removeBtn.onclick = () => {
+        closeClothingLightbox();
+        removeClothingPhoto(category, photoId);
+      };
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeClothingLightbox() {
+    const modal = document.getElementById('clothingPreviewLightbox');
+    if (modal) modal.classList.add('hidden');
+    activeLightboxItem = null;
+  }
+
+  async function saveCapturedClothingToWardrobe() {
+    const engine = getClothingCaptureEngine();
+    const newItems = engine.exportToWardrobeItems();
+
+    if (!newItems || newItems.length === 0) {
+      showToast('⚠️ No captured clothes to save');
+      return;
+    }
+
+    // 1. Prepend to in-memory WARDROBE_ITEMS
+    newItems.forEach(item => {
+      WARDROBE_ITEMS.unshift(item);
+    });
+
+    // 2. Prepend to state.wardrobe
+    if (!Array.isArray(state.wardrobe)) state.wardrobe = [];
+    newItems.forEach(item => {
+      state.wardrobe.unshift(item);
+    });
+
+    // 3. Persist to localStorage for session durability
+    try {
+      const existing = JSON.parse(localStorage.getItem('woobi_captured_wardrobe_v1') || '[]');
+      localStorage.setItem('woobi_captured_wardrobe_v1', JSON.stringify([...newItems, ...existing]));
+    } catch (err) {
+      console.warn('Could not persist to localStorage:', err);
+    }
+
+    // 4. Background sync with backend if session is present
+    const authToken = typeof localStorage !== 'undefined' ? localStorage.getItem('woobi_auth_token') : null;
+    if (authToken && typeof fetch !== 'undefined') {
+      newItems.forEach(item => {
+        fetch('/api/v1/wardrobe/items', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({
+            name: item.name,
+            category: item.category,
+            photo: item.photo,
+            condition: item.condition,
+            fit: item.fit
+          })
+        }).catch(err => console.warn('Background sync failed:', err.message));
+      });
+    }
+
+    // 5. Refresh all consumer modules (AI Stylist, 3D Studio, Wardrobe Grid)
+    renderWardrobeGrid();
+    updateWardrobeCounts();
+    updateStylistWardrobeStats();
+    renderSerenGarments();
+
+    showToast(`✓ Successfully added ${newItems.length} clothes to your wardrobe! ✨`);
+
+    // 6. Clear session and close review
+    engine.clearAll();
+    closeClothingReview();
+
+    // 7. Transition to Wardrobe screen to see new clothes
+    goToScreen('wardrobe');
+  }
+
+  function loadPersistedCapturedWardrobe() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const saved = JSON.parse(localStorage.getItem('woobi_captured_wardrobe_v1') || '[]');
+        if (Array.isArray(saved) && saved.length > 0) {
+          saved.forEach(item => {
+            if (!WARDROBE_ITEMS.some(i => i.id === item.id)) {
+              WARDROBE_ITEMS.unshift(item);
+            }
+          });
+          if (!Array.isArray(state.wardrobe)) state.wardrobe = [];
+          saved.forEach(item => {
+            if (!state.wardrobe.some(i => i.id === item.id)) {
+              state.wardrobe.unshift(item);
+            }
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('Error loading persisted captured wardrobe:', err);
+    }
+  }
+
+
+  // =========================================================================
+  // 10. INTERACTIVE WEEKLY PLANNER & CALENDAR ENGINE
+  // =========================================================================
+  const PLANNER_STORAGE_KEY = 'woobi_weekly_calendar_v1';
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  const PLANNER_SAMPLE_OUTFITS = [
+    {
+      id: 'look_easy_everyday',
+      title: 'Easy everyday',
+      occasion: 'College',
+      tag: 'Casual',
+      caption: 'A relaxed navy cotton shirt paired with beige chinos and white sneakers.',
+      previewPhoto: 'assets/model_tryon_navy.jpg',
+      items: [
+        { name: 'Navy shirt', photo: 'assets/navy_shirt.jpg' },
+        { name: 'Beige chinos', photo: 'assets/beige_chinos.jpg' },
+        { name: 'White sneakers', photo: 'assets/white_sneakers.jpg' },
+        { name: 'Leather watch', photo: 'assets/leather_watch.jpg' }
+      ]
+    },
+    {
+      id: 'look_office_ready',
+      title: 'Office ready',
+      occasion: 'Office',
+      tag: 'Work',
+      caption: 'Crisp breathable white linen tailored with beige chinos and tan loafers.',
+      previewPhoto: 'assets/model_tryon_linen.jpg',
+      items: [
+        { name: 'White linen shirt', photo: 'assets/white_linen_shirt.jpg' },
+        { name: 'Beige chinos', photo: 'assets/beige_chinos.jpg' },
+        { name: 'Tan loafers', photo: 'assets/tan_loafers.jpg' },
+        { name: 'Leather watch', photo: 'assets/leather_watch.jpg' }
+      ]
+    },
+    {
+      id: 'look_weekend_casual',
+      title: 'Weekend casual',
+      occasion: 'Weekend',
+      tag: 'Weekend',
+      caption: 'Lightweight breathable olive kurta with relaxed cream palazzo.',
+      previewPhoto: 'assets/model_tryon_kurta.jpg',
+      items: [
+        { name: 'Olive kurta', photo: 'assets/olive_kurta.jpg' },
+        { name: 'Cream palazzo', photo: 'assets/cream_palazzo.jpg' },
+        { name: 'Tan loafers', photo: 'assets/tan_loafers.jpg' }
+      ]
+    },
+    {
+      id: 'look_urban_minimal',
+      title: 'Relaxed Urban Minimal',
+      occasion: 'City Casual',
+      tag: 'Casual',
+      caption: 'Deep maroon top paired with dark pleated skirt and white sneakers.',
+      previewPhoto: 'assets/model_tryon_maroon.jpg',
+      items: [
+        { name: 'Maroon top', photo: 'assets/maroon_top.jpg' },
+        { name: 'Dark skirt', photo: 'assets/dark_skirt.jpg' },
+        { name: 'White sneakers', photo: 'assets/white_sneakers.jpg' }
+      ]
+    },
+    {
+      id: 'look_tailored_blazer',
+      title: 'Smart Tailored Blazer',
+      occasion: 'Meeting',
+      tag: 'Work',
+      caption: 'Structured smart blazer with dark denim and black trainers.',
+      previewPhoto: 'assets/smart_blazer.jpg',
+      items: [
+        { name: 'Tailored blazer', photo: 'assets/smart_blazer.jpg' },
+        { name: 'Dark denim', photo: 'assets/dark_denim.jpg' },
+        { name: 'Black trainers', photo: 'assets/black_trainers.jpg' }
+      ]
+    },
+    {
+      id: 'look_heritage_kurti',
+      title: 'Heritage Indigo Kurti',
+      occasion: 'Celebration',
+      tag: 'Ethnic',
+      caption: 'Handcrafted indigo kurti paired with cream palazzo and brown sandals.',
+      previewPhoto: 'assets/indigo_kurti.jpg',
+      items: [
+        { name: 'Indigo kurti', photo: 'assets/indigo_kurti.jpg' },
+        { name: 'Cream palazzo', photo: 'assets/cream_palazzo.jpg' },
+        { name: 'Brown sandals', photo: 'assets/brown_sandals.jpg' }
+      ]
+    },
+    {
+      id: 'look_terracotta_street',
+      title: 'Terracotta City Walk',
+      occasion: 'Everyday',
+      tag: 'Weekend',
+      caption: 'Warm earthy terracotta tee paired with dark denim and white sneakers.',
+      previewPhoto: 'assets/terracotta_tee.jpg',
+      items: [
+        { name: 'Terracotta tee', photo: 'assets/terracotta_tee.jpg' },
+        { name: 'Dark denim', photo: 'assets/dark_denim.jpg' },
+        { name: 'White sneakers', photo: 'assets/white_sneakers.jpg' }
+      ]
+    }
+  ];
+
+  const plannerState = {
+    weekOffset: 0,
+    selectedDateKey: null,
+    assigningForDateKey: null,
+    filterCategory: 'All',
+    plannedOutfits: {}
+  };
+
+  function getPlannerWeekDays(weekOffset = 0) {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 is Sun, 1 is Mon, ... 6 is Sat
+    const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + distanceToMonday + (weekOffset * 7));
+    monday.setHours(0, 0, 0, 0);
+
+    const days = [];
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const dateNum = String(d.getDate()).padStart(2, '0');
+      const dateKey = `${year}-${month}-${dateNum}`;
+      const isToday = d.toDateString() === now.toDateString();
+
+      days.push({
+        dateObj: d,
+        dateKey,
+        dayName: dayNames[i],
+        dayNum: d.getDate(),
+        dateDisplay: `${d.getDate()} ${monthNames[d.getMonth()]}`,
+        fullDisplay: `${dayNames[i]}, ${d.getDate()} ${monthNames[d.getMonth()]}`,
+        isToday
+      });
+    }
+    return days;
+  }
+
+  function initPlannerState() {
+    try {
+      const saved = localStorage.getItem(PLANNER_STORAGE_KEY);
+      if (saved) {
+        plannerState.plannedOutfits = JSON.parse(saved);
+      } else {
+        // Initialize with standard starting looks on Monday and Tuesday of current week
+        const currentDays = getPlannerWeekDays(0);
+        plannerState.plannedOutfits = {
+          [currentDays[0].dateKey]: PLANNER_SAMPLE_OUTFITS[0],
+          [currentDays[1].dateKey]: PLANNER_SAMPLE_OUTFITS[1]
+        };
+        savePlannerState();
+      }
+    } catch (e) {
+      console.warn('Could not read planner state:', e);
+      plannerState.plannedOutfits = {};
+    }
+
+    if (!plannerState.selectedDateKey) {
+      const currentDays = getPlannerWeekDays(0);
+      const todayDay = currentDays.find(d => d.isToday);
+      plannerState.selectedDateKey = todayDay ? todayDay.dateKey : currentDays[0].dateKey;
+    }
+  }
+
+  function savePlannerState() {
+    try {
+      localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(plannerState.plannedOutfits));
+    } catch (e) {
+      console.warn('Could not save planner state:', e);
+    }
+  }
+
+  function renderWeeklyCalendar() {
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const stripEl = document.getElementById('plannerWeekStrip');
+    const streamEl = document.getElementById('weeklyScheduleStream');
+    const titleEl = document.getElementById('plannerWeekTitle');
+    const subEl = document.getElementById('plannerWeekSub');
+    const countEl = document.getElementById('plannerSummaryCount');
+    const badgeEl = document.getElementById('plannerSelectedDateBadge');
+    const fillEl = document.getElementById('plannerProgressFill');
+
+    // Title & Subtitle for Week Range
+    if (titleEl) {
+      const first = days[0];
+      const last = days[6];
+      titleEl.textContent = `${first.dateDisplay} – ${last.dateDisplay}, ${first.dateObj.getFullYear()}`;
+    }
+    if (subEl) {
+      if (plannerState.weekOffset === 0) {
+        subEl.textContent = 'This Week (Current)';
+      } else if (plannerState.weekOffset === 1) {
+        subEl.textContent = 'Next Week';
+      } else if (plannerState.weekOffset === -1) {
+        subEl.textContent = 'Last Week';
+      } else if (plannerState.weekOffset > 1) {
+        subEl.textContent = `In ${plannerState.weekOffset} Weeks`;
+      } else {
+        subEl.textContent = `${Math.abs(plannerState.weekOffset)} Weeks Ago`;
+      }
+    }
+
+    // Ensure selected date is set
+    const hasSelectedInWeek = days.some(d => d.dateKey === plannerState.selectedDateKey);
+    if (!hasSelectedInWeek) {
+      const todayDay = days.find(d => d.isToday);
+      plannerState.selectedDateKey = todayDay ? todayDay.dateKey : days[0].dateKey;
+    }
+
+    const selectedDayObj = days.find(d => d.dateKey === plannerState.selectedDateKey) || days[0];
+    if (badgeEl) {
+      badgeEl.textContent = `Selected: ${selectedDayObj.fullDisplay}`;
+    }
+
+    // Count planned days in this active week
+    let plannedInWeekCount = 0;
+    days.forEach(d => {
+      if (plannerState.plannedOutfits[d.dateKey]) {
+        plannedInWeekCount++;
+      }
+    });
+
+    if (countEl) {
+      countEl.innerHTML = `<strong>${plannedInWeekCount} of 7</strong> days planned`;
+    }
+    if (fillEl) {
+      const percent = Math.round((plannedInWeekCount / 7) * 100);
+      fillEl.style.width = `${percent}%`;
+    }
+
+    // Render Weekly Strip
+    if (stripEl) {
+      stripEl.innerHTML = days.map(day => {
+        const isSelected = day.dateKey === plannerState.selectedDateKey;
+        const hasPlan = !!plannerState.plannedOutfits[day.dateKey];
+        return `
+          <div class="day-col ${isSelected ? 'selected-day-col' : ''} ${day.isToday ? 'is-today' : ''}" 
+               onclick="app.selectPlannerDate('${day.dateKey}', true)"
+               title="${day.fullDisplay}${hasPlan ? ' (Outfit Planned)' : ''}">
+            <span class="d-name">${day.dayName}</span>
+            <span class="d-num ${isSelected ? 'active-bubble' : ''}">${day.dayNum}</span>
+            <span class="d-dot ${hasPlan ? 'has-plan' : ''}"></span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Daily Schedule Cards
+    if (streamEl) {
+      streamEl.innerHTML = days.map(day => {
+        const isSelected = day.dateKey === plannerState.selectedDateKey;
+        const outfit = plannerState.plannedOutfits[day.dateKey];
+
+        if (outfit) {
+          const thumbsHtml = (outfit.items || []).slice(0, 4).map(it =>
+            `<img src="${escapeHtml(it.photo)}" alt="${escapeHtml(it.name)}" title="${escapeHtml(it.name)}">`
+          ).join('');
+
+          return `
+            <div class="day-plan-card has-outfit ${isSelected ? 'selected-day' : ''}" 
+                 id="card-${day.dateKey}" 
+                 onclick="app.selectPlannerDate('${day.dateKey}', false)">
+              <div class="dp-day-info">
+                <strong>${day.dayName}</strong>
+                <span>${day.dateDisplay}</span>
+                ${day.isToday ? '<span class="dp-today-tag">Today</span>' : ''}
+              </div>
+              <div class="dp-outfit-preview">
+                <div class="dp-outfit-meta">
+                  <div class="dp-title-row">
+                    <span class="dp-outfit-title">${escapeHtml(outfit.title)}</span>
+                    <span class="dp-occ-tag">${escapeHtml(outfit.occasion || outfit.tag || 'Casual')}</span>
+                  </div>
+                  <div class="dp-thumbs-row">
+                    ${thumbsHtml}
+                  </div>
+                </div>
+              </div>
+              <div class="dp-actions-row" onclick="event.stopPropagation()">
+                <button class="btn-plan-replace" onclick="app.openPlannerOutfitModal('${day.dateKey}')" title="Replace outfit for ${day.fullDisplay}">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                  <span>Replace</span>
+                </button>
+                <button class="btn-plan-remove" onclick="app.removePlannerOutfit('${day.dateKey}')" title="Remove outfit for ${day.fullDisplay}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="day-plan-card empty-day ${isSelected ? 'selected-day' : ''}" 
+                 id="card-${day.dateKey}" 
+                 onclick="app.selectPlannerDate('${day.dateKey}', false)">
+              <div class="dp-day-info">
+                <strong>${day.dayName}</strong>
+                <span>${day.dateDisplay}</span>
+                ${day.isToday ? '<span class="dp-today-tag">Today</span>' : ''}
+              </div>
+              <span class="dp-empty-text">No outfit planned yet</span>
+              <button class="btn-plan-add" onclick="event.stopPropagation(); app.openPlannerOutfitModal('${day.dateKey}')" title="Plan outfit for ${day.fullDisplay}">
+                <span class="btn-plus-icon">+</span>
+                <span>Plan</span>
+              </button>
+            </div>
+          `;
+        }
+      }).join('');
+    }
+  }
+
+  function selectPlannerDate(dateKey, shouldScroll = true) {
+    plannerState.selectedDateKey = dateKey;
+    renderWeeklyCalendar();
+
+    if (shouldScroll) {
+      const card = document.getElementById(`card-${dateKey}`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }
+
+  function plannerChangeWeek(delta) {
+    plannerState.weekOffset += delta;
+    renderWeeklyCalendar();
+  }
+
+  function plannerJumpToToday() {
+    plannerState.weekOffset = 0;
+    const days = getPlannerWeekDays(0);
+    const todayDay = days.find(d => d.isToday);
+    plannerState.selectedDateKey = todayDay ? todayDay.dateKey : days[0].dateKey;
+    renderWeeklyCalendar();
+    showToast('📅 Jumped to current week.');
+  }
+
+  function weeklyPlannerGoBack() {
+    goToScreen('today');
+  }
+
+  function openPlannerOutfitModal(dateKey) {
+    plannerState.assigningForDateKey = dateKey;
+    plannerState.selectedDateKey = dateKey;
+    plannerState.filterCategory = 'All';
+
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const dayObj = days.find(d => d.dateKey === dateKey) || {
+      fullDisplay: dateKey
+    };
+
+    const modal = document.getElementById('plannerOutfitModal');
+    const titleEl = document.getElementById('plannerModalTitle');
+    const subEl = document.getElementById('plannerModalSub');
+    const existingOutfit = plannerState.plannedOutfits[dateKey];
+
+    if (subEl) {
+      subEl.textContent = existingOutfit ? 'Replace Outfit' : 'Plan Outfit';
+    }
+    if (titleEl) {
+      titleEl.textContent = existingOutfit
+        ? `Replace look for ${dayObj.fullDisplay}`
+        : `Choose look for ${dayObj.fullDisplay}`;
+    }
+
+    // Reset filter tabs active state
+    document.querySelectorAll('#plannerFilterTabs .planner-filter-tab').forEach((b, idx) => {
+      b.classList.toggle('active', idx === 0);
+    });
+
+    renderPlannerOutfitsList();
+
+    if (modal) {
+      modal.classList.remove('hidden');
+    }
+  }
+
+  function closePlannerOutfitModal() {
+    const modal = document.getElementById('plannerOutfitModal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+    plannerState.assigningForDateKey = null;
+  }
+
+  function filterPlannerOutfits(category, btnEl) {
+    plannerState.filterCategory = category;
+    document.querySelectorAll('#plannerFilterTabs .planner-filter-tab').forEach(b => {
+      b.classList.toggle('active', b === btnEl);
+    });
+    renderPlannerOutfitsList();
+  }
+
+  function renderPlannerOutfitsList() {
+    const gridEl = document.getElementById('plannerOutfitsGrid');
+    if (!gridEl) return;
+
+    const dateKey = plannerState.assigningForDateKey;
+    const currentOutfit = dateKey ? plannerState.plannedOutfits[dateKey] : null;
+
+    let filtered = PLANNER_SAMPLE_OUTFITS;
+    if (plannerState.filterCategory && plannerState.filterCategory !== 'All') {
+      filtered = PLANNER_SAMPLE_OUTFITS.filter(o =>
+        (o.tag && o.tag.toLowerCase() === plannerState.filterCategory.toLowerCase()) ||
+        (o.occasion && o.occasion.toLowerCase() === plannerState.filterCategory.toLowerCase())
+      );
+    }
+
+    gridEl.innerHTML = filtered.map(outfit => {
+      const isCurrentlyAssigned = currentOutfit && currentOutfit.id === outfit.id;
+      const thumbsHtml = (outfit.items || []).slice(0, 4).map(it =>
+        `<img src="${escapeHtml(it.photo)}" alt="${escapeHtml(it.name)}" title="${escapeHtml(it.name)}">`
+      ).join('');
+
+      return `
+        <div class="planner-outfit-pick-card ${isCurrentlyAssigned ? 'currently-assigned' : ''}" 
+             onclick="app.assignPlannerOutfit('${escapeHtml(outfit.id)}')">
+          <img src="${escapeHtml(outfit.previewPhoto)}" class="pick-card-photo" alt="${escapeHtml(outfit.title)}">
+          <div class="pick-card-body">
+            <div class="pick-card-header">
+              <span class="pick-card-title">${escapeHtml(outfit.title)}</span>
+              <span class="dp-occ-tag">${escapeHtml(outfit.occasion || outfit.tag)}</span>
+            </div>
+            <p class="pick-card-caption">${escapeHtml(outfit.caption)}</p>
+            <div class="pick-card-thumbs">
+              ${thumbsHtml}
+            </div>
+          </div>
+          ${isCurrentlyAssigned
+          ? '<span class="badge-current-assigned">✓ Assigned</span>'
+          : `<button class="btn-pick-assign" onclick="event.stopPropagation(); app.assignPlannerOutfit('${escapeHtml(outfit.id)}')">${currentOutfit ? 'Select' : 'Assign'}</button>`
+        }
+        </div>
+      `;
+    }).join('');
+  }
+
+  function assignPlannerOutfit(outfitId) {
+    const dateKey = plannerState.assigningForDateKey || plannerState.selectedDateKey;
+    if (!dateKey) return;
+
+    const outfit = PLANNER_SAMPLE_OUTFITS.find(o => o.id === outfitId);
+    if (!outfit) return;
+
+    plannerState.plannedOutfits[dateKey] = outfit;
+    savePlannerState();
+    closePlannerOutfitModal();
+    renderWeeklyCalendar();
+
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const dayObj = days.find(d => d.dateKey === dateKey);
+    const dayName = dayObj ? dayObj.fullDisplay : dateKey;
+    showToast(`✓ "${outfit.title}" assigned to ${dayName}`);
+  }
+
+  function removePlannerOutfit(dateKey) {
+    if (!dateKey || !plannerState.plannedOutfits[dateKey]) return;
+
+    const outfit = plannerState.plannedOutfits[dateKey];
+    delete plannerState.plannedOutfits[dateKey];
+    savePlannerState();
+    renderWeeklyCalendar();
+
+    const days = getPlannerWeekDays(plannerState.weekOffset);
+    const dayObj = days.find(d => d.dateKey === dateKey);
+    const dayName = dayObj ? dayObj.fullDisplay : dateKey;
+    showToast(`🗑️ Removed "${outfit.title}" from ${dayName}`);
   }
 
   function init() {
     if (typeof window !== 'undefined' && window.appBootstrap && typeof window.appBootstrap.start === 'function') {
       window.appBootstrap.start();
     }
+    loadPersistedCapturedWardrobe();
     initStreakState();
+    initPlannerState();
 
     renderCurrentLook();
     renderWardrobeGrid();
@@ -2641,6 +4663,15 @@
     filterWardrobeGrid,
     selectPlan,
     activatePremium,
+    openStyleHint,
+    selectSubscriptionPlan,
+    openUpgradeConfirmation,
+    closeUpgradeConfirmation,
+    confirmPlanPreference,
+    toggleFaq,
+    updateSubscriptionUI,
+    switchPlanView,
+    scrollPlanCard: switchPlanView,
     saveReminderPreferences,
     exportWardrobe,
     exportUserData,
@@ -2730,9 +4761,33 @@
     serenApplyPhotoMatch,
     updateSerenGreeting,
 
-    // Daily Outfit-Upload Streak & Countdown Timer API
+    // Daily Outfit-Upload Streak, Camera, Memories & Circular Calendar API
+    handleStreakIconClick,
     openStreakModal,
     closeStreakModal,
+    prevCalendarMonth,
+    nextCalendarMonth,
+    renderStreakCalendar,
+    seedStreakJun21ToToday: () => {
+      const eng = getStreakEngine();
+      if (eng && typeof eng.seedStreakJun21ToToday === 'function') {
+        eng.seedStreakJun21ToToday();
+      }
+      renderStreakCalendar();
+      updateStreakUI();
+    },
+    openCameraModal,
+    closeCameraModal,
+    captureCameraSnapshot,
+    triggerFileInputClick,
+    handleCameraFileSelected: handleOutfitPhotoSelected,
+    loadSampleOutfitLook,
+    confirmCapturedOutfit,
+    retakeCameraPhoto,
+    openMemoriesModal,
+    closeMemoriesModal,
+    openMemoryDetail,
+    closeMemoryDetailModal,
     triggerOutfitPhotoUpload,
     handleOutfitPhotoSelected,
     openPhotoConfirmModal,
@@ -2747,7 +4802,60 @@
     devSimulateTwoHoursLeft,
     devSimulateStreakBreak,
     devToggleRestoreToken,
-    devResetStreak
+    devResetStreak,
+    resetTestData,
+    toggleTestUserMode,
+    loadTestUserStreak136: () => {
+      const eng = getStreakEngine();
+      if (eng && typeof eng.loadTestUserStreak136 === 'function') {
+        eng.loadTestUserStreak136();
+      }
+      renderStreakCalendar();
+      updateStreakUI();
+    },
+    switchToRealUser: (id) => {
+      const eng = getStreakEngine();
+      if (eng && typeof eng.switchToRealUser === 'function') {
+        eng.switchToRealUser(id);
+      }
+      renderStreakCalendar();
+      updateStreakUI();
+    },
+
+    // Clothing Capture & Silhouette Digitization API
+    openClothingCaptureMenu,
+    closeClothingCaptureMenu,
+    openClothingCamera,
+    closeClothingCamera,
+    switchClothingCategory,
+    updateClothingCameraBadges,
+    captureClothingSnapshot,
+    retakeClothingPhoto,
+    confirmClothingPhoto,
+    flipClothingCamera,
+    triggerClothingFileInput,
+    handleClothingFileSelected,
+    loadSampleClothingPhoto,
+    openClothingReview,
+    closeClothingReview,
+    renderClothingReviewGrid,
+    removeClothingPhoto,
+    openClothingLightbox,
+    closeClothingLightbox,
+    saveCapturedClothingToWardrobe,
+    loadPersistedCapturedWardrobe,
+
+    // Interactive Weekly Calendar & Outfit Planner API
+    renderWeeklyCalendar,
+    selectPlannerDate,
+    plannerChangeWeek,
+    plannerJumpToToday,
+    weeklyPlannerGoBack,
+    openPlannerOutfitModal,
+    closePlannerOutfitModal,
+    filterPlannerOutfits,
+    assignPlannerOutfit,
+    removePlannerOutfit
   };
 
   window.app = Object.assign(window.app || {}, appExports);

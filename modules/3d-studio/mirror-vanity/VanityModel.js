@@ -11,7 +11,7 @@ import { VanityLighting } from './VanityLighting.js';
 import { MirrorReflection } from './MirrorReflection.js';
 
 export const VANITY_CONFIG = {
-  position: { x: 0.92, y: 0, z: -0.05 },
+  position: { x: 1.15, y: 0, z: -2.20 },
   rotationY: -0.32,
   tableHeight: 0.84,
   tableWidth: 0.98,
@@ -65,13 +65,14 @@ export class VanityModel {
     const proceduralGroup = new THREE.Group();
     proceduralGroup.name = 'procedural_vanity';
 
-    const marbleMat = VanityMaterials.createMarbleMaterial(THREE, textures.calacatta);
+    const marbleMat = VanityMaterials.createMarbleMaterial(THREE, textures.champagneStone || textures.calacatta, textures.stoneBump);
+    const legsMat = VanityMaterials.createLegsMaterial(THREE);
     const brassMat = VanityMaterials.createBrassMaterial(THREE);
     const ledGlowMat = VanityMaterials.createLedGlowMaterial(THREE);
     const glassMat = VanityMaterials.createGlassMaterial(THREE, false);
     const amberGlassMat = VanityMaterials.createGlassMaterial(THREE, true);
     const boucleMat = VanityMaterials.createBoucleMaterial(THREE, textures.wovenRug);
-    this.disposables.push(marbleMat, brassMat, ledGlowMat, glassMat, amberGlassMat, boucleMat);
+    this.disposables.push(marbleMat, legsMat, brassMat, ledGlowMat, glassMat, amberGlassMat, boucleMat);
 
     // 1. Polished Calacatta Gold Marble Countertop Table
     const topSlabGeo = new THREE.BoxGeometry(tableWidth, 0.065, tableDepth);
@@ -91,7 +92,7 @@ export class VanityModel {
       [tableWidth / 2 - 0.035, tableDepth / 2 - 0.035]
     ];
     legPositions.forEach(([lx, lz]) => {
-      const leg = new THREE.Mesh(legGeo, brassMat);
+      const leg = new THREE.Mesh(legGeo, legsMat);
       leg.position.set(lx, (tableHeight - 0.03) / 2, lz);
       leg.castShadow = true;
       proceduralGroup.add(leg);
@@ -229,12 +230,24 @@ export class VanityModel {
     stoolGroup.add(stoolPlinth);
     this.disposables.push(stoolPlinthGeo);
 
-    const stoolCushionGeo = new THREE.CylinderGeometry(this.config.stoolRadius, 0.24, this.config.stoolHeight, 36);
-    const stoolCushion = new THREE.Mesh(stoolCushionGeo, boucleMat);
-    stoolCushion.position.y = 0.25;
+    const stoolBodyGeo = new THREE.CylinderGeometry(0.245, 0.238, 0.33, 36);
+    const stoolBody = new THREE.Mesh(stoolBodyGeo, boucleMat);
+    stoolBody.position.y = 0.215;
+    stoolBody.castShadow = true;
+    stoolGroup.add(stoolBody);
+    this.disposables.push(stoolBodyGeo);
+
+    const stoolCushionGeo = new THREE.CylinderGeometry(this.config.stoolRadius, 0.245, 0.07, 36);
+    const cushionMat = new THREE.MeshStandardMaterial({
+      color: 0xF8F4EE,
+      roughness: 0.82,
+      metalness: 0.02
+    });
+    const stoolCushion = new THREE.Mesh(stoolCushionGeo, cushionMat);
+    stoolCushion.position.y = 0.415;
     stoolCushion.castShadow = true;
     stoolGroup.add(stoolCushion);
-    this.disposables.push(stoolCushionGeo);
+    this.disposables.push(stoolCushionGeo, cushionMat);
 
     proceduralGroup.add(stoolGroup);
 
@@ -247,6 +260,65 @@ export class VanityModel {
         this.group.add(model);
         this.isGLBLoaded = true;
         proceduralGroup.visible = false;
+
+        // Traverse GLB and bind mirror reflection & LED glow
+        model.traverse((child) => {
+          if (child.isMesh) {
+            if (child.name === 'Mirror_Surface' || child.name.includes('Mirror_Surface')) {
+              this.mirrorGlassMesh = child;
+              if (this.reflection) {
+                this.reflection.bindMirrorMesh(child, THREE);
+              }
+            } else if (child.name === 'Mirror_LED_Strip') {
+              child.material = VanityMaterials.createLedGlowMaterial(THREE);
+            } else if (child.name === 'Mirror_Frame') {
+              child.material = VanityMaterials.createBrassMaterial(THREE);
+            } else if (child.name === 'Vanity_Marble_Top' || child.name === 'Vanity_Cosmetic_Tray_Base' || child.name.includes('Marble')) {
+              // Generate planar UVs for horizontal tabletop geometry if missing (seren_vanity.glb has no UV attributes)
+              if (child.geometry && !child.geometry.attributes?.uv && child.geometry.attributes?.position && typeof THREE.BufferAttribute !== 'undefined') {
+                const pos = child.geometry.attributes.position;
+                if (typeof child.geometry.computeBoundingBox === 'function') {
+                  child.geometry.computeBoundingBox();
+                }
+                const bb = child.geometry.boundingBox;
+                const minX = bb ? bb.min.x : -0.675;
+                const maxX = bb ? bb.max.x : 0.675;
+                const minZ = bb ? bb.min.z : -0.240;
+                const maxZ = bb ? bb.max.z : 0.240;
+                const spanX = (maxX - minX) || 1.35;
+                const spanZ = (maxZ - minZ) || 0.48;
+
+                const uvs = new Float32Array(pos.count * 2);
+                for (let i = 0; i < pos.count; i++) {
+                  const x = pos.getX(i);
+                  const z = pos.getZ(i);
+                  uvs[i * 2] = (x - minX) / spanX;
+                  uvs[i * 2 + 1] = (z - minZ) / spanZ;
+                }
+                child.geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+              }
+              child.material = VanityMaterials.createMarbleMaterial(THREE, textures.champagneStone || textures.calacatta, textures.stoneBump);
+            } else if (child.name.includes('Vanity_Leg') || child.name.includes('Vanity_Top_Rail') || child.name.includes('Vanity_Tray_Rim') || child.name.includes('Vanity_Drawer_Seam')) {
+              child.material = VanityMaterials.createLegsMaterial(THREE);
+            } else if (child.name === 'Stool_Brass_Base_Ring' || child.name.includes('Stool_Brass') || child.name.includes('Stool_Base')) {
+              child.material = VanityMaterials.createBrassMaterial(THREE);
+            } else if (child.name === 'Stool_Top_Padded_Cushion') {
+              child.material = new THREE.MeshStandardMaterial({
+                color: 0xF8F4EE,
+                roughness: 0.80,
+                metalness: 0.02
+              });
+              this.disposables.push(child.material);
+            } else if (child.name === 'Stool_Upholstered_Body') {
+              child.material = new THREE.MeshStandardMaterial({
+                color: 0xEEE6DC,
+                roughness: 0.85,
+                metalness: 0.02
+              });
+              this.disposables.push(child.material);
+            }
+          }
+        });
       },
       () => {
         this.isGLBLoaded = false;

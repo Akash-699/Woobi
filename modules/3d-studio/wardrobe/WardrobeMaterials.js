@@ -5,20 +5,22 @@
  */
 
 export class WardrobeMaterials {
-  static createOakMaterial(THREE, woodTexture = null) {
+  static createOakMaterial(THREE, woodTexture = null, bumpTexture = null) {
     return new THREE.MeshStandardMaterial({
       map: woodTexture || null,
-      color: 0xC89C6A, // Honey natural oak
-      roughness: 0.42,
+      bumpMap: bumpTexture || null,
+      bumpScale: 0.006,
+      color: 0xA27443, // Natural European honey oak with rich grain depth (#A27443)
+      roughness: 0.48,
       metalness: 0.02
     });
   }
 
   static createBrassMaterial(THREE) {
     return new THREE.MeshStandardMaterial({
-      color: 0xD4AF37, // Warm satin brass
-      metalness: 0.88,
-      roughness: 0.24
+      color: 0x74583D, // Antique bronze (#74583D)
+      metalness: 0.75,
+      roughness: 0.35
     });
   }
 

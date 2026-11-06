@@ -13,8 +13,8 @@ export const WARDROBE_CONFIG = {
   width: 2.20 * (2.40 / 3.00),
   height: 3.00 * (2.40 / 3.00),
   depth: 0.65 * (2.40 / 3.00),
-  position: { x: -0.96, y: 0, z: -0.32 },
-  rotationY: 0.30
+  position: { x: -1.20, y: 0, z: -2.40 },
+  rotationY: 0.35
 };
 
 export class WardrobeModel {
@@ -57,7 +57,7 @@ export class WardrobeModel {
     const proceduralGroup = new THREE.Group();
     proceduralGroup.name = 'procedural_wardrobe';
 
-    const oakMat = WardrobeMaterials.createOakMaterial(THREE, textures.oak);
+    const oakMat = WardrobeMaterials.createOakMaterial(THREE, textures.oak, textures.oakBump);
     const brassMat = WardrobeMaterials.createBrassMaterial(THREE);
     const ledMat = WardrobeMaterials.createLedMaterial(THREE);
     this.disposables.push(oakMat, brassMat, ledMat);
