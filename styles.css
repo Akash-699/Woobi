@@ -11187,10 +11187,60 @@ body {
   background: #FFFFFF;
 }
 
-.camera-review-actions {
+.camera-review-actions,
+.camera-review-actions-trio {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
+  width: 100%;
+}
+
+.btn-camera-action {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 10px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(220, 208, 192, 0.85);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(45, 30, 18, 0.08);
+}
+
+.btn-camera-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 30, 18, 0.16);
+}
+
+.btn-camera-action:active {
+  transform: scale(0.97);
+}
+
+.btn-camera-download {
+  background: #FFFFFF;
+  color: #2F241A;
+  border-color: #D5C5B0;
+}
+
+.btn-camera-retake {
+  background: #F4EBE0;
+  color: #4A3B2C;
+  border-color: #D5C5B0;
+}
+
+.btn-camera-share {
+  background: var(--olive-primary, #52634B);
+  color: #FFFFFF;
+  border-color: var(--olive-primary, #52634B);
+}
+
+.btn-camera-share:hover {
+  background: var(--olive-dark, #3E4B39);
 }
 
 /* ==========================================================================
@@ -11311,8 +11361,34 @@ body {
   padding: 10px 12px 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   background: #FFFFFF;
+}
+
+.btn-memory-export,
+.btn-memory-save-gallery {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(82, 99, 75, 0.35);
+  background: rgba(82, 99, 75, 0.08);
+  color: var(--olive-primary, #52634B);
+  transition: all 0.2s ease;
+  margin-top: 2px;
+  width: 100%;
+}
+
+.btn-memory-export:hover,
+.btn-memory-save-gallery:hover {
+  background: var(--olive-primary, #52634B);
+  color: #FFFFFF;
+  border-color: var(--olive-primary, #52634B);
 }
 
 .memory-card-date {
@@ -11387,6 +11463,130 @@ body {
 .memory-detail-time {
   font-size: 0.78rem;
   color: #8C7A65;
+}
+
+.memory-detail-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-detail-export,
+.btn-detail-save-gallery {
+  flex: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--olive-primary, #52634B);
+  color: #FFFFFF;
+  border: 1px solid var(--olive-primary, #52634B);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(82, 99, 75, 0.25);
+}
+
+.btn-detail-export:hover,
+.btn-detail-save-gallery:hover {
+  background: var(--olive-dark, #3E4B39);
+  transform: translateY(-1px);
+}
+
+.btn-detail-share {
+  flex: 0.8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #FFFFFF;
+  color: #2F241A;
+  border: 1px solid #D5C5B0;
+  transition: all 0.2s ease;
+}
+
+.btn-detail-share:hover {
+  background: #F4EBE0;
+  transform: translateY(-1px);
+}
+
+/* Photo Export Sheet Modal (Buttons Only) */
+.export-modal-sheet {
+  position: relative;
+  max-width: 320px;
+  width: 88vw;
+  background: #FAF7F2;
+  border: 1.5px solid rgba(225, 212, 198, 0.95);
+  border-radius: 24px;
+  padding: 16px;
+  box-shadow: 0 20px 50px rgba(45, 30, 18, 0.35);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.btn-export-sheet-action {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(220, 208, 192, 0.85);
+}
+
+.btn-export-sheet-action.btn-export-download {
+  background: #FFFFFF;
+  color: #2F241A;
+  border-color: #D5C5B0;
+}
+
+.btn-export-sheet-action.btn-export-download:hover {
+  background: #F4EBE0;
+  transform: translateY(-1px);
+}
+
+.btn-export-sheet-action.btn-export-share {
+  background: var(--olive-primary, #52634B);
+  color: #FFFFFF;
+  border-color: var(--olive-primary, #52634B);
+}
+
+.btn-export-sheet-action.btn-export-share:hover {
+  background: var(--olive-dark, #3E4B39);
+  transform: translateY(-1px);
+}
+
+.btn-export-sheet-cancel {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: #8C7A65;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-export-sheet-cancel:hover {
+  color: #2F241A;
 }
 
 /* Missed Streak Bonfire Smoke Image */

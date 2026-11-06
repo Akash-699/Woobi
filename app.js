@@ -3288,6 +3288,125 @@
     }
   }
 
+  let activeExportMemoryId = null;
+  let activeDetailMemoryId = null;
+
+  async function downloadPhoto(url, filename = 'woobi-outfit.jpg') {
+    if (!url) return;
+    try {
+      if (url.startsWith('data:')) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast('✓ Saved to gallery');
+        return;
+      }
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+      showToast('✓ Saved to gallery');
+    } catch (err) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('✓ Saved to gallery');
+    }
+  }
+
+  async function sharePhoto(url, title = 'Woobi Daily Outfit') {
+    if (!url) {
+      showToast('No photo available to share');
+      return;
+    }
+    if (navigator.share) {
+      try {
+        let filesToShare = null;
+        try {
+          const res = await fetch(url);
+          const blob = await res.blob();
+          const mimeType = blob.type || 'image/jpeg';
+          const ext = mimeType.includes('png') ? 'png' : 'jpg';
+          const file = new File([blob], `woobi-outfit.${ext}`, { type: mimeType });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            filesToShare = [file];
+          }
+        } catch (e) {
+          // File conversion fallback
+        }
+
+        const shareData = filesToShare ? {
+          title: title,
+          text: 'My Woobi daily outfit streak!',
+          files: filesToShare
+        } : {
+          title: title,
+          text: 'My Woobi daily outfit streak!',
+          url: window.location.href
+        };
+
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          showToast('Sharing not available or cancelled');
+        }
+      }
+    } else {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(url.startsWith('http') ? url : window.location.href);
+          showToast('Link copied to clipboard');
+        } catch (e) {
+          showToast('Sharing not supported on this browser');
+        }
+      } else {
+        showToast('Sharing not supported on this browser');
+      }
+    }
+  }
+
+  function saveStreakPhotoRecord() {
+    if (!capturedPhotoDataUrl) return;
+    const engine = getStreakEngine();
+    if (engine) {
+      engine.recordDailyOutfitUpload({
+        photoUrl: capturedPhotoDataUrl,
+        note: 'Daily Outfit'
+      });
+      triggerFlameReigniteAnimation();
+      updateStreakUI();
+    }
+  }
+
+  async function downloadCapturedPhoto() {
+    if (!capturedPhotoDataUrl) {
+      showToast('No captured photo to download');
+      return;
+    }
+    await downloadPhoto(capturedPhotoDataUrl, `woobi-streak-${Date.now()}.jpg`);
+  }
+
+  async function shareCapturedPhoto() {
+    if (!capturedPhotoDataUrl) {
+      showToast('No captured photo to share');
+      return;
+    }
+    await sharePhoto(capturedPhotoDataUrl, 'My Daily Outfit Streak 🔥');
+  }
+
   function captureCameraSnapshot() {
     const videoEl = document.getElementById('cameraVideo');
     const canvas = document.getElementById('cameraCanvas');
@@ -3317,6 +3436,8 @@
     if (overlayFrame) overlayFrame.classList.add('hidden');
     if (liveControls) liveControls.classList.add('hidden');
     if (reviewControls) reviewControls.classList.remove('hidden');
+
+    saveStreakPhotoRecord();
   }
 
   function triggerFileInputClick() {
@@ -3350,6 +3471,8 @@
       if (overlayFrame) overlayFrame.classList.add('hidden');
       if (liveControls) liveControls.classList.add('hidden');
       if (reviewControls) reviewControls.classList.remove('hidden');
+
+      saveStreakPhotoRecord();
     };
     reader.readAsDataURL(file);
   }
@@ -3384,6 +3507,8 @@
     if (overlayFrame) overlayFrame.classList.add('hidden');
     if (liveControls) liveControls.classList.add('hidden');
     if (reviewControls) reviewControls.classList.remove('hidden');
+
+    saveStreakPhotoRecord();
   }
 
   function retakeCameraPhoto() {
@@ -3442,6 +3567,67 @@
     if (modal) modal.classList.add('hidden');
   }
 
+  function openPhotoExportModal(memoryId) {
+    activeExportMemoryId = memoryId || activeDetailMemoryId;
+    const modal = document.getElementById('photoExportModal');
+    if (modal) {
+      modal.style.zIndex = '1500';
+      modal.classList.remove('hidden');
+    }
+  }
+
+  function closeExportModal(e) {
+    if (e && e.target && e.target.closest('.export-modal-sheet') && !e.target.closest('.btn-export-sheet-cancel')) {
+      return;
+    }
+    const modal = document.getElementById('photoExportModal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+    activeExportMemoryId = null;
+  }
+
+  function getActiveDetailMemoryId() {
+    return activeDetailMemoryId;
+  }
+
+  async function savePhotoToGallery(memoryId) {
+    const id = memoryId || activeDetailMemoryId || activeExportMemoryId;
+    const engine = getStreakEngine();
+    const memory = (engine && engine.memories) ? engine.memories.find(m => m.id === id) : null;
+    const url = memory ? memory.photoUrl : (capturedPhotoDataUrl || 'assets/welcome_hero.jpg');
+    await downloadPhoto(url, `woobi-outfit-${id || Date.now()}.jpg`);
+  }
+
+  async function saveDetailPhotoToGallery() {
+    await savePhotoToGallery(activeDetailMemoryId);
+  }
+
+  async function shareDetailPhoto() {
+    const id = activeDetailMemoryId;
+    const engine = getStreakEngine();
+    const memory = (engine && engine.memories) ? engine.memories.find(m => m.id === id) : null;
+    const url = memory ? memory.photoUrl : (capturedPhotoDataUrl || 'assets/welcome_hero.jpg');
+    const title = memory ? (memory.note || 'Woobi Outfit Memory') : 'Woobi Outfit Memory';
+    await sharePhoto(url, title);
+  }
+
+  async function downloadExportPhoto(memoryId) {
+    const id = memoryId || activeExportMemoryId || activeDetailMemoryId;
+    await savePhotoToGallery(id);
+    closeExportModal();
+  }
+
+  async function shareExportPhoto(memoryId) {
+    const id = memoryId || activeExportMemoryId || activeDetailMemoryId;
+    const engine = getStreakEngine();
+    const memory = (engine && engine.memories) ? engine.memories.find(m => m.id === id) : null;
+    const url = memory ? memory.photoUrl : (capturedPhotoDataUrl || 'assets/welcome_hero.jpg');
+    const title = memory ? (memory.note || 'Woobi Outfit Memory') : 'Woobi Outfit Memory';
+    await sharePhoto(url, title);
+    closeExportModal();
+  }
+
   function renderOutfitMemories() {
     const engine = getStreakEngine();
     const memories = (engine && typeof engine.getAllMemories === 'function') ? engine.getAllMemories() : [];
@@ -3474,6 +3660,14 @@
         <div class="memory-card-meta">
           <span class="memory-card-date">${formatReadableDate(mem.date)}</span>
           <span class="memory-card-note">${mem.note || 'Outfit Look'}</span>
+          <button type="button" class="btn-memory-save-gallery" onclick="event.stopPropagation(); app.savePhotoToGallery('${mem.id}')" title="Save to Gallery">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>Save to Gallery</span>
+          </button>
         </div>
       `;
       card.addEventListener('click', () => openMemoryDetail(mem.id));
@@ -3496,6 +3690,7 @@
     const engine = getStreakEngine();
     if (!engine) return;
 
+    activeDetailMemoryId = memoryId;
     const memory = engine.memories.find(m => m.id === memoryId) || engine.memories[0];
     if (!memory) return;
 
@@ -5142,6 +5337,19 @@
     loadSampleOutfitLook,
     confirmCapturedOutfit,
     retakeCameraPhoto,
+    downloadCapturedPhoto,
+    saveCapturedPhoto: downloadCapturedPhoto,
+    shareCapturedPhoto,
+    downloadPhoto,
+    savePhotoToGallery,
+    saveDetailPhotoToGallery,
+    shareDetailPhoto,
+    sharePhoto,
+    openPhotoExportModal,
+    closeExportModal,
+    downloadExportPhoto,
+    shareExportPhoto,
+    getActiveDetailMemoryId,
     openMemoriesModal,
     closeMemoriesModal,
     openMemoryDetail,
