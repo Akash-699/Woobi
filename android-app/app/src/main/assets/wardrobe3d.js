@@ -1,8 +1,8 @@
 /**
  * SÉRÉN STUDIO — WARDROBE 3D COMPONENT (STEP 1)
  * High-Fidelity, Production-Grade 3D Natural Light-Oak Cupboard
- * Featuring Volumetric Garments, Storage Boxes, Trailing Ivy, Handbag,
- * Folded Knitwear, Footwear Collection, and Integrated 3000K LED Lighting.
+ * Featuring Hanging Shirts, Hanging Trousers, Storage Boxes, Trailing Ivy,
+ * Footwear Collection (Shoes, Sneakers & Sandals), and Integrated 3000K LED Lighting.
  *
  * Modular & reusable component designed for Three.js / React Three Fiber pipelines.
  */
@@ -45,15 +45,15 @@
       this.ledStrips = [];
       this.garmentGroup = new THREE.Group();
       this.garmentGroup.name = 'Hanging_Garments';
+      this.trouserGroup = new THREE.Group();
+      this.trouserGroup.name = 'Hanging_Trousers';
 
       this.initTextures();
       this.initMaterials();
       this.buildStructure();
       this.buildUpperShelves();
       this.buildClothingSection();
-      this.buildMiddleDisplay();
-      this.buildLowerShelves();
-      this.buildDrawersSection();
+      this.buildTrouserSection();
       this.buildFootwearDisplay();
       this.buildIntegratedLighting();
     }
@@ -262,6 +262,45 @@
         roughness: 0.88,
         metalness: 0.01
       });
+
+      // Trouser Fabrics
+      this.materials.trouserNavy = new THREE.MeshStandardMaterial({
+        color: 0x1E2A3A,
+        roughness: 0.72,
+        metalness: 0.01
+      });
+      this.materials.trouserKhaki = new THREE.MeshStandardMaterial({
+        color: 0xC4AA78,
+        roughness: 0.75,
+        metalness: 0.01
+      });
+      this.materials.trouserCharcoal = new THREE.MeshStandardMaterial({
+        color: 0x3A3A3C,
+        roughness: 0.70,
+        metalness: 0.02
+      });
+      this.materials.trouserOlive = new THREE.MeshStandardMaterial({
+        color: 0x5C6B4A,
+        roughness: 0.74,
+        metalness: 0.01
+      });
+      this.materials.trouserTan = new THREE.MeshStandardMaterial({
+        color: 0xD4B896,
+        roughness: 0.72,
+        metalness: 0.01
+      });
+      this.materials.trouserDenim = new THREE.MeshStandardMaterial({
+        color: 0x3B5474,
+        roughness: 0.80,
+        metalness: 0.01
+      });
+
+      // Sandal Leather
+      this.materials.leatherTan = new THREE.MeshStandardMaterial({
+        color: 0xC49E6C,
+        roughness: 0.42,
+        metalness: 0.02
+      });
     }
 
     /**
@@ -320,11 +359,10 @@
       // Horizontal Shelf Tiers
       // Shelf heights (y):
       // - 0.12: Bottom footwear shelf
-      // - 0.52: Footwear top / Drawers bottom
-      // - 0.88: Drawers top / Folded clothes shelf
-      // - 1.28: Folded clothes top / Middle Handbag display shelf
-      // - 2.40: Hanging rail top / Upper storage shelf
-      this.shelfYCoords = [0.12, 0.52, 0.88, 1.28, 2.40];
+      // - 0.78: Footwear top / Trousers zone bottom
+      // - 1.56: Trousers zone top / Shirts zone bottom
+      // - 2.40: Shirts zone top / Upper storage shelf
+      this.shelfYCoords = [0.12, 0.78, 1.56, 2.40];
       const shelfWidth = width - t * 2;
       const shelfDepth = depth - 0.02;
 
@@ -481,12 +519,11 @@
     }
 
     /**
-     * 3. Central Clothing Rail & Realistic 3D Garments
-     * Brass rail with mounting sockets and 9 realistic garments on wooden hangers:
-     * 3 white/ivory shirts, 2 beige garments, 2 neutral jackets, 1 striped shirt, 1 dark charcoal
+     * 3. Central Clothing Rail & Neatly Hung Shirts
+     * Brass rail with mounting sockets and 6 shirts/tops on wooden hangers
      */
     buildClothingSection() {
-      const railY = 2.32;
+      const railY = 2.34;
       const { width, depth, panelThickness } = this;
       const t = panelThickness;
       const railWidth = width - t * 2 - 0.04;
@@ -512,26 +549,20 @@
         this.group.add(flange);
       });
 
-      // 9 Volumetric Hanging Garments (Target contents strictly matching user requirements)
+      // 6 Neatly Hung Shirts & Tops (balanced, less dominant)
       const garmentSpecs = [
         // 1. Crisp White Button-down Shirt
-        { x: -0.80, mat: this.materials.poplinWhite, len: 0.72, type: 'shirt', collar: 'spread' },
+        { x: -0.64, mat: this.materials.poplinWhite, len: 0.52, type: 'shirt', collar: 'spread' },
         // 2. Off-white Draped Silk Blouse
-        { x: -0.60, mat: this.materials.silkCream, len: 0.68, type: 'blouse', collar: 'band' },
-        // 3. Light Beige Linen Overshirt
-        { x: -0.40, mat: this.materials.linenBeige, len: 0.74, type: 'shirt', collar: 'spread' },
-        // 4. Subtle Pinstripe Shirt
-        { x: -0.20, mat: this.materials.shirtPinstripe, len: 0.70, type: 'shirt', collar: 'spread' },
-        // 5. Crisp White Poplin Dress Shirt
-        { x: 0.00, mat: this.materials.poplinWhite, len: 0.73, type: 'shirt', collar: 'classic' },
+        { x: -0.36, mat: this.materials.silkCream, len: 0.48, type: 'blouse', collar: 'band' },
+        // 3. Subtle Pinstripe Shirt
+        { x: -0.08, mat: this.materials.shirtPinstripe, len: 0.50, type: 'shirt', collar: 'spread' },
+        // 4. Crisp White Poplin Dress Shirt
+        { x: 0.20, mat: this.materials.poplinWhite, len: 0.51, type: 'shirt', collar: 'classic' },
+        // 5. Light Beige Linen Overshirt
+        { x: 0.48, mat: this.materials.linenBeige, len: 0.54, type: 'shirt', collar: 'spread' },
         // 6. Beige Draped Fine-Knit Cardigan
-        { x: 0.20, mat: this.materials.cardiganCamel, len: 0.76, type: 'cardigan', collar: 'shawl' },
-        // 7. Neutral Sand/Camel Structured Blazer
-        { x: 0.40, mat: this.materials.linenBeige, len: 0.80, type: 'blazer', collar: 'lapel' },
-        // 8. Soft Heather Grey Tailored Jacket
-        { x: 0.60, mat: this.materials.blazerGrey, len: 0.82, type: 'blazer', collar: 'lapel' },
-        // 9. Dark Charcoal Tailored Garment
-        { x: 0.80, mat: this.materials.blazerCharcoal, len: 0.84, type: 'blazer', collar: 'lapel' }
+        { x: 0.72, mat: this.materials.cardiganCamel, len: 0.52, type: 'cardigan', collar: 'shawl' }
       ];
 
       garmentSpecs.forEach((spec, index) => {
@@ -646,216 +677,178 @@
     }
 
     /**
-     * 4. Middle Display Shelf (Handbag, Books, Accessories)
+     * 4. Trouser Section — Hanging Trousers on Dedicated Brass Rail
+     * Brass rail with 6 pairs of trousers hanging vertically from clip hangers
      */
-    buildMiddleDisplay() {
-      const displayGroup = new THREE.Group();
-      displayGroup.name = 'Middle_Display_Shelf';
-      const baseY = 1.28 + this.panelThickness;
+    buildTrouserSection() {
+      const trouserRailY = 1.48;
+      const { width, panelThickness } = this;
+      const t = panelThickness;
+      const railWidth = width - t * 2 - 0.04;
 
-      // 1. Premium Structured White Leather Handbag
-      const bagGroup = new THREE.Group();
-      bagGroup.position.set(-0.62, baseY, 0.05);
-
-      // Trapezoid Body
-      const bagGeo = new THREE.BoxGeometry(0.32, 0.26, 0.16);
-      const bagBody = new THREE.Mesh(bagGeo, this.materials.leatherWhite);
-      bagBody.position.y = 0.13;
-      bagBody.castShadow = true;
-      bagGroup.add(bagBody);
-
-      // Gold Metallic Turn-Lock Clasp
-      const lockFace = new THREE.Mesh(
-        new THREE.BoxGeometry(0.040, 0.024, 0.016),
+      // Solid Brushed Brass Trouser Rail
+      const rail = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.013, 0.013, railWidth, 24),
         this.materials.brass
       );
-      lockFace.position.set(0, 0.15, 0.088);
-      bagGroup.add(lockFace);
+      rail.rotation.z = Math.PI / 2;
+      rail.position.set(0, trouserRailY, 0);
+      rail.castShadow = true;
+      this.group.add(rail);
 
-      // Curved Rigid Leather Top Handle
-      const handle = new THREE.Mesh(
-        new THREE.TorusGeometry(0.075, 0.010, 12, 28, Math.PI),
-        this.materials.leatherWhite
-      );
-      handle.position.set(0, 0.26, 0);
-      bagGroup.add(handle);
+      // Brass End Mount Flanges
+      [-railWidth / 2, railWidth / 2].forEach((xPos) => {
+        const flange = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.032, 0.032, 0.022, 24),
+          this.materials.brass
+        );
+        flange.rotation.z = Math.PI / 2;
+        flange.position.set(xPos, trouserRailY, 0);
+        this.group.add(flange);
+      });
 
-      displayGroup.add(bagGroup);
+      // 6 Hanging Trousers
+      const trouserSpecs = [
+        // 1. Navy Cotton Chinos
+        { x: -0.68, mat: this.materials.trouserNavy, len: 0.48 },
+        // 2. Khaki Casual Trousers
+        { x: -0.40, mat: this.materials.trouserKhaki, len: 0.46 },
+        // 3. Charcoal Wool Dress Pants
+        { x: -0.12, mat: this.materials.trouserCharcoal, len: 0.50 },
+        // 4. Olive Slim Chinos
+        { x: 0.16, mat: this.materials.trouserOlive, len: 0.47 },
+        // 5. Tan Tailored Trousers
+        { x: 0.44, mat: this.materials.trouserTan, len: 0.46 },
+        // 6. Classic Denim
+        { x: 0.70, mat: this.materials.trouserDenim, len: 0.49 }
+      ];
 
-      // 2. Stack of Fashion Monographs & Magazines
-      const bookStack = new THREE.Group();
-      bookStack.position.set(0.15, baseY, 0.05);
+      trouserSpecs.forEach((spec, index) => {
+        const trouser = this.createHangingTrouser(spec, index);
+        trouser.position.set(spec.x, trouserRailY, 0);
+        this.trouserGroup.add(trouser);
+      });
 
-      const book1 = new THREE.Mesh(
-        new THREE.BoxGeometry(0.36, 0.038, 0.42),
-        new THREE.MeshStandardMaterial({ color: 0x38342E, roughness: 0.68 })
-      );
-      book1.position.y = 0.019;
-      book1.castShadow = true;
-      bookStack.add(book1);
-
-      const book2 = new THREE.Mesh(
-        new THREE.BoxGeometry(0.32, 0.032, 0.38),
-        new THREE.MeshStandardMaterial({ color: 0xF5F0E6, roughness: 0.60 })
-      );
-      book2.position.set(0.02, 0.038 + 0.016, -0.01);
-      book2.castShadow = true;
-      bookStack.add(book2);
-
-      const book3 = new THREE.Mesh(
-        new THREE.BoxGeometry(0.28, 0.025, 0.34),
-        new THREE.MeshStandardMaterial({ color: 0xB5A490, roughness: 0.65 })
-      );
-      book3.position.set(0.01, 0.070 + 0.0125, 0.01);
-      book3.castShadow = true;
-      bookStack.add(book3);
-
-      displayGroup.add(bookStack);
-
-      // 3. Accessory Display Tray with Designer Sunglasses
-      const trayGroup = new THREE.Group();
-      trayGroup.position.set(0.68, baseY, 0.05);
-
-      const tray = new THREE.Mesh(
-        new THREE.BoxGeometry(0.28, 0.020, 0.22),
-        this.materials.ceramic
-      );
-      tray.position.y = 0.010;
-      trayGroup.add(tray);
-
-      // Tortoiseshell Sunglasses
-      const glasses = new THREE.Mesh(
-        new THREE.BoxGeometry(0.14, 0.035, 0.05),
-        new THREE.MeshStandardMaterial({ color: 0x2A1E14, roughness: 0.20, metalness: 0.1 })
-      );
-      glasses.position.set(0, 0.035, 0);
-      glasses.rotation.y = 0.25;
-      trayGroup.add(glasses);
-
-      displayGroup.add(trayGroup);
-      this.group.add(displayGroup);
+      this.group.add(this.trouserGroup);
     }
 
     /**
-     * 5. Lower Shelves: Folded Knitwear Stacks
-     * Neatly folded cream and beige knitwear garments with rounded organic edges
+     * Creates a fully volumetric hanging trouser with clip hanger, waistband, and two legs
      */
-    buildLowerShelves() {
-      const foldedGroup = new THREE.Group();
-      foldedGroup.name = 'Folded_Garments_Shelf';
-      const baseY = 0.88 + this.panelThickness;
-
-      // Left Stack: 3 Neatly Folded Cream & Grey Knit Sweaters
-      for (let i = 0; i < 3; i++) {
-        const mat = i === 1 ? this.materials.knitGrey : this.materials.knitCream;
-        const sweater = this.createFoldedSweater(0.42, 0.075, 0.38, mat);
-        sweater.position.set(-0.52, baseY + 0.038 + i * 0.076, 0.02);
-        sweater.castShadow = true;
-        foldedGroup.add(sweater);
-      }
-
-      // Center/Right Stack: 3 Folded Beige & Camel Fine Knits
-      for (let i = 0; i < 3; i++) {
-        const mat = i === 1 ? this.materials.knitCream : this.materials.knitBeige;
-        const sweater = this.createFoldedSweater(0.40, 0.072, 0.36, mat);
-        sweater.position.set(0.08, baseY + 0.036 + i * 0.074, 0.02);
-        sweater.castShadow = true;
-        foldedGroup.add(sweater);
-      }
-
-      // Far Right Stack: 2 Folded Linen Garments
-      for (let i = 0; i < 2; i++) {
-        const sweater = this.createFoldedSweater(0.38, 0.068, 0.35, this.materials.linenBeige);
-        sweater.position.set(0.62, baseY + 0.034 + i * 0.070, 0.02);
-        sweater.castShadow = true;
-        foldedGroup.add(sweater);
-      }
-
-      this.group.add(foldedGroup);
-    }
-
-    /**
-     * Creates a 3D folded sweater with organic rounded front roll fold
-     */
-    createFoldedSweater(width, height, depth, material) {
+    createHangingTrouser(spec, index) {
       const g = new THREE.Group();
+      g.name = `Trouser_${index}`;
 
-      // Main folded slab
-      const main = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth - 0.06), material);
-      main.position.z = -0.03;
-      g.add(main);
-
-      // Rounded Front Roll Fold
-      const roll = new THREE.Mesh(
-        new THREE.CylinderGeometry(height / 2, height / 2, width, 18),
-        material
+      // 1. Oak Clip-Style Hanger Bar
+      const hangerBar = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.008, 0.008, 0.32, 16),
+        this.materials.oak
       );
-      roll.rotation.z = Math.PI / 2;
-      roll.position.set(0, 0, depth / 2 - height / 2);
-      g.add(roll);
+      hangerBar.rotation.z = Math.PI / 2;
+      hangerBar.position.y = -0.04;
+      hangerBar.castShadow = true;
+      g.add(hangerBar);
+
+      // Brass Swivel Hook
+      const hook = new THREE.Mesh(
+        new THREE.TorusGeometry(0.022, 0.003, 12, 24, Math.PI * 1.35),
+        this.materials.brass
+      );
+      hook.position.set(0, 0.010, 0);
+      g.add(hook);
+
+      // Brass Clip Grips (left and right)
+      [-0.12, 0.12].forEach((cx) => {
+        const clip = new THREE.Mesh(
+          new THREE.BoxGeometry(0.018, 0.022, 0.014),
+          this.materials.brass
+        );
+        clip.position.set(cx, -0.052, 0);
+        g.add(clip);
+      });
+
+      // 2. Waistband
+      const waistband = new THREE.Mesh(
+        new THREE.BoxGeometry(0.28, 0.035, 0.07),
+        spec.mat
+      );
+      waistband.position.set(0, -0.065, 0);
+      waistband.castShadow = true;
+      g.add(waistband);
+
+      // Belt Loop Details
+      [-0.09, -0.03, 0.03, 0.09].forEach((bx) => {
+        const loop = new THREE.Mesh(
+          new THREE.BoxGeometry(0.010, 0.022, 0.010),
+          spec.mat
+        );
+        loop.position.set(bx, -0.052, 0.037);
+        g.add(loop);
+      });
+
+      // 3. Two Hanging Trouser Legs
+      const legLen = spec.len;
+      [-0.058, 0.058].forEach((xOff) => {
+        const legGeo = new THREE.CylinderGeometry(0.046, 0.036, legLen, 16);
+        legGeo.scale(0.62, 1.0, 1.0);
+        const leg = new THREE.Mesh(legGeo, spec.mat);
+        leg.position.set(xOff, -0.083 - legLen / 2, 0);
+        leg.castShadow = true;
+        leg.receiveShadow = true;
+        g.add(leg);
+      });
+
+      // 4. Subtle Crease Line on Each Leg Front
+      [-0.058, 0.058].forEach((xOff) => {
+        const crease = new THREE.Mesh(
+          new THREE.BoxGeometry(0.003, legLen * 0.85, 0.002),
+          new THREE.MeshStandardMaterial({
+            color: spec.mat.color.getHex(),
+            roughness: 0.60,
+            metalness: 0.01
+          })
+        );
+        crease.position.set(xOff, -0.083 - legLen * 0.425, 0.028);
+        g.add(crease);
+      });
 
       return g;
     }
 
     /**
-     * 6. Lower Drawers Section
-     * Two side-by-side solid oak drawer fronts with realistic reveal gaps and brass button pulls
-     */
-    buildDrawersSection() {
-      const drawerGroup = new THREE.Group();
-      drawerGroup.name = 'Drawers_Section';
-
-      const baseY = 0.52 + this.panelThickness;
-      const sectionHeight = 0.88 - 0.52 - this.panelThickness;
-      const drawerWidth = (this.width - this.panelThickness * 3 - 0.02) / 2;
-      const centerY = baseY + sectionHeight / 2;
-
-      [-1, 1].forEach((side) => {
-        const xPos = side * (drawerWidth / 2 + 0.008);
-
-        // Solid Oak Drawer Front Face
-        const drawerFront = new THREE.Mesh(
-          new THREE.BoxGeometry(drawerWidth, sectionHeight - 0.008, 0.024),
-          this.materials.oak
-        );
-        drawerFront.position.set(xPos, centerY, this.depth / 2 - 0.025);
-        drawerFront.castShadow = true;
-        drawerFront.receiveShadow = true;
-        drawerGroup.add(drawerFront);
-
-        // Delicate Brass Button Pull Knob
-        const knob = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.014, 0.014, 0.022, 20),
-          this.materials.brass
-        );
-        knob.rotation.x = Math.PI / 2;
-        knob.position.set(xPos, centerY, this.depth / 2 - 0.005);
-        drawerGroup.add(knob);
-      });
-
-      this.group.add(drawerGroup);
-    }
-
-    /**
-     * 7. Bottom Footwear Display Shelves
-     * 5 Realistic pairs of footwear: white sneakers, beige low heels, cream loafers, court trainers
+     * 5. Dedicated Footwear Display Shelf
+     * Neatly arranged collection of 6 footwear pairs: shoes, sneakers, and sandals
      */
     buildFootwearDisplay() {
       const shoeGroup = new THREE.Group();
       shoeGroup.name = 'Footwear_Display';
       const baseY = 0.12 + this.panelThickness;
+      const { width, panelThickness } = this;
+      const t = panelThickness;
+      const railWidth = width - t * 2 - 0.04;
 
+      // Decorative brushed brass guard rail along footwear shelf front
+      const shoeGuardRail = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.005, 0.005, railWidth, 16),
+        this.materials.brass
+      );
+      shoeGuardRail.rotation.z = Math.PI / 2;
+      shoeGuardRail.position.set(0, baseY + 0.025, this.depth / 2 - 0.06);
+      shoeGroup.add(shoeGuardRail);
+
+      // 6 Neatly Arranged Footwear Pairs: Shoes, Sneakers & Sandals
       const footwearConfigs = [
         { x: -0.75, type: 'sneaker', mat: this.materials.leatherWhite, name: 'Minimalist White Platform Sneakers' },
-        { x: -0.38, type: 'heel', mat: this.materials.leatherBeige, name: 'Beige Low-Block Leather Heels' },
-        { x: 0.00, type: 'loafer', mat: this.materials.leatherLoafer, name: 'Cream Tailored Loafers' },
-        { x: 0.38, type: 'sneaker', mat: this.materials.leatherWhite, name: 'White Court Trainers' },
-        { x: 0.75, type: 'heel', mat: this.materials.leatherBeige, name: 'Nude Leather Block Heels' }
+        { x: -0.45, type: 'loafer', mat: this.materials.leatherLoafer, name: 'Cream Tailored Loafers' },
+        { x: -0.15, type: 'sandal', mat: this.materials.leatherTan, name: 'Tan Leather Slide Sandals' },
+        { x: 0.15, type: 'sandal', mat: this.materials.trouserOlive, name: 'Olive Minimalist Cross-Strap Sandals' },
+        { x: 0.45, type: 'sneaker', mat: this.materials.leatherWhite, name: 'White Court Trainers' },
+        { x: 0.75, type: 'heel', mat: this.materials.leatherBeige, name: 'Beige Low-Block Leather Heels' }
       ];
 
       footwearConfigs.forEach((fc) => {
         const pair = this.createFootwearPair(fc);
-        pair.position.set(fc.x, baseY, 0.06);
+        pair.position.set(fc.x, baseY, 0.04);
         shoeGroup.add(pair);
       });
 
@@ -863,13 +856,13 @@
     }
 
     /**
-     * Creates a detailed pair of 3D shoes
+     * Creates a detailed pair of 3D shoes, sneakers, or sandals
      */
     createFootwearPair(config) {
       const pair = new THREE.Group();
       pair.name = config.name;
 
-      const shoeSpacing = 0.085;
+      const shoeSpacing = 0.082;
       [-shoeSpacing / 2, shoeSpacing / 2].forEach((xOffset) => {
         const shoe = new THREE.Group();
         shoe.position.x = xOffset;
@@ -877,83 +870,119 @@
         if (config.type === 'sneaker') {
           // Chunky Platform Rubber Sole with Tread
           const sole = new THREE.Mesh(
-            new THREE.BoxGeometry(0.074, 0.038, 0.25),
+            new THREE.BoxGeometry(0.070, 0.034, 0.24),
             new THREE.MeshStandardMaterial({ color: 0xFDFDFD, roughness: 0.45 })
           );
-          sole.position.y = 0.019;
+          sole.position.y = 0.017;
           sole.castShadow = true;
           shoe.add(sole);
 
           // Sculpted Leather Upper & Contoured Toe Box
           const upper = new THREE.Mesh(
-            new THREE.SphereGeometry(0.038, 16, 16),
+            new THREE.SphereGeometry(0.036, 16, 16),
             config.mat
           );
-          upper.scale.set(0.95, 0.85, 2.2);
-          upper.position.set(0, 0.052, 0.02);
+          upper.scale.set(0.95, 0.85, 2.1);
+          upper.position.set(0, 0.048, 0.02);
           upper.castShadow = true;
           shoe.add(upper);
 
           // Padded Tongue & Laces
           const tongue = new THREE.Mesh(
-            new THREE.BoxGeometry(0.036, 0.040, 0.07),
+            new THREE.BoxGeometry(0.034, 0.038, 0.065),
             config.mat
           );
-          tongue.position.set(0, 0.072, -0.01);
+          tongue.position.set(0, 0.068, -0.01);
           tongue.rotation.x = -0.28;
           shoe.add(tongue);
+        } else if (config.type === 'sandal') {
+          // Ergonomic Leather/Cork Footbed Sole
+          const footbedMat = new THREE.MeshStandardMaterial({ color: 0xBA986E, roughness: 0.65 });
+          const sole = new THREE.Mesh(
+            new THREE.BoxGeometry(0.064, 0.016, 0.23),
+            footbedMat
+          );
+          sole.position.y = 0.008;
+          sole.castShadow = true;
+          shoe.add(sole);
+
+          // Front Leather Cross-Strap
+          const frontStrap = new THREE.Mesh(
+            new THREE.BoxGeometry(0.066, 0.022, 0.048),
+            config.mat
+          );
+          frontStrap.position.set(0, 0.022, 0.045);
+          frontStrap.castShadow = true;
+          shoe.add(frontStrap);
+
+          // Instep Leather Arch-Strap with Brass Buckle
+          const archStrap = new THREE.Mesh(
+            new THREE.BoxGeometry(0.066, 0.028, 0.042),
+            config.mat
+          );
+          archStrap.position.set(0, 0.028, -0.025);
+          archStrap.castShadow = true;
+          shoe.add(archStrap);
+
+          // Miniature Brass Buckle
+          const buckle = new THREE.Mesh(
+            new THREE.BoxGeometry(0.012, 0.016, 0.006),
+            this.materials.brass
+          );
+          buckle.position.set(0.034, 0.028, -0.025);
+          shoe.add(buckle);
         } else if (config.type === 'heel') {
           // Low Block Heel
           const heelBlock = new THREE.Mesh(
-            new THREE.BoxGeometry(0.055, 0.045, 0.065),
+            new THREE.BoxGeometry(0.052, 0.042, 0.060),
             this.materials.oak
           );
-          heelBlock.position.set(0, 0.0225, -0.08);
+          heelBlock.position.set(0, 0.021, -0.075);
           heelBlock.castShadow = true;
           shoe.add(heelBlock);
 
           // Slender Sole
           const sole = new THREE.Mesh(
-            new THREE.BoxGeometry(0.062, 0.010, 0.24),
+            new THREE.BoxGeometry(0.058, 0.010, 0.23),
             new THREE.MeshStandardMaterial({ color: 0xD0BC9E, roughness: 0.5 })
           );
-          sole.position.y = 0.045;
+          sole.position.y = 0.042;
           shoe.add(sole);
 
           // Pointed / Rounded Toe Upper
           const vamp = new THREE.Mesh(
-            new THREE.SphereGeometry(0.032, 14, 14),
+            new THREE.SphereGeometry(0.030, 14, 14),
             config.mat
           );
-          vamp.scale.set(0.95, 0.70, 2.0);
-          vamp.position.set(0, 0.058, 0.04);
+          vamp.scale.set(0.95, 0.70, 1.9);
+          vamp.position.set(0, 0.054, 0.04);
           vamp.castShadow = true;
           shoe.add(vamp);
         } else {
           // Tailored Loafer with Horsebit Detail
           const sole = new THREE.Mesh(
-            new THREE.BoxGeometry(0.068, 0.018, 0.24),
+            new THREE.BoxGeometry(0.064, 0.016, 0.23),
             new THREE.MeshStandardMaterial({ color: 0x4A3A28, roughness: 0.4 })
           );
-          sole.position.y = 0.009;
+          sole.position.y = 0.008;
           shoe.add(sole);
 
           const loaferUpper = new THREE.Mesh(
-            new THREE.SphereGeometry(0.034, 16, 16),
+            new THREE.SphereGeometry(0.032, 16, 16),
             config.mat
           );
-          loaferUpper.scale.set(1.0, 0.75, 2.2);
-          loaferUpper.position.set(0, 0.044, 0.02);
+          loaferUpper.scale.set(1.0, 0.75, 2.1);
+          loaferUpper.position.set(0, 0.042, 0.02);
           loaferUpper.castShadow = true;
           shoe.add(loaferUpper);
 
           // Brass Horsebit bar
           const bit = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.0025, 0.0025, 0.038, 8),
+            new THREE.CylinderGeometry(0.0025, 0.0025, 0.036, 8),
             this.materials.brass
           );
           bit.rotation.z = Math.PI / 2;
-          bit.position.set(0, 0.068, 0.03);
+          bit.position.set(0, 0.064, 0.03);
           shoe.add(bit);
         }
 
@@ -976,12 +1005,12 @@
       const stripWidth = width - t * 2 - 0.06;
 
       // Shelf heights under which LED strips are mounted
-      // Top panel (y = 2.95 - t), Upper shelf (y = 2.40), Middle shelf (y = 1.28), Footwear top (y = 0.52)
+      // Top panel (y = 2.95 - t), Upper shelf (y = 2.40), Middle shelf (y = 1.56), Footwear top (y = 0.78)
       const ledYPositions = [
         { y: this.height - t - 0.005, intensity: 0.90, desc: 'Top_Header_LED' },
-        { y: 2.40 - 0.005, intensity: 1.25, desc: 'Hanging_Rail_LED' },
-        { y: 1.28 - 0.005, intensity: 0.85, desc: 'Folded_Shelf_LED' },
-        { y: 0.52 - 0.005, intensity: 0.80, desc: 'Footwear_Shelf_LED' }
+        { y: 2.40 - 0.005, intensity: 1.25, desc: 'Hanging_Shirts_Rail_LED' },
+        { y: 1.56 - 0.005, intensity: 1.05, desc: 'Hanging_Trousers_Rail_LED' },
+        { y: 0.78 - 0.005, intensity: 0.95, desc: 'Footwear_Shelf_LED' }
       ];
 
       ledYPositions.forEach((pos) => {
@@ -1038,10 +1067,13 @@
     }
 
     /**
-     * Toggles hanging garments visibility for inspection
+     * Toggles hanging garments and trousers visibility for inspection
      */
     toggleGarments(state) {
       this.garmentGroup.visible = state;
+      if (this.trouserGroup) {
+        this.trouserGroup.visible = state;
+      }
     }
 
     /**

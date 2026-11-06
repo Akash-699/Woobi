@@ -202,6 +202,8 @@
       renderWeeklyCalendar();
     } else if (screenId === 'premium') {
       updateSubscriptionUI();
+      switchPlanView('pro');
+      initPlanSwipeGestures();
       const screenPremium = document.getElementById('screen-premium');
       if (screenPremium) {
         screenPremium.scrollTop = 0;
@@ -1340,40 +1342,28 @@
     const btnBasic = document.getElementById('btnPlanBasic');
     const btnPro = document.getElementById('btnPlanPro');
 
-    if (btnFree) {
-      if (current === 'free') {
-        btnFree.textContent = 'Current Plan';
-        btnFree.disabled = true;
-        btnFree.classList.add('current-plan-btn');
+    function setBtnLabel(btn, text, isCurrent) {
+      if (!btn) return;
+      const textSpan = btn.querySelector('.btn-tier-text');
+      if (textSpan) {
+        textSpan.textContent = text;
       } else {
-        btnFree.textContent = 'Get Started';
-        btnFree.disabled = false;
-        btnFree.classList.remove('current-plan-btn');
+        btn.textContent = text;
       }
+      btn.disabled = isCurrent;
+      btn.classList.toggle('current-plan-btn', isCurrent);
+    }
+
+    if (btnFree) {
+      setBtnLabel(btnFree, current === 'free' ? 'Current Plan' : 'Get Started', current === 'free');
     }
 
     if (btnBasic) {
-      if (current === 'basic') {
-        btnBasic.textContent = 'Current Plan';
-        btnBasic.disabled = true;
-        btnBasic.classList.add('current-plan-btn');
-      } else {
-        btnBasic.textContent = 'Choose Basic';
-        btnBasic.disabled = false;
-        btnBasic.classList.remove('current-plan-btn');
-      }
+      setBtnLabel(btnBasic, current === 'basic' ? 'Current Plan' : 'Upgrade to Basic', current === 'basic');
     }
 
     if (btnPro) {
-      if (current === 'pro') {
-        btnPro.textContent = 'Current Plan 👑';
-        btnPro.disabled = true;
-        btnPro.classList.add('current-plan-btn');
-      } else {
-        btnPro.textContent = 'Upgrade to Pro';
-        btnPro.disabled = false;
-        btnPro.classList.remove('current-plan-btn');
-      }
+      setBtnLabel(btnPro, current === 'pro' ? 'Current Plan 👑' : 'Get Woobi Pro', current === 'pro');
     }
   }
 
@@ -1391,6 +1381,33 @@
   }
 
   function switchPlanView(planId) {
+    const track = document.getElementById('planCardsSliderTrack');
+    const pill = document.getElementById('segmentedSlidePill');
+    const btnFree = document.getElementById('segBtnFree');
+    const btnBasic = document.getElementById('segBtnBasic');
+    const btnPro = document.getElementById('segBtnPro');
+
+    const btns = [btnFree, btnBasic, btnPro];
+    btns.forEach(b => b && b.classList.remove('active'));
+
+    if (pill) {
+      pill.classList.remove('pill-free', 'pill-basic', 'pill-pro');
+    }
+
+    if (planId === 'free') {
+      if (btnFree) btnFree.classList.add('active');
+      if (pill) pill.classList.add('pill-free');
+      if (track) track.style.transform = 'translateX(0%)';
+    } else if (planId === 'basic') {
+      if (btnBasic) btnBasic.classList.add('active');
+      if (pill) pill.classList.add('pill-basic');
+      if (track) track.style.transform = 'translateX(-33.333333%)';
+    } else if (planId === 'pro') {
+      if (btnPro) btnPro.classList.add('active');
+      if (pill) pill.classList.add('pill-pro');
+      if (track) track.style.transform = 'translateX(-66.666666%)';
+    }
+
     updateSubscriptionUI();
   }
 
