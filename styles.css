@@ -2306,7 +2306,37 @@ body {
   opacity: 0.92;
 }
 
-/* Screen 25: Weekly Planning & Interactive Calendar */
+/* Screen 25: Weekly Planning & Interactive Calendar (Pinkish White Blush Theme) */
+#screen-weekly-planning {
+  background: #FBEDEE !important;
+  background: linear-gradient(180deg, #FDF2F4 0%, #FAEAEB 100%) !important;
+}
+
+.phone-screen-container:has(#screen-weekly-planning.active) {
+  background: #FBEDEE !important;
+}
+
+#screen-weekly-planning .phone-bottom-nav {
+  background: rgba(253, 242, 244, 0.95) !important;
+  border-top: 1px solid rgba(235, 215, 220, 0.8) !important;
+}
+
+#screen-weekly-planning .planner-summary-card {
+  background: #FFFFFF;
+  border-color: rgba(232, 215, 218, 0.85);
+  box-shadow: 0 2px 8px rgba(180, 120, 130, 0.05);
+}
+
+#screen-weekly-planning .btn-today-pill {
+  background: #FFFFFF;
+  border-color: rgba(230, 210, 215, 0.85);
+}
+
+#screen-weekly-planning .btn-today-pill:hover {
+  background: #FAF0F2;
+  border-color: rgba(210, 180, 188, 0.9);
+}
+
 .planner-header-intro {
   margin-bottom: 12px;
 }
