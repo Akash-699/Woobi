@@ -30,8 +30,8 @@
         fovPortrait: 56
       },
       WARDROBE_CLOSEUP: {
-        position: new THREE.Vector3(-1.20, 1.25, -0.20),
-        target: new THREE.Vector3(-1.20, 1.20, -2.40),
+        position: new THREE.Vector3(-1.65, 1.25, -1.30),
+        target: new THREE.Vector3(-1.65, 1.20, -3.50),
         fovLandscape: 38,
         fovPortrait: 54
       },
@@ -48,14 +48,14 @@
         fovPortrait: 36
       },
       VANITY_VIEW: {
-        position: new THREE.Vector3(0.95, 1.25, -0.65),
-        target: new THREE.Vector3(1.15, 1.20, -2.20),
+        position: new THREE.Vector3(1.35, 1.25, -1.75),
+        target: new THREE.Vector3(1.60, 1.20, -3.30),
         fovLandscape: 38,
         fovPortrait: 46
       },
       MIRROR_VIEW: {
-        position: new THREE.Vector3(0.95, 1.25, -0.65),
-        target: new THREE.Vector3(1.15, 1.20, -2.20),
+        position: new THREE.Vector3(1.35, 1.25, -1.75),
+        target: new THREE.Vector3(1.60, 1.20, -3.30),
         fovLandscape: 38,
         fovPortrait: 46
       }
@@ -909,15 +909,15 @@
       this.scene.add(rimLight);
 
       // Soft Warm Interior Fill for Wardrobe (Toned down so oak wood does not blow out)
-      const wardrobeSpot = new THREE.SpotLight(0xFFF2DE, 0.30, 4.8, Math.PI / 4, 0.45, 1.2);
-      wardrobeSpot.position.set(-1.20, 3.4, -1.00);
-      wardrobeSpot.target.position.set(-1.20, 1.22, -2.40);
+      const wardrobeSpot = new THREE.SpotLight(0xFFF2DE, 0.30, 5.6, Math.PI / 4, 0.45, 1.2);
+      wardrobeSpot.position.set(-1.65, 3.4, -2.10);
+      wardrobeSpot.target.position.set(-1.65, 1.22, -3.50);
       this.scene.add(wardrobeSpot);
       this.scene.add(wardrobeSpot.target);
 
-      const vanitySpot = new THREE.SpotLight(0xFFF2DE, 0.38, 4.8, Math.PI / 4, 0.45, 1.2);
-      vanitySpot.position.set(1.15, 3.5, -0.90);
-      vanitySpot.target.position.set(1.15, 1.20, -2.20);
+      const vanitySpot = new THREE.SpotLight(0xFFF2DE, 0.38, 5.6, Math.PI / 4, 0.45, 1.2);
+      vanitySpot.position.set(1.60, 3.5, -2.00);
+      vanitySpot.target.position.set(1.60, 1.20, -3.30);
       this.scene.add(vanitySpot);
       this.scene.add(vanitySpot.target);
     }
@@ -966,7 +966,7 @@
       const wallMat = this.fallbackWallMat;
       const wallGeo = new THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
       const backWall = new THREE.Mesh(wallGeo, wallMat);
-      backWall.position.set(0, 4.0, 8.2);
+      backWall.position.set(0, 4.0, 7.0);
       backWall.rotation.y = Math.PI; // Orient curved wall behind avatar towards negative Z
       backWall.receiveShadow = false; // Prevents directional shadow frustum from cutting off horizontally across the curved back wall
       this.scene.add(backWall);
@@ -974,7 +974,7 @@
       // Opposing Front Architectural Wall (Completes 360° Room Enclosure for Mirror Reflections)
       const frontWallGeo = new THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.55, Math.PI * 1.1);
       const frontWall = new THREE.Mesh(frontWallGeo, wallMat);
-      frontWall.position.set(0, 4.0, 8.2);
+      frontWall.position.set(0, 4.0, 7.0);
       frontWall.receiveShadow = false;
       this.scene.add(frontWall);
 
@@ -983,14 +983,14 @@
       const ceilingMat = new THREE.MeshStandardMaterial({ color: 0xF5EFEB, roughness: 0.96, side: THREE.BackSide });
       const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
       ceiling.rotation.x = Math.PI / 2;
-      ceiling.position.set(0, 8.0, 8.2);
+      ceiling.position.set(0, 8.0, 7.0);
       this.scene.add(ceiling);
 
       // Architectural Baseboard Skirting
       const baseboardGeo = new THREE.CylinderGeometry(11.96, 11.96, 0.22, 64, 1, true);
       const baseboardMat = new THREE.MeshStandardMaterial({ color: 0x362518, roughness: 0.5, side: THREE.BackSide });
       const baseboard = new THREE.Mesh(baseboardGeo, baseboardMat);
-      baseboard.position.set(0, 0.11, 8.2);
+      baseboard.position.set(0, 0.11, 7.0);
       this.scene.add(baseboard);
 
       // 3. Diagonal Window Mullion Sunlight Shadow Projected on Wall/Floor
@@ -1161,7 +1161,7 @@
 
       const wardrobeGroup = new THREE.Group();
       // Position naturally on left wall with angled perspective matching Reference D
-      wardrobeGroup.position.set(-1.20, 0, -2.40);
+      wardrobeGroup.position.set(-1.65, 0, -3.50);
       wardrobeGroup.rotation.y = 0.35;
 
       const scale = 2.40 / 3.00;
@@ -1529,7 +1529,7 @@
       }
 
       const vanityGroup = new THREE.Group();
-      vanityGroup.position.set(1.15, 0, -2.20);
+      vanityGroup.position.set(1.60, 0, -3.30);
       vanityGroup.rotation.y = -0.32; // Angled gracefully towards stage
 
       const brassMat = new THREE.MeshStandardMaterial({
@@ -2323,7 +2323,7 @@
         });
 
         this.mirrorCamera = new THREE.PerspectiveCamera(24, 0.62, 1.8, 60);
-        this.mirrorCamera.position.set(1.85, 1.25, -2.40);
+        this.mirrorCamera.position.set(2.25, 1.25, -3.50);
         this.mirrorCamera.lookAt(0, 1.15, 0);
         this.scene.add(this.mirrorCamera);
 
@@ -3255,7 +3255,7 @@
         this.vanityModel.reflection.update(this.renderer, this.scene, this.camera);
       } else if (this.mirrorRenderTarget && this.mirrorCamera && activeMirrorMesh) {
         activeMirrorMesh.visible = false;
-        this.mirrorCamera.position.set(1.85, 1.25, -2.40);
+        this.mirrorCamera.position.set(2.25, 1.25, -3.50);
         this.mirrorCamera.lookAt(0, 1.15, 0); // Looking towards avatar torso from optical reflection position
         this.mirrorCamera.far = 60.0;
 

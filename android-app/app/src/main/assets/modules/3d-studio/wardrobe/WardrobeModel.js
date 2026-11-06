@@ -13,7 +13,7 @@ export const WARDROBE_CONFIG = {
   width: 2.20 * (2.40 / 3.00),
   height: 3.00 * (2.40 / 3.00),
   depth: 0.65 * (2.40 / 3.00),
-  position: { x: -1.20, y: 0, z: -2.40 },
+  position: { x: -1.65, y: 0, z: -3.50 },
   rotationY: 0.35
 };
 

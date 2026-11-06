@@ -37,22 +37,22 @@ export const LIGHTING_PRESETS = {
     wardrobeSpot: {
       color: 0xFFE5BF,
       intensity: 0.50,
-      distance: 4.8,
+      distance: 5.6,
       angle: Math.PI / 4,
       penumbra: 0.45,
       decay: 1.2,
-      position: { x: -1.20, y: 3.4, z: -1.00 },
-      target: { x: -1.20, y: 1.22, z: -2.40 }
+      position: { x: -1.65, y: 3.4, z: -2.10 },
+      target: { x: -1.65, y: 1.22, z: -3.50 }
     },
     vanitySpot: {
       color: 0xFFE5BF,
       intensity: 0.80,
-      distance: 4.8,
+      distance: 5.6,
       angle: Math.PI / 4,
       penumbra: 0.45,
       decay: 1.2,
-      position: { x: 1.15, y: 3.5, z: -0.90 },
-      target: { x: 1.15, y: 1.20, z: -2.20 }
+      position: { x: 1.60, y: 3.5, z: -2.00 },
+      target: { x: 1.60, y: 1.20, z: -3.30 }
     }
   },
 
@@ -89,22 +89,22 @@ export const LIGHTING_PRESETS = {
     wardrobeSpot: {
       color: 0xF2F2F2,
       intensity: 0.45,
-      distance: 4.8,
+      distance: 5.6,
       angle: Math.PI / 4,
       penumbra: 0.45,
       decay: 1.2,
-      position: { x: -1.20, y: 3.4, z: -1.00 },
-      target: { x: -1.20, y: 1.22, z: -2.40 }
+      position: { x: -1.65, y: 3.4, z: -2.10 },
+      target: { x: -1.65, y: 1.22, z: -3.50 }
     },
     vanitySpot: {
       color: 0xF2F2F2,
       intensity: 0.70,
-      distance: 4.8,
+      distance: 5.6,
       angle: Math.PI / 4,
       penumbra: 0.45,
       decay: 1.2,
-      position: { x: 1.15, y: 3.5, z: -0.90 },
-      target: { x: 1.15, y: 1.20, z: -2.20 }
+      position: { x: 1.60, y: 3.5, z: -2.00 },
+      target: { x: 1.60, y: 1.20, z: -3.30 }
     }
   },
 
@@ -141,22 +141,22 @@ export const LIGHTING_PRESETS = {
     wardrobeSpot: {
       color: 0xFFDDB0,
       intensity: 0.48,
-      distance: 4.8,
+      distance: 5.6,
       angle: Math.PI / 4,
       penumbra: 0.45,
       decay: 1.2,
-      position: { x: -1.20, y: 3.4, z: -1.00 },
-      target: { x: -1.20, y: 1.22, z: -2.40 }
+      position: { x: -1.65, y: 3.4, z: -2.10 },
+      target: { x: -1.65, y: 1.22, z: -3.50 }
     },
     vanitySpot: {
       color: 0xFFDDB0,
       intensity: 0.75,
-      distance: 4.8,
+      distance: 5.6,
       angle: Math.PI / 4,
       penumbra: 0.45,
       decay: 1.2,
-      position: { x: 1.15, y: 3.5, z: -0.90 },
-      target: { x: 1.15, y: 1.20, z: -2.20 }
+      position: { x: 1.60, y: 3.5, z: -2.00 },
+      target: { x: 1.60, y: 1.20, z: -3.30 }
     }
   }
 };

@@ -57,7 +57,7 @@ export class StudioTheme {
     const wallGeo = new _THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
     this.backWall = new _THREE.Mesh(wallGeo, this.materials.wallMat);
     this.backWall.name = 'Studio_BackWall';
-    this.backWall.position.set(0, 4.0, 8.2);
+    this.backWall.position.set(0, 4.0, 7.0);
     this.backWall.rotation.y = Math.PI; // Orient curved wall behind avatar towards negative Z
     this.backWall.receiveShadow = false; // Smooth back wall illumination without shadow map frustum clipping
     this.group.add(this.backWall);
@@ -68,7 +68,7 @@ export class StudioTheme {
     const frontWallGeo = new _THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.55, Math.PI * 1.1);
     this.frontWall = new _THREE.Mesh(frontWallGeo, this.materials.frontWallMat || this.materials.wallMat);
     this.frontWall.name = 'Studio_FrontWall';
-    this.frontWall.position.set(0, 4.0, 8.2);
+    this.frontWall.position.set(0, 4.0, 7.0);
     this.frontWall.receiveShadow = false;
     this.group.add(this.frontWall);
     this.disposables.push(frontWallGeo);
@@ -80,7 +80,7 @@ export class StudioTheme {
     this.ceiling = new _THREE.Mesh(ceilingGeo, this.materials.ceilingMat || this.materials.wallMat);
     this.ceiling.name = 'Studio_Ceiling';
     this.ceiling.rotation.x = Math.PI / 2;
-    this.ceiling.position.set(0, 8.0, 8.2);
+    this.ceiling.position.set(0, 8.0, 7.0);
     this.group.add(this.ceiling);
     this.disposables.push(ceilingGeo);
 
@@ -89,14 +89,14 @@ export class StudioTheme {
     const baseboardMat = new _THREE.MeshStandardMaterial({ color: 0x362518, roughness: 0.5, side: _THREE.BackSide });
     this.baseboard = new _THREE.Mesh(baseboardGeo, baseboardMat);
     this.baseboard.name = 'Studio_Baseboard';
-    this.baseboard.position.set(0, 0.11, 8.2);
+    this.baseboard.position.set(0, 0.11, 7.0);
     this.group.add(this.baseboard);
     this.disposables.push(baseboardGeo, baseboardMat);
 
     // 4.8. Opposing French Loft Studio Windows & Architecture (Reflected in Vanity Mirror)
     this.opposingArchitecture = new _THREE.Group();
     this.opposingArchitecture.name = 'Studio_OpposingArchitecture';
-    this.opposingArchitecture.position.set(-4.6, 3.6, 11.5);
+    this.opposingArchitecture.position.set(-4.6, 3.6, 10.3);
     this.opposingArchitecture.rotation.y = 0.38;
 
     // Window frame

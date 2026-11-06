@@ -12,7 +12,7 @@ export class MirrorReflection {
     this.mirrorMesh = null;
     this.scene = null;
     this.isContextLost = false;
-    this.mirrorPosition = options.mirrorPosition || { x: 1.85, y: 1.25, z: -2.40 };
+    this.mirrorPosition = options.mirrorPosition || { x: 2.25, y: 1.25, z: -3.50 };
     this.lookAtPosition = options.lookAtPosition || { x: 0.0, y: 1.15, z: 0.0 };
     this.fov = options.fov || 24;
     this.near = options.near || 1.8;

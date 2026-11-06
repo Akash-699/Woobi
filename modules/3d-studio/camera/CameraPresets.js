@@ -13,8 +13,8 @@ export const CAMERA_PRESETS = {
   },
   WARDROBE_CLOSEUP: {
     name: 'WARDROBE_CLOSEUP',
-    position: { x: -1.20, y: 1.25, z: -0.20 },
-    target: { x: -1.20, y: 1.20, z: -2.40 },
+    position: { x: -1.65, y: 1.25, z: -1.30 },
+    target: { x: -1.65, y: 1.20, z: -3.50 },
     fovLandscape: 38,
     fovPortrait: 54
   },
@@ -34,15 +34,15 @@ export const CAMERA_PRESETS = {
   },
   VANITY_VIEW: {
     name: 'VANITY_VIEW',
-    position: { x: 0.95, y: 1.25, z: -0.65 },
-    target: { x: 1.15, y: 1.20, z: -2.20 },
+    position: { x: 1.35, y: 1.25, z: -1.75 },
+    target: { x: 1.60, y: 1.20, z: -3.30 },
     fovLandscape: 38,
     fovPortrait: 46
   },
   MIRROR_VIEW: {
     name: 'MIRROR_VIEW',
-    position: { x: 0.95, y: 1.25, z: -0.65 },
-    target: { x: 1.15, y: 1.20, z: -2.20 },
+    position: { x: 1.35, y: 1.25, z: -1.75 },
+    target: { x: 1.60, y: 1.20, z: -3.30 },
     fovLandscape: 38,
     fovPortrait: 46
   }

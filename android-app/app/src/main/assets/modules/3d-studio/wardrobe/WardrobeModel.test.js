@@ -31,9 +31,9 @@ assert(Math.abs(WARDROBE_CONFIG.height - (3.00 * expectedScale)) < 0.0001, 'Ward
 assert(Math.abs(WARDROBE_CONFIG.depth - (0.65 * expectedScale)) < 0.0001, 'Wardrobe depth must be exactly 0.52m');
 
 // 2. Position and Orientation
-assert(WARDROBE_CONFIG.position.x === -1.20, 'Wardrobe X position must be -1.20m');
+assert(WARDROBE_CONFIG.position.x === -1.65, 'Wardrobe X position must be -1.65m');
 assert(WARDROBE_CONFIG.position.y === 0, 'Wardrobe Y position must be 0m (ground floor)');
-assert(WARDROBE_CONFIG.position.z === -2.40, 'Wardrobe Z position must be -2.40m');
+assert(WARDROBE_CONFIG.position.z === -3.50, 'Wardrobe Z position must be -3.50m');
 assert(WARDROBE_CONFIG.rotationY === 0.35, 'Wardrobe rotation Y must be 0.35 rad');
 
 // 3. Asset Paths

@@ -11,7 +11,7 @@ import { VanityLighting } from './VanityLighting.js';
 import { MirrorReflection } from './MirrorReflection.js';
 
 export const VANITY_CONFIG = {
-  position: { x: 1.15, y: 0, z: -2.20 },
+  position: { x: 1.60, y: 0, z: -3.30 },
   rotationY: -0.32,
   tableHeight: 0.84,
   tableWidth: 0.98,
