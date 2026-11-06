@@ -4803,6 +4803,31 @@
     goToScreen('today');
   }
 
+  function openWeeklyPlanner() {
+    initPlannerState();
+    goToScreen('weekly-planning');
+  }
+
+  function getAllPlannerOutfits() {
+    const list = [...PLANNER_SAMPLE_OUTFITS];
+    if (state.savedLooks && Array.isArray(state.savedLooks)) {
+      state.savedLooks.forEach((look, idx) => {
+        if (!list.some(o => o.id === look.id)) {
+          list.push({
+            id: look.id || `saved_look_${idx}`,
+            title: look.title || look.name || `Saved Look ${idx + 1}`,
+            occasion: look.occasion || 'Saved Look',
+            tag: 'Saved',
+            caption: look.caption || 'From your personal wardrobe collection.',
+            previewPhoto: look.previewPhoto || look.photo || (look.items && look.items[0] && look.items[0].photo) || 'assets/model_tryon_navy.jpg',
+            items: look.items || []
+          });
+        }
+      });
+    }
+    return list;
+  }
+
   function openPlannerOutfitModal(dateKey) {
     plannerState.assigningForDateKey = dateKey;
     plannerState.selectedDateKey = dateKey;
@@ -4862,9 +4887,10 @@
     const dateKey = plannerState.assigningForDateKey;
     const currentOutfit = dateKey ? plannerState.plannedOutfits[dateKey] : null;
 
-    let filtered = PLANNER_SAMPLE_OUTFITS;
+    const allOutfits = getAllPlannerOutfits();
+    let filtered = allOutfits;
     if (plannerState.filterCategory && plannerState.filterCategory !== 'All') {
-      filtered = PLANNER_SAMPLE_OUTFITS.filter(o =>
+      filtered = allOutfits.filter(o =>
         (o.tag && o.tag.toLowerCase() === plannerState.filterCategory.toLowerCase()) ||
         (o.occasion && o.occasion.toLowerCase() === plannerState.filterCategory.toLowerCase())
       );
@@ -4903,7 +4929,8 @@
     const dateKey = plannerState.assigningForDateKey || plannerState.selectedDateKey;
     if (!dateKey) return;
 
-    const outfit = PLANNER_SAMPLE_OUTFITS.find(o => o.id === outfitId);
+    const allOutfits = getAllPlannerOutfits();
+    const outfit = allOutfits.find(o => o.id === outfitId);
     if (!outfit) return;
 
     plannerState.plannedOutfits[dateKey] = outfit;
@@ -5182,6 +5209,7 @@
     plannerChangeWeek,
     plannerJumpToToday,
     weeklyPlannerGoBack,
+    openWeeklyPlanner,
     openPlannerOutfitModal,
     closePlannerOutfitModal,
     filterPlannerOutfits,
