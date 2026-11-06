@@ -207,9 +207,16 @@
     // Update Bottom Nav active tab indicator if applicable
     updateBottomNav(screenId);
 
-    // Scroll phone screen container to top
+    // Scroll phone screen container to top and manage screen overflow
     const container = document.getElementById('phoneScreenContainer');
-    if (container) container.scrollTop = 0;
+    if (container) {
+      container.scrollTop = 0;
+      if (screenId === 'premium') {
+        container.style.overflowY = 'hidden';
+      } else {
+        container.style.overflowY = '';
+      }
+    }
   }
 
   function updateBottomNav(screenId) {
