@@ -35,7 +35,7 @@
 
   <!-- Woobi Core Shared Design Tokens -->
   <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
-  <link rel="stylesheet" href="styles.css?v=20261106_v15">
+  <link rel="stylesheet" href="styles.css?v=20261106_v16">
 </head>
 
 <body>
@@ -405,31 +405,33 @@
             </div>
             <!-- Arched Glass Visor Dynamic Island: Camera | Calendar | Streak | Gallery | Profile -->
             <div class="streak-trio-row" id="streakTrioRow">
-              <svg class="streak-visor-bg" viewBox="0 0 384 58" preserveAspectRatio="none" aria-hidden="true">
+              <svg class="streak-visor-bg" viewBox="0 0 384 76" preserveAspectRatio="none" aria-hidden="true">
                 <defs>
                   <linearGradient id="visorGlassGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stop-color="#D98744" stop-opacity="0.5"/>
-                    <stop offset="35%" stop-color="#A2501E" stop-opacity="0.58"/>
-                    <stop offset="100%" stop-color="#4E2008" stop-opacity="0.72"/>
+                    <stop offset="0%" stop-color="#E2924E" stop-opacity="0.52"/>
+                    <stop offset="35%" stop-color="#A65420" stop-opacity="0.6"/>
+                    <stop offset="100%" stop-color="#4E2008" stop-opacity="0.75"/>
                   </linearGradient>
                   <linearGradient id="visorRimGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" stop-color="#FFF6D8" stop-opacity="0.98"/>
-                    <stop offset="30%" stop-color="#FFCA68" stop-opacity="0.92"/>
-                    <stop offset="70%" stop-color="#D47A22" stop-opacity="0.82"/>
-                    <stop offset="100%" stop-color="#FFE89E" stop-opacity="0.96"/>
+                    <stop offset="30%" stop-color="#FFCA68" stop-opacity="0.94"/>
+                    <stop offset="70%" stop-color="#D47A22" stop-opacity="0.85"/>
+                    <stop offset="100%" stop-color="#FFE89E" stop-opacity="0.98"/>
                   </linearGradient>
                   <linearGradient id="visorGlintGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0"/>
-                    <stop offset="25%" stop-color="#FFFBEB" stop-opacity="0.5"/>
+                    <stop offset="25%" stop-color="#FFFBEB" stop-opacity="0.55"/>
                     <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.98"/>
-                    <stop offset="75%" stop-color="#FFFBEB" stop-opacity="0.5"/>
+                    <stop offset="75%" stop-color="#FFFBEB" stop-opacity="0.55"/>
                     <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
                   </linearGradient>
                 </defs>
-                <!-- Main Arched Visor Body -->
-                <path class="streak-visor-body" d="M 24 15 C 100 8, 145 5, 192 5 C 239 5, 284 8, 360 15 A 18 18 0 0 1 360 51 C 284 44, 239 41, 192 41 C 145 41, 100 44, 24 51 A 18 18 0 0 1 24 15 Z" fill="url(#visorGlassGrad)" stroke="url(#visorRimGrad)" stroke-width="2.2"/>
+                <!-- Main Arched Visor Body with Increased Breadth & Bend -->
+                <path class="streak-visor-body" d="M 28 22 C 90 12, 140 6, 192 6 C 244 6, 294 12, 356 22 A 25 25 0 0 1 356 72 C 294 62, 244 56, 192 56 C 140 56, 90 62, 28 72 A 25 25 0 0 1 28 22 Z" fill="url(#visorGlassGrad)" stroke="url(#visorRimGrad)" stroke-width="2.5"/>
                 <!-- Upper Specular Rim Glint -->
-                <path d="M 28 16 C 104 8.5, 147 5.5, 192 5.5 C 237 5.5, 280 8.5, 356 16" stroke="url(#visorGlintGrad)" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                <path d="M 32 23 C 94 13, 142 7.5, 192 7.5 C 242 7.5, 290 13, 352 23" stroke="url(#visorGlintGrad)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <!-- Lower Golden Rim Accent -->
+                <path d="M 32 71 C 94 61, 142 55.5, 192 55.5 C 242 55.5, 290 61, 352 71" stroke="url(#visorRimGrad)" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.6"/>
               </svg>
 
               <!-- 1. 📷 Camera Icon: Opens Camera Screen Only -->

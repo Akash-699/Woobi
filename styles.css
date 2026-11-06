@@ -9362,8 +9362,8 @@ body {
   gap: 10px;
   width: 384px;
   max-width: calc(100% - 16px);
-  height: 58px;
-  padding: 0 14px;
+  height: 74px;
+  padding: 0 16px;
   box-sizing: border-box;
   background: transparent;
   border: none;
@@ -9378,7 +9378,7 @@ body {
   height: 100%;
   pointer-events: none;
   z-index: 1;
-  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.48)) drop-shadow(0 0 16px rgba(235, 140, 25, 0.4));
+  filter: drop-shadow(0 14px 32px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 18px rgba(240, 145, 30, 0.45));
 }
 
 .streak-trio-btn {
@@ -9405,67 +9405,67 @@ body {
   transform: scale(0.92) !important;
 }
 
-/* Visor arc vertical curvature offsets */
+/* Visor arc vertical curvature offsets following the bend */
 .streak-camera-btn {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   padding: 0;
   color: #FFFFFF;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
-  transform: translateY(3.5px);
+  filter: drop-shadow(0 1.5px 3px rgba(0, 0, 0, 0.65));
+  transform: translateY(7px);
 }
 
 .streak-calendar-btn {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   padding: 0;
   color: #FFFFFF;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
-  transform: translateY(1px);
+  filter: drop-shadow(0 1.5px 3px rgba(0, 0, 0, 0.65));
+  transform: translateY(2px);
 }
 
 .streak-gallery-btn {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   padding: 0;
   color: #FFFFFF;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
-  transform: translateY(1px);
+  filter: drop-shadow(0 1.5px 3px rgba(0, 0, 0, 0.65));
+  transform: translateY(2px);
 }
 
 .streak-account-btn {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   padding: 0;
   color: #FFFFFF;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
-  transform: translateY(3.5px);
+  filter: drop-shadow(0 1.5px 3px rgba(0, 0, 0, 0.65));
+  transform: translateY(7px);
 }
 
 .streak-camera-btn:hover,
 .streak-calendar-btn:hover,
 .streak-gallery-btn:hover,
 .streak-account-btn:hover {
-  filter: drop-shadow(0 0 10px rgba(255, 230, 160, 0.95)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
-  opacity: 0.96;
+  filter: drop-shadow(0 0 12px rgba(255, 230, 160, 1)) drop-shadow(0 1.5px 3px rgba(0, 0, 0, 0.65));
+  opacity: 0.98;
 }
 
 /* Raised Amber Capsule Streak Button */
 .streak-flame-btn {
-  height: 36px;
+  height: 38px;
   padding: 0 16px 0 12px;
   gap: 7px;
   background: linear-gradient(180deg, #FFA922 0%, #D86004 100%);
   border: 2px solid #FFEAA0;
   border-radius: 999px;
-  box-shadow: 0 0 20px rgba(255, 140, 0, 0.9), inset 0 2px 2px rgba(255, 255, 245, 0.95), inset 0 -2px 2px rgba(180, 60, 0, 0.45);
+  box-shadow: 0 0 22px rgba(255, 140, 0, 0.95), inset 0 2px 2.5px rgba(255, 255, 245, 0.95), inset 0 -2px 2px rgba(180, 60, 0, 0.45);
   color: #FFFFFF;
-  transform: translateY(-2px);
+  transform: translateY(-5px);
 }
 
 .streak-flame-btn:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 0 24px rgba(255, 160, 30, 0.98), inset 0 2px 2px #FFFFFF;
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 0 26px rgba(255, 160, 30, 1), inset 0 2px 2px #FFFFFF;
 }
 
 .streak-flame-btn.broken-streak {
@@ -9476,7 +9476,7 @@ body {
 
 .streak-flame-btn .streak-count {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 800;
   color: #FFFFFF;
   line-height: 1;
@@ -9491,7 +9491,7 @@ body {
 
 .streak-count-label {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 800;
   color: #FFFFFF;
   margin-left: 1px;
