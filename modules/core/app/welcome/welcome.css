@@ -73,14 +73,6 @@ body.welcome-intro #desktopEditorialFrame { display: none !important; }
   font: 600 6px system-ui, sans-serif;
   letter-spacing: 1.7px;
 }
-.welcome-signature { text-align: center; font: 600 25px/1 Georgia, serif; letter-spacing: 1px; }
-.welcome-signature span {
-  display: block;
-  margin-top: 8px;
-  color: #70675b;
-  font: 600 6px system-ui, sans-serif;
-  letter-spacing: 4px;
-}
 .welcome-copy {
   position: absolute;
   top: 22%;
@@ -127,12 +119,12 @@ body.welcome-intro #desktopEditorialFrame { display: none !important; }
   color: #38332d;
 }
 .welcome-copy h1 em { color: #8a6a39; font-weight: inherit; }
-.welcome-caption { margin: 22px 0 0; color: #70675b; font: 500 11px/1.6 system-ui, sans-serif; }
 .welcome-carpet {
   position: absolute;
   bottom: -2px;
   left: 50%;
-  width: 145%;
+  width: 115%;
+  max-width: 640px;
   height: 47%;
   transform: translateX(-50%);
   overflow: hidden;
@@ -142,29 +134,9 @@ body.welcome-intro #desktopEditorialFrame { display: none !important; }
   width: 100%;
   height: 100%;
 }
-.welcome-footer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: max(30px, env(safe-area-inset-bottom));
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 17px;
-}
-.welcome-arrival {
-  color: #faf9f6;
-  text-shadow: 0 1px 3px #40111dc4;
-  font: 600 7px system-ui, sans-serif;
-  letter-spacing: 2.3px;
-  padding: 8px 14px;
-  border: 1px solid #efd8b659;
-  border-radius: 30px;
-  background: #651b2a40;
-}
 .welcome-skip {
   display: flex;
+  margin: 32px auto 0;
   justify-content: space-between;
   align-items: center;
   gap: 28px;
@@ -204,9 +176,7 @@ body.welcome-intro #desktopEditorialFrame { display: none !important; }
   .welcome-star { font-size: 22px; width: 36px; height: 36px; }
   .welcome-eyebrow { margin: 8px 0 14px; }
   .welcome-copy h1 { font-size: 36px; }
-  .welcome-caption { margin-top: 12px; }
-  .welcome-footer { bottom: 20px; gap: 12px; }
-  .welcome-arrival { padding: 6px 12px; }
+  .welcome-skip { margin-top: 24px; }
 }
 @media (max-height: 440px) and (min-width: 600px) {
   .welcome-header { inset: 16px 24px auto; }
@@ -215,9 +185,7 @@ body.welcome-intro #desktopEditorialFrame { display: none !important; }
   .welcome-copy { top: 16%; }
   .welcome-star, .welcome-eyebrow { display: none; }
   .welcome-copy h1 { font-size: 32px; }
-  .welcome-caption { margin-top: 8px; font-size: 10px; }
   .welcome-carpet { height: 42%; }
-  .welcome-footer { bottom: 16px; gap: 10px; }
   .welcome-skip { min-height: 40px; padding: 9px 22px; }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -1955,8 +1955,8 @@
 
   function prepareVirtualStudio() {
     if (virtualStudioReady) return virtualStudioReady;
-    virtualStudioReady = Promise.resolve(window.woobiWelcomeEntrance)
-      // Let the final welcome frame paint before any texture or shader work.
+    virtualStudioReady = Promise.resolve()
+      // Yield one frame without depending on the decorative welcome animation.
       .then(() => new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0))))
       .then(() => new Promise(resolve => {
         const studio = window.Studio3D;
@@ -5279,10 +5279,9 @@
 
   window.app = Object.assign(window.app || {}, appExports);
 
-  const startApp = () => Promise.resolve(window.woobiWelcomeEntrance).then(init);
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startApp);
+    document.addEventListener('DOMContentLoaded', init);
   } else {
-    startApp();
+    init();
   }
 })();

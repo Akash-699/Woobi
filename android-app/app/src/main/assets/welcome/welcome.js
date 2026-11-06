@@ -2,6 +2,18 @@
   const standalone = document.body.hasAttribute('data-app-launch');
   const android = document.body.hasAttribute('data-android-app');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const welcomeSeenKey = 'woobi_welcome_seen';
+
+  function hasSeenWelcome() {
+    try { return localStorage.getItem(welcomeSeenKey) === 'true'; }
+    catch { return false; }
+  }
+
+  function markWelcomeSeen() {
+    // Storage may be unavailable in private browsing or a restricted WebView.
+    try { localStorage.setItem(welcomeSeenKey, 'true'); }
+    catch { /* The welcome remains usable without persistent storage. */ }
+  }
 
   function animateWelcome(welcome, onComplete) {
     const canvas = welcome.querySelector('.welcome-carpet canvas');
@@ -10,15 +22,17 @@
       onComplete();
       return () => {};
     }
-    const duration = 2800;
+    const buttonDelay = 1850;
+    const buttonDuration = 550;
+    const carpetDelay = buttonDelay + buttonDuration + 150;
+    const carpetDuration = 2800;
+    const duration = carpetDelay + carpetDuration;
     const entrance = [
       { selector: '.welcome-arch', delay: 0, duration: 1800, lift: 0, scale: .97 },
       { selector: '.welcome-star', delay: 250, duration: 650, lift: 8, scale: .92 },
       { selector: '.welcome-eyebrow', delay: 450, duration: 650, lift: 8 },
       { selector: '.welcome-copy h1', delay: 650, duration: 850, lift: 16, scale: .97 },
-      { selector: '.welcome-caption', delay: 1100, duration: 750, lift: 10 },
-      { selector: '.welcome-arrival', delay: 1750, duration: 650, lift: 10 },
-      { selector: '.welcome-skip', delay: 1900, duration: 900, lift: 14, scale: .94 }
+      { selector: '.welcome-skip', delay: buttonDelay, duration: buttonDuration, lift: 10, scale: .97 }
     ].map(({ selector, delay, duration: revealDuration, lift, scale = 1 }) => {
       const animation = welcome.querySelector(selector).animate([
         { opacity: 0, transform: `translateY(${lift}px) scale(${scale})` },
@@ -40,11 +54,13 @@
       entrance.forEach(animation => { animation.currentTime = elapsed; });
       if (!width || !height) return;
       context.clearRect(0, 0, width, height);
-      const progress = Math.min(elapsed / duration, 1);
+      const progress = Math.max(0, Math.min((elapsed - carpetDelay) / carpetDuration, 1));
+      // Let the entry button finish appearing before any carpet is drawn.
+      if (progress === 0) return;
       const travel = .5 - Math.cos(progress * Math.PI) / 2;
       // The roll travels beyond the viewport, leaving the same flat carpet behind.
       const front = -14 + (height + 54) * travel;
-      const halfWidth = y => width * (.06 + .44 * y / height);
+      const halfWidth = y => width * (.10 + .40 * y / height);
       const center = width / 2;
 
       function fabric(inset, fill) {
@@ -182,10 +198,13 @@
   if (!standalone && address.searchParams.get('welcome') === 'entered') {
     address.searchParams.delete('welcome');
     history.replaceState(null, '', address);
+    markWelcomeSeen();
     revealDashboard();
     return;
   }
   if (!standalone && !android && !matchMedia('(max-width: 700px)').matches) return;
+  // The standalone preview stays replayable; normal app loads are first-run only.
+  if (!standalone && hasSeenWelcome()) return;
 
   let releaseEntrance;
   let entranceFinished = false;
@@ -199,7 +218,7 @@
       }, 0));
     };
   });
-  // App startup may prepare the hidden studio only after the welcome has settled.
+  // This promise coordinates the overlay exit only; core app boot never waits for it.
   window.woobiWelcomeEntrance = entranceComplete;
   document.body.classList.add('welcome-intro');
   const welcome = document.createElement('dialog');
@@ -209,19 +228,14 @@
     <div class="welcome-stage" aria-hidden="true"><span class="welcome-arch"></span></div>
     <header class="welcome-header">
       <div class="welcome-brand">woobi<span>YOUR STYLE, REMIXED.</span></div>
-      <div class="welcome-signature">sérén<span>STUDIO</span></div>
     </header>
     <div class="welcome-copy">
       <span class="welcome-star" aria-hidden="true">✧</span>
       <p class="welcome-eyebrow">A MOMENT, JUST FOR YOU</p>
-      <h1 id="app-welcome-title">Your style.<br><em>Centre stage.</em></h1>
-      <p class="welcome-caption">Already yours. Newly inspired.</p>
-    </div>
-    <div class="welcome-carpet" aria-hidden="true"><canvas></canvas></div>
-    <footer class="welcome-footer">
-      <span class="welcome-arrival">WELCOME TO YOUR WARDROBE</span>
+      <h1 id="app-welcome-title">Discover the art<br><em>of being you</em></h1>
       <button class="welcome-skip" type="button" autofocus>Enter Woobi <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></button>
-    </footer>`;
+    </div>
+    <div class="welcome-carpet" aria-hidden="true"><canvas></canvas></div>`;
   document.body.append(welcome);
   let entering = false;
   const finish = () => {
@@ -229,6 +243,7 @@
     document.body.classList.remove('welcome-intro');
     welcome.close();
     welcome.remove();
+    markWelcomeSeen();
     if (standalone) {
       location.replace(location.protocol === 'file:' ? '../index.html?welcome=entered' : '/?welcome=entered');
       return;
@@ -274,7 +289,7 @@
       points.push('0px 0px');
       return `polygon(evenodd, ${points.join(',')})`;
     }
-    welcome.querySelectorAll('.welcome-header, .welcome-copy, .welcome-footer').forEach(element => {
+    welcome.querySelectorAll('.welcome-header, .welcome-copy').forEach(element => {
       element.animate([
         { opacity: getComputedStyle(element).opacity },
         { opacity: 0 }
@@ -288,5 +303,10 @@
   });
   welcome.addEventListener('cancel', event => event.preventDefault());
   welcome.showModal();
-  const stopEntrance = animateWelcome(welcome, releaseEntrance);
+  let stopEntrance = () => {};
+  try { stopEntrance = animateWelcome(welcome, releaseEntrance); }
+  catch {
+    // A decorative animation failure must not strand the entry button.
+    releaseEntrance();
+  }
 })();
