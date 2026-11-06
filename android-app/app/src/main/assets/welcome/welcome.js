@@ -220,7 +220,7 @@
     <div class="welcome-carpet" aria-hidden="true"><canvas></canvas></div>
     <footer class="welcome-footer">
       <span class="welcome-arrival">WELCOME TO YOUR WARDROBE</span>
-      <button class="welcome-skip" type="button" autofocus>Enter Woobi <span aria-hidden="true">↗</span></button>
+      <button class="welcome-skip" type="button" autofocus>Enter Woobi <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></button>
     </footer>`;
   document.body.append(welcome);
   let entering = false;
