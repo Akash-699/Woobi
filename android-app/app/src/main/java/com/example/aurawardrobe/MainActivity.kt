@@ -101,4 +101,10 @@ class MainActivity : ComponentActivity() {
             super.onBackPressed()
         }
     }
+
+    override fun onDestroy() {
+        webView?.destroy()
+        webView = null
+        super.onDestroy()
+    }
 }
