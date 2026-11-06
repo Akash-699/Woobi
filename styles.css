@@ -9315,16 +9315,18 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   padding: 4px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(220, 210, 195, 0.85);
-  box-shadow: 0 4px 16px rgba(70, 50, 30, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 8px 30px rgba(60, 40, 20, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.7);
   z-index: 100;
   pointer-events: auto !important;
+  max-width: calc(100% - 20px);
+  box-sizing: border-box;
 }
 
 .streak-trio-btn {
@@ -9333,9 +9335,10 @@ body {
   justify-content: center;
   gap: 6px;
   height: 38px;
+  min-width: 38px;
   border-radius: 999px;
-  border: 1px solid rgba(215, 200, 180, 0.65);
-  background: #FAF7F2;
+  border: none;
+  background: transparent;
   color: #3C3024;
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.88rem;
@@ -9343,7 +9346,6 @@ body {
   cursor: pointer !important;
   user-select: none;
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 3px rgba(50, 40, 30, 0.04);
   pointer-events: auto !important;
 }
 
@@ -9351,19 +9353,43 @@ body {
   pointer-events: none;
 }
 
-.streak-trio-btn:hover {
-  transform: translateY(-2px);
-  background: #FFFFFF;
-  border-color: rgba(190, 160, 130, 0.85);
-  box-shadow: 0 4px 12px rgba(70, 50, 30, 0.12);
-}
-
 .streak-trio-btn:active {
   transform: scale(0.94);
 }
 
+.streak-camera-btn,
+.streak-gallery-btn,
+.streak-calendar-btn,
+.streak-account-btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  color: #4A3A2C;
+  border-radius: 50%;
+}
+
+.streak-camera-btn:hover,
+.streak-gallery-btn:hover,
+.streak-calendar-btn:hover,
+.streak-account-btn:hover {
+  transform: translateY(-1.5px);
+  background: rgba(255, 255, 255, 0.65);
+  color: #C85A17;
+  box-shadow: 0 3px 10px rgba(70, 50, 30, 0.08);
+}
+
 .streak-flame-btn {
-  padding: 0 13px 0 9px;
+  padding: 0 12px 0 8px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(220, 205, 185, 0.75);
+  box-shadow: 0 1px 4px rgba(50, 40, 30, 0.06);
+}
+
+.streak-flame-btn:hover {
+  transform: translateY(-1.5px);
+  background: #FFFFFF;
+  border-color: rgba(200, 90, 23, 0.45);
+  box-shadow: 0 4px 14px rgba(200, 90, 23, 0.15);
 }
 
 .streak-flame-btn.broken-streak {
@@ -9420,21 +9446,6 @@ body {
   margin-top: 4px;
 }
 
-.streak-camera-btn,
-.streak-gallery-btn,
-.streak-calendar-btn,
-.streak-account-btn {
-  width: 38px;
-  padding: 0;
-  color: #554433;
-}
-
-.streak-camera-btn:hover,
-.streak-gallery-btn:hover,
-.streak-calendar-btn:hover,
-.streak-account-btn:hover {
-  color: #C85A17;
-}
 
 /* Header Icon Mini Fire & Smoke */
 .streak-header-icon-img {

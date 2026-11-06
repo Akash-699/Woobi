@@ -382,6 +382,91 @@
       this.textures.creamMarble.repeat.set(4, 4);
       this.textures.champagneStone = this.textures.creamMarble;
 
+      // 1.5. Authentic European Oak Herringbone Parquet Floor & White Shag Rug Textures
+      const floorSrc = (typeof window !== 'undefined' && window.WOOBI_HERRINGBONE_FLOOR_DATA)
+        ? window.WOOBI_HERRINGBONE_FLOOR_DATA
+        : 'assets/herringbone_floor.jpg';
+      const floorBumpSrc = (typeof window !== 'undefined' && window.WOOBI_HERRINGBONE_BUMP_DATA)
+        ? window.WOOBI_HERRINGBONE_BUMP_DATA
+        : 'assets/herringbone_bump.jpg';
+      const shagSrc = (typeof window !== 'undefined' && window.WOOBI_SHAG_RUG_DATA)
+        ? window.WOOBI_SHAG_RUG_DATA
+        : 'assets/shag_rug.png';
+      const shagBumpSrc = (typeof window !== 'undefined' && window.WOOBI_SHAG_RUG_BUMP_DATA)
+        ? window.WOOBI_SHAG_RUG_BUMP_DATA
+        : 'assets/shag_rug_bump.png';
+
+      if (typeof THREE.TextureLoader !== 'undefined') {
+        const texLoader = new THREE.TextureLoader();
+        const hFloorTex = texLoader.load(floorSrc, (tex) => {
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          tex.repeat.set(10, 10);
+          if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+          if (this.themeModel?.floor?.material) {
+            this.themeModel.floor.material.map = tex;
+            this.themeModel.floor.material.color.setHex(0xFFFFFF);
+            this.themeModel.floor.material.needsUpdate = true;
+          }
+          if (this.fallbackFloorMat) {
+            this.fallbackFloorMat.map = tex;
+            this.fallbackFloorMat.color.setHex(0xFFFFFF);
+            this.fallbackFloorMat.needsUpdate = true;
+          }
+        });
+        hFloorTex.wrapS = THREE.RepeatWrapping;
+        hFloorTex.wrapT = THREE.RepeatWrapping;
+        hFloorTex.repeat.set(10, 10);
+        this.textures.herringboneFloor = hFloorTex;
+
+        const hBumpTex = texLoader.load(floorBumpSrc, (tex) => {
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          tex.repeat.set(10, 10);
+          if (this.themeModel?.floor?.material) {
+            this.themeModel.floor.material.bumpMap = tex;
+            this.themeModel.floor.material.bumpScale = 0.005;
+            this.themeModel.floor.material.needsUpdate = true;
+          }
+          if (this.fallbackFloorMat) {
+            this.fallbackFloorMat.bumpMap = tex;
+            this.fallbackFloorMat.bumpScale = 0.005;
+            this.fallbackFloorMat.needsUpdate = true;
+          }
+        });
+        hBumpTex.wrapS = THREE.RepeatWrapping;
+        hBumpTex.wrapT = THREE.RepeatWrapping;
+        hBumpTex.repeat.set(10, 10);
+        this.textures.herringboneBump = hBumpTex;
+
+        const shagTex = texLoader.load(shagSrc, (tex) => {
+          if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+          if (this.stageModel?.shagRugMesh?.material) {
+            this.stageModel.shagRugMesh.material.map = tex;
+            this.stageModel.shagRugMesh.material.needsUpdate = true;
+          }
+          if (this.fallbackShagMesh?.material) {
+            this.fallbackShagMesh.material.map = tex;
+            this.fallbackShagMesh.material.needsUpdate = true;
+          }
+        });
+        this.textures.shagRug = shagTex;
+
+        const shagBumpTex = texLoader.load(shagBumpSrc, (tex) => {
+          if (this.stageModel?.shagRugMesh?.material) {
+            this.stageModel.shagRugMesh.material.bumpMap = tex;
+            this.stageModel.shagRugMesh.material.bumpScale = 0.018;
+            this.stageModel.shagRugMesh.material.needsUpdate = true;
+          }
+          if (this.fallbackShagMesh?.material) {
+            this.fallbackShagMesh.material.bumpMap = tex;
+            this.fallbackShagMesh.material.bumpScale = 0.018;
+            this.fallbackShagMesh.material.needsUpdate = true;
+          }
+        });
+        this.textures.shagRugBump = shagBumpTex;
+      }
+
       // 2. Warm Champagne Travertine Circular Dais Texture (512x512) - Archidea Home Organic Stone Decor
       const rugCanvas = document.createElement('canvas');
       rugCanvas.width = 512;
@@ -851,16 +936,17 @@
         return;
       }
 
-      // 1. Darker Neutral Matte Grey Architectural Ground Plane (#616161) with Tactile Relief
+      // 1. European Oak Herringbone Parquet Floor with Tactile Relief
       const floorGeo = new THREE.PlaneGeometry(28, 28);
       const floorMat = new THREE.MeshStandardMaterial({
-        map: null,
-        bumpMap: this.textures.stoneBump || null,
-        bumpScale: 0.003,
-        roughness: 0.82,
-        metalness: 0.01,
-        color: 0x616161
+        map: this.textures.herringboneFloor || this.textures.champagneStone || null,
+        bumpMap: this.textures.herringboneBump || this.textures.stoneBump || null,
+        bumpScale: this.textures.herringboneFloor ? 0.005 : 0.003,
+        roughness: 0.58,
+        metalness: 0.02,
+        color: this.textures.herringboneFloor ? 0xFFFFFF : 0xC49B67
       });
+      this.fallbackFloorMat = floorMat;
       const floor = new THREE.Mesh(floorGeo, floorMat);
       floor.rotation.x = -Math.PI / 2;
       floor.position.y = 0;
@@ -974,12 +1060,31 @@
       rugGroup.position.set(0, 0, 0);
       rugGroup.scale.set(0.88, 1.0, 0.88);
 
-      const shadowGeo = new THREE.CircleGeometry(1.18, 64);
+      // 1. Deep ground contact shadow disc
+      const shadowGeo = new THREE.CircleGeometry(1.65, 64);
       const shadowMat = new THREE.MeshBasicMaterial({ color: 0x22180F, transparent: true, opacity: 0.30 });
       const shadowDisc = new THREE.Mesh(shadowGeo, shadowMat);
       shadowDisc.rotation.x = -Math.PI / 2;
       shadowDisc.position.y = 0.002;
       rugGroup.add(shadowDisc);
+
+      // 1.5. Large Plush White Shaggy Bouclé Circular Rug (Ground level beneath dais)
+      const shagGeo = new THREE.CylinderGeometry(1.50, 1.515, 0.012, 64);
+      const shagMat = new THREE.MeshStandardMaterial({
+        map: this.textures.shagRug || null,
+        bumpMap: this.textures.shagRugBump || this.textures.stoneBump || null,
+        bumpScale: 0.018,
+        roughness: 0.92,
+        metalness: 0.0,
+        color: 0xFFFFFF,
+        transparent: true,
+        alphaTest: 0.02
+      });
+      const shagRug = new THREE.Mesh(shagGeo, shagMat);
+      shagRug.position.y = 0.006;
+      shagRug.receiveShadow = true;
+      rugGroup.add(shagRug);
+      this.fallbackShagMesh = shagRug;
 
       const rugRadius = 0.95;
       const rugThickness = 0.080;

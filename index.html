@@ -35,7 +35,7 @@
 
   <!-- Woobi Core Shared Design Tokens -->
   <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
-  <link rel="stylesheet" href="styles.css?v=20261106_v11">
+  <link rel="stylesheet" href="styles.css?v=20261106_v12">
 </head>
 
 <body>
@@ -403,7 +403,7 @@
                 <span class="seren-brand-sub">3D STUDIO</span>
               </div>
             </div>
-            <!-- Three Icons in One Row: Camera, Streak, Gallery (Centered at Top) -->
+            <!-- Unified Top Navigation Dynamic Island: Camera | Calendar | Streak | Gallery | Profile -->
             <div class="streak-trio-row" id="streakTrioRow">
               <!-- 1. 📷 Camera Icon: Opens Camera Screen Only -->
               <button type="button" class="streak-trio-btn streak-camera-btn" id="streakCameraBtn"
@@ -414,7 +414,21 @@
                   <circle cx="12" cy="13" r="4" />
                 </svg>
               </button>
-              <!-- 2. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when broken) -->
+
+              <!-- 2. 📅 Calendar Icon: Opens Woobi Outfit Planning Calendar -->
+              <button type="button" class="streak-trio-btn streak-calendar-btn" id="plannerCalendarBtn"
+                onclick="app.openWeeklyPlanner()" title="Outfit Planning Calendar">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                  <line x1="16" x2="16" y1="2" y2="6"/>
+                  <line x1="8" x2="8" y1="2" y2="6"/>
+                  <line x1="3" x2="21" y1="10" y2="10"/>
+                  <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+                </svg>
+              </button>
+
+              <!-- 3. 🔥 Streak Icon: Burning Fire (or Wood & Rising Smoke when broken) -->
               <button type="button" class="streak-trio-btn streak-flame-btn" id="streakHeaderPill"
                 onclick="app.handleStreakIconClick()" title="Daily Outfit Streak">
                 <div class="streak-flame-wrapper" id="streakFlameWrapper">
@@ -425,7 +439,7 @@
                 <span class="streak-count-label" id="streakCountLabel">Streaks</span>
               </button>
 
-              <!-- 3. 🖼️ Gallery Icon: Opens Outfit Memories Gallery -->
+              <!-- 4. 🖼️ Gallery Icon: Opens Outfit Memories Gallery -->
               <button type="button" class="streak-trio-btn streak-gallery-btn" id="streakGalleryBtn"
                 onclick="app.openMemoriesModal()" title="View Outfit Memories">
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -435,37 +449,20 @@
                   <polyline points="21 15 16 10 5 21" />
                 </svg>
               </button>
-            </div>
-
-            <!-- Outside Dynamic Island (Top Right Actions): Mannequin, Calendar & Account -->
-            <div class="seren-header-right">
-              <button class="seren-icon-btn" onclick="app.serenOpenVanity(true)" title="Mannequin & Sizing Settings">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path
-                    d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z" />
-                </svg>
-              </button>
-
-              <!-- 4. 📅 Calendar Icon: Opens Woobi Outfit Planning Calendar -->
-              <button type="button" class="seren-icon-btn planner-calendar-btn" id="plannerCalendarBtn" onclick="app.openWeeklyPlanner()" title="Outfit Planning Calendar">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-                  <line x1="16" x2="16" y1="2" y2="6"/>
-                  <line x1="8" x2="8" y1="2" y2="6"/>
-                  <line x1="3" x2="21" y1="10" y2="10"/>
-                  <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
-                </svg>
-              </button>
 
               <!-- 5. 👤 Account Icon: Opens Profile -->
-              <button type="button" class="seren-icon-btn streak-account-btn" id="streakAccountBtn" onclick="app.goToScreen('profile')" title="User Profile">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <button type="button" class="streak-trio-btn streak-account-btn" id="streakAccountBtn"
+                onclick="app.goToScreen('profile')" title="User Profile">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
                 </svg>
               </button>
             </div>
+
+            <!-- Hidden Right Container to avoid visual clutter & preserve script safety -->
+            <div class="seren-header-right" style="display: none;" hidden></div>
           </header>
 
           <!-- Real 3D WebGL Studio Viewport -->
@@ -4542,10 +4539,11 @@
   <script type="module" src="modules/3d-studio-features/index.js"></script>
   <script type="module" src="modules/settings/index.js"></script>
   <script src="assets/brick-wall-data.js?v=20261105_v1"></script>
+  <script src="assets/studio-textures-data.js?v=20261106_v1"></script>
   <script src="wardrobe-astra-material.js?v=20261105_v1"></script>
   <script src="wardrobe3d.js?v=20261105_v1"></script>
-  <script src="studio3d.js?v=20261105_v1"></script>
-  <script src="app.js?v=20261106_v11"></script>
+  <script src="studio3d.js?v=20261106_v12"></script>
+  <script src="app.js?v=20261106_v12"></script>
   <script>
     window.showStudio3DFallback = function (message) {
       var fallback = document.getElementById('seren3dFallback');

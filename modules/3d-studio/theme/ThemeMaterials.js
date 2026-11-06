@@ -20,18 +20,17 @@ export class ThemeMaterials {
 
     const preset = THEME_PRESETS[presetName] || THEME_PRESETS[DEFAULT_THEME_PRESET];
 
-    // 1. Flooring Material (Darker neutral matte grey #616161 floor with subtle roughness and tactile relief)
-    const floorTexture = (presetName === 'nordic-minimal' || presetName === 'warm-terracotta')
-      ? (this.textures.champagneStone || this.textures.creamMarble || null)
-      : null;
+    // 1. Flooring Material (European Oak Herringbone Parquet with subtle roughness and tactile relief)
+    const floorTexture = this.textures.herringboneFloor || this.textures.champagneStone || this.textures.creamMarble || null;
+    const floorBump = this.textures.herringboneBump || this.textures.stoneBump || null;
 
     this.floorMat = new THREE.MeshStandardMaterial({
       map: floorTexture,
-      bumpMap: this.textures.stoneBump || null,
-      bumpScale: floorTexture ? 0.007 : 0.003,
+      bumpMap: floorBump,
+      bumpScale: floorTexture ? 0.005 : 0.003,
       roughness: preset.floor.roughness,
       metalness: preset.floor.metalness,
-      color: preset.floor.color
+      color: floorTexture ? 0xFFFFFF : preset.floor.color
     });
     this.disposables.push(this.floorMat);
 
@@ -87,13 +86,16 @@ export class ThemeMaterials {
 
     if (this.floorMat) {
       if (presetName === 'mediterranean-luxury' || presetName === 'luxury-cream') {
-        this.floorMat.map = null;
-        this.floorMat.bumpScale = 0.003;
+        const floorTexture = this.textures.herringboneFloor || this.textures.champagneStone || null;
+        this.floorMat.map = floorTexture;
+        this.floorMat.bumpMap = this.textures.herringboneBump || this.textures.stoneBump || null;
+        this.floorMat.bumpScale = floorTexture ? 0.005 : 0.003;
+        this.floorMat.color.set(floorTexture ? 0xFFFFFF : preset.floor.color);
       } else {
         this.floorMat.map = this.textures.champagneStone || this.textures.creamMarble || null;
         this.floorMat.bumpScale = 0.007;
+        this.floorMat.color.set(preset.floor.color);
       }
-      this.floorMat.color.set(preset.floor.color);
       this.floorMat.roughness = preset.floor.roughness;
       this.floorMat.metalness = preset.floor.metalness;
       this.floorMat.needsUpdate = true;
