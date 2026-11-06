@@ -1,6 +1,6 @@
 # Woobi - Synchronize Web Assets to Android App Assets
-$src = "S:\Fashion_App"
-$dest = "S:\Fashion_App\android-app\app\src\main\assets"
+$src = (Resolve-Path "$PSScriptRoot\..").Path
+$dest = Join-Path $src "android-app\app\src\main\assets"
 
 if (-not (Test-Path $dest)) {
     New-Item -ItemType Directory -Force -Path $dest | Out-Null
