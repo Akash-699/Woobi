@@ -162,7 +162,15 @@ const MockTHREE = {
       this.radius = radius;
     }
   },
+  CircleGeometry: class extends MockGeometry {
+    constructor(radius, segments) {
+      super();
+      this.radius = radius;
+      this.segments = segments;
+    }
+  },
   PointLight: MockLight,
+  DirectionalLight: MockLight,
   MeshStandardMaterial: MockMaterial,
   MeshBasicMaterial: MockMaterial,
   Vector3: MockVector3,

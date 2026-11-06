@@ -63,6 +63,92 @@ export class StudioTheme {
     this.group.add(this.backWall);
     this.disposables.push(wallGeo);
 
+    // 4.5. Opposing Architectural Studio Wall & Room Enclosure (Completing the 360° Room)
+    // Closes the front 198° of the room cylinder so reflections in the vanity mirror show a complete, finished room
+    const frontWallGeo = new _THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.55, Math.PI * 1.1);
+    this.frontWall = new _THREE.Mesh(frontWallGeo, this.materials.frontWallMat || this.materials.wallMat);
+    this.frontWall.name = 'Studio_FrontWall';
+    this.frontWall.position.set(0, 4.0, 8.2);
+    this.frontWall.receiveShadow = false;
+    this.group.add(this.frontWall);
+    this.disposables.push(frontWallGeo);
+
+    // 4.6. Architectural Studio Ceiling
+    const ceilingGeo = (typeof _THREE.CircleGeometry === 'function')
+      ? new _THREE.CircleGeometry(12.0, 48)
+      : new _THREE.CylinderGeometry(12.0, 12.0, 0.05, 32);
+    this.ceiling = new _THREE.Mesh(ceilingGeo, this.materials.ceilingMat || this.materials.wallMat);
+    this.ceiling.name = 'Studio_Ceiling';
+    this.ceiling.rotation.x = Math.PI / 2;
+    this.ceiling.position.set(0, 8.0, 8.2);
+    this.group.add(this.ceiling);
+    this.disposables.push(ceilingGeo);
+
+    // 4.7. Baseboard Skirting Moulding
+    const baseboardGeo = new _THREE.CylinderGeometry(11.96, 11.96, 0.22, 64, 1, true);
+    const baseboardMat = new _THREE.MeshStandardMaterial({ color: 0x362518, roughness: 0.5, side: _THREE.BackSide });
+    this.baseboard = new _THREE.Mesh(baseboardGeo, baseboardMat);
+    this.baseboard.name = 'Studio_Baseboard';
+    this.baseboard.position.set(0, 0.11, 8.2);
+    this.group.add(this.baseboard);
+    this.disposables.push(baseboardGeo, baseboardMat);
+
+    // 4.8. Opposing French Loft Studio Windows & Architecture (Reflected in Vanity Mirror)
+    this.opposingArchitecture = new _THREE.Group();
+    this.opposingArchitecture.name = 'Studio_OpposingArchitecture';
+    this.opposingArchitecture.position.set(-4.6, 3.6, 11.5);
+    this.opposingArchitecture.rotation.y = 0.38;
+
+    // Window frame
+    const winFrameGeo = new _THREE.BoxGeometry(4.2, 5.8, 0.08);
+    const winFrameMat = new _THREE.MeshStandardMaterial({ color: 0x221D18, roughness: 0.5 });
+    const winFrame = new _THREE.Mesh(winFrameGeo, winFrameMat);
+    this.opposingArchitecture.add(winFrame);
+    this.disposables.push(winFrameGeo, winFrameMat);
+
+    // Translucent soft sky glow panes
+    const winPaneGeo = new _THREE.PlaneGeometry(3.9, 5.5);
+    const winPaneMat = new _THREE.MeshBasicMaterial({ color: 0xFDF8ED, transparent: true, opacity: 0.88 });
+    const winPane = new _THREE.Mesh(winPaneGeo, winPaneMat);
+    winPane.position.z = 0.045;
+    this.opposingArchitecture.add(winPane);
+    this.disposables.push(winPaneGeo, winPaneMat);
+
+    // Window mullions (3 vertical, 4 horizontal)
+    for (let c = -1; c <= 1; c++) {
+      const vMullGeo = new _THREE.BoxGeometry(0.04, 5.5, 0.06);
+      const vMull = new _THREE.Mesh(vMullGeo, winFrameMat);
+      vMull.position.set(c * 0.95, 0, 0.05);
+      this.opposingArchitecture.add(vMull);
+      this.disposables.push(vMullGeo);
+    }
+    for (let r = -2; r <= 2; r++) {
+      const hMullGeo = new _THREE.BoxGeometry(3.9, 0.04, 0.06);
+      const hMull = new _THREE.Mesh(hMullGeo, winFrameMat);
+      hMull.position.set(0, r * 0.95, 0.05);
+      this.opposingArchitecture.add(hMull);
+      this.disposables.push(hMullGeo);
+    }
+
+    // Warm ambient light from window
+    const winLight = (typeof _THREE.DirectionalLight === 'function')
+      ? new _THREE.DirectionalLight(0xFFF0D6, 0.45)
+      : (typeof _THREE.PointLight === 'function' ? new _THREE.PointLight(0xFFF0D6, 0.45, 10) : null);
+    if (winLight) {
+      winLight.position.set(0, 0, 1.0);
+      this.opposingArchitecture.add(winLight);
+    }
+
+    // Opposing Wall Studio Console & Decor
+    const consoleGeo = new _THREE.BoxGeometry(1.8, 0.72, 0.42);
+    const consoleMat = new _THREE.MeshStandardMaterial({ color: 0x483220, roughness: 0.45 });
+    const consoleMesh = new _THREE.Mesh(consoleGeo, consoleMat);
+    consoleMesh.position.set(-1.8, -2.4, 0.25);
+    this.opposingArchitecture.add(consoleMesh);
+    this.disposables.push(consoleGeo, consoleMat);
+
+    this.group.add(this.opposingArchitecture);
+
     // 5. Projected Window Mullion Sunlight Shadow on Wall/Floor
     this.windowShadowGroup = new _THREE.Group();
     this.windowShadowGroup.name = 'Studio_WindowShadow';
@@ -204,6 +290,10 @@ export class StudioTheme {
     this.group = null;
     this.floor = null;
     this.backWall = null;
+    this.frontWall = null;
+    this.ceiling = null;
+    this.baseboard = null;
+    this.opposingArchitecture = null;
     this.windowShadowGroup = null;
     this.softboxGroup = null;
     this.foliageGroup = null;

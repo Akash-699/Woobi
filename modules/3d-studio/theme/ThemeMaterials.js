@@ -47,6 +47,23 @@ export class ThemeMaterials {
     });
     this.disposables.push(this.wallMat);
 
+    // 2.5. Front Architectural Wall & Ceiling Materials (Complete 360° Studio Room Enclosure)
+    this.frontWallMat = new THREE.MeshStandardMaterial({
+      map: wallTexture,
+      bumpMap: this.textures.wallBump || this.textures.stoneBump || null,
+      bumpScale: 0.0020,
+      color: this.textures.brickWall ? 0xFFFFFF : preset.wall.color,
+      roughness: preset.wall.roughness,
+      metalness: preset.wall.metalness,
+      side: THREE.BackSide
+    });
+    this.ceilingMat = new THREE.MeshStandardMaterial({
+      color: 0xF5EFEB,
+      roughness: 0.96,
+      side: THREE.BackSide
+    });
+    this.disposables.push(this.frontWallMat, this.ceilingMat);
+
     // 3. Projected Window Mullion Shadow Material
     this.shadowBarMat = new THREE.MeshBasicMaterial({
       color: preset.windowShadow.color,
@@ -111,6 +128,17 @@ export class ThemeMaterials {
       this.wallMat.roughness = preset.wall.roughness;
       this.wallMat.metalness = preset.wall.metalness;
       this.wallMat.needsUpdate = true;
+    }
+
+    if (this.frontWallMat) {
+      if (!this.textures.brickWall) {
+        this.frontWallMat.color.set(preset.wall.color);
+      } else {
+        this.frontWallMat.color.setHex(0xFFFFFF);
+      }
+      this.frontWallMat.roughness = preset.wall.roughness;
+      this.frontWallMat.metalness = preset.wall.metalness;
+      this.frontWallMat.needsUpdate = true;
     }
 
     if (this.shadowBarMat) {

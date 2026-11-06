@@ -971,6 +971,28 @@
       backWall.receiveShadow = false; // Prevents directional shadow frustum from cutting off horizontally across the curved back wall
       this.scene.add(backWall);
 
+      // Opposing Front Architectural Wall (Completes 360° Room Enclosure for Mirror Reflections)
+      const frontWallGeo = new THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.55, Math.PI * 1.1);
+      const frontWall = new THREE.Mesh(frontWallGeo, wallMat);
+      frontWall.position.set(0, 4.0, 8.2);
+      frontWall.receiveShadow = false;
+      this.scene.add(frontWall);
+
+      // Architectural Studio Ceiling
+      const ceilingGeo = new THREE.CircleGeometry(12.0, 48);
+      const ceilingMat = new THREE.MeshStandardMaterial({ color: 0xF5EFEB, roughness: 0.96, side: THREE.BackSide });
+      const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
+      ceiling.rotation.x = Math.PI / 2;
+      ceiling.position.set(0, 8.0, 8.2);
+      this.scene.add(ceiling);
+
+      // Architectural Baseboard Skirting
+      const baseboardGeo = new THREE.CylinderGeometry(11.96, 11.96, 0.22, 64, 1, true);
+      const baseboardMat = new THREE.MeshStandardMaterial({ color: 0x362518, roughness: 0.5, side: THREE.BackSide });
+      const baseboard = new THREE.Mesh(baseboardGeo, baseboardMat);
+      baseboard.position.set(0, 0.11, 8.2);
+      this.scene.add(baseboard);
+
       // 3. Diagonal Window Mullion Sunlight Shadow Projected on Wall/Floor
       const windowShadowGroup = new THREE.Group();
       windowShadowGroup.position.set(1.4, 2.1, -1.8);
@@ -2300,7 +2322,7 @@
           magFilter: THREE.LinearFilter
         });
 
-        this.mirrorCamera = new THREE.PerspectiveCamera(24, 0.62, 1.8, 25);
+        this.mirrorCamera = new THREE.PerspectiveCamera(24, 0.62, 1.8, 60);
         this.mirrorCamera.position.set(1.85, 1.25, -2.40);
         this.mirrorCamera.lookAt(0, 1.15, 0);
         this.scene.add(this.mirrorCamera);
@@ -3235,10 +3257,20 @@
         activeMirrorMesh.visible = false;
         this.mirrorCamera.position.set(1.85, 1.25, -2.40);
         this.mirrorCamera.lookAt(0, 1.15, 0); // Looking towards avatar torso from optical reflection position
+        this.mirrorCamera.far = 60.0;
+
+        const origFog = this.scene.fog;
+        if (origFog && typeof origFog.color !== 'undefined') {
+          this.scene.fog = new THREE.Fog(origFog.color, 18.0, 60.0);
+        }
 
         this.renderer.setRenderTarget(this.mirrorRenderTarget);
         this.renderer.render(this.scene, this.mirrorCamera);
         this.renderer.setRenderTarget(null);
+
+        if (origFog) {
+          this.scene.fog = origFog;
+        }
 
         activeMirrorMesh.visible = true;
       }
