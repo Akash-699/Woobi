@@ -2782,11 +2782,11 @@
         openMemoriesModal();
       };
     }
-    const calendarBtn = document.getElementById('streakCalendarBtn');
+    const calendarBtn = document.getElementById('plannerCalendarBtn') || document.getElementById('streakCalendarBtn');
     if (calendarBtn) {
       calendarBtn.onclick = (e) => {
         if (e) e.stopPropagation();
-        openStreakModal();
+        openWeeklyPlanner();
       };
     }
     const accountBtn = document.getElementById('streakAccountBtn');
