@@ -1206,19 +1206,19 @@
 
   const PLAN_PRICING = {
     free: {
-      yearly: { sym: '₹', amount: '0', cadence: '', num: 0 },
-      monthly: { sym: '₹', amount: '0', cadence: '', num: 0 },
-      lifetime: { sym: '₹', amount: '0', cadence: '', num: 0 }
+      yearly: { sym: '₹', amount: '0', cadence: '', period: '', offer: 'Forever free', num: 0 },
+      monthly: { sym: '₹', amount: '0', cadence: '', period: '', offer: 'Forever free', num: 0 },
+      lifetime: { sym: '₹', amount: '0', cadence: '', period: '', offer: 'Forever free', num: 0 }
     },
     basic: {
-      yearly: { sym: '₹', amount: '1,740', cadence: '/ year', num: 1740 },
-      monthly: { sym: '₹', amount: '174', cadence: '/ month', num: 174 },
-      lifetime: { sym: '₹', amount: '8,763', cadence: 'once', num: 8763 }
+      yearly: { sym: '₹', amount: '1,740', cadence: '/ year', period: '/ yr', offer: '2 months free • Save ₹348', num: 1740 },
+      monthly: { sym: '₹', amount: '174', cadence: '/ month', period: '/ mo', offer: 'Standard monthly', num: 174 },
+      lifetime: { sym: '₹', amount: '8,763', cadence: 'once', period: 'once', offer: 'Lifetime access • Pay once', num: 8763 }
     },
     pro: {
-      yearly: { sym: '₹', amount: '3,870', cadence: '/ year', num: 3870 },
-      monthly: { sym: '₹', amount: '387', cadence: '/ month', num: 387 },
-      lifetime: { sym: '₹', amount: '15,397', cadence: 'once', num: 15397 }
+      yearly: { sym: '₹', amount: '3,870', cadence: '/ year', period: '/ yr', offer: '2 months free • Save ₹774', num: 3870 },
+      monthly: { sym: '₹', amount: '387', cadence: '/ month', period: '/ mo', offer: 'VIP monthly', num: 387 },
+      lifetime: { sym: '₹', amount: '15,397', cadence: 'once', period: 'once', offer: 'Lifetime VIP • Pay once', num: 15397 }
     }
   };
 
@@ -1312,19 +1312,27 @@
     // Update Free price display
     const freeEl = document.getElementById('priceDisplayFree');
     if (freeEl) freeEl.textContent = '₹0';
+    const freeOfferEl = document.getElementById('priceOfferFree');
+    if (freeOfferEl) freeOfferEl.textContent = 'Forever free';
 
     // Update Standard (Basic) price display
     const basicEl = document.getElementById('priceDisplayBasic');
+    const basicOfferEl = document.getElementById('priceOfferBasic');
     if (basicEl) {
       const basicData = PLAN_PRICING.basic[cycle] || PLAN_PRICING.basic.yearly;
-      basicEl.textContent = `${basicData.sym}${basicData.amount}`;
+      const periodHtml = basicData.period ? `<span class="seren-price-period" id="pricePeriodBasic">${basicData.period}</span>` : '';
+      basicEl.innerHTML = `${basicData.sym}${basicData.amount}${periodHtml}`;
+      if (basicOfferEl) basicOfferEl.textContent = basicData.offer;
     }
 
     // Update Pro price display
     const proEl = document.getElementById('priceDisplayPro');
+    const proOfferEl = document.getElementById('priceOfferPro');
     if (proEl) {
       const proData = PLAN_PRICING.pro[cycle] || PLAN_PRICING.pro.yearly;
-      proEl.textContent = `${proData.sym}${proData.amount}`;
+      const periodHtml = proData.period ? `<span class="seren-price-period" id="pricePeriodPro">${proData.period}</span>` : '';
+      proEl.innerHTML = `${proData.sym}${proData.amount}${periodHtml}`;
+      if (proOfferEl) proOfferEl.textContent = proData.offer;
     }
 
     // Update CTA buttons

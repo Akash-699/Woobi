@@ -35,7 +35,7 @@
 
   <!-- Woobi Core Shared Design Tokens -->
   <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
-  <link rel="stylesheet" href="styles.css?v=20261106_v6">
+  <link rel="stylesheet" href="styles.css?v=20261106_v7">
 </head>
 
 <body>
@@ -2186,7 +2186,7 @@
                 <polyline points="12 19 5 12 12 5"></polyline>
               </svg>
             </button>
-            <div class="seren-plan-brand">THE CAPSULE</div>
+            <div class="seren-plan-brand">WOOBI</div>
             <button type="button" class="seren-plan-icon-btn" onclick="app.goToScreen('today')" aria-label="Close" title="Close">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -2205,7 +2205,7 @@
           <div class="seren-cadence-switcher-wrap">
             <div class="seren-cadence-pill" id="serenCadencePill">
               <button type="button" class="seren-cadence-tab" id="cadenceMonthly" onclick="app.setBillingCycle('monthly')">Monthly</button>
-              <button type="button" class="seren-cadence-tab active" id="cadenceYearly" onclick="app.setBillingCycle('yearly')">Annual</button>
+              <button type="button" class="seren-cadence-tab active" id="cadenceYearly" onclick="app.setBillingCycle('yearly')">Annual (2 Mo. Free)</button>
               <button type="button" class="seren-cadence-tab" id="cadenceLifetime" onclick="app.setBillingCycle('lifetime')">Lifetime</button>
             </div>
           </div>
@@ -2217,7 +2217,10 @@
               <div class="seren-card-top-content">
                 <div class="seren-card-top-row">
                   <h3 class="seren-card-tier-name">Free</h3>
-                  <div class="seren-card-price-display" id="priceDisplayFree">₹0</div>
+                  <div class="seren-price-block">
+                    <div class="seren-card-price-display" id="priceDisplayFree">₹0</div>
+                    <div class="seren-price-offer-sub" id="priceOfferFree">Forever free</div>
+                  </div>
                 </div>
                 <p class="seren-card-tagline">For everyday style inspiration.</p>
                 <ul class="seren-card-feature-list">
@@ -2238,7 +2241,10 @@
                     <h3 class="seren-card-tier-name">Basic</h3>
                     <span class="seren-popular-pill">Popular</span>
                   </div>
-                  <div class="seren-card-price-display" id="priceDisplayBasic">₹1,740</div>
+                  <div class="seren-price-block">
+                    <div class="seren-card-price-display" id="priceDisplayBasic">₹1,740<span class="seren-price-period" id="pricePeriodBasic">/ yr</span></div>
+                    <div class="seren-price-offer-sub" id="priceOfferBasic">2 months free • Save ₹348</div>
+                  </div>
                 </div>
                 <p class="seren-card-tagline">The essential wardrobe upgrade.</p>
                 <ul class="seren-card-feature-list">
@@ -2257,7 +2263,10 @@
               <div class="seren-card-top-content">
                 <div class="seren-card-top-row">
                   <h3 class="seren-card-tier-name">Pro</h3>
-                  <div class="seren-card-price-display" id="priceDisplayPro">₹3,870</div>
+                  <div class="seren-price-block">
+                    <div class="seren-card-price-display" id="priceDisplayPro">₹3,870<span class="seren-price-period" id="pricePeriodPro">/ yr</span></div>
+                    <div class="seren-price-offer-sub" id="priceOfferPro">2 months free • Save ₹774</div>
+                  </div>
                 </div>
                 <p class="seren-card-tagline">The ultimate styling experience.</p>
                 <ul class="seren-card-feature-list">

@@ -12245,7 +12245,7 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   border-radius: 999px;
   padding: 3px;
   width: 100%;
-  max-width: 326px;
+  max-width: 350px;
   gap: 2px;
 }
 
@@ -12254,9 +12254,9 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   border: none;
   background: transparent;
   color: #8E8276;
-  font-size: clamp(0.7rem, 1.4vh, 0.78rem);
+  font-size: clamp(0.66rem, 1.3vh, 0.74rem);
   font-weight: 500;
-  padding: clamp(5px, 0.9vh, 7px) 10px;
+  padding: clamp(5px, 0.9vh, 7px) 6px;
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -12371,16 +12371,59 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   text-transform: capitalize;
 }
 
+.seren-price-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  flex-shrink: 0;
+}
+
 .seren-card-price-display {
   font-family: 'Playfair Display', 'DM Serif Display', Georgia, serif;
-  font-size: clamp(1.32rem, 2.8vh, 1.62rem);
+  font-size: clamp(1.22rem, 2.6vh, 1.54rem);
   font-weight: 600;
   color: #27221D;
   line-height: 1.1;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 2px;
 }
 
 .seren-card-pro .seren-card-price-display {
   color: #FFFFFF;
+}
+
+.seren-price-period {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: clamp(0.64rem, 1.2vh, 0.72rem);
+  font-weight: 500;
+  color: #7D7267;
+  letter-spacing: 0.2px;
+}
+
+.seren-card-pro .seren-price-period {
+  color: #F5DDD3;
+}
+
+.seren-price-offer-sub {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: clamp(0.58rem, 1.1vh, 0.65rem);
+  font-weight: 600;
+  color: #B66949;
+  letter-spacing: 0.2px;
+  line-height: 1.1;
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+.seren-card-pro .seren-price-offer-sub {
+  color: #FFE3D6;
+}
+
+.seren-card-free .seren-price-offer-sub {
+  color: #8E8276;
 }
 
 .seren-card-tagline {
