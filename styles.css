@@ -12139,7 +12139,7 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
 #screen-premium {
   background: #F7F2EC !important;
   color: #27221D;
-  padding: 14px 18px 10px !important;
+  padding: 12px 18px 8px !important;
   margin: 0 !important;
   height: 100% !important;
   max-height: 100% !important;
@@ -12152,7 +12152,7 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   -ms-overflow-style: none !important;
   display: none;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start !important;
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   touch-action: none !important;
@@ -12169,12 +12169,12 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   display: flex !important;
 }
 
-/* Header (The Capsule / Woobi) */
+/* Header (The Capsule / Woobi) - Compact and snug at top */
 .seren-plan-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2px 4px;
+  padding: 0 2px 2px;
   flex-shrink: 0;
 }
 
@@ -12207,10 +12207,10 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   text-transform: uppercase;
 }
 
-/* Intro Title & Subtitle */
+/* Intro Title & Subtitle - Compact snug spacing */
 .seren-plan-intro {
   text-align: center;
-  padding: 2px 10px 6px;
+  padding: 2px 10px 4px;
   flex-shrink: 0;
 }
 
@@ -12219,7 +12219,7 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   font-size: clamp(1.4rem, 3vh, 1.85rem);
   font-weight: 500;
   color: #27221D;
-  margin: 0 0 3px;
+  margin: 0 0 2px;
   letter-spacing: -0.2px;
   line-height: 1.15;
 }
@@ -12235,7 +12235,7 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
 .seren-cadence-switcher-wrap {
   display: flex;
   justify-content: center;
-  padding: 4px 0 14px;
+  padding: 2px 0 10px;
   flex-shrink: 0;
 }
 
@@ -12271,52 +12271,55 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   box-shadow: 0 2px 8px rgba(182, 105, 73, 0.35);
 }
 
-/* Plan Cards Stack - Spaced according to content, consistent full breadth */
+/* Plan Cards Stack - Vertically filled, no dead spaces */
 .seren-plan-cards-stack {
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 10px;
   flex: 1 1 auto;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
-  max-width: 390px;
+  max-width: 396px;
   margin: 0 auto;
   box-sizing: border-box;
   min-height: 0;
 }
 
 .seren-plan-card {
-  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   border-radius: 18px;
-  padding: 13px 18px 14px;
+  padding: clamp(10px, 1.6vh, 16px) 18px clamp(10px, 1.6vh, 15px);
   box-sizing: border-box;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
+  min-height: 0;
 }
 
 .seren-plan-card:hover {
   transform: translateY(-1px);
 }
 
-/* Card 1: Free (Sleek height sized naturally to 2 bullets) */
+/* Card 1: Free (Ratio 0.88 - sized naturally to 2 bullets) */
 .seren-card-free {
+  flex: 0.88 1 0;
   background: #FFFFFF;
   border: 1px solid rgba(225, 218, 208, 0.85);
   box-shadow: 0 3px 12px rgba(60, 50, 40, 0.04);
 }
 
-/* Card 2: Basic (Peach Apricot Tint, sized to 3 bullets) */
+/* Card 2: Basic (Ratio 1.0 - sized naturally to 3 bullets) */
 .seren-card-basic {
+  flex: 1 1 0;
   background: #FDF3E7;
   border: 1px solid rgba(222, 185, 160, 0.75);
   box-shadow: 0 3px 12px rgba(182, 105, 73, 0.08);
 }
 
-/* Card 3: Pro (Rich Terracotta Burnt Clay, sized to 3 bullets) */
+/* Card 3: Pro (Ratio 1.0 - sized naturally to 3 bullets) */
 .seren-card-pro {
+  flex: 1 1 0;
   background: #B66949;
   border: 1px solid #B66949;
   box-shadow: 0 5px 18px rgba(182, 105, 73, 0.3);
@@ -12326,6 +12329,8 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
 .seren-card-top-content {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .seren-card-top-row {
@@ -12333,6 +12338,7 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 2px;
+  flex-shrink: 0;
 }
 
 .seren-tier-title-wrap {
@@ -12380,8 +12386,9 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
 .seren-card-tagline {
   font-size: clamp(0.68rem, 1.4vh, 0.76rem);
   color: #7D7267;
-  margin: 0 0 7px 0;
+  margin: 0 0 clamp(4px, 0.8vh, 7px) 0;
   line-height: 1.25;
+  flex-shrink: 0;
 }
 
 .seren-card-pro .seren-card-tagline {
@@ -12392,10 +12399,12 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
 .seren-card-feature-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 11px 0;
+  margin: 0 0 clamp(6px, 1.2vh, 10px) 0;
   display: flex;
   flex-direction: column;
-  gap: 3.5px;
+  gap: clamp(2.5px, 0.5vh, 4px);
+  flex: 1 1 auto;
+  justify-content: center;
 }
 
 .seren-card-feature-list li {
@@ -12426,7 +12435,7 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
 /* CTA Buttons */
 .seren-card-btn {
   width: 100%;
-  padding: 9px 14px;
+  padding: clamp(8px, 1.4vh, 11px) 14px;
   border-radius: 999px;
   font-size: clamp(0.78rem, 1.5vh, 0.85rem);
   font-weight: 600;
@@ -12436,6 +12445,7 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   user-select: none;
   box-sizing: border-box;
   margin-top: auto;
+  flex-shrink: 0;
 }
 
 .seren-btn-free {
@@ -12479,11 +12489,12 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   cursor: default;
 }
 
-/* Trust / Disclaimer Footer - Comfortable spacing from the Pro card and bottom of the page */
+/* Trust / Disclaimer Footer - Snug at bottom */
 .seren-plan-trust-footer {
   text-align: center;
-  padding: 12px 10px 6px;
+  padding: 6px 10px 2px;
   flex-shrink: 0;
+  margin-top: 4px;
 }
 
 .seren-disclaimer-text {
@@ -12496,34 +12507,35 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
 /* Adaptive optimization for compact viewports */
 @media (max-height: 700px) {
   #screen-premium {
-    padding: 10px 14px 6px !important;
+    padding: 8px 14px 4px !important;
   }
   .seren-plan-intro {
-    padding: 1px 10px 4px;
+    padding: 1px 10px 2px;
   }
   .seren-plan-title {
-    font-size: 1.32rem;
-    margin-bottom: 2px;
+    font-size: 1.3rem;
+    margin-bottom: 1px;
   }
   .seren-cadence-switcher-wrap {
-    padding: 2px 0 10px;
+    padding: 2px 0 6px;
   }
   .seren-plan-cards-stack {
-    gap: 8px;
+    gap: 7px;
   }
   .seren-plan-card {
-    padding: 10px 14px 11px;
-    border-radius: 15px;
+    padding: 8px 14px 9px;
+    border-radius: 14px;
   }
   .seren-card-feature-list {
-    margin-bottom: 8px;
-    gap: 2.5px;
+    margin-bottom: 6px;
+    gap: 2px;
   }
   .seren-card-btn {
     padding: 7px 12px;
   }
   .seren-plan-trust-footer {
-    padding: 8px 10px 4px;
+    padding: 4px 10px 2px;
+    margin-top: 2px;
   }
 }
 
