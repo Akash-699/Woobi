@@ -3071,6 +3071,9 @@
 
     if (!gridEl) return;
     gridEl.innerHTML = '';
+    gridEl.classList.add('recessed-tiles-grid');
+    gridEl.style.display = 'grid';
+    gridEl.style.gridTemplateColumns = 'repeat(7, 1fr)';
 
     // Helper: Creates high-performance animated SVG with flowing fire streaks
     function createFlowingFireElement(level = 1) {
