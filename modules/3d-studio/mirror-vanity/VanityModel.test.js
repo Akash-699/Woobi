@@ -25,9 +25,9 @@ console.log('  VANITY SPECIFICATION & DIMENSIONS TESTS         ');
 console.log('==================================================');
 
 // 1. Position and Rotation
-assert(VANITY_CONFIG.position.x === 1.15, 'Vanity X position must be 1.15m');
+assert(VANITY_CONFIG.position.x === 1.60, 'Vanity X position must be 1.60m');
 assert(VANITY_CONFIG.position.y === 0, 'Vanity Y position must be 0m (ground floor)');
-assert(VANITY_CONFIG.position.z === -2.20, 'Vanity Z position must be -2.20m');
+assert(VANITY_CONFIG.position.z === -3.30, 'Vanity Z position must be -3.30m');
 assert(VANITY_CONFIG.rotationY === -0.32, 'Vanity rotation Y must be -0.32 rad (angled towards stage)');
 
 // 2. Table and Mirror Dimensions

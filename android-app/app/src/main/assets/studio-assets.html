@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Sérén Studio — 3D Asset & Scene Inspector</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Three.js + OrbitControls + GLTFLoader -->
+  <script src="libs/three.min.js"></script>
+  <script src="libs/OrbitControls.js"></script>
+  <script src="libs/GLTFLoader.js"></script>
+
+  <script src="wardrobe-astra-material.js?v=20261031_6"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #F7F3ED;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #3C3023;
+      user-select: none;
+    }
+
+    #webglCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      outline: none;
+      cursor: grab;
+    }
+
+    #webglCanvas:active {
+      cursor: grabbing;
+    }
+
+    /* Floating Header Card */
+    .header-card {
+      position: absolute;
+      top: 20px;
+      left: 24px;
+      z-index: 20;
+      background: rgba(255, 252, 247, 0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(224, 214, 200, 0.85);
+      border-radius: 20px;
+      padding: 16px 22px;
+      box-shadow: 0 12px 36px rgba(60, 48, 35, 0.08);
+      max-width: 380px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .brand-title {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.6rem;
+      letter-spacing: 0.5px;
+      color: #2F241A;
+    }
+
+    .brand-pill {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      background: #EAE1D2;
+      color: #7A6248;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .desc-text {
+      font-size: 0.82rem;
+      color: #786857;
+      line-height: 1.45;
+    }
+
+    /* Asset Switcher Top Bar */
+    .asset-switcher {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      z-index: 20;
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 252, 247, 0.94);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(224, 214, 200, 0.85);
+      border-radius: 999px;
+      padding: 6px;
+      box-shadow: 0 12px 36px rgba(60, 48, 35, 0.08);
+      max-width: calc(100vw - 450px);
+      overflow-x: auto;
+    }
+
+    .asset-tab {
+      background: transparent;
+      border: none;
+      padding: 9px 16px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #6C5B4A;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+    }
+
+    .asset-tab:hover {
+      background: rgba(230, 218, 200, 0.4);
+      color: #2F241A;
+    }
+
+    .asset-tab.active {
+      background: #3C3023;
+      color: #FAF6EE;
+      box-shadow: 0 4px 14px rgba(60, 48, 35, 0.2);
+    }
+
+    /* Bottom Control Bar */
+    .controls-toolbar {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 252, 247, 0.94);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(224, 214, 200, 0.85);
+      border-radius: 999px;
+      padding: 6px 12px;
+      box-shadow: 0 14px 40px rgba(60, 48, 35, 0.10);
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .ctrl-btn {
+      background: transparent;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: #5C4D3E;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(230, 218, 200, 0.5);
+      color: #2F241A;
+    }
+
+    .ctrl-btn.active {
+      background: #7D6346;
+      color: #FFFFFF;
+    }
+
+    .separator {
+      width: 1px;
+      height: 22px;
+      background: rgba(210, 198, 180, 0.6);
+      margin: 0 4px;
+    }
+
+    /* Stats Panel (Bottom Left) */
+    .stats-card {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      z-index: 20;
+      background: rgba(255, 252, 247, 0.90);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(224, 214, 200, 0.8);
+      border-radius: 16px;
+      padding: 12px 18px;
+      font-size: 0.74rem;
+      color: #6C5B4A;
+      box-shadow: 0 8px 24px rgba(60, 48, 35, 0.06);
+      line-height: 1.6;
+    }
+
+    .stats-title {
+      font-weight: 700;
+      color: #2F241A;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-size: 0.66rem;
+      margin-bottom: 2px;
+    }
+
+    /* Loading Spinner */
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(247, 243, 237, 0.88);
+      backdrop-filter: blur(8px);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .loading-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 3px solid rgba(160, 131, 101, 0.2);
+      border-top-color: #8D7051;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #5C4D3E;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Header -->
+  <div class="header-card">
+    <div class="brand-row">
+      <h1 class="brand-title">sérén</h1>
+      <span class="brand-pill" id="currentStepBadge">Step 4 Avatar</span>
+    </div>
+    <p class="desc-text" id="assetDescription">
+      Stylized luxury female fashion avatar with almond eyes, winged lashes, satin lips, off-white ribbed halter top, and wide-leg trousers.
+    </p>
+  </div>
+
+  <!-- Asset Switcher Tabs -->
+  <div class="asset-switcher">
+    <button class="asset-tab" data-mode="all">
+      <span>✨</span> Complete Studio
+    </button>
+    <button class="asset-tab active" data-mode="avatar">
+      <span>👤</span> Avatar (Step 4)
+    </button>
+    <button class="asset-tab" data-mode="mannequin-female">
+      <span>🧍‍♀️</span> Female Mannequin (Astra)
+    </button>
+    <button class="asset-tab" data-mode="mannequin-male">
+      <span>🧍‍♂️</span> Male Mannequin (Astra)
+    </button>
+    <button class="asset-tab" data-mode="wardrobe">
+      <span>🚪</span> Wardrobe (Step 1)
+    </button>
+    <button class="asset-tab" data-mode="vanity">
+      <span>🪞</span> Vanity (Step 2)
+    </button>
+    <button class="asset-tab" data-mode="stage">
+      <span>⭕</span> Stage Rug (Step 3)
+    </button>
+  </div>
+
+  <!-- Controls Toolbar -->
+  <div class="controls-toolbar">
+    <button class="ctrl-btn active" id="viewFrontBtn">Front View</button>
+    <button class="ctrl-btn" id="viewPortraitBtn">Portrait Close-Up</button>
+    <button class="ctrl-btn" id="viewAngleBtn">3/4 Perspective</button>
+    <button class="ctrl-btn" id="viewTopBtn">Top View</button>
+
+    <div class="separator"></div>
+
+    <button class="ctrl-btn active" id="silhouetteFitBtn" onclick="toggleMannequinFit()">✨ Slim & Fit</button>
+    <button class="ctrl-btn" id="fullnessBtn" onclick="cycleFullness()">Body Fullness: Slim & Fit (25%)</button>
+
+    <div class="separator"></div>
+
+    <button class="ctrl-btn active" id="autoRotateBtn">⟳ Auto-Rotate</button>
+    <button class="ctrl-btn" id="resetCamBtn">Reset Camera</button>
+  </div>
+
+  <!-- Stats Card -->
+  <div class="stats-card">
+    <div class="stats-title" id="statsTitle">3D Model Details</div>
+    <div id="statsContent">
+      Loading geometry...
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay visible" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">Loading Sérén 3D Model...</div>
+  </div>
+
+  <!-- WebGL Canvas -->
+  <canvas id="webglCanvas"></canvas>
+
+  <script>
+    let scene, camera, renderer, controls;
+    let currentMode = 'avatar';
+    let loadedModels = {};
+    let activeGroup = new THREE.Group();
+    let isAutoRotating = true;
+
+    const canvas = document.getElementById('webglCanvas');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
+
+    const ASSET_CONFIGS = {
+      avatar: {
+        title: "Step 4: Fashion Avatar",
+        badge: "Step 4 Ready",
+        desc: "Stylized luxury female fashion avatar with sculpted cranium, almond eyes, winged lashes, rosy lips, top-knot bun, ribbed halter top, and wide-leg sand trousers.",
+        camPos: new THREE.Vector3(0, 1.15, 2.5),
+        camLook: new THREE.Vector3(0, 0.95, 0),
+        stats: "Objects: 54 | Vertices: 6,234 | Polygons: 6,196<br>Height: 1.72m | PBR SSS & Procedural Knit"
+      },
+      'mannequin-female': {
+        title: "Female Mannequin by Astra",
+        badge: "3D Mannequin by Astra",
+        desc: "Authentic procedural female fashion mannequin (1.70m stature, 26k triangles). Single connected manifold body mesh in studio A-pose with matte porcelain finish on central bouclé dais.",
+        camPos: new THREE.Vector3(0, 1.15, 2.5),
+        camLook: new THREE.Vector3(0, 0.95, 0),
+        stats: "Asset: Woobi_Female_Mannequin.glb | Stature: 1.70m<br>Triangles: 26,000 | Watertight Manifold Shell"
+      },
+      'mannequin-male': {
+        title: "Male Mannequin by Astra",
+        badge: "3D Mannequin by Astra",
+        desc: "Authentic procedural male fashion mannequin (1.80m stature, 26k triangles). Athletic build, anatomical contours, matte neutral finish, and studio A-pose for menswear tailoring.",
+        camPos: new THREE.Vector3(0, 1.20, 2.6),
+        camLook: new THREE.Vector3(0, 1.00, 0),
+        stats: "Asset: Woobi_Male_Mannequin.glb | Stature: 1.80m<br>Triangles: 26,000 | Watertight Manifold Shell"
+      },
+      wardrobe: {
+        title: "Step 1: Oak Wardrobe",
+        badge: "Step 1 Ready",
+        desc: "2.2m x 3.0m light natural oak cupboard with warm integrated LED lighting, brass hanging rail, wooden hangers, garments, lower pull-out drawers, and accessories.",
+        camPos: new THREE.Vector3(0, 1.54, 5.85),
+        camLook: new THREE.Vector3(0, 1.50, 0),
+        stats: "Objects: 182 | PBR Natural Honey Light Oak & Brass<br>Dimensions: 2.2m W x 3.0m H x 0.65m D"
+      },
+      vanity: {
+        title: "Step 2: Vanity & Mirror",
+        badge: "Step 2 Ready",
+        desc: "Minimalist console table with fluted wooden tambour base, travertine top, warm halo-backlit circular mirror, perfume flacons, and cream velvet vanity stool.",
+        camPos: new THREE.Vector3(0, 1.3, 2.6),
+        camLook: new THREE.Vector3(0, 1.05, 0),
+        stats: "Tambour Fluted Oak & Travertine Stone<br>Halo Backlit LED Mirror + Ceramic Flacons"
+      },
+      stage: {
+        title: "Step 3: Central Elevated Stage Dais",
+        badge: "Step 3 Ready",
+        desc: "1.9m diameter elevated circular stage podium with upholstered cream bouclé walls, woven concentric rings, and floor ambient occlusion.",
+        camPos: new THREE.Vector3(0, 1.4, 2.5),
+        camLook: new THREE.Vector3(0, 0.08, 0),
+        stats: "Diameter: 1.9m | Height: 8.0cm (Elevated Dais)<br>Upholstered Cream Bouclé & Ambient Occlusion"
+      },
+      all: {
+        title: "Complete Studio Assembly",
+        badge: "Assembled Studio",
+        desc: "Integrated luxury styling studio: Oak wardrobe on left, illuminated vanity on right, circular stage at center, and personalized fashion avatar in place.",
+        camPos: new THREE.Vector3(0, 1.35, 4.0),
+        camLook: new THREE.Vector3(0, 1.0, 0),
+        stats: "Full Studio Ensemble (Steps 1, 2, 3 & 4)<br>Interactive Real-Time PBR WebGL"
+      }
+    };
+
+    function init() {
+      // 1. Scene
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xF7F3ED);
+      scene.fog = new THREE.FogExp2(0xF7F3ED, 0.035);
+
+      // 2. Camera
+      camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(0, 1.15, 2.5);
+
+      // 3. Renderer
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.08;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      // 4. Controls
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.maxPolarAngle = Math.PI / 2 + 0.05;
+      controls.minDistance = 0.6;
+      controls.maxDistance = 8.0;
+      controls.autoRotate = isAutoRotating;
+      controls.autoRotateSpeed = 1.0;
+      controls.target.set(0, 0.95, 0);
+
+      // 5. Lighting Setup (Luxury Warm Studio)
+      setupStudioLighting();
+
+      // 6. Floor
+      setupFloor();
+
+      // 7. Add root group
+      scene.add(activeGroup);
+
+      // 8. Event listeners
+      window.addEventListener('resize', onWindowResize);
+      setupUI();
+
+      // 9. Load default mode (avatar)
+      switchMode('avatar');
+
+      // 10. Animation Loop
+      animate();
+    }
+
+    function setupStudioLighting() {
+      // Soft Ambient Light
+      const ambient = new THREE.AmbientLight(0xFFFBF4, 0.75);
+      scene.add(ambient);
+
+      // Warm Key Light (front-right)
+      const keyLight = new THREE.DirectionalLight(0xFFF4E0, 1.4);
+      keyLight.position.set(2.4, 4.0, 3.2);
+      keyLight.castShadow = true;
+      keyLight.shadow.mapSize.width = 2048;
+      keyLight.shadow.mapSize.height = 2048;
+      keyLight.shadow.camera.near = 0.5;
+      keyLight.shadow.camera.far = 12;
+      keyLight.shadow.bias = -0.0004;
+      const d = 2.5;
+      keyLight.shadow.camera.left = -d;
+      keyLight.shadow.camera.right = d;
+      keyLight.shadow.camera.top = d;
+      keyLight.shadow.camera.bottom = -d;
+      scene.add(keyLight);
+
+      // Soft Cool Fill (front-left)
+      const fillLight = new THREE.DirectionalLight(0xF0EBF7, 0.55);
+      fillLight.position.set(-2.8, 3.0, 2.0);
+      scene.add(fillLight);
+
+      // Rim / Kicker Backlight (rear)
+      const rimLight = new THREE.DirectionalLight(0xFFE8CC, 0.65);
+      rimLight.position.set(0.5, 3.2, -2.2);
+      scene.add(rimLight);
+    }
+
+    function setupFloor() {
+      const floorGeo = new THREE.PlaneGeometry(30, 30);
+      const floorMat = new THREE.MeshStandardMaterial({
+        color: 0xEEE8DE,
+        roughness: 0.65,
+        metalness: 0.02
+      });
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -0.002;
+      floor.receiveShadow = true;
+      scene.add(floor);
+    }
+
+    const gltfLoader = new THREE.GLTFLoader();
+
+    function loadGLB(path) {
+      return new Promise((resolve, reject) => {
+        gltfLoader.load(
+          path,
+          (gltf) => {
+            const model = gltf.scene;
+            if (path.includes('wardrobe') && window.AstraWardrobeStyling) {
+              window.AstraWardrobeStyling.applyMaterials(model);
+            }
+            model.traverse((child) => {
+              if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+              }
+            });
+            resolve(model);
+          },
+          undefined,
+          (err) => reject(err)
+        );
+      });
+    }
+
+    async function switchMode(mode) {
+      currentMode = mode;
+      const config = ASSET_CONFIGS[mode];
+
+      // Update UI Header
+      document.getElementById('currentStepBadge').textContent = config.badge;
+      document.getElementById('assetDescription').textContent = config.desc;
+      document.getElementById('statsTitle').textContent = config.title;
+      document.getElementById('statsContent').innerHTML = config.stats;
+
+      // Update Tabs UI
+      document.querySelectorAll('.asset-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.getAttribute('data-mode') === mode);
+      });
+
+      // Show loader
+      loadingOverlay.classList.add('visible');
+      loadingText.textContent = `Loading ${config.title}...`;
+
+      // Clear active group
+      while (activeGroup.children.length > 0) {
+        activeGroup.remove(activeGroup.children[0]);
+      }
+
+      try {
+        if (mode === 'avatar') {
+          const avatar = await loadGLB('seren_avatar.glb');
+          const stage = await loadGLB('seren_stage.glb');
+          avatar.position.set(0, 0.080, 0);
+          stage.position.set(0, 0, 0);
+          activeGroup.add(stage);
+          activeGroup.add(avatar);
+        } else if (mode === 'mannequin-female') {
+          const mannequin = await loadGLB('3D - Mannequin By Astra/Woobi_Female_Mannequin.glb')
+            .catch(() => loadGLB('woobi_female_mannequin.glb'));
+          const stage = await loadGLB('seren_stage.glb');
+          mannequin.position.set(0, 0.080, 0);
+          stage.position.set(0, 0, 0);
+          activeGroup.add(stage);
+          activeGroup.add(mannequin);
+        } else if (mode === 'mannequin-male') {
+          const mannequin = await loadGLB('3D - Mannequin By Astra/Woobi_Male_Mannequin.glb')
+            .catch(() => loadGLB('woobi_male_mannequin.glb'));
+          const stage = await loadGLB('seren_stage.glb');
+          mannequin.position.set(0, 0.080, 0);
+          stage.position.set(0, 0, 0);
+          activeGroup.add(stage);
+          activeGroup.add(mannequin);
+        } else if (mode === 'wardrobe') {
+          const wardrobe = await loadGLB('3D- Wardrobe by Astra/wardrobe.glb').catch(() => loadGLB('wardrobe.glb'));
+          if (window.AstraWardrobeStyling) {
+            window.AstraWardrobeStyling.applyMaterials(wardrobe);
+          }
+          wardrobe.position.set(0, 0, 0);
+          wardrobe.rotation.y = Math.PI;
+          activeGroup.add(wardrobe);
+        } else if (mode === 'vanity') {
+          const vanity = await loadGLB('3D - Mirror and stuffs/woobi_vanity.glb')
+            .catch(() => loadGLB('woobi_vanity.glb'))
+            .catch(() => loadGLB('seren_vanity.glb'));
+          vanity.position.set(0, 0, 0);
+          activeGroup.add(vanity);
+        } else if (mode === 'stage') {
+          const stage = await loadGLB('seren_stage.glb');
+          stage.position.set(0, 0, 0);
+          activeGroup.add(stage);
+        } else if (mode === 'all') {
+          // Complete Assembly
+          const [wardrobe, vanity, stage, avatar] = await Promise.all([
+            loadGLB('3D- Wardrobe by Astra/wardrobe.glb').catch(() => loadGLB('wardrobe.glb')),
+            loadGLB('3D - Mirror and stuffs/woobi_vanity.glb').catch(() => loadGLB('woobi_vanity.glb')).catch(() => loadGLB('seren_vanity.glb')),
+            loadGLB('seren_stage.glb'),
+            loadGLB('seren_avatar.glb')
+          ]);
+
+          if (window.AstraWardrobeStyling) {
+            window.AstraWardrobeStyling.applyMaterials(wardrobe);
+          }
+
+          // Left: Wardrobe
+          wardrobe.position.set(-1.65, 0, -0.15);
+          wardrobe.rotation.y = Math.PI - 0.28;
+
+          // Right: Vanity
+          vanity.position.set(1.55, 0, -0.10);
+          vanity.rotation.y = -0.15;
+
+          // Center: Circular stage & avatar
+          stage.position.set(0, 0, 0.10);
+          avatar.position.set(0, 0.080, 0.10);
+
+          activeGroup.add(wardrobe);
+          activeGroup.add(vanity);
+          activeGroup.add(stage);
+          activeGroup.add(avatar);
+        }
+
+        // Animate camera to default pose for this mode
+        targetCameraPos.copy(config.camPos);
+        targetCameraLook.copy(config.camLook);
+        applyInspectorFullness();
+      } catch (err) {
+        console.error("Error loading asset:", err);
+      } finally {
+        loadingOverlay.classList.remove('visible');
+      }
+    }
+
+    let currentFullness = 25;
+    let isSlimFit = true;
+
+    function applyInspectorFullness() {
+      if (['avatar', 'mannequin-female', 'mannequin-male', 'all'].includes(currentMode)) {
+        activeGroup.children.forEach(child => {
+          // If not the circular stage, apply scaling
+          if (child && !child.name.includes('stage') && child.position.y >= 0.07) {
+            const baseScaleX = isSlimFit ? 0.92 : 1.00;
+            const baseScaleY = isSlimFit ? 1.02 : 1.00;
+            const baseScaleZ = isSlimFit ? 0.90 : 1.00;
+            const fatMult = 0.86 + (currentFullness / 100) * 0.36;
+            child.scale.set(baseScaleX * fatMult, baseScaleY, baseScaleZ * fatMult);
+            child.position.y = 0.080;
+          }
+        });
+      }
+    }
+
+    function toggleMannequinFit() {
+      isSlimFit = !isSlimFit;
+      const btn = document.getElementById('silhouetteFitBtn');
+      if (btn) {
+        btn.classList.toggle('active', isSlimFit);
+        btn.textContent = isSlimFit ? '✨ Slim & Fit' : 'Classic Proportions';
+      }
+      applyInspectorFullness();
+    }
+
+    function cycleFullness() {
+      const levels = [15, 25, 50, 75];
+      const names = ['Ultra Lean (15%)', 'Slim & Fit (25%)', 'Natural (50%)', 'Full (75%)'];
+      const idx = levels.indexOf(currentFullness);
+      const nextIdx = (idx + 1) % levels.length;
+      currentFullness = levels[nextIdx];
+      const btn = document.getElementById('fullnessBtn');
+      if (btn) btn.textContent = `Body Fullness: ${names[nextIdx]}`;
+      applyInspectorFullness();
+    }
+
+    const targetCameraPos = new THREE.Vector3(0, 1.15, 2.5);
+    const targetCameraLook = new THREE.Vector3(0, 0.95, 0);
+
+    function setupUI() {
+      // Asset Switcher tabs
+      document.querySelectorAll('.asset-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const mode = tab.getAttribute('data-mode');
+          switchMode(mode);
+        });
+      });
+
+      // Front View
+      document.getElementById('viewFrontBtn').addEventListener('click', (e) => {
+        highlightBtn(e.target);
+        if (currentMode === 'avatar') {
+          targetCameraPos.set(0, 1.15, 2.5);
+          targetCameraLook.set(0, 0.95, 0);
+        } else if (currentMode === 'all') {
+          targetCameraPos.set(0, 1.35, 4.0);
+          targetCameraLook.set(0, 1.0, 0);
+        } else {
+          targetCameraPos.set(0, 1.4, 2.8);
+          targetCameraLook.set(0, 1.1, 0);
+        }
+      });
+
+      // Portrait Close-Up
+      document.getElementById('viewPortraitBtn').addEventListener('click', (e) => {
+        highlightBtn(e.target);
+        if (currentMode === 'avatar' || currentMode === 'all') {
+          const zOffset = currentMode === 'all' ? 0.10 : 0;
+          targetCameraPos.set(0, 1.54, 1.1 + zOffset);
+          targetCameraLook.set(0, 1.52, zOffset);
+        } else {
+          targetCameraPos.set(0, 1.4, 1.6);
+          targetCameraLook.set(0, 1.2, 0);
+        }
+      });
+
+      // 3/4 Perspective
+      document.getElementById('viewAngleBtn').addEventListener('click', (e) => {
+        highlightBtn(e.target);
+        if (currentMode === 'all') {
+          targetCameraPos.set(2.8, 1.8, 3.2);
+          targetCameraLook.set(0, 1.0, 0);
+        } else {
+          targetCameraPos.set(1.4, 1.35, 2.1);
+          targetCameraLook.set(0, 0.95, 0);
+        }
+      });
+
+      // Top View
+      document.getElementById('viewTopBtn').addEventListener('click', (e) => {
+        highlightBtn(e.target);
+        targetCameraPos.set(0, 3.8, 0.1);
+        targetCameraLook.set(0, 0, 0);
+      });
+
+      // Auto-Rotate
+      const autoRotateBtn = document.getElementById('autoRotateBtn');
+      autoRotateBtn.addEventListener('click', () => {
+        isAutoRotating = !isAutoRotating;
+        controls.autoRotate = isAutoRotating;
+        autoRotateBtn.classList.toggle('active', isAutoRotating);
+      });
+
+      // Reset Camera
+      document.getElementById('resetCamBtn').addEventListener('click', () => {
+        const config = ASSET_CONFIGS[currentMode];
+        targetCameraPos.copy(config.camPos);
+        targetCameraLook.copy(config.camLook);
+      });
+    }
+
+    function highlightBtn(btn) {
+      document.querySelectorAll('.ctrl-btn').forEach(b => {
+        if (b.id.startsWith('view')) b.classList.remove('active');
+      });
+      btn.classList.add('active');
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Smooth camera interpolation towards target views
+      camera.position.lerp(targetCameraPos, 0.05);
+      controls.target.lerp(targetCameraLook, 0.05);
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

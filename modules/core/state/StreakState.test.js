@@ -97,6 +97,12 @@ describe('Core Module - Daily Outfit Streak & Memories State Engine', () => {
   });
 
   it('6. handles missed days correctly by resetting streak to 1 after an interruption', () => {
+    // Clear demo seeded memories to test pure user upload flow without collision
+    streakState.memories = [];
+    streakState.state.hasEarnedStreak = false;
+    streakState.state.currentStreak = 0;
+    streakState.state.lastUploadDateStr = null;
+
     // Day 1: 3 days ago
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);

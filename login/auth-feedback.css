@@ -1,0 +1,20 @@
+/* Shared feedback dialogs live outside the scaled login cards. */
+.feedback-dialog{box-sizing:border-box;width:min(410px,calc(100vw - 36px));max-width:none;max-height:calc(100dvh - 36px);margin:auto;padding:32px 30px 26px;overflow:auto;overscroll-behavior:contain;border:1px solid #e0d3bf;border-radius:22px;background:#fffcf6;color:#493d30;box-shadow:0 25px 100px #21170d40;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:normal}
+.feedback-dialog::backdrop{background:#211a1559;backdrop-filter:blur(5px)}
+.feedback-dialog[open]{animation:feedback-appear .2s ease-out}
+.feedback-close{position:absolute;top:10px;right:10px;display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:transparent;color:#8e7b63;font:26px/1 sans-serif;cursor:pointer}
+.feedback-close:hover{background:#ece3d6}
+.feedback-icon{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 18px;border:1px solid #dfbfa4;border-radius:50%;background:#faeee0;color:#9f6245;font:24px/1 Georgia,serif}
+.feedback-eyebrow{margin:0 0 10px;font-size:7px;font-weight:600;letter-spacing:1.8px;color:#a38b6a}
+.feedback-dialog #feedback-title{font:400 30px/1.15 'DM Serif Display',Georgia,serif;letter-spacing:-.5px;margin:0 0 14px;color:#493d30}
+.feedback-dialog #feedback-description{font-size:12px;line-height:1.8;color:#89765f;margin:0 0 24px;overflow-wrap:anywhere}
+.feedback-action{width:100%;min-height:44px;border:1px solid #a48664;border-radius:11px;padding:11px 18px;background:#a48664;color:white;font:600 12px/1.4 'Plus Jakarta Sans',sans-serif;cursor:pointer}
+.feedback-action:hover{background:#90704d}
+.feedback-dialog button:focus-visible{outline:2px solid #8a6c43;outline-offset:3px}
+.feedback-success .feedback-icon{border-color:#bdcbb0;background:#eef4e7;color:#5e7e50}
+.feedback-atelier{border-color:#c5ad81;background:linear-gradient(135deg,#fffdf5,#f2e9d9);border-radius:24px}
+.feedback-atelier .feedback-action{background:#544332;border-color:#544332}
+.feedback-atelier .feedback-action:hover{background:#725739}
+@keyframes feedback-appear{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
+@media(max-height:450px){.feedback-dialog{padding:20px 26px}.feedback-icon{width:34px;height:34px;margin-bottom:10px;font-size:19px}.feedback-dialog #feedback-title{font-size:26px;margin-bottom:10px}.feedback-dialog #feedback-description{margin-bottom:16px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){.feedback-dialog[open]{animation:none}}

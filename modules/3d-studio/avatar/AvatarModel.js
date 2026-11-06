@@ -87,6 +87,9 @@ export class AvatarModel {
           this.sculptedAvatarGroup.visible = false;
         }
         this.activeAvatarType = 'glb';
+        if (this.animations && typeof this.animations.setGLTFModel === 'function') {
+          this.animations.setGLTFModel(this.gltfAvatarGroup);
+        }
 
         if (onSuccess) onSuccess(model, url);
       },
@@ -94,12 +97,38 @@ export class AvatarModel {
         if (this.isDisposed) return;
         // High-definition sculpted avatar remains active as verified fallback
         this.activeAvatarType = 'sculpted';
+        if (this.animations && typeof this.animations.setGLTFModel === 'function') {
+          this.animations.setGLTFModel(null);
+        }
         if (this.sculptedAvatarGroup) {
           this.sculptedAvatarGroup.visible = true;
         }
         if (onError) onError(err);
       },
       assetPaths
+    );
+  }
+
+  loadMannequin(gender = 'female', onSuccess, onError) {
+    if (!this.assets) return;
+    this.assets.loadMannequinModel(
+      gender,
+      (model, url) => {
+        if (this.isDisposed) return;
+        this.gltfAvatarGroup = model;
+        if (this.avatarRoot) {
+          this.avatarRoot.add(this.gltfAvatarGroup);
+        }
+        if (this.sculptedAvatarGroup) {
+          this.sculptedAvatarGroup.visible = false;
+        }
+        this.activeAvatarType = 'mannequin';
+        if (this.animations && typeof this.animations.setGLTFModel === 'function') {
+          this.animations.setGLTFModel(this.gltfAvatarGroup);
+        }
+        if (onSuccess) onSuccess(model, url);
+      },
+      onError
     );
   }
 

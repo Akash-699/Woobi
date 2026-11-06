@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Woobi — The private atelier</title>
+  <link rel="stylesheet" href="model-3.css">
+  <link rel="stylesheet" href="auth-feedback.css">
+  <script src="firebase-config.js" defer></script><script src="model-3.js" defer></script><script src="auth.js" defer></script>
+</head>
+<body class="is-entering">
+  <div class="page-reveal" aria-hidden="true"></div>
+  <div class="embroidery embroidery-left" aria-hidden="true"></div><div class="embroidery embroidery-right" aria-hidden="true"></div>
+  <div class="ambient ambient-one" aria-hidden="true"></div><div class="ambient ambient-two" aria-hidden="true"></div>
+  <header class="page-header"><a class="wordmark" href="../index.html" aria-label="Woobi home">woobi<span>THE PERSONAL WARDROBE</span></a><a class="studio-mark" href="../index.html" aria-label="Sérén Studio home">sérén<span>STUDIO</span></a></header>
+  <main class="atelier">
+    <aside class="editorial"><span class="eyebrow">DRESS WITH INTENTION</span><h2>Everyday.<br>Exceptionally<br><em>you.</em></h2><p>A fresh perspective on the pieces<br>you already love.</p><span class="editorial-rule"></span><span class="edition">A CALMER CLOSET. A BRIGHTER YOU.</span></aside>
+    <div class="arch-slot">
+      <section class="arch-card" aria-labelledby="form-title">
+        <div class="arch-detail" aria-hidden="true"></div><div class="arch-stitches" aria-hidden="true"></div><span class="arch-star" aria-hidden="true">✧</span>
+        <div class="form-heading"><span class="eyebrow">WELCOME TO YOUR ATELIER</span><h1 id="form-title">Step into your style.</h1><p id="form-intro" class="intro">Your wardrobe. A world of possibilities.</p></div>
+        <form id="auth-form" novalidate>
+          <div class="field"><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required aria-describedby="email-error"><span class="field-error" id="email-error"></span></div>
+          <div class="field" id="password-field"><div class="label-row"><label for="password">Password</label><button class="text-button" id="forgot" type="button">Forgot password?</button></div><div class="password-wrap"><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required aria-describedby="password-error"><button id="toggle-password" type="button" aria-label="Show password" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><span class="field-error" id="password-error"></span></div>
+          <p id="status" class="status" role="status" aria-live="polite" hidden></p>
+          <button class="primary" id="submit" type="submit"><span id="submit-label">Log in</span><span aria-hidden="true">↗</span></button>
+        </form>
+        <div id="social-section"><div class="divider"><span>or continue with</span></div><button class="google" id="google" type="button"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.36Z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.41l-3.24-2.51c-.9.6-2.04.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H3.07v2.59A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.41 13.92A6 6 0 0 1 6.1 12c0-.67.11-1.32.31-1.92V7.49H3.07A10 10 0 0 0 2 12c0 1.61.39 3.14 1.07 4.51l3.34-2.59Z"/><path fill="#EA4335" d="M12 5.96c1.47 0 2.79.51 3.82 1.51l2.87-2.87A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.93 5.49l3.34 2.59A6 6 0 0 1 12 5.96Z"/></svg>Continue with Google</button></div>
+        <p class="switch-copy"><span id="switch-prompt">New to Woobi?</span> <button class="text-button" id="switch-mode" type="button">Create an account <span aria-hidden="true">↗</span></button></p>
+        <p class="config-note" id="config-note" hidden>Design preview · Firebase setup pending</p>
+
+        <div class="curtain curtain-left" aria-hidden="true"></div><div class="curtain curtain-right" aria-hidden="true"></div>
+      </section>
+    </div>
+    <aside class="style-study" aria-label="A study in everyday style"><div class="study-frame"><div class="study-carousel" role="img" aria-label="White linen shirt from the Woobi wardrobe"><div class="study-shirt is-active" aria-hidden="true"></div><div class="study-shirt" aria-hidden="true"></div></div><span class="study-star" aria-hidden="true">✦</span></div><p class="study-title">The art of getting dressed.</p><span class="study-caption" id="study-item-name">WHITE LINEN SHIRT</span><div class="material-swatches" aria-hidden="true"><i></i><i></i><i></i></div><div class="study-controls"><button id="study-pause" type="button" aria-pressed="false">Pause</button><button id="study-next" type="button" aria-label="Next wardrobe item">Next <span aria-hidden="true">→</span></button></div></aside>
+  </main>
+  <footer class="page-footer"><span>ALREADY YOURS. NEWLY INSPIRED.</span><a href="index.html">Explore the three designs <span aria-hidden="true">↗</span></a><button id="replay-reveal" type="button">Replay entrance <span aria-hidden="true">↻</span></button></footer>
+</body>
+</html>
