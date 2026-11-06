@@ -12156,6 +12156,7 @@ body.premium-mode .phone-screen-container,
   overflow-x: hidden !important;
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
+  background: #FBEDEE !important;
 }
 
 body.premium-mode::-webkit-scrollbar,
@@ -12168,7 +12169,8 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
 }
 
 #screen-premium {
-  background: #F7F2EC !important;
+  background: #FBEDEE !important;
+  background: linear-gradient(180deg, #FDF2F4 0%, #FAEAEB 100%) !important;
   color: #27221D;
   padding: clamp(14px, 2.2vh, 20px) 18px clamp(10px, 1.6vh, 16px) !important;
   margin: 0 !important;
@@ -12272,7 +12274,7 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
 
 .seren-cadence-pill {
   display: flex;
-  background: #E8E0D5;
+  background: #EEDDDA;
   border-radius: 999px;
   padding: 3px;
   width: 100%;
@@ -12336,16 +12338,16 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
 .seren-card-free {
   flex: 0.88 1 0;
   background: #FFFFFF;
-  border: 1px solid rgba(225, 218, 208, 0.85);
-  box-shadow: 0 3px 12px rgba(60, 50, 40, 0.04);
+  border: 1px solid rgba(232, 218, 218, 0.9);
+  box-shadow: 0 4px 14px rgba(180, 100, 105, 0.05);
 }
 
 /* Card 2: Basic (Ratio 1.0 - sized naturally to 3 bullets) */
 .seren-card-basic {
   flex: 1 1 0;
-  background: #FDF3E7;
-  border: 1px solid rgba(222, 185, 160, 0.75);
-  box-shadow: 0 3px 12px rgba(182, 105, 73, 0.08);
+  background: #FDF3EA;
+  border: 1px solid rgba(226, 186, 170, 0.8);
+  box-shadow: 0 4px 14px rgba(182, 105, 73, 0.08);
 }
 
 /* Card 3: Pro (Ratio 1.0 - sized naturally to 3 bullets) */

@@ -273,3 +273,4 @@ with open('assets/studio-textures-data.js', 'w', encoding='utf-8') as f:
 
 print("Saved assets/studio-textures-data.js successfully.")
 print("Texture generation complete!")
+
