@@ -1,8 +1,37 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+// Load .env configuration
+function loadEnv() {
+  const envPath = path.join(__dirname, '.env');
+  if (typeof process.loadEnvFile === 'function') {
+    try { process.loadEnvFile(envPath); return; } catch (_) { }
+  }
+  if (fs.existsSync(envPath)) {
+    try {
+      const content = fs.readFileSync(envPath, 'utf8');
+      content.split(/\r?\n/).forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) return;
+        const eqIdx = trimmed.indexOf('=');
+        if (eqIdx !== -1) {
+          const key = trimmed.slice(0, eqIdx).trim();
+          let val = trimmed.slice(eqIdx + 1).trim();
+          if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+            val = val.slice(1, -1);
+          }
+          if (process.env[key] === undefined) process.env[key] = val;
+        }
+      });
+      console.log('✓ Loaded environment variables from .env');
+    } catch (e) {
+      console.warn('Warning: Could not read .env file:', e.message);
+    }
+  }
+}
+loadEnv();
 
-const PORTS = [8080, 5000, 8085, 3000];
+const PORTS = [8085, 8080, 5000, 3000];
 const BASE_DIR = __dirname;
 
 const MIME_TYPES = {
@@ -34,10 +63,19 @@ let backendService = null;
   try {
     const backendModule = await import('./modules/backend/index.js');
     backendService = backendModule.createBackendService({
-      database: { dataDir: path.join(BASE_DIR, 'data') },
-      storage: { baseDir: path.join(BASE_DIR, 'uploads') }
+      database: {
+        dataDir: process.env.WOOBI_DATA_DIR ? path.resolve(BASE_DIR, process.env.WOOBI_DATA_DIR) : path.join(BASE_DIR, 'data'),
+        supabaseUrl: process.env.SUPABASE_URL,
+        supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
+      },
+      storage: {
+        baseDir: process.env.WOOBI_STORAGE_DIR ? path.resolve(BASE_DIR, process.env.WOOBI_STORAGE_DIR) : path.join(BASE_DIR, 'uploads'),
+        supabaseUrl: process.env.SUPABASE_URL,
+        supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY,
+        supabaseBucket: process.env.SUPABASE_STORAGE_BUCKET || 'Troys Assets'
+      }
     });
-    console.log('✓ Woobi REST API & Security Services mounted.');
+    console.log('✓ Woobi REST API & Security Services mounted with Supabase.');
   } catch (err) {
     console.warn('Backend service initialization warning:', err.message);
   }

@@ -497,35 +497,160 @@
       this.textures.oakBump.wrapT = THREE.RepeatWrapping;
       this.textures.oakBump.repeat.set(1.5, 2.0);
 
-      // 3.5. Mediterranean Desert Sand Plaster Texture (512x512) - #DCC5A3
+      // 3.5. Premium Architectural Interior Wall Limewash Plaster Texture (1024x512)
+      // Soft warm beige, ivory, and light greige artisan wall finish
       const plasterCanvas = document.createElement('canvas');
-      plasterCanvas.width = 512;
+      plasterCanvas.width = 1024;
       plasterCanvas.height = 512;
       const pCtx = plasterCanvas.getContext('2d');
-      pCtx.fillStyle = '#DCC5A3';
-      pCtx.fillRect(0, 0, 512, 512);
 
-      const pImg = pCtx.getImageData(0, 0, 512, 512);
+      // Base: Elegant warm greige-ivory neutral (#E2D8CB) with seamless horizontal gradient
+      const pBaseGrad = pCtx.createLinearGradient(0, 0, 1024, 0);
+      pBaseGrad.addColorStop(0.0, '#E3D9CC');
+      pBaseGrad.addColorStop(0.35, '#E0D5C7');
+      pBaseGrad.addColorStop(0.70, '#E5DCCD');
+      pBaseGrad.addColorStop(1.0, '#E3D9CC'); // Seamless horizontal wrap
+      pCtx.fillStyle = pBaseGrad;
+      pCtx.fillRect(0, 0, 1024, 512);
+
+      // Subtle multi-scale artisan trowel sweeps (soft, organic, feathered blending)
+      // Avoids repetitive blobs or harsh geometric seams
+      const trowelPasses = [
+        { x: 180, y: 140, rx: 320, ry: 90, rot: -0.08, col: 'rgba(242, 237, 229, 0.18)' }, // Warm ivory highlight
+        { x: 740, y: 160, rx: 340, ry: 100, rot: 0.06, col: 'rgba(240, 234, 225, 0.16)' },
+        { x: 420, y: 380, rx: 360, ry: 110, rot: -0.05, col: 'rgba(218, 207, 193, 0.14)' }, // Gentle greige undertone
+        { x: 890, y: 390, rx: 280, ry: 85, rot: 0.08, col: 'rgba(238, 232, 222, 0.15)' },
+        { x: 110, y: 410, rx: 260, ry: 80, rot: -0.04, col: 'rgba(219, 208, 194, 0.13)' },
+        { x: 530, y: 220, rx: 290, ry: 95, rot: 0.03, col: 'rgba(244, 239, 232, 0.14)' },
+        { x: 0, y: 250, rx: 240, ry: 90, rot: 0.02, col: 'rgba(224, 214, 201, 0.12)' },
+        { x: 1024, y: 250, rx: 240, ry: 90, rot: 0.02, col: 'rgba(224, 214, 201, 0.12)' } // Seamless edge wrap
+      ];
+
+      for (let t = 0; t < trowelPasses.length; t++) {
+        const tp = trowelPasses[t];
+        pCtx.save();
+        pCtx.beginPath();
+        pCtx.ellipse(tp.x, tp.y, tp.rx, tp.ry, tp.rot, 0, Math.PI * 2);
+        pCtx.fillStyle = tp.col;
+        pCtx.fill();
+        pCtx.restore();
+      }
+
+      // Fine artisan lime pigment micro-grain (subtle organic tooth without harsh contrast)
+      const pImg = pCtx.getImageData(0, 0, 1024, 512);
       const pd = pImg.data;
       for (let i = 0; i < pd.length; i += 4) {
-        const noise = (Math.random() - 0.5) * 16;
+        const noise = (Math.random() - 0.5) * 8.0;
         pd[i] = Math.min(255, Math.max(0, pd[i] + noise));
-        pd[i + 1] = Math.min(255, Math.max(0, pd[i + 1] + noise * 0.88));
-        pd[i + 2] = Math.min(255, Math.max(0, pd[i + 2] + noise * 0.72));
+        pd[i + 1] = Math.min(255, Math.max(0, pd[i + 1] + noise * 0.92));
+        pd[i + 2] = Math.min(255, Math.max(0, pd[i + 2] + noise * 0.82));
+      }
+
+      // Seamless horizontal edge blend across 48px boundary to guarantee zero visible tiling seam
+      const seamWidth = 48;
+      for (let y = 0; y < 512; y++) {
+        for (let x = 0; x < seamWidth; x++) {
+          const leftIdx = (y * 1024 + x) * 4;
+          const rightIdx = (y * 1024 + (1024 - seamWidth + x)) * 4;
+          const blendFactor = x / seamWidth;
+          for (let c = 0; c < 3; c++) {
+            const avg = pd[leftIdx + c] * (1 - blendFactor) + pd[rightIdx + c] * blendFactor;
+            pd[leftIdx + c] = avg;
+            pd[rightIdx + c] = avg;
+          }
+        }
       }
       pCtx.putImageData(pImg, 0, 0);
 
-      // Warm beige plaster waves
-      pCtx.fillStyle = 'rgba(203, 177, 141, 0.15)';
-      for (let w = 0; w < 6; w++) {
-        pCtx.beginPath();
-        pCtx.ellipse(100 + w * 60, 80 + w * 70, 180, 50, w * 0.4, 0, Math.PI * 2);
-        pCtx.fill();
-      }
       this.textures.sandPlaster = new THREE.CanvasTexture(plasterCanvas);
       this.textures.sandPlaster.wrapS = THREE.RepeatWrapping;
-      this.textures.sandPlaster.wrapT = THREE.RepeatWrapping;
-      this.textures.sandPlaster.repeat.set(3, 3);
+      this.textures.sandPlaster.wrapT = THREE.ClampToEdgeWrapping;
+      this.textures.sandPlaster.repeat.set(2, 1);
+
+      // 3.6. Dedicated Architectural Wall Plaster Bump Map (512x256)
+      // Delicate micro-stipple relief for soft, matte light dispersion
+      const wallBumpCanvas = document.createElement('canvas');
+      wallBumpCanvas.width = 512;
+      wallBumpCanvas.height = 256;
+      const wbCtx = wallBumpCanvas.getContext('2d');
+      wbCtx.fillStyle = '#808080';
+      wbCtx.fillRect(0, 0, 512, 256);
+
+      const wbImg = wbCtx.getImageData(0, 0, 512, 256);
+      const wbd = wbImg.data;
+      for (let i = 0; i < wbd.length; i += 4) {
+        const bNoise = (Math.random() - 0.5) * 12.0;
+        const val = Math.min(255, Math.max(0, 128 + bNoise));
+        wbd[i] = val;
+        wbd[i + 1] = val;
+        wbd[i + 2] = val;
+      }
+
+      // Seamless edge blend for bump map
+      for (let y = 0; y < 256; y++) {
+        for (let x = 0; x < 24; x++) {
+          const leftIdx = (y * 512 + x) * 4;
+          const rightIdx = (y * 512 + (512 - 24 + x)) * 4;
+          const blendFactor = x / 24;
+          const avg = wbd[leftIdx] * (1 - blendFactor) + wbd[rightIdx] * blendFactor;
+          wbd[leftIdx] = avg;
+          wbd[leftIdx + 1] = avg;
+          wbd[leftIdx + 2] = avg;
+          wbd[rightIdx] = avg;
+          wbd[rightIdx + 1] = avg;
+          wbd[rightIdx + 2] = avg;
+        }
+      }
+      wbCtx.putImageData(wbImg, 0, 0);
+
+      this.textures.wallBump = new THREE.CanvasTexture(wallBumpCanvas);
+      this.textures.wallBump.wrapS = THREE.RepeatWrapping;
+      this.textures.wallBump.wrapT = THREE.ClampToEdgeWrapping;
+      this.textures.wallBump.repeat.set(2, 1);
+
+      // 3.7. Authentic Red-Brown Brick Wall Texture (User-Uploaded Reference)
+      const brickSrc = (typeof window !== 'undefined' && window.WOOBI_BRICK_WALL_DATA)
+        ? window.WOOBI_BRICK_WALL_DATA
+        : 'assets/brick_wall.jpg';
+
+      if (typeof THREE.TextureLoader !== 'undefined') {
+        const textureLoader = new THREE.TextureLoader();
+        const brickTex = textureLoader.load(
+          brickSrc,
+          (loadedTex) => {
+            loadedTex.wrapS = THREE.RepeatWrapping;
+            loadedTex.wrapT = THREE.RepeatWrapping;
+            // Cylindrical wall is 34m wide x 8m high; repeat 6 horizontally and 2 vertically
+            loadedTex.repeat.set(6, 2);
+            if (THREE.sRGBEncoding) {
+              loadedTex.encoding = THREE.sRGBEncoding;
+            }
+            if (this.themeModel && this.themeModel.materials && this.themeModel.materials.wallMat) {
+              this.themeModel.materials.wallMat.map = loadedTex;
+              this.themeModel.materials.wallMat.color.setHex(0xFFFFFF);
+              this.themeModel.materials.wallMat.needsUpdate = true;
+            }
+            if (this.themeModel && this.themeModel.backWall && this.themeModel.backWall.material) {
+              this.themeModel.backWall.material.map = loadedTex;
+              this.themeModel.backWall.material.color.setHex(0xFFFFFF);
+              this.themeModel.backWall.material.needsUpdate = true;
+            }
+            if (this.fallbackWallMat) {
+              this.fallbackWallMat.map = loadedTex;
+              this.fallbackWallMat.color.setHex(0xFFFFFF);
+              this.fallbackWallMat.needsUpdate = true;
+            }
+          },
+          undefined,
+          (err) => {
+            console.warn('Studio3D: Could not load brick wall texture, falling back to procedural wall texture.', err);
+          }
+        );
+        brickTex.wrapS = THREE.RepeatWrapping;
+        brickTex.wrapT = THREE.RepeatWrapping;
+        brickTex.repeat.set(6, 2);
+        this.textures.brickWall = brickTex;
+      }
 
       // 4. Warm Beige Limestone / Travertine for Vanity Countertop (#CBB18D)
       const mCanvas = document.createElement('canvas');
@@ -708,15 +833,15 @@
         return;
       }
 
-      // 1. Champagne Stone Architectural Ground Plane (#CDB594) with Tactile Relief
+      // 1. Darker Neutral Matte Grey Architectural Ground Plane (#616161) with Tactile Relief
       const floorGeo = new THREE.PlaneGeometry(28, 28);
       const floorMat = new THREE.MeshStandardMaterial({
-        map: this.textures.champagneStone || this.textures.sandPlaster,
+        map: null,
         bumpMap: this.textures.stoneBump || null,
-        bumpScale: 0.007,
-        roughness: 0.68,
-        metalness: 0.02,
-        color: 0xCDB594
+        bumpScale: 0.003,
+        roughness: 0.82,
+        metalness: 0.01,
+        color: 0x616161
       });
       const floor = new THREE.Mesh(floorGeo, floorMat);
       floor.rotation.x = -Math.PI / 2;
@@ -724,16 +849,17 @@
       floor.receiveShadow = true;
       this.scene.add(floor);
 
-      // 2. Desert Sand Architectural Wall Plaster with Micro-Relief (#DCC5A3)
-      const wallMat = new THREE.MeshStandardMaterial({
-        map: this.textures.sandPlaster || null,
-        bumpMap: this.textures.stoneBump || null,
-        bumpScale: 0.0025,
-        color: 0xDCC5A3, // Desert sand Mediterranean limewash plaster
-        roughness: 0.90,
+      // 2. Architectural Wall Material (Authentic Brick Wall with Plaster Fallback)
+      this.fallbackWallMat = new THREE.MeshStandardMaterial({
+        map: this.textures.brickWall || this.textures.sandPlaster || null,
+        bumpMap: this.textures.wallBump || this.textures.stoneBump || null,
+        bumpScale: 0.0020,
+        color: this.textures.brickWall ? 0xFFFFFF : 0xDCC5A3,
+        roughness: 0.85,
         metalness: 0.01,
         side: THREE.BackSide
       });
+      const wallMat = this.fallbackWallMat;
       const wallGeo = new THREE.CylinderGeometry(12.0, 12.0, 8.0, 48, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
       const backWall = new THREE.Mesh(wallGeo, wallMat);
       backWall.position.set(0, 4.0, 8.2);
@@ -745,6 +871,7 @@
       const windowShadowGroup = new THREE.Group();
       windowShadowGroup.position.set(1.4, 2.1, -1.8);
       windowShadowGroup.rotation.set(-0.25, 0.45, -0.2);
+      windowShadowGroup.visible = false; // Hidden to remove window glare projection from wall and mirror
 
       const shadowBarMat = new THREE.MeshBasicMaterial({
         color: 0x3D2B1E, // Deep espresso contrast accent (#3D2B1E)
@@ -979,7 +1106,8 @@
       wardrobeGroup.add(plinth);
 
       // Shelves with Integrated Warm LED Lighting Strips along top edge
-      const shelfYPositions = [0.12, 0.52, 0.94, 1.34, 2.22];
+      // 3-Tier balanced layout: Bottom footwear shelf (0.12), Footwear separator (0.60), Upper shelf (2.22)
+      const shelfYPositions = [0.12, 0.60, 2.22];
       const shelfGeo = new THREE.BoxGeometry(width - 0.08, 0.030, depth - 0.02);
 
       shelfYPositions.forEach((shY) => {
@@ -1003,8 +1131,12 @@
       wardrobeGroup.add(shelfLight1);
 
       const shelfLight2 = new THREE.PointLight(0xFFA834, 0.90, 2.2);
-      shelfLight2.position.set(0, 1.25, 0.14);
+      shelfLight2.position.set(0, 1.35, 0.14);
       wardrobeGroup.add(shelfLight2);
+
+      const shelfLight3 = new THREE.PointLight(0xFFA834, 0.80, 1.8);
+      shelfLight3.position.set(0, 0.55, 0.14);
+      wardrobeGroup.add(shelfLight3);
 
       // 1. TOP SHELF: Luxury White Box with Gold Pull + Trailing Potted Ivy
       const boxMat = new THREE.MeshStandardMaterial({ color: 0xFAF7F2, roughness: 0.60 });
@@ -1053,42 +1185,38 @@
       }
       wardrobeGroup.add(plantGroup);
 
-      // 2. MAIN CLOTHING RAIL & 3D GARMENTS ON WOODEN HANGERS
+      // 2. MAIN CLOTHING RAIL & SHIRTS ON WOODEN HANGERS (Positioned slightly upwards, balanced)
+      const railY = 2.16;
       const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, width - 0.08, 16), brassMat);
       rail.rotation.z = Math.PI / 2;
-      rail.position.set(0, 2.12, 0);
+      rail.position.set(0, railY, 0);
       rail.castShadow = true;
       wardrobeGroup.add(rail);
 
-      // Distinct 3D sculpted garments matching reference image:
-      // 1. Off-white silk blouse
-      // 2. Charcoal tailored jacket
-      // 3. Crisp white button-down shirt
-      // 4. Grey knit blazer
-      // 5. Dark blazer
+      // Shirts & blazers neatly hung, moderately sized so they don't dominate
       const hangerGarments = [
-        { x: -0.36, color: 0xF4ECE1, len: 0.68, type: 'shirt' },
-        { x: -0.20, color: 0x33363B, len: 0.74, type: 'blazer' },
-        { x: -0.04, color: 0xFAF8F5, len: 0.66, type: 'shirt' },
-        { x: 0.12, color: 0x585B62, len: 0.72, type: 'blazer' },
-        { x: 0.28, color: 0x1E2024, len: 0.75, type: 'blazer' }
+        { x: -0.32, color: 0xF4ECE1, len: 0.48, type: 'shirt' },
+        { x: -0.16, color: 0x33363B, len: 0.52, type: 'blazer' },
+        { x: 0.00,  color: 0xFAF8F5, len: 0.46, type: 'shirt' },
+        { x: 0.16,  color: 0x585B62, len: 0.50, type: 'blazer' },
+        { x: 0.32,  color: 0xD4C5B2, len: 0.48, type: 'shirt' }
       ];
 
       hangerGarments.forEach((g) => {
         const hangerGroup = new THREE.Group();
-        hangerGroup.position.set(g.x, 2.12, 0);
+        hangerGroup.position.set(g.x, railY, 0);
 
         // Wooden Wishbone Hanger
         const hangerBar = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.007, 0.007, 0.36, 12),
+          new THREE.CylinderGeometry(0.007, 0.007, 0.32, 12),
           oakMat
         );
         hangerBar.rotation.z = Math.PI / 2;
         hangerBar.position.y = -0.04;
         hangerGroup.add(hangerBar);
 
-        const hangerHook = new THREE.Mesh(new THREE.TorusGeometry(0.024, 0.003, 8, 16, Math.PI * 1.3), brassMat);
-        hangerHook.position.set(0, 0.015, 0);
+        const hangerHook = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.003, 8, 16, Math.PI * 1.3), brassMat);
+        hangerHook.position.set(0, 0.014, 0);
         hangerGroup.add(hangerHook);
 
         // Sculpted 3D Garment Mesh with Torso, Shoulders, and Collar
@@ -1102,7 +1230,7 @@
         });
 
         // Contoured Body & Drapery
-        const bodyGeo = new THREE.CylinderGeometry(0.09, 0.14, g.len, 20);
+        const bodyGeo = new THREE.CylinderGeometry(0.08, 0.12, g.len, 20);
         bodyGeo.scale(1.2, 1.0, 0.65);
         const bodyMesh = new THREE.Mesh(bodyGeo, gMat);
         bodyMesh.position.y = -g.len / 2;
@@ -1111,7 +1239,7 @@
 
         // Collar / Lapels
         const collar = new THREE.Mesh(
-          new THREE.BoxGeometry(0.12, 0.04, 0.10),
+          new THREE.BoxGeometry(0.11, 0.035, 0.09),
           gMat
         );
         collar.position.set(0, -0.02, 0.02);
@@ -1121,100 +1249,100 @@
         wardrobeGroup.add(hangerGroup);
       });
 
-      // 3. MIDDLE DISPLAY SHELF: Luxury White Handbag + Books & Accessories
-      const bagMat = new THREE.MeshStandardMaterial({ color: 0xFDFBF7, roughness: 0.40, metalness: 0.02 });
-      const bagGroup = new THREE.Group();
-      bagGroup.position.set(-0.28, 1.37, 0.02);
+      // 3. HORIZONTAL HANGING ROD DIRECTLY BELOW SHIRTS & VERTICALLY HANGING TROUSERS
+      const trouserRailY = 1.38;
+      const trouserRail = new THREE.Mesh(new THREE.CylinderGeometry(0.010, 0.010, width - 0.08, 16), brassMat);
+      trouserRail.rotation.z = Math.PI / 2;
+      trouserRail.position.set(0, trouserRailY, 0);
+      trouserRail.castShadow = true;
+      wardrobeGroup.add(trouserRail);
 
-      // Structured Trapezoid Handbag Body
-      const bagBody = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, 0.10), bagMat);
-      bagBody.position.y = 0.08;
-      bagBody.castShadow = true;
-      bagGroup.add(bagBody);
+      // Vertically hanging trousers on clip hangers
+      const trouserSpecs = [
+        { x: -0.30, color: 0x1E2A3A, len: 0.44 },
+        { x: -0.15, color: 0xC4AA78, len: 0.42 },
+        { x: 0.00,  color: 0x3A3A3C, len: 0.46 },
+        { x: 0.15,  color: 0x5C6B4A, len: 0.43 },
+        { x: 0.30,  color: 0xD4B896, len: 0.42 }
+      ];
 
-      // Gold Clasp & Handle
-      const bagClasp = new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.016, 0.012), brassMat);
-      bagClasp.position.set(0, 0.09, 0.052);
-      bagGroup.add(bagClasp);
+      trouserSpecs.forEach((tr) => {
+        const trHanger = new THREE.Group();
+        trHanger.position.set(tr.x, trouserRailY, 0);
 
-      const bagHandle = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.005, 8, 20, Math.PI), brassMat);
-      bagHandle.position.set(0, 0.16, 0);
-      bagGroup.add(bagHandle);
-      wardrobeGroup.add(bagGroup);
+        // Oak clip hanger bar
+        const clipBar = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.26, 12), oakMat);
+        clipBar.rotation.z = Math.PI / 2;
+        clipBar.position.y = -0.035;
+        trHanger.add(clipBar);
 
-      // Stack of Fashion Books / Magazines & Sunglasses
-      const bookMat1 = new THREE.MeshStandardMaterial({ color: 0x3A342E, roughness: 0.65 });
-      const book1 = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.022, 0.22), bookMat1);
-      book1.position.set(0.18, 1.36, 0.02);
-      wardrobeGroup.add(book1);
+        const hook = new THREE.Mesh(new THREE.TorusGeometry(0.018, 0.0025, 8, 14, Math.PI * 1.3), brassMat);
+        hook.position.set(0, 0.010, 0);
+        trHanger.add(hook);
 
-      const bookMat2 = new THREE.MeshStandardMaterial({ color: 0xF5F0E6, roughness: 0.60 });
-      const book2 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.020, 0.20), bookMat2);
-      book2.position.set(0.18, 1.38, 0.02);
-      wardrobeGroup.add(book2);
+        const trMat = new THREE.MeshStandardMaterial({ color: tr.color, roughness: 0.70 });
 
-      // 4. LOWER SHELVES: Neatly Folded Knitwear Sweaters & 2 Oak Drawers
-      // Cream & Grey Folded Sweater Stacks
-      const knitCream = new THREE.MeshStandardMaterial({ color: 0xF3EFE6, roughness: 0.85 });
-      const knitGrey = new THREE.MeshStandardMaterial({ color: 0x8C8984, roughness: 0.85 });
+        // Waistband
+        const waistband = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.026, 0.05), trMat);
+        waistband.position.set(0, -0.055, 0);
+        trHanger.add(waistband);
 
-      for (let s = 0; s < 3; s++) {
-        const sw1 = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.038, 0.28), s % 2 === 0 ? knitCream : knitGrey);
-        sw1.position.set(-0.20, 0.96 + s * 0.038, 0.02);
-        sw1.castShadow = true;
-        wardrobeGroup.add(sw1);
-      }
+        // Two vertical hanging legs
+        [-0.050, 0.050].forEach((lx) => {
+          const legGeo = new THREE.CylinderGeometry(0.036, 0.028, tr.len, 14);
+          legGeo.scale(0.65, 1.0, 1.0);
+          const leg = new THREE.Mesh(legGeo, trMat);
+          leg.position.set(lx, -0.068 - tr.len / 2, 0);
+          leg.castShadow = true;
+          trHanger.add(leg);
+        });
 
-      for (let s = 0; s < 2; s++) {
-        const sw2 = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.042, 0.28), s === 0 ? knitGrey : knitCream);
-        sw2.position.set(0.20, 0.96 + s * 0.042, 0.02);
-        sw2.castShadow = true;
-        wardrobeGroup.add(sw2);
-      }
-
-      // Two Oak Drawers with Brass Button Pulls
-      const drawerY = 0.72;
-      const drawerHeight = 0.18;
-      [-0.24, 0.24].forEach((dx) => {
-        const drawerFront = new THREE.Mesh(
-          new THREE.BoxGeometry(width / 2 - 0.06, drawerHeight, 0.02),
-          oakMat
-        );
-        drawerFront.position.set(dx, drawerY, depth / 2 - 0.02);
-        wardrobeGroup.add(drawerFront);
-
-        const drawerPull = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.016, 12), brassMat);
-        drawerPull.rotation.x = Math.PI / 2;
-        drawerPull.position.set(dx, drawerY, depth / 2 - 0.005);
-        wardrobeGroup.add(drawerPull);
+        wardrobeGroup.add(trHanger);
       });
 
-      // 5. BOTTOM SHOE DISPLAY: 4 Distinct Pairs of Footwear
+      // 4. DEDICATED FOOTWEAR AREA BELOW TROUSERS (Shoes, Sneakers, and Sandals)
       const shoeMatWhite = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.40 });
       const shoeMatBeige = new THREE.MeshStandardMaterial({ color: 0xD8C4B0, roughness: 0.45 });
       const shoeMatLoafer = new THREE.MeshStandardMaterial({ color: 0xF2ECE2, roughness: 0.38 });
+      const shoeMatSandal = new THREE.MeshStandardMaterial({ color: 0xC49E6C, roughness: 0.45, metalness: 0.02 });
 
-      const shoes = [
-        { x: -0.34, mat: shoeMatWhite, name: 'White Sneakers' },
-        { x: -0.12, mat: shoeMatBeige, name: 'Beige Low Heels' },
-        { x: 0.10, mat: shoeMatLoafer, name: 'Cream Loafers' },
-        { x: 0.32, mat: shoeMatWhite, name: 'Court Trainers' }
+      const footwearItems = [
+        { x: -0.35, type: 'sneaker', mat: shoeMatWhite, name: 'White Sneakers' },
+        { x: -0.21, type: 'loafer',  mat: shoeMatLoafer, name: 'Tailored Loafers' },
+        { x: -0.07, type: 'sandal',  mat: shoeMatSandal, name: 'Tan Slide Sandals' },
+        { x: 0.07,  type: 'sandal',  mat: shoeMatBeige,  name: 'Strap Sandals' },
+        { x: 0.21,  type: 'heel',    mat: shoeMatBeige,  name: 'Low Heels' },
+        { x: 0.35,  type: 'sneaker', mat: shoeMatWhite,  name: 'Court Trainers' }
       ];
 
-      shoes.forEach((sh) => {
+      footwearItems.forEach((sh) => {
         const shoePair = new THREE.Group();
         shoePair.position.set(sh.x, 0.14, 0.04);
 
-        [-0.038, 0.038].forEach((offset) => {
-          const sole = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.020, 0.17), shoeMatWhite);
-          sole.position.set(offset, 0.010, 0);
-          shoePair.add(sole);
+        [-0.032, 0.032].forEach((offset) => {
+          if (sh.type === 'sandal') {
+            const sole = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.012, 0.16), shoeMatSandal);
+            sole.position.set(offset, 0.006, 0);
+            shoePair.add(sole);
 
-          const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.032, 0.042, 16), sh.mat);
-          upper.scale.set(1.0, 1.0, 1.8);
-          upper.position.set(offset, 0.035, 0.01);
-          upper.castShadow = true;
-          shoePair.add(upper);
+            const strap1 = new THREE.Mesh(new THREE.BoxGeometry(0.050, 0.016, 0.032), sh.mat);
+            strap1.position.set(offset, 0.016, 0.03);
+            shoePair.add(strap1);
+
+            const strap2 = new THREE.Mesh(new THREE.BoxGeometry(0.050, 0.020, 0.028), sh.mat);
+            strap2.position.set(offset, 0.020, -0.02);
+            shoePair.add(strap2);
+          } else {
+            const sole = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.018, 0.16), shoeMatWhite);
+            sole.position.set(offset, 0.009, 0);
+            shoePair.add(sole);
+
+            const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.028, 0.038, 14), sh.mat);
+            upper.scale.set(1.0, 1.0, 1.8);
+            upper.position.set(offset, 0.032, 0.01);
+            upper.castShadow = true;
+            shoePair.add(upper);
+          }
         });
 
         wardrobeGroup.add(shoePair);

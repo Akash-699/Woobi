@@ -1,7 +1,7 @@
 import { AppBootstrap, appBootstrap } from './app/AppBootstrap.js';
 import { NavigationRouter, navigationRouter } from './navigation/NavigationRouter.js';
 import { Store, store } from './state/Store.js';
-import { StreakState, streakState, createStreakState, STREAK_EVENTS } from './state/StreakState.js';
+import { StreakState, streakState, createStreakState, STREAK_EVENTS, TEST_USER_ID } from './state/StreakState.js';
 import {
   ClothingCaptureState,
   clothingCaptureState,
@@ -29,6 +29,7 @@ export {
   streakState,
   createStreakState,
   STREAK_EVENTS,
+  TEST_USER_ID,
   ClothingCaptureState,
   clothingCaptureState,
   createClothingCaptureState,
@@ -100,6 +101,14 @@ export const CoreContract = {
 
 if (typeof window !== 'undefined') {
   window.WoobiCore = CoreContract;
+  try {
+    window.dispatchEvent(new CustomEvent('woobi:core:ready', { detail: CoreContract }));
+  } catch (e) {
+    // Fallback for older environments
+    const evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('woobi:core:ready', false, false, CoreContract);
+    window.dispatchEvent(evt);
+  }
 }
 
 export default CoreContract;

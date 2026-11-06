@@ -20,27 +20,28 @@ export class ThemeMaterials {
 
     const preset = THEME_PRESETS[presetName] || THEME_PRESETS[DEFAULT_THEME_PRESET];
 
-    // 1. Flooring Material (Rich champagne stone ground plane with tactile relief)
-    const floorTexture = (presetName === 'mediterranean-luxury')
-      ? (this.textures.champagneStone || this.textures.sandPlaster || null)
-      : (this.textures.champagneStone || this.textures.creamMarble || null);
+    // 1. Flooring Material (Darker neutral matte grey #616161 floor with subtle roughness and tactile relief)
+    const floorTexture = (presetName === 'nordic-minimal' || presetName === 'warm-terracotta')
+      ? (this.textures.champagneStone || this.textures.creamMarble || null)
+      : null;
 
     this.floorMat = new THREE.MeshStandardMaterial({
       map: floorTexture,
       bumpMap: this.textures.stoneBump || null,
-      bumpScale: 0.007,
+      bumpScale: floorTexture ? 0.007 : 0.003,
       roughness: preset.floor.roughness,
       metalness: preset.floor.metalness,
       color: preset.floor.color
     });
     this.disposables.push(this.floorMat);
 
-    // 2. Smooth Architectural Wall Plaster Material (Warm limewash plaster with micro-relief)
+    // 2. Smooth Architectural Wall Material (Authentic Red-Brown Brick Wall with Plaster Fallback)
+    const wallTexture = this.textures.brickWall || this.textures.sandPlaster || null;
     this.wallMat = new THREE.MeshStandardMaterial({
-      map: this.textures.sandPlaster || null,
-      bumpMap: this.textures.stoneBump || null,
-      bumpScale: 0.0025,
-      color: preset.wall.color,
+      map: wallTexture,
+      bumpMap: this.textures.wallBump || this.textures.stoneBump || null,
+      bumpScale: 0.0020,
+      color: this.textures.brickWall ? 0xFFFFFF : preset.wall.color,
       roughness: preset.wall.roughness,
       metalness: preset.wall.metalness,
       side: THREE.BackSide
@@ -85,6 +86,13 @@ export class ThemeMaterials {
     if (!preset) return;
 
     if (this.floorMat) {
+      if (presetName === 'mediterranean-luxury' || presetName === 'luxury-cream') {
+        this.floorMat.map = null;
+        this.floorMat.bumpScale = 0.003;
+      } else {
+        this.floorMat.map = this.textures.champagneStone || this.textures.creamMarble || null;
+        this.floorMat.bumpScale = 0.007;
+      }
       this.floorMat.color.set(preset.floor.color);
       this.floorMat.roughness = preset.floor.roughness;
       this.floorMat.metalness = preset.floor.metalness;
@@ -92,7 +100,12 @@ export class ThemeMaterials {
     }
 
     if (this.wallMat) {
-      this.wallMat.color.set(preset.wall.color);
+      if (!this.textures.brickWall) {
+        this.wallMat.color.set(preset.wall.color);
+      } else {
+        this.wallMat.color.setHex(0xFFFFFF);
+        this.wallMat.map = this.textures.brickWall;
+      }
       this.wallMat.roughness = preset.wall.roughness;
       this.wallMat.metalness = preset.wall.metalness;
       this.wallMat.needsUpdate = true;
