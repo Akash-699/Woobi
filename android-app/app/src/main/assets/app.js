@@ -202,6 +202,15 @@
       renderWeeklyCalendar();
     } else if (screenId === 'premium') {
       updateSubscriptionUI();
+      const screenPremium = document.getElementById('screen-premium');
+      if (screenPremium) {
+        screenPremium.scrollTop = 0;
+        if (!screenPremium.dataset.scrollLockInit) {
+          screenPremium.dataset.scrollLockInit = 'true';
+          screenPremium.addEventListener('wheel', (e) => { e.preventDefault(); }, { passive: false });
+          screenPremium.addEventListener('touchmove', (e) => { e.preventDefault(); }, { passive: false });
+        }
+      }
     }
 
     // Update Bottom Nav active tab indicator if applicable
@@ -212,8 +221,14 @@
     if (container) {
       container.scrollTop = 0;
       if (screenId === 'premium') {
+        container.classList.add('premium-mode');
+        document.body.classList.add('premium-mode');
+        container.style.overflow = 'hidden';
         container.style.overflowY = 'hidden';
       } else {
+        container.classList.remove('premium-mode');
+        document.body.classList.remove('premium-mode');
+        container.style.overflow = '';
         container.style.overflowY = '';
       }
     }

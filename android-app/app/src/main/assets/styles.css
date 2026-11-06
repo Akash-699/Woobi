@@ -12115,6 +12115,27 @@ body {
    3 Stacked Plan Cards (Free, Basic [Most Popular], Pro) & Trust Badges
    ========================================================================= */
 
+/* Zero-scroll enforcement for Woobi Premium Screen */
+body.premium-mode,
+.phone-screen-container.premium-mode,
+body.premium-mode .phone-screen-container,
+.phone-screen-container:has(#screen-premium.active) {
+  overflow: hidden !important;
+  overflow-y: hidden !important;
+  overflow-x: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+body.premium-mode::-webkit-scrollbar,
+.phone-screen-container.premium-mode::-webkit-scrollbar,
+body.premium-mode .phone-screen-container::-webkit-scrollbar,
+#screen-premium::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 #screen-premium {
   background: #F6F1EA !important;
   color: #27221D;
@@ -12127,23 +12148,21 @@ body {
   overflow: hidden !important;
   overflow-y: hidden !important;
   overflow-x: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
   display: none;
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  touch-action: pan-x;
+  touch-action: none !important;
   overscroll-behavior: none !important;
+  user-select: none;
 }
 
 #screen-premium .phone-home-indicator,
 #screen-premium .phone-bottom-nav {
   display: none !important;
-}
-
-.phone-screen-container:has(#screen-premium.active) {
-  overflow: hidden !important;
-  overflow-y: hidden !important;
 }
 
 #screen-premium.active {
@@ -12155,7 +12174,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 18px 2px;
+  padding: clamp(6px, 1.2vh, 12px) 16px clamp(2px, 0.5vh, 4px);
   background: transparent;
   flex-shrink: 0;
 }
@@ -12164,8 +12183,8 @@ body {
   background: transparent;
   border: none;
   color: #4A4036;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -12182,8 +12201,8 @@ body {
 
 .seren-plan-brand {
   font-family: 'Playfair Display', 'Cinzel', serif, Georgia;
-  font-size: 0.95rem;
-  letter-spacing: 5px;
+  font-size: clamp(0.82rem, 1.6vh, 0.95rem);
+  letter-spacing: 4px;
   color: #27221D;
   font-weight: 500;
   text-transform: uppercase;
@@ -12192,13 +12211,13 @@ body {
 /* Intro Title & Subtitle */
 .seren-plan-intro {
   text-align: center;
-  padding: 2px 20px 6px;
+  padding: clamp(1px, 0.4vh, 4px) 16px clamp(2px, 0.6vh, 6px);
   flex-shrink: 0;
 }
 
 .seren-plan-title {
   font-family: 'Playfair Display', 'Cinzel', serif, Georgia;
-  font-size: clamp(1.35rem, 3.8vw, 1.7rem);
+  font-size: clamp(1.2rem, 2.5vh, 1.55rem);
   font-weight: 500;
   color: #27221D;
   margin: 0 0 2px;
@@ -12207,8 +12226,8 @@ body {
 }
 
 .seren-plan-subtitle {
-  font-size: clamp(0.7rem, 2vw, 0.76rem);
-  line-height: 1.35;
+  font-size: clamp(0.66rem, 1.2vh, 0.74rem);
+  line-height: 1.3;
   color: #776C60;
   max-width: 270px;
   margin: 0 auto;
@@ -12218,7 +12237,7 @@ body {
 .seren-cadence-switcher-wrap {
   display: flex;
   justify-content: center;
-  padding: 0 18px 8px;
+  padding: 0 16px clamp(4px, 0.8vh, 8px);
   flex-shrink: 0;
 }
 
@@ -12227,9 +12246,9 @@ body {
   background: #EAE2D6;
   border: 1px solid rgba(206, 194, 180, 0.6);
   border-radius: 999px;
-  padding: 3px;
+  padding: 2.5px;
   width: 100%;
-  max-width: 350px;
+  max-width: 340px;
   gap: 2px;
 }
 
@@ -12238,9 +12257,9 @@ body {
   border: none;
   background: transparent;
   color: #7B7063;
-  font-size: 0.72rem;
+  font-size: clamp(0.66rem, 1.2vh, 0.72rem);
   font-weight: 500;
-  padding: 5px 4px;
+  padding: clamp(4px, 0.8vh, 6px) 3px;
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.22s ease;
@@ -12259,8 +12278,8 @@ body {
 .seren-plan-cards-stack {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 0 16px;
+  gap: clamp(5px, 1vh, 8px);
+  padding: 0 14px;
   flex: 1 1 auto;
   justify-content: center;
   width: 100%;
@@ -12273,12 +12292,13 @@ body {
 .seren-plan-card {
   background: #FFFDF9;
   border: 1px solid rgba(215, 205, 195, 0.75);
-  border-radius: 16px;
-  padding: 9px 16px 10px;
-  box-shadow: 0 3px 12px rgba(80, 65, 50, 0.04);
+  border-radius: clamp(10px, 1.8vh, 14px);
+  padding: clamp(6px, 1vh, 9px) clamp(12px, 2vh, 16px) clamp(7px, 1.1vh, 10px);
+  box-shadow: 0 2px 10px rgba(80, 65, 50, 0.04);
   position: relative;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .seren-plan-card:hover {
@@ -12289,41 +12309,41 @@ body {
 .seren-card-basic {
   background: #FFFBF7;
   border-color: rgba(195, 140, 115, 0.5);
-  padding-top: 14px;
+  padding-top: clamp(9px, 1.5vh, 13px);
 }
 
 .seren-card-badge-row {
   position: absolute;
-  top: -10px;
-  right: 16px;
+  top: -8.5px;
+  right: 14px;
   z-index: 5;
 }
 
 .seren-popular-badge {
   display: inline-flex;
   align-items: center;
-  font-size: 0.55rem;
+  font-size: 0.52rem;
   font-weight: 700;
-  letter-spacing: 0.7px;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
   color: #8F553C;
   background: #F7EFE8;
   border: 1px solid rgba(195, 140, 115, 0.55);
-  padding: 2.5px 8px;
+  padding: 2px 7px;
   border-radius: 999px;
-  box-shadow: 0 2px 6px rgba(143, 85, 60, 0.12);
+  box-shadow: 0 1px 4px rgba(143, 85, 60, 0.1);
 }
 
 .seren-card-top-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 5px;
+  margin-bottom: clamp(2px, 0.5vh, 4px);
 }
 
 .seren-card-tier-name {
   font-family: 'Playfair Display', 'Cinzel', serif, Georgia;
-  font-size: 1.18rem;
+  font-size: clamp(1.05rem, 2vh, 1.18rem);
   font-weight: 600;
   color: #27221D;
   margin: 0;
@@ -12336,12 +12356,12 @@ body {
   gap: 2px;
   font-weight: 600;
   color: #27221D;
-  font-size: 1.25rem;
+  font-size: clamp(1.1rem, 2.1vh, 1.25rem);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .seren-card-price-display .seren-price-cadence {
-  font-size: 0.7rem;
+  font-size: clamp(0.64rem, 1.1vh, 0.7rem);
   font-weight: 400;
   color: #776C60;
   margin-left: 2px;
@@ -12350,18 +12370,18 @@ body {
 .seren-card-feature-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 7px 0;
+  margin: 0 0 clamp(4px, 0.8vh, 6px) 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: clamp(1.5px, 0.4vh, 2.5px);
 }
 
 .seren-card-feature-list li {
-  font-size: 0.72rem;
+  font-size: clamp(0.66rem, 1.2vh, 0.71rem);
   color: #554C42;
-  line-height: 1.3;
+  line-height: 1.22;
   position: relative;
-  padding-left: 13px;
+  padding-left: 11px;
 }
 
 .seren-card-feature-list li::before {
@@ -12369,20 +12389,20 @@ body {
   position: absolute;
   left: 2px;
   color: #776C60;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .seren-card-btn {
   width: 100%;
-  padding: 8px 12px;
+  padding: clamp(5px, 1vh, 7.5px) 10px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: clamp(0.72rem, 1.3vh, 0.77rem);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
   user-select: none;
-  margin-top: 2px;
+  margin-top: 1px;
   box-sizing: border-box;
 }
 
@@ -12431,11 +12451,11 @@ body {
 /* Trust Footer */
 .seren-plan-trust-footer {
   text-align: center;
-  padding: 6px 16px 12px;
+  padding: clamp(3px, 0.6vh, 6px) 14px clamp(6px, 1.2vh, 10px);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2.5px;
   align-items: center;
 }
 
@@ -12443,8 +12463,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  font-size: 0.68rem;
+  gap: 5px;
+  font-size: clamp(0.62rem, 1.1vh, 0.66rem);
   color: #776C60;
 }
 
@@ -12458,18 +12478,18 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
   background: #FFFFFF;
   border: 1px solid rgba(195, 185, 175, 0.7);
   border-radius: 4px;
-  padding: 1.5px 5px;
+  padding: 1px 4.5px;
   color: #27221D;
   letter-spacing: -0.2px;
 }
 
 .seren-trust-links {
-  font-size: 0.68rem;
+  font-size: clamp(0.62rem, 1.1vh, 0.66rem);
   color: #8D8275;
 }
 
@@ -12482,84 +12502,6 @@ body {
 
 .seren-trust-links a:hover {
   color: #27221D;
-}
-
-/* Ultra-compact viewport height optimization (ensures zero scrolling on small phones) */
-@media (max-height: 720px) {
-  .seren-plan-header {
-    padding: 6px 16px 2px;
-  }
-  .seren-plan-intro {
-    padding: 2px 16px 4px;
-  }
-  .seren-plan-title {
-    font-size: 1.22rem;
-    margin-bottom: 2px;
-  }
-  .seren-plan-subtitle {
-    font-size: 0.68rem;
-    line-height: 1.25;
-  }
-  .seren-cadence-switcher-wrap {
-    padding: 0 16px 6px;
-  }
-  .seren-cadence-tab {
-    padding: 4px 3px;
-    font-size: 0.66rem;
-  }
-  .seren-plan-cards-stack {
-    gap: 6px;
-    padding: 0 14px;
-  }
-  .seren-plan-card {
-    padding: 7px 12px 8px;
-    border-radius: 12px;
-  }
-  .seren-card-basic {
-    padding-top: 12px;
-  }
-  .seren-card-badge-row {
-    top: -9px;
-    right: 12px;
-  }
-  .seren-popular-badge {
-    font-size: 0.5rem;
-    padding: 1.5px 6px;
-  }
-  .seren-card-top-row {
-    margin-bottom: 3px;
-  }
-  .seren-card-tier-name {
-    font-size: 1.05rem;
-  }
-  .seren-card-price-display {
-    font-size: 1.1rem;
-  }
-  .seren-card-price-display .seren-price-cadence {
-    font-size: 0.64rem;
-  }
-  .seren-card-feature-list {
-    margin: 0 0 5px 0;
-    gap: 2px;
-  }
-  .seren-card-feature-list li {
-    font-size: 0.66rem;
-    line-height: 1.2;
-    padding-left: 11px;
-  }
-  .seren-card-btn {
-    padding: 6px 10px;
-    font-size: 0.72rem;
-    margin-top: 1px;
-  }
-  .seren-plan-trust-footer {
-    padding: 4px 14px 8px;
-    gap: 2px;
-  }
-  .seren-trust-meta,
-  .seren-trust-links {
-    font-size: 0.62rem;
-  }
 }
 
 /* =========================================================================
