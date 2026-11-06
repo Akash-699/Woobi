@@ -35,7 +35,7 @@
 
   <!-- Woobi Core Shared Design Tokens -->
   <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
-  <link rel="stylesheet" href="styles.css?v=20261106_v13">
+  <link rel="stylesheet" href="styles.css?v=20261106_v14">
 </head>
 
 <body>
@@ -403,28 +403,55 @@
                 <span class="seren-brand-sub">3D STUDIO</span>
               </div>
             </div>
-            <!-- Unified Top Navigation Dynamic Island: Camera | Calendar | Streak | Gallery | Profile -->
+            <!-- Arched Glass Visor Dynamic Island: Camera | Calendar | Streak | Gallery | Profile -->
             <div class="streak-trio-row" id="streakTrioRow">
+              <svg class="streak-visor-bg" viewBox="0 0 350 56" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="visorGlassGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#C67635" stop-opacity="0.48"/>
+                    <stop offset="40%" stop-color="#8B4318" stop-opacity="0.55"/>
+                    <stop offset="100%" stop-color="#4E2008" stop-opacity="0.68"/>
+                  </linearGradient>
+                  <linearGradient id="visorRimGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#FFF4D0" stop-opacity="0.95"/>
+                    <stop offset="35%" stop-color="#EAA64A" stop-opacity="0.85"/>
+                    <stop offset="70%" stop-color="#B8661D" stop-opacity="0.75"/>
+                    <stop offset="100%" stop-color="#FFDE8A" stop-opacity="0.95"/>
+                  </linearGradient>
+                  <linearGradient id="visorGlintGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0"/>
+                    <stop offset="30%" stop-color="#FFFBEB" stop-opacity="0.45"/>
+                    <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+                    <stop offset="70%" stop-color="#FFFBEB" stop-opacity="0.45"/>
+                    <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <!-- Main Arched Visor Body -->
+                <path class="streak-visor-body" d="M 24 15 C 90 8, 130 5, 175 5 C 220 5, 260 8, 326 15 A 18 18 0 0 1 326 51 C 260 44, 220 41, 175 41 C 130 41, 90 44, 24 51 A 18 18 0 0 1 24 15 Z" fill="url(#visorGlassGrad)" stroke="url(#visorRimGrad)" stroke-width="1.8"/>
+                <!-- Upper Specular Rim Glint -->
+                <path d="M 28 16 C 92 9, 130 6, 175 6 C 220 6, 258 9, 322 16" stroke="url(#visorGlintGrad)" stroke-width="2" stroke-linecap="round" fill="none"/>
+              </svg>
+
               <!-- 1. 📷 Camera Icon: Opens Camera Screen Only -->
               <button type="button" class="streak-trio-btn streak-camera-btn" id="streakCameraBtn"
                 onclick="app.openCameraModal()" title="Take Outfit Photo">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2"
                   stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                  <circle cx="12" cy="13" r="4" />
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                  <circle cx="12" cy="13" r="3.6" />
                 </svg>
               </button>
 
               <!-- 2. 📅 Calendar Icon: Opens Woobi Outfit Planning Calendar -->
               <button type="button" class="streak-trio-btn streak-calendar-btn" id="plannerCalendarBtn"
                 onclick="app.openWeeklyPlanner()" title="Outfit Planning Calendar">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2"
                   stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-                  <line x1="16" x2="16" y1="2" y2="6"/>
-                  <line x1="8" x2="8" y1="2" y2="6"/>
-                  <line x1="3" x2="21" y1="10" y2="10"/>
-                  <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+                  <rect width="18" height="17" x="3" y="4.5" rx="2.5" />
+                  <line x1="16" y1="2" x2="16" y2="5.5" stroke-linecap="round"/>
+                  <line x1="8" y1="2" x2="8" y2="5.5" stroke-linecap="round"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                  <path d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17h.01M12 17h.01M16.5 17h.01" stroke-width="2.6" stroke-linecap="round"/>
                 </svg>
               </button>
 
@@ -442,21 +469,21 @@
               <!-- 4. 🖼️ Gallery Icon: Opens Outfit Memories Gallery -->
               <button type="button" class="streak-trio-btn streak-gallery-btn" id="streakGalleryBtn"
                 onclick="app.openMemoriesModal()" title="View Outfit Memories">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2"
                   stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <polyline points="21 15 16 10 5 21" />
+                  <rect x="3" y="3.5" width="18" height="17" rx="2.5" />
+                  <circle cx="8" cy="8.5" r="1.5" stroke-width="2"/>
+                  <path d="m21 15-5.5-5.5L4 20" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </button>
 
               <!-- 5. 👤 Account Icon: Opens Profile -->
               <button type="button" class="streak-trio-btn streak-account-btn" id="streakAccountBtn"
                 onclick="app.goToScreen('profile')" title="User Profile">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2"
                   stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
+                  <circle cx="12" cy="7.5" r="4" />
+                  <path d="M20 21a8 8 0 0 0-16 0" />
                 </svg>
               </button>
             </div>
@@ -535,58 +562,83 @@
           <!-- Floating Bottom Navigation Bar (Pill) matching Reference D -->
           <div class="seren-bottom-bar-wrap">
             <nav class="seren-bottom-bar">
+              <svg class="seren-bottom-bar-bg" viewBox="0 0 364 64" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <filter id="serenBarGlow" x="-20%" y="-20%" width="140%" height="160%">
+                    <feDropShadow dx="0" dy="14" stdDeviation="10" flood-color="#D77D14" flood-opacity="0.45"/>
+                    <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#FFBE46" flood-opacity="0.55"/>
+                  </filter>
+                  <linearGradient id="flareLightGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#FFEBB0" stop-opacity="0"/>
+                    <stop offset="50%" stop-color="#FFFDF7" stop-opacity="1"/>
+                    <stop offset="100%" stop-color="#FFEBB0" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <!-- Organic Ivory White Pill Body with Elevated Center Bridge -->
+                <path class="seren-bar-body-path" d="M 28 8 L 142 8 C 156 8 160 -9 182 -9 C 204 -9 208 8 222 8 L 336 8 A 24 24 0 0 1 360 32 A 24 24 0 0 1 336 56 L 28 56 A 24 24 0 0 1 4 32 A 24 24 0 0 1 28 8 Z" fill="#FFFDFB" filter="url(#serenBarGlow)"/>
+                <!-- Bottom Specular Light Flares -->
+                <path d="M 86 55.5 L 146 55.5" stroke="url(#flareLightGrad)" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M 218 55.5 L 278 55.5" stroke="url(#flareLightGrad)" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+
+              <!-- Tab 1: Wardrobe (Clothes Hanger Icon) -->
               <button class="seren-bar-tab" id="serenTabWardrobe" onclick="app.serenToggleWardrobe()">
                 <div class="seren-tab-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M12 4a3 3 0 0 0-3 3v2h6V7a3 3 0 0 0-3-3z" />
-                    <path d="M20 21V9a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12" />
-                    <path d="M12 9v12" />
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3a2.2 2.2 0 0 0-2 2.2c0 .9.6 1.7 1.5 2V8.5L3.8 15.2a1.8 1.8 0 0 0 1.2 3h14a1.8 1.8 0 0 0 1.2-3L12.5 8.5V7.2c.9-.3 1.5-1.1 1.5-2A2.2 2.2 0 0 0 12 3z" />
                   </svg>
                 </div>
                 <span class="seren-tab-label">Wardrobe</span>
                 <span class="seren-tab-dot"></span>
               </button>
 
+              <!-- Tab 2: Looks (2x2 Grid Icon) -->
               <button class="seren-bar-tab" id="serenTabLooks" onclick="app.serenToggleDailyLooks()">
                 <div class="seren-tab-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                    <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                    <rect x="14" y="14" width="7" height="7" rx="1.5" />
-                    <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                    <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
+                    <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
+                    <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
+                    <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
                   </svg>
                 </div>
                 <span class="seren-tab-label">Looks</span>
                 <span class="seren-tab-dot"></span>
               </button>
 
+              <!-- Center Elevated Golden Medallion Plus Button -->
               <button class="seren-center-plus" onclick="app.serenCenterAction()" title="Quick Action">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round">
                   <line x1="12" y1="5" x2="12" y2="19"></line>
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
               </button>
 
+              <!-- Tab 3: Style Hint (4-Point Sparkle Icon) -->
               <button class="seren-bar-tab" id="serenTabHint" onclick="app.openStyleHint()" title="Style Hint">
                 <div class="seren-tab-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m12 2-2.3 6.9a2 2 0 0 1-1.3 1.3L1.5 12.5l6.9 2.3a2 2 0 0 1 1.3 1.3l2.3 6.9 2.3-6.9a2 2 0 0 1 1.3-1.3l6.9-2.3-6.9-2.3a2 2 0 0 1-1.3-1.3L12 2Z"/>
                   </svg>
                 </div>
                 <span class="seren-tab-label">Style Hint</span>
                 <span class="seren-tab-dot"></span>
               </button>
 
+              <!-- Tab 4: Pro (Golden Crown Icon) -->
               <button class="seren-bar-tab" id="serenTabPro" onclick="app.goToScreen('premium')" title="Pro">
                 <div class="seren-tab-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D48834" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m2 5 3.5 11h13L22 5l-5.5 5.5L12 3l-4.5 7.5L2 5z"/>
                     <path d="M5 19h14"/>
                   </svg>
                 </div>
                 <span class="seren-tab-label">Pro</span>
                 <span class="seren-tab-dot"></span>
               </button>
+
+              <!-- Delicate Sparkle Flair on right corner matching reference -->
+              <span class="seren-bar-sparkle-flair" aria-hidden="true">✦</span>
             </nav>
           </div>
 

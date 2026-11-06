@@ -6164,7 +6164,7 @@ body {
   transform: scale(1.3);
 }
 
-/* Floating Bottom Navigation Bar (Pill) */
+/* Floating Bottom Navigation Bar (Organic Ivory Bar with Golden Underglow matching Reference 1) */
 .seren-bottom-bar-wrap {
   position: absolute;
   bottom: max(env(safe-area-inset-bottom, 0px), 18px);
@@ -6181,24 +6181,31 @@ body {
 }
 
 .seren-bottom-bar {
+  position: relative;
   pointer-events: auto;
-  background: rgba(250, 246, 239, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 10px 30px rgba(65, 52, 38, 0.16);
-  border-radius: 999px;
-  padding: 6px 12px;
+  background: transparent;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
-  max-width: 366px;
+  max-width: 364px;
   height: 60px;
+  padding: 0 6px;
   box-sizing: border-box;
 }
 
+.seren-bottom-bar-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .seren-bar-tab {
+  position: relative;
+  z-index: 2;
   flex: 1 1 0;
   min-width: 0;
   height: 100%;
@@ -6208,17 +6215,20 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   cursor: pointer;
-  color: #7D6E5D;
-  padding: 2px 4px;
-  transition: all 0.15s ease;
-  position: relative;
+  color: #3A2A1D;
+  padding: 4px 2px;
+  transition: transform 0.15s ease, opacity 0.15s ease;
   text-align: center;
 }
 
+.seren-bar-tab:active {
+  transform: scale(0.93);
+}
+
 .seren-bar-tab.active {
-  color: #2F2821;
+  color: #1F150D;
 }
 
 .seren-tab-icon {
@@ -6228,22 +6238,29 @@ body {
   height: 22px;
   width: 22px;
   margin: 0 auto;
+  color: inherit;
+}
+
+.seren-tab-icon svg {
+  stroke: currentColor;
 }
 
 .seren-tab-label {
-  font-size: 0.64rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.68rem;
   font-weight: 600;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.1px;
   white-space: nowrap;
   line-height: 1.1;
   text-align: center;
+  color: inherit;
 }
 
 .seren-tab-dot {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #2F2821;
+  background: #3A2A1D;
   position: absolute;
   bottom: 2px;
   left: 50%;
@@ -6255,42 +6272,69 @@ body {
   display: block;
 }
 
+/* Pro Tab: Golden Amber styling matching reference */
 #serenTabPro {
-  color: #b8860b;
+  color: #D48834;
 }
 
 #serenTabPro .seren-tab-icon svg {
-  stroke: #b8860b;
+  stroke: #D48834;
 }
 
-#serenTabPro.active {
-  color: #8c6508;
+#serenTabPro .seren-tab-label {
+  color: #D48834;
+  font-weight: 700;
 }
 
 #serenTabPro.active .seren-tab-dot {
-  background: #b8860b;
+  background: #D48834;
 }
 
+/* Center Elevated Golden Medallion Plus Button */
 .seren-center-plus {
-  flex: 0 0 46px;
-  width: 46px;
-  height: 46px;
+  position: relative;
+  z-index: 3;
+  flex: 0 0 50px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  background: #A08365;
+  background: radial-gradient(circle at 45% 30%, #EAA042 0%, #C97720 55%, #9E520F 100%);
   color: #FFFFFF;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(160, 131, 101, 0.45);
-  margin: 0 4px;
-  transition: transform 0.15s ease, background 0.15s ease;
+  box-shadow: 0 0 0 3px #FFFDFB, 0 0 0 5.5px rgba(245, 185, 95, 0.65), 0 8px 24px rgba(190, 100, 20, 0.45), inset 0 2px 2px rgba(255, 245, 205, 0.85);
+  margin: -14px 4px 0 4px;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease;
 }
 
 .seren-center-plus:hover {
-  transform: scale(1.08);
-  background: #8F7255;
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 0 0 3px #FFFDFB, 0 0 0 6px rgba(255, 195, 105, 0.85), 0 10px 28px rgba(210, 110, 25, 0.55), inset 0 2px 2px #FFFFFF;
+}
+
+.seren-center-plus:active {
+  transform: scale(0.93);
+}
+
+.seren-bar-sparkle-flair {
+  position: absolute;
+  right: -4px;
+  bottom: 8px;
+  z-index: 4;
+  color: #FFE6A0;
+  font-size: 1.15rem;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 120, 0.85));
+  animation: serenSparklePulse 3.5s ease-in-out infinite;
+}
+
+@keyframes serenSparklePulse {
+  0%, 100% { opacity: 0.75; transform: scale(0.9) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.15) rotate(15deg); }
 }
 
 /* Sliding Wardrobe Sheet (Step 2) */
@@ -9306,46 +9350,50 @@ body {
   cursor: not-allowed;
 }
 
-/* 10. Three Icons in One Row: Camera, Streak, Gallery (Centered at Top) */
+/* 10. Top Navigation Arched Glass Visor (Camera | Calendar | Streak | Gallery | Profile matching Reference 2) */
 .streak-trio-row {
   position: absolute;
   top: 14px;
   left: 50%;
   transform: translateX(-50%);
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  box-shadow: 0 8px 30px rgba(60, 40, 20, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.7);
+  gap: 8px;
+  width: 350px;
+  max-width: calc(100% - 24px);
+  height: 56px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
   z-index: 100;
   pointer-events: auto !important;
-  max-width: calc(100% - 20px);
-  box-sizing: border-box;
+}
+
+.streak-visor-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 14px rgba(220, 130, 30, 0.35));
 }
 
 .streak-trio-btn {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 38px;
-  min-width: 38px;
   border-radius: 999px;
   border: none;
   background: transparent;
-  color: #3C3024;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.88rem;
-  font-weight: 700;
   cursor: pointer !important;
   user-select: none;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease;
   pointer-events: auto !important;
 }
 
@@ -9354,69 +9402,105 @@ body {
 }
 
 .streak-trio-btn:active {
-  transform: scale(0.94);
+  transform: scale(0.92) !important;
 }
 
-.streak-camera-btn,
-.streak-gallery-btn,
-.streak-calendar-btn,
+/* Visor arc vertical curvature offsets */
+.streak-camera-btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  color: #FFFFFF;
+  transform: translateY(3.5px);
+}
+
+.streak-calendar-btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  color: #FFFFFF;
+  transform: translateY(1px);
+}
+
+.streak-gallery-btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  color: #FFFFFF;
+  transform: translateY(1px);
+}
+
 .streak-account-btn {
   width: 38px;
   height: 38px;
   padding: 0;
-  color: #4A3A2C;
-  border-radius: 50%;
+  color: #FFFFFF;
+  transform: translateY(3.5px);
 }
 
 .streak-camera-btn:hover,
-.streak-gallery-btn:hover,
 .streak-calendar-btn:hover,
+.streak-gallery-btn:hover,
 .streak-account-btn:hover {
-  transform: translateY(-1.5px);
-  background: rgba(255, 255, 255, 0.65);
-  color: #C85A17;
-  box-shadow: 0 3px 10px rgba(70, 50, 30, 0.08);
+  filter: drop-shadow(0 0 8px rgba(255, 230, 160, 0.9));
+  opacity: 0.95;
 }
 
+/* Raised Amber Capsule Streak Button */
 .streak-flame-btn {
-  padding: 0 12px 0 8px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(220, 205, 185, 0.75);
-  box-shadow: 0 1px 4px rgba(50, 40, 30, 0.06);
+  height: 34px;
+  padding: 0 14px 0 10px;
+  gap: 6px;
+  background: linear-gradient(180deg, #FF9F1B 0%, #D86208 100%);
+  border: 1.5px solid #FFE79A;
+  border-radius: 999px;
+  box-shadow: 0 0 18px rgba(255, 145, 20, 0.85), inset 0 1.5px 2px rgba(255, 255, 240, 0.95), inset 0 -1.5px 2px rgba(170, 60, 0, 0.4);
+  color: #FFFFFF;
+  transform: translateY(-2px);
 }
 
 .streak-flame-btn:hover {
-  transform: translateY(-1.5px);
-  background: #FFFFFF;
-  border-color: rgba(200, 90, 23, 0.45);
-  box-shadow: 0 4px 14px rgba(200, 90, 23, 0.15);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 0 22px rgba(255, 160, 30, 0.95), inset 0 1.5px 2px #FFFFFF;
 }
 
 .streak-flame-btn.broken-streak {
-  border-color: #8C7B6D;
-  background: #F3ECE4;
+  border-color: #A38063;
+  background: linear-gradient(180deg, #8E7A6B 0%, #685749 100%);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
+}
+
+.streak-flame-btn .streak-count {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(80, 30, 0, 0.5);
 }
 
 .streak-flame-btn.broken-streak .streak-count {
-  color: #7D6B5C;
+  color: #F0E6DD;
+  text-shadow: none;
 }
 
 .streak-count-label {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: #7D6B5C;
-  letter-spacing: -0.01em;
-  margin-left: 2px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-left: 1px;
   line-height: 1;
+  text-shadow: 0 1px 2px rgba(80, 30, 0, 0.5);
 }
 
 .streak-flame-btn:hover .streak-count-label {
-  color: #C85A17;
+  color: #FFFFFF;
 }
 
 .streak-flame-btn.broken-streak .streak-count-label {
-  color: #9C8979;
+  color: #D6C7BB;
+  text-shadow: none;
 }
 
 .camera-streak-preview {
