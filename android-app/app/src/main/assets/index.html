@@ -35,7 +35,7 @@
 
   <!-- Woobi Core Shared Design Tokens -->
   <link rel="stylesheet" href="modules/core/shared-ui/tokens.css">
-  <link rel="stylesheet" href="styles.css?v=20261106_v2">
+  <link rel="stylesheet" href="styles.css?v=20261106_v3">
 </head>
 
 <body>
@@ -2175,109 +2175,106 @@
         </section>
 
         <!-- ===================================================================
-             SCREEN 14: WOOBI PREMIUM SUBSCRIPTION (SPOTIFY-INSPIRED DARK LUXE)
+             SCREEN 14: WOOBI PREMIUM SUBSCRIPTION (THE CAPSULE / CHOOSE YOUR PLAN)
              =================================================================== -->
         <section class="phone-screen" id="screen-premium">
           <!-- Minimal Editorial Header -->
           <header class="seren-plan-header">
-            <button type="button" class="seren-plan-close-btn" onclick="app.goToScreen('today')" aria-label="Close" title="Close">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <button type="button" class="seren-plan-icon-btn" onclick="app.goToScreen('today')" aria-label="Back" title="Back">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+            </button>
+            <div class="seren-plan-brand">THE CAPSULE</div>
+            <button type="button" class="seren-plan-icon-btn" onclick="app.goToScreen('today')" aria-label="Close" title="Close">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
             </button>
-            <div class="seren-plan-brand">WOOBI</div>
-            <div style="width: 32px;"></div>
           </header>
 
           <!-- Plan Intro Header -->
           <div class="seren-plan-intro">
-            <h1 class="seren-plan-title">Choose your plan</h1>
-            <p class="seren-plan-subtitle">Unfold curated styling, daily inspo, and a sustainable wardrobe</p>
+            <h1 class="seren-plan-title">Choose Your Plan</h1>
+            <p class="seren-plan-subtitle">Unlock curated styling and premium drops</p>
           </div>
 
-          <!-- Billing Cadence Switcher (Monthly | Yearly (2 Months Free) | Lifetime) -->
+          <!-- Billing Cadence Switcher (Monthly | Annual | Lifetime) -->
           <div class="seren-cadence-switcher-wrap">
             <div class="seren-cadence-pill" id="serenCadencePill">
               <button type="button" class="seren-cadence-tab" id="cadenceMonthly" onclick="app.setBillingCycle('monthly')">Monthly</button>
-              <button type="button" class="seren-cadence-tab active" id="cadenceYearly" onclick="app.setBillingCycle('yearly')">Yearly (2 Months Free)</button>
+              <button type="button" class="seren-cadence-tab active" id="cadenceYearly" onclick="app.setBillingCycle('yearly')">Annual</button>
               <button type="button" class="seren-cadence-tab" id="cadenceLifetime" onclick="app.setBillingCycle('lifetime')">Lifetime</button>
             </div>
           </div>
 
-          <!-- 3 Vertically Stacked Plan Cards -->
+          <!-- 3 Vertically Stacked Plan Cards (Fully Filled) -->
           <div class="seren-plan-cards-stack">
             <!-- 1. Free Card -->
             <div class="seren-plan-card seren-card-free" id="cardPlanFree">
-              <div class="seren-card-top-row">
-                <h3 class="seren-card-tier-name">Free</h3>
-                <div class="seren-card-price-display" id="priceDisplayFree">₹0</div>
+              <div class="seren-card-top-content">
+                <div class="seren-card-top-row">
+                  <h3 class="seren-card-tier-name">Free</h3>
+                  <div class="seren-card-price-display" id="priceDisplayFree">₹0</div>
+                </div>
+                <p class="seren-card-tagline">For everyday style inspiration.</p>
+                <ul class="seren-card-feature-list">
+                  <li><span class="seren-check">✓</span> Access to daily style feed</li>
+                  <li><span class="seren-check">✓</span> Standard checkout</li>
+                </ul>
               </div>
-              <ul class="seren-card-feature-list">
-                <li>Daily style feeds</li>
-                <li>Digital wardrobe organizer</li>
-              </ul>
               <button type="button" class="seren-card-btn seren-btn-free" id="btnPlanFree" onclick="app.selectSubscriptionPlan('free')">
-                Start Free
+                Get Started
               </button>
             </div>
 
-            <!-- 2. Standard Card (Most Popular) -->
+            <!-- 2. Basic Card (Peach Apricot / Popular) -->
             <div class="seren-plan-card seren-card-basic" id="cardPlanBasic">
-              <div class="seren-card-badge-row">
-                <span class="seren-popular-badge">MOST POPULAR</span>
-              </div>
-              <div class="seren-card-top-row">
-                <h3 class="seren-card-tier-name">Standard</h3>
-                <div class="seren-card-price-display" id="priceDisplayBasic">
-                  <span class="seren-price-num">₹1,740</span>
-                  <span class="seren-price-cadence">/ year</span>
+              <div class="seren-card-top-content">
+                <div class="seren-card-top-row">
+                  <div class="seren-tier-title-wrap">
+                    <h3 class="seren-card-tier-name">Basic</h3>
+                    <span class="seren-popular-pill">Popular</span>
+                  </div>
+                  <div class="seren-card-price-display" id="priceDisplayBasic">₹1,740</div>
                 </div>
+                <p class="seren-card-tagline">The essential wardrobe upgrade.</p>
+                <ul class="seren-card-feature-list">
+                  <li><span class="seren-check">✓</span> Personal styling dashboard</li>
+                  <li><span class="seren-check">✓</span> Early access to drop pre-sales</li>
+                  <li><span class="seren-check">✓</span> Free standard shipping</li>
+                </ul>
               </div>
-              <ul class="seren-card-feature-list">
-                <li>Personalized outfit recommendations</li>
-                <li>Curated brand discounts</li>
-                <li>Virtual try-on tools</li>
-              </ul>
               <button type="button" class="seren-card-btn seren-btn-basic" id="btnPlanBasic" onclick="app.openUpgradeConfirmation('basic')">
-                Choose Standard
+                Choose Basic
               </button>
             </div>
 
-            <!-- 3. Pro Card -->
+            <!-- 3. Pro Card (Warm Terracotta / Upgrade to Pro) -->
             <div class="seren-plan-card seren-card-pro" id="cardPlanPro">
-              <div class="seren-card-top-row">
-                <h3 class="seren-card-tier-name">Pro</h3>
-                <div class="seren-card-price-display" id="priceDisplayPro">
-                  <span class="seren-price-num">₹3,870</span>
-                  <span class="seren-price-cadence">/ year</span>
+              <div class="seren-card-top-content">
+                <div class="seren-card-top-row">
+                  <h3 class="seren-card-tier-name">Pro</h3>
+                  <div class="seren-card-price-display" id="priceDisplayPro">₹3,870</div>
                 </div>
+                <p class="seren-card-tagline">The ultimate styling experience.</p>
+                <ul class="seren-card-feature-list">
+                  <li><span class="seren-check">✓</span> 1-on-1 virtual styling consultation</li>
+                  <li><span class="seren-check">✓</span> Priority VIP drops &amp; rare pieces</li>
+                  <li><span class="seren-check">✓</span> Free express shipping &amp; returns</li>
+                </ul>
               </div>
-              <ul class="seren-card-feature-list">
-                <li>1-on-1 dedicated stylist</li>
-                <li>Early access to exclusive collections</li>
-                <li>Priority shipping &amp; returns</li>
-              </ul>
               <button type="button" class="seren-card-btn seren-btn-pro" id="btnPlanPro" onclick="app.openUpgradeConfirmation('pro')">
-                Go Pro
+                Upgrade to Pro
               </button>
             </div>
           </div>
 
-          <!-- Trust Badges & Footer Information -->
+          <!-- Trust / Disclaimer Footer -->
           <div class="seren-plan-trust-footer">
-            <div class="seren-trust-meta">
-              <span>Secure payment. Cancel anytime.</span>
-              <span class="seren-payment-pills">
-                <span class="seren-badge-pay">UPI</span>
-                <span class="seren-badge-pay">Cards</span>
-                <span class="seren-badge-pay">Pay</span>
-              </span>
-            </div>
-            <div class="seren-trust-links">
-              <a href="#terms" onclick="event.preventDefault(); app.openLegalModal('terms');">Terms of Service</a> &amp;
-              <a href="#privacy" onclick="event.preventDefault(); app.goToScreen('account-privacy');">Privacy</a>
-            </div>
+            <p class="seren-disclaimer-text">Cancel anytime. Terms of service apply.</p>
           </div>
         </section>
 

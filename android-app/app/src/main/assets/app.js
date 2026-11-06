@@ -1317,14 +1317,14 @@
     const basicEl = document.getElementById('priceDisplayBasic');
     if (basicEl) {
       const basicData = PLAN_PRICING.basic[cycle] || PLAN_PRICING.basic.yearly;
-      basicEl.innerHTML = `<span class="seren-price-num">${basicData.sym}${basicData.amount}</span><span class="seren-price-cadence">${basicData.cadence}</span>`;
+      basicEl.textContent = `${basicData.sym}${basicData.amount}`;
     }
 
     // Update Pro price display
     const proEl = document.getElementById('priceDisplayPro');
     if (proEl) {
       const proData = PLAN_PRICING.pro[cycle] || PLAN_PRICING.pro.yearly;
-      proEl.innerHTML = `<span class="seren-price-num">${proData.sym}${proData.amount}</span><span class="seren-price-cadence">${proData.cadence}</span>`;
+      proEl.textContent = `${proData.sym}${proData.amount}`;
     }
 
     // Update CTA buttons
@@ -1338,7 +1338,7 @@
         btnFree.disabled = true;
         btnFree.classList.add('current-plan-btn');
       } else {
-        btnFree.textContent = 'Start Free';
+        btnFree.textContent = 'Get Started';
         btnFree.disabled = false;
         btnFree.classList.remove('current-plan-btn');
       }
@@ -1350,7 +1350,7 @@
         btnBasic.disabled = true;
         btnBasic.classList.add('current-plan-btn');
       } else {
-        btnBasic.textContent = 'Choose Standard';
+        btnBasic.textContent = 'Choose Basic';
         btnBasic.disabled = false;
         btnBasic.classList.remove('current-plan-btn');
       }
@@ -1362,7 +1362,7 @@
         btnPro.disabled = true;
         btnPro.classList.add('current-plan-btn');
       } else {
-        btnPro.textContent = 'Go Pro';
+        btnPro.textContent = 'Upgrade to Pro';
         btnPro.disabled = false;
         btnPro.classList.remove('current-plan-btn');
       }
