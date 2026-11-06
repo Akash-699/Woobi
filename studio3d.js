@@ -3129,9 +3129,25 @@
     }
 
     /**
+     * Keep a prepared studio idle while the welcome dialog still covers it.
+     */
+    setRenderingPaused(paused) {
+      this.renderingPaused = paused;
+      if (paused) {
+        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
+      } else if (this.isInitialized && !this.animationFrameId) {
+        this.clock.getDelta();
+        this.animate();
+      }
+    }
+
+    /**
      * Main Animation & Render Loop
      */
     animate() {
+      this.animationFrameId = null;
+      if (this.renderingPaused) return;
       this.animationFrameId = requestAnimationFrame(this.animate);
 
       const delta = this.clock.getDelta();

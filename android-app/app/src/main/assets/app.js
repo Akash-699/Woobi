@@ -1951,12 +1951,71 @@
 
   let serenCurrentCat = 'all';
 
+  let virtualStudioReady = null;
+
+  function prepareVirtualStudio() {
+    if (virtualStudioReady) return virtualStudioReady;
+    virtualStudioReady = Promise.resolve()
+      // Yield one frame without depending on the decorative welcome animation.
+      .then(() => new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0))))
+      .then(() => new Promise(resolve => {
+        const studio = window.Studio3D;
+        if (!studio) { resolve(false); return; }
+        const manager = window.THREE?.DefaultLoadingManager;
+        const previousStart = manager?.onStart;
+        const previousLoad = manager?.onLoad;
+        let loading = false;
+        let finished = false;
+        let timeout;
+        function complete() {
+          if (finished) return;
+          finished = true;
+          clearTimeout(timeout);
+          if (manager) {
+            if (manager.onStart === onStart) manager.onStart = previousStart;
+            if (manager.onLoad === onLoad) manager.onLoad = previousLoad;
+          }
+          resolve(studio.isInitialized);
+        }
+        function onStart(...args) {
+          loading = true;
+          previousStart?.apply(manager, args);
+        }
+        function onLoad(...args) {
+          try { previousLoad?.apply(manager, args); }
+          finally { complete(); }
+        }
+        if (manager) {
+          manager.onStart = onStart;
+          manager.onLoad = onLoad;
+        }
+        // Unavailable optional models must not keep the user on the welcome screen.
+        timeout = setTimeout(complete, 5000);
+        try {
+          studio.init('seren3dContainer', 'seren3dCanvas');
+          if (!loading) complete();
+        } catch (error) {
+          console.error('Studio startup failed:', error);
+          window.showStudio3DFallback?.('The 3D studio could not start. You can retry from the dashboard.');
+          complete();
+        }
+      }))
+      // Render loaded models once so shader compilation precedes the dashboard reveal.
+      .then(ready => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (document.querySelector('.app-welcome[open]')) {
+          window.Studio3D?.setRenderingPaused?.(true);
+        }
+        resolve(ready);
+      }))));
+    return virtualStudioReady;
+  }
+
   function initVirtualStudio() {
-    if (window.Studio3D) {
-      setTimeout(() => {
-        window.Studio3D.init('seren3dContainer', 'seren3dCanvas');
-      }, 50);
-    }
+    prepareVirtualStudio().then(() => {
+      if (window.Studio3D?.isInitialized && !document.querySelector('.app-welcome[open]')) {
+        window.Studio3D.onResize();
+      }
+    });
     renderSerenGarments('all');
     updateSerenGreeting();
   }
@@ -4990,6 +5049,7 @@
 
   // Expose public API to window for inline HTML onclick handlers
   const appExports = {
+    prepareVirtualStudio,
     goToScreen,
     setTodayCanvasMode,
     cycleLook,

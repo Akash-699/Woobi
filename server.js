@@ -100,7 +100,11 @@ const server = http.createServer(async (req, res) => {
   if (reqUrl === '/' || !reqUrl) reqUrl = '/index.html';
 
   const cleanPath = decodeURIComponent(reqUrl.replace(/^\/+/, ''));
-  const filePath = path.join(BASE_DIR, cleanPath);
+  const loginPath = cleanPath === 'login' || cleanPath.startsWith('login/');
+  const loginRelativePath = cleanPath === 'login' ? '' : cleanPath.slice('login/'.length);
+  const filePath = loginPath
+    ? path.join(BASE_DIR, 'modules', 'core', 'login', loginRelativePath)
+    : path.join(BASE_DIR, cleanPath);
 
   // Security check: restrict within BASE_DIR
   if (!filePath.toLowerCase().startsWith(BASE_DIR.toLowerCase())) {

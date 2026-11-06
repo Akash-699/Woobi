@@ -50,7 +50,8 @@ Woobi uses **one repository with five primary module domains**. A module owns a 
 ```text
 Woobi/
 ├── modules/
-│   ├── core/                    # App bootstrap, navigation, shared UI, state, errors
+│   ├── core/                    # App bootstrap, login, navigation, shared UI, state, errors
+│   │   └── login/               # Selected playable login page and source assets
 │   ├── 3d-studio/               # Physical 3D scene and rendering
 │   │   ├── stage/
 │   │   ├── wardrobe/
