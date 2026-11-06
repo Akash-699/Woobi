@@ -9025,6 +9025,17 @@ body {
   display: none !important;
 }
 
+#memoryDetailModal,
+#missedStreakModal {
+  z-index: 1400 !important;
+}
+
+#memoryDetailModal .memory-detail-card,
+#missedStreakModal .missed-streak-card {
+  position: relative;
+  z-index: 1401 !important;
+}
+
 @keyframes fadeInBackdrop {
   0% {
     opacity: 0;
@@ -10471,22 +10482,59 @@ body {
 }
 
 /* Bottom 3-Segment Stats Bar matching Target Reference */
+.streak-cal-stats-bar,
 .streak-cal-stats-bar.stats-pill-card {
-  background: #FFFDFB;
-  border: 1.5px solid rgba(228, 218, 206, 0.9);
-  border-radius: 13px;
-  padding: 4px 6px;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  margin: 4px 8px 4px 8px;
-  box-shadow: 0 3px 10px rgba(180, 150, 130, 0.08);
+  background: #FFFDFB !important;
+  border: 1.5px solid rgba(228, 218, 206, 0.9) !important;
+  border-radius: 14px !important;
+  padding: 7px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin: 10px 0 2px 0 !important;
+  box-shadow: 0 3px 10px rgba(180, 150, 130, 0.08) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .cal-stat-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  color: #4A3E31 !important;
+  white-space: nowrap !important;
+}
+
+.cal-stat-item .stat-icon {
+  font-size: 0.88rem !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.cal-stat-item .stat-val {
+  font-weight: 800 !important;
+  color: #2F241A !important;
+}
+
+.cal-stat-item .stat-name {
+  font-size: 0.68rem !important;
+  font-weight: 500 !important;
+  color: #7D6F63 !important;
+}
+
+.cal-stat-sep {
+  width: 1px !important;
+  height: 20px !important;
+  background: rgba(215, 200, 185, 0.75) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  flex-shrink: 0 !important;
+  margin: 0 4px !important;
 }
 
 .stat-icon-wrap {
@@ -10732,24 +10780,6 @@ body {
 .streak-cal-slot-empty {
   visibility: hidden;
   height: 58px;
-}
-
-.cal-stat-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: #4A3E31;
-}
-
-.cal-stat-item .stat-val {
-  font-weight: 800;
-  color: #2F241A;
-}
-
-.cal-stat-sep {
-  color: #D0C4B4;
 }
 
 .streak-calendar-actions {

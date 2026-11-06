@@ -3512,7 +3512,10 @@
     if (noteEl) noteEl.textContent = memory.note || 'Daily Outfit Look';
     if (timeEl) timeEl.textContent = `Logged on ${memory.date}`;
 
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+      modal.style.zIndex = '1400';
+      modal.classList.remove('hidden');
+    }
   }
 
   function closeMemoryDetailModal() {
@@ -3532,6 +3535,7 @@
 
     const modal = document.getElementById('missedStreakModal');
     if (!modal) return;
+    modal.style.zIndex = '1400';
 
     const lostCountEl = document.getElementById('missedStreakLostCount');
     const statusCard = document.getElementById('restoreStatusCard');
