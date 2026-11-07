@@ -1,248 +1,326 @@
-# Woobi — Unified Enterprise & Administrative Settings Redesign
-## Complete Research & Development (R&D) Proposal
-
+# Woobi — 3D Virtual Fashion Studio & Wardrobe
+## Settings Module Redesign: Complete Research & Development (R&D) Proposal
+**Document ID:** `RND-2026-WOOBI-SETTINGS-V3`  
+**Author:** Roni Sarkar (`@ronisarkar-official`) — Engineering Intern  
+**Reviewer:** Joy Arnold J (`@joyarnold21`) — Administrator / Manager  
+**Organization:** Troyz Solutions  
+**Repository:** `Troyz-Solutions/Woobi`  
+**Date:** 7 November 2026  
+**Status:** Under Management Review (Pre-Implementation Baseline)  
+**Target Milestone:** Work Deck Ticket `WD-400` Series (Woobi Settings Redesign)  
 
 ---
 
 ## Executive Summary
 
-Following managerial guidance from Joy Arnold J, this Research & Development (R&D) proposal establishes the architectural blueprint for upgrading the **Settings module of Woobi** directly within the existing application codebase (`modules/settings/` and `index.html`). **No separate external admin dashboard is required.**
+**Woobi** is Troyz Solutions' flagship fashion technology application — a virtual digital wardrobe and interactive 3D styling studio enabling users to organize garments, explore outfit combinations, customize realistic 3D avatars, and experiment with virtual try-on in an interactive 3D dressing room.
 
-Instead, Woobi's internal Settings suite will be transformed from a basic client-only menu into a unified, **role-aware enterprise configuration portal**. 
+Currently, Woobi's Settings page is fragmented across basic, disjointed mobile screens (`index.html`) and five isolated modules (`modules/settings/`). The interface lacks intuitive organization, unified search, comprehensive styling and wardrobe configurations, account tier management, and robust cloud sync controls.
 
-When a standard user or intern accesses Settings, they experience a streamlined, elegant personal preferences hub (3D Studio themes, avatar customization, personal notifications, WebGL performance tuning). When an **Administrator or Manager** logs in, Woobi's Settings dynamically unlocks administrative controls: **Role & Permission Management (RBAC)**, **Staff & Intern Attendance/Shift Policies**, **Task & Project Workflow Rules**, **Enterprise Security & 2FA**, and **SaaS Integrations (Slack, GitHub, Google Calendar)**.
-
-This document details the existing limitations, benchmarks modern SaaS paradigms (Linear, ClickUp, Jira, Slack, Rippling), defines the information architecture, provides clear UI wireframes, outlines strict monorepo boundary compliance per `CONTRIBUTING.md`, and supplies a phased engineering roadmap.
+This Research & Development (R&D) proposal establishes a modern, cohesive, and user-centric architecture for **Woobi's Settings Module**. Drawing best practices from premier consumer and creative platforms (such as **Canva, Figma, Apple iOS Settings, Pinterest, and ASOS**), this document details:
+1. Analysis of Woobi's current settings implementation and limitations.
+2. Industry benchmarking of top consumer fashion and creative 3D applications.
+3. A clean, categorised information architecture designed specifically for Woobi's fashion ecosystem.
+4. Comprehensive configurations for Wardrobe & Styling, 3D Studio & Lighting, Avatar & Fit, Graphics Performance, and Account/Subscriptions.
+5. High-fidelity UI/UX wireframes with dedicated in-settings search and dirty-state save protection.
+6. A phased technical implementation roadmap adhering strictly to Troyz Solutions' modular monorepo boundaries (`CONTRIBUTING.md`).
 
 ---
 
 ## 1. Existing Woobi Settings Audit & Limitations
 
-### 1.1 Current Architecture Review
-In the current Woobi Phase 9 codebase, settings are partitioned into five submodules under `modules/settings/`:
-1. `account/`: Profile attributes (display name, email, avatar), basic subscription tiers, and local sign-out.
-2. `appearance/`: Light/dark/high-contrast modes, font scale, 3D Studio themes (`luxury-cream`, `nordic-minimal`, `warm-terracotta`), and lighting presets (`editorial_soft`, `warm_atelier`).
-3. `privacy/`: Local consent toggles (analytics, error reporting), cache clearance, and raw JSON export.
-4. `notifications/`: Daily outfit reminder schedule (time, recurrence) and browser notification permissions.
-5. `performance/`: Three.js graphics presets (shadows, reflection quality, frame rate optimization).
+### 1.1 Existing Codebase Audit
+In the current Woobi Phase 9 codebase, settings are divided into five submodules under `modules/settings/`:
+- `account/`: Basic profile attributes (display name, email, avatar image URL), free vs. monthly subscription flag, and local session termination.
+- `appearance/`: Light/dark/high-contrast UI themes, font scaling, and 3D studio architectural themes (`luxury-cream`, `nordic-minimal`, `warm-terracotta`) and lighting presets (`editorial_soft`, `warm_atelier`).
+- `privacy/`: Local-first consent toggles (analytics, crash logs), cache clearance, and raw JSON export.
+- `notifications/`: Daily morning outfit reminder schedule (time picker, recurrence days) and Web Notification triggers.
+- `performance/`: Three.js WebGL graphics presets (shadow quality, vanity mirror reflection pass, secondary idle animations).
 
-### 1.2 Administrative Deficiencies in the Current Implementation
-While the existing modular code is well-structured for individual client preferences, it cannot support Troyz Solutions' organizational management needs:
+### 1.2 Key Limitations in Current Implementation
+While the underlying modular contracts (`AccountContract`, `AppearanceContract`, etc.) are clean, the actual user experience in `index.html` has severe deficiencies:
 
-| Requirement Area | Current Woobi State | Deficiency for Administrators |
+| Functional Area | Current Woobi State | Real-World Limitation |
 | :--- | :--- | :--- |
-| **User Hierarchy & RBAC** | Single authenticated user profile | No role scoping. Admins cannot configure roles (Admin, Reviewer, Contributor, Intern) or set granular permissions. |
-| **Attendance & Shifts** | None | Administrators have no interface in Woobi to set team office hours, late grace periods (e.g., 15 mins). |
-| **Task & Work Deck Workflows** | Hardcoded logic | No administrative controls to customize task statuses (Backlog → In Review → Merged), priority tags, or required PR review checklists. |
-| **Security & Governance** | Basic password storage | No enforced Two-Factor Authentication (2FA), no idle session timeouts, and no audit trail of who changed project settings. |
-| **Integrations** | Isolated local-first app | No interface to configure webhook triggers, manage API tokens, or connect company tools like Slack or GitHub. |
-| **UX & Navigation** | Flat list in mobile view | Settings items are stacked without search, breadcrumbs, or a persistent dirty-state ("Unsaved changes") warning. |
+| **Information Architecture** | Flat, disconnected screens (`screen-appearance-settings`, `screen-performance-settings`) | Users must navigate back and forth between deep sub-screens. There is no unified settings dashboard. |
+| **Search & Discoverability** | No search capability | Finding a specific toggle (e.g., "mirror reflection" or "daily outfit alert") requires digging through multiple nested menus. |
+| **Wardrobe & Styling Controls** | Completely missing | No settings for measurement units (cm vs inches), default garment sizing, color harmony rules, occasion tags, or seasonal filters. |
+| **Avatar & Fitting Preferences** | Hardcoded | Users cannot save default mannequin proportions, preferred avatar pose presets, or auto-fit camera angles. |
+| **Subscription & Atelier Tier** | Static text label | No interactive subscription management, tier benefit comparison (Free vs. Pro Stylist vs. Troyz Atelier), or billing history. |
+| **Data Sync & Storage** | Local-only JSON file backing | No visibility into cloud sync status, wardrobe image cache storage consumption, or selective backup/restore controls. |
+| **Save State & Feedback** | Instant silent mutations | Changes apply immediately without explicit confirmation, undo support, or an "Unsaved Changes" protection drawer. |
 
 ---
 
-## 2. Professional SaaS Benchmarking: How Modern Platforms Solve This
+## 2. Industry Benchmarking: Modern Consumer & Creative SaaS
 
-Rather than building a detached secondary dashboard, leading modern enterprise platforms embed administrative power directly inside the main application's settings suite:
+To design a world-class settings experience for Woobi, we analyzed leading mobile and creative design platforms:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│                   HOW TOP SAAS APPS EMBED ADMIN IN SETTINGS                      │
+│                   BENCHMARKING FASHION & CREATIVE APPS                           │
 ├─────────────────┬──────────────────────┬─────────────────────────────────────────┤
-│ Platform        │ Architecture         │ In-App Administration Pattern           │
+│ Platform        │ Navigation Model     │ Standout Settings Features              │
 ├─────────────────┼──────────────────────┼─────────────────────────────────────────┤
-│ Linear          │ In-App Settings View │ Sidebar splits "My Account" vs          │
-│                 │                      │ "Workspace" (Admins see Teams, API,     │
-│                 │                      │ Workflows & Security in same UI).       │
+│ Apple iOS /     │ Categorized Sections │ Grouped cards, instant search, clear    │
+│ iPadOS Settings │ with leading icons   │ iconography, clear sub-labels.          │
 ├─────────────────┼──────────────────────┼─────────────────────────────────────────┤
-│ Slack           │ In-App Preferences   │ Personal prefs for all users; Workspace │
-│                 │ & Admin Console      │ settings expand dynamically for Admins. │
+│ Figma / Spline  │ Tabbed Modal Panel   │ Canvas rendering quality, GPU toggles,  │
+│ 3D Design       │                      │ memory usage, keyboard shortcuts.       │
 ├─────────────────┼──────────────────────┼─────────────────────────────────────────┤
-│ ClickUp         │ Unified Settings     │ Role-aware visibility: Admins get Space │
-│                 │ Sidebar              │ settings, custom statuses & permissions.│
+│ ASOS / Farfetch │ Preference Center    │ Size preferences, measurement units,    │
+│ Fashion Apps    │                      │ occasion alerts, visual style profiles. │
 ├─────────────────┼──────────────────────┼─────────────────────────────────────────┤
-│ Rippling        │ Unified Portal       │ Single navigation with deep policy      │
-│                 │                      │ controls (Time & Attendance, Shifts).   │
+│ Canva Pro       │ Creative Account Hub │ Brand kits, color palettes, export      │
+│                 │                      │ resolution, subscription tier perks.    │
 └─────────────────┴──────────────────────┴─────────────────────────────────────────┘
 ```
 
-### Key Innovations Adopted for Woobi:
-1. **Dynamic Role-Based Menu Rendering**: A single, clean Settings modal/screen. If the logged-in user is an `Admin` or `Manager`, an **"Administration"** tab section automatically appears below **"Personal Settings"**.
-2. **Instant Search (`Ctrl+K` / Search Input)**: Allows admins to quickly type "grace period" or "2FA" to jump straight to the relevant setting.
-3. **Dirty State Safety Bar**: Prevents accidental misconfiguration by displaying an explicit `[ Discard ] [ Save Changes ]` prompt whenever settings are modified.
+### Key Takeaways for Woobi:
+1. **Grouped Card Architecture**: Settings should be organized into clearly labeled visual groups (Account, Wardrobe, 3D Studio, Notifications, Storage).
+2. **Interactive Live Previews**: Changing a 3D studio theme or lighting preset in Settings should show an instant visual thumbnail preview before saving.
+3. **In-Settings Quick Search**: A prominent search bar at the top allows users to type keywords like *"shadows"*, *"cm"*, *"streak"*, or *"avatar"* to jump directly to that toggle.
 
 ---
 
 ## 3. Proposed Information Architecture & Navigation
 
-We propose a modern **segmented two-pane navigation structure** for Woobi's Settings screen:
+We propose restructuring Woobi's Settings into **six intuitive categories**, accessible via a unified tabbed/grouped view:
 
 ```
-Woobi Settings Screen
+Woobi Settings Suite
 │
-├── 👤 PERSONAL SETTINGS (Visible to all users)
-│   ├── 1. Profile & Account (Name, avatar, password, personal 2FA)
-│   ├── 2. 3D Studio & Appearance (Themes, lighting presets, font scale)
-│   ├── 3. Daily Reminders & Alerts (Outfit reminders, web push, quiet hours)
-│   ├── 4. Graphics & Performance (Shadows, reflection passes, FPS cap)
-│   └── 5. Data & Privacy (Local cache, data download, consent)
+├── 1. 👤 Account & Membership
+│   ├── User Profile (Display name, email, avatar photo)
+│   ├── Subscription Tiers (Free Explorer, Woobi Pro Stylist, Troyz Atelier)
+│   └── Security & Login (Password update, linked social accounts, active sessions)
 │
-└── 🛡️ WORKSPACE ADMINISTRATION (Visible only to Admin / Manager accounts)
-    ├── 6. Team & Roles (RBAC) (Invite members, assign roles: Admin, Reviewer, Intern)
-    ├── 7. Attendance & Shifts (Working hours, 15-min grace period, shift policies)
-    ├── 8. Tasks & Project Rules (Work Deck ticket statuses, PR review requirements)
-    ├── 9. Security & Compliance (Enforce 2FA, session timeout, audit activity log)
-    └── 10. Integrations & API (Slack bot notifications, GitHub webhooks, API keys)
+├── 2. 👗 Wardrobe & Styling Preferences
+│   ├── Measurement System (Metric: cm/kg vs. Imperial: inches/lbs)
+│   ├── Default Garment Sizes (Tops: S/M/L, Bottoms: 30/32/34, Shoes: EU/US)
+│   ├── Style Profile & Personas (Casual, Formal, Streetwear, Minimalist, Avant-Garde)
+│   └── Recommendation Rules (Color harmony strictness, weather-aware outfit suggestions)
+│
+├── 3. 🎨 3D Studio & Dressing Room
+│   ├── Architectural Studio Themes (Luxury Cream, Nordic Minimal, Warm Terracotta)
+│   ├── Studio Lighting Presets (Editorial Soft, Warm Atelier, Golden Hour, Runway Bright)
+│   ├── Camera & Navigation Controls (Orbit sensitivity, auto-frame avatar, default camera angle)
+│   └── Mannequin & Stage Display (Floor texture, pedestal visibility, ambient shadows)
+│
+├── 4. 🧍 Avatar & Virtual Fitting
+│   ├── Default Presentation & Mannequin Base (Female / Male / Neutral mannequin)
+│   ├── Fitting Proportions (Default shoulder width, waist ratio, height scale)
+│   └── Try-On Visual Guides (Garment layer order, collision guides, snap-to-body)
+│
+├── 5. 🔔 Notifications & Daily Routine
+│   ├── Daily Outfit Reminder (Custom time picker, e.g., 08:00 AM, recurrence days)
+│   ├── Daily Outfit Streak Alerts (Keep your daily styling habit active)
+│   └── Weather & Seasonal Suggestions (Morning outfit recommendations based on local climate)
+│
+└── 6. ⚡ Performance, Storage & Privacy
+    ├── WebGL Graphics Fidelity (Ultra, Balanced, Battery Saver presets)
+    ├── Advanced 3D Toggles (Vanity mirror reflections, shadow map resolution, FPS limiter)
+    ├── Storage & Cache Management (Local wardrobe cache size, clear 3D textures cache)
+    └── Cloud Sync & Data Export (Sync status, export wardrobe library as JSON/CSV)
 ```
 
 ---
 
-## 4. Role-Based Access Control (RBAC) & Permission Matrix
+## 4. Detailed Woobi Functional Configurations
 
-To ensure proper governance between managers, developers, and interns at Troyz Solutions, Woobi will implement a role-based permission system:
+### 4.1 Wardrobe & Styling Engine Preferences
+- **Measurement Units**: Switch seamlessly between Metric (`cm`, `kg`) and Imperial (`inches`, `lbs`). Automatically converts garment dimension tags.
+- **Smart Outfit Algorithm Rules**:
+  - *Color Harmony Mode*: Strict (Monochrome / Analogous / Complementary) vs Relaxed (Creative / Experimental).
+  - *Occasion Filtering*: Set default occasion tags (Workplace, Weekend Casual, Evening Dinner, Gym/Athletic).
+  - *Weather Integration*: Toggle weather-informed suggestions (e.g., automatically recommend jackets/cardigans when local temperature drops below 18°C).
 
-### 4.1 Defined System Roles
-1. **Repository Owner / Super Admin (`role:owner`)**: Full authority over organization billing, repository ownership, and master security.
-2. **Administrator / Manager (`role:admin`)**: (e.g., `@joyarnold21`) Can configure attendance rules, task workflows, approve leave, and manage integrations.
-3. **Designated Reviewer / Team Lead (`role:reviewer`)**: Can review Work Deck tickets, override punches for their squad, and assign tasks.
-4. **Contributor / Developer (`role:contributor`)**: Full access to 3D studio, wardrobe features, personal tasks, and standard attendance clock-in.
-5. **Intern (`role:intern`)**: Supervised access to assigned tasks, standard attendance clock-in, and personal preferences.
+### 4.2 3D Studio & Dressing Room Configurations
+- **Theme Selection**: Live preview tiles for `luxury-cream`, `nordic-minimal`, and `warm-terracotta` with real-time material swapping.
+- **Lighting Controls**: Switch key, fill, and rim light presets (`editorial_soft`, `warm_atelier`, `golden_hour`, `runway_bright`) with an intensity slider.
+- **Camera Ergonomics**: Configurable auto-rotation speed, gesture touch sensitivity (mobile zoom/pan), and default zoom level (full-body vs waist-up).
 
-### 4.2 Woobi Administrative Permission Matrix
+### 4.3 Graphics Performance & Battery Saver
+- **Performance Presets**:
+  - *Ultra*: 60 FPS, High-res shadow maps (2048x2048), dynamic mirror reflection pass, anti-aliasing enabled.
+  - *Balanced (Default)*: 60 FPS, medium shadows (1024x1024), simplified reflection pass.
+  - *Battery Saver*: 30 FPS cap, shadows disabled, planar reflections disabled, low-power WebGL mode for extended battery life on mobile devices.
+- **Texture Cache Manager**: Displays live local storage consumption (e.g., `42.5 MB of 3D garment textures cached`) with a single-click "Clear Cache" button that preserves user wardrobe data.
 
-| Capability String | Super Admin | Administrator | Reviewer / Lead | Contributor | Intern |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| `settings:personal:edit` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `admin:access_panel` | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `admin:attendance:configure` | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `admin:attendance:override` | ✅ | ✅ | ✅ (Squad only)| ❌ | ❌ |
-| `admin:tasks:workflow_edit` | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `admin:roles:assign` | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `admin:security:enforce_2fa`| ✅ | ✅ | ❌ | ❌ | ❌ |
-| `admin:audit:view_logs` | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `admin:integrations:manage` | ✅ | ✅ | ❌ | ❌ | ❌ |
-
----
-
-## 5. Attendance, Tasks & Shift Configurations
-
-### 5.1 Staff & Intern Attendance Policies
-Directly configured within Woobi's Admin Settings tab:
-- **Core Shift Hours**: Default `09:30 AM` – `06:30 PM`.
-- **Late Grace Period**: Configurable tolerance (default `15 minutes`). Punch-ins between 09:30 and 09:45 are flagged as "Within Grace"; after 09:45 are logged as "Late Arrival".
-- **Half-Day Cutoff**: Working under `4 hours` automatically logged as half-day.
-- **Corporate Network Verification**:
-  - Optional IP Whitelisting for corporate Wi-Fi punch-in verification.
-
-### 5.2 Task & Work Deck Configurations
-- **Ticket Workflow Stages**: Admins can customize stage tags (`Backlog`, `In Progress`, `Under Review`, `Merged`, `Deployed`).
-- **PR & Merge Policy Enforcement**: Require designated reviewer approval (`@joyarnold21`) and green CI before tasks are marked completed.
-- **Sprint & Milestone Durations**: Set weekly or bi-weekly sprint boundaries for intern task assignments.
+### 4.4 Account & Membership Plans
+- **Tier Structure**:
+  - *Free Explorer*: Up to 50 wardrobe items, standard 3D studio, default avatar.
+  - *Woobi Pro*: Unlimited wardrobe items, custom color harmony engine, all lighting presets, high-res export.
+  - *Troyz Atelier*: Exclusive digital fabrics, personalized 3D avatar scan import, early access to new 3D stage environments.
 
 ---
 
-## 6. Security, Notifications & Integrations
+## 5. UI/UX Design System & Interactive Wireframes
 
-### 6.1 Enterprise Security Controls
-- **Mandatory 2FA Enforcement**: When enabled by an Admin, all contributors and interns must configure TOTP (Google Authenticator) upon login.
-- **Session Timeout Policy**: Configurable idle timeout (e.g., auto-logout after 30 minutes of inactivity).
-- **Administrative Audit Trail**: Timestamped JSON records logging who made changes to attendance rules, role assignments, or project settings.
+### 5.1 UX Design Highlights
+1. **Unified Master-Detail Layout**: Clean tabbed sidebar on desktop/tablet, fluid bottom-sheet navigation on mobile.
+2. **Live In-Settings Search**: Interactive search bar with instant keyword matching (e.g., typing *"mirror"* filters the view directly to the 3D reflection toggle).
+3. **Floating Dirty-State Bar**: When any setting is adjusted, a non-intrusive bottom drawer appears:  
+   `[ ⚠️ Unsaved Changes ] ────────────────────── [ Discard ] [ Save Settings ]`
+4. **Visual Thumbnail Selectors**: Visual cards for 3D Studio themes, lighting presets, and avatar types rather than boring plain dropdowns.
 
-### 6.2 Multi-Channel Notifications
-- **In-App Toast & Badges**: Real-time notifications for task assignments, PR approvals, and shift reminders.
-- **Slack Webhook Integration**: Automated notifications to `#woobi-dev` or `#announcements` when:
-  - An intern clocks in late or requests leave.
-  - A new Work Deck PR is ready for review.
-- **GitHub Sync**: Webhook listener to update task status when a pull request is merged to `main`.
-
----
-
-## 7. UI/UX Wireframe & Design Recommendations
-
-### 7.1 Proposed Settings Layout (Two-Column Responsive Master-Detail)
+### 5.2 UI Wireframe: Woobi Unified Settings Screen
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ WOOBI ── App Settings                                             [ Search settings... (Ctrl+K) ]  [✕] │
+│ WOOBI ── Settings & Preferences                                   [ Search settings... (Ctrl+K) ]  [✕] │
 ├──────────────────────────┬─────────────────────────────────────────────────────────────────────────────┤
-│ PERSONAL SETTINGS        │ Workspace Administration  ›  Attendance & Shifts                            │
-│  Profile & Account       │ ─────────────────────────────────────────────────────────────────────────── │
-│  3D Studio & Appearance  │ Shift Schedule & Office Hours                                               │
-│  Daily Reminders         │ Configure standard office hours and arrival tolerance for team members.     │
-│  Graphics & Performance  │                                                                             │
-│  Data & Privacy          │ Working Hours                                                               │
-│                          │ ┌───────────────────────┐         ┌───────────────────────┐                 │
-│ ──────────────────────── │ │ Shift Start: 09:30 AM │   to    │ Shift End:   06:30 PM │                 │
-│ WORKSPACE ADMIN [Admin]  │ └───────────────────────┘         └───────────────────────┘                 │
-│  Team & Roles [RBAC]     │                                                                             │
-│ >Attendance & Shifts     │ Late Arrival Grace Period                                                   │
-│  Task Workflows          │ [ 15 minutes                     ▼ ]                                        │
-│  Security & 2FA          │ Auto-mark half-day if check-in is later than 10:30 AM                       │
-│  Audit Activity Logs     │                                                                             │
-│  Integrations & API      │ ─────────────────────────────────────────────────────────────────────────── │
-│                          │ Corporate Gateway IP Whitelist (Optional)                                   │
-│                          │ [x] Restrict punch-in verification to corporate IP ranges                   │
-│                          │ Allowed IPs: [ 106.51.72.10, 182.74.88.2                                  ] │
+│ SETTINGS CATEGORIES      │ 3D Studio & Dressing Room                                                   │
+│                          │ ─────────────────────────────────────────────────────────────────────────── │
+│  👤 Account & Plans      │ Architectural Studio Theme                                                  │
+│  👗 Wardrobe & Styling   │ Choose the aesthetic environment for your 3D dressing room.                 │
+│ >🎨 3D Studio & Stage    │ ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐            │
+│  🧍 Avatar & Fitting     │ │ [✓] Luxury Cream │  │ [ ] Nordic Minimal│ │ [ ] Terracotta   │            │
+│  🔔 Daily Reminders      │ │ (Warm Atelier)   │  │ (Clean Marble)   │  │ (Rich Earth)     │            │
+│  ⚡ Graphics & Storage   │ └──────────────────┘  └──────────────────┘  └──────────────────┘            │
 │                          │                                                                             │
+│                          │ Studio Lighting Preset                                                      │
+│                          │ (•) Editorial Soft    ( ) Warm Atelier    ( ) Golden Hour   ( ) Runway      │
+│                          │ Lighting Intensity: [ ───────────●───── ] 1.2x                              │
+│                          │                                                                             │
+│                          │ ─────────────────────────────────────────────────────────────────────────── │
+│                          │ Vanity Mirror & Reflection Quality                                          │
+│                          │ [x] Enable real-time vanity mirror reflection pass                          │
+│                          │ Reflection Fidelity: [ High (Real-time WebGL)              ▼ ]              │
+│                          │                                                                             │
+│                          │ Camera & Controls                                                           │
+│                          │ [x] Auto-frame avatar on garment change                                     │
+│                          │ Touch Gesture Sensitivity: [ ────────●───────── ] Medium                    │
 ├──────────────────────────┴─────────────────────────────────────────────────────────────────────────────┤
-│ [!] Unsaved Changes Detected                                   [ Discard Changes ]   [ Save Settings ] │
+│ [!] You have unsaved changes in Studio Settings               [ Discard Changes ]   [ Save Settings ]  │
 └────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-*Note: For standard users and interns, the `WORKSPACE ADMIN` section is automatically hidden based on the user's role token.*
+### 5.3 UI Wireframe: Wardrobe & Styling Preferences Tab
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Settings  ›  Wardrobe & Styling Preferences                                                            │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Measurement Units & Sizes                                                                              │
+│ Unit Standard:           (•) Metric (cm, kg)              ( ) Imperial (inches, lbs)                   │
+│ Default Tops Size:       [ M (Medium - 38-40)       ▼ ]                                                │
+│ Default Bottoms Size:    [ 32 (Waist)               ▼ ]                                                │
+│                                                                                                        │
+│ ────────────────────────────────────────────────────────────────────────────────────────────────────── │
+│ Smart Styling & Color Harmony Rules                                                                    │
+│ Color Matching Strictness:                                                                             │
+│ ( ) Conservative (Monochrome & Neutrals)                                                               │
+│ (•) Balanced (Analogous & Triadic Harmony - Recommended)                                               │
+│ ( ) Adventurous (High-contrast Complementary & Experimental)                                           │
+│                                                                                                        │
+│ [x] Enable Weather-Aware Outfit Recommendations (uses local temperature for layer suggestions)        │
+│                                                                                                        │
+│ ────────────────────────────────────────────────────────────────────────────────────────────────────── │
+│ Daily Morning Reminder & Streak                                                                        │
+│ [x] Remind me to plan my outfit every morning at: [ 08:00 AM ▼ ]                                       │
+│ Active Days: [M] [T] [W] [T] [F] [S] [S]                                                               │
+│                                                        [ Revert to Defaults ]   [ Save Preferences ]   │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 8. Technical Feasibility & Modular Monorepo Architecture
+## 6. Technical Feasibility & Modular Architecture
 
-### 8.1 Zero-Violation Monorepo Boundary Compliance
-To strictly respect Troyz Solutions' architecture guidelines in `CONTRIBUTING.md`:
-1. All public access continues through `modules/settings/index.js`.
-2. UI components inside `index.html` or `app.js` will interact through the centralized `WoobiSettings` orchestrator.
-3. Administrative backend persistence uses verified endpoints in `modules/backend/api/` with token validation.
-4. Verified with `scripts/validation/validate-boundaries.ps1` (0 boundary violations).
+### 6.1 Architectural Boundary Compliance
+Per Troyz Solutions' monorepo commandments (`CONTRIBUTING.md`):
+1. **Public Interface Access**: External callers interact solely with `modules/settings/index.js` via the unified `SettingsManager` orchestrator.
+2. **Browser-to-Backend Boundary**: Settings persistence uses REST API endpoints via `ApiClient`. No direct database imports.
+3. **Zero Circular Dependencies**: Data flows cleanly: `Settings UI` → `Core Store` → `3D Studio Event Hub`.
+4. **Validation Check**: Verified passing with zero boundary violations via `scripts/validation/validate-boundaries.ps1`.
 
-### 8.2 Proposed Structure for `modules/settings/`
+### 6.2 Proposed Directory Architecture for `modules/settings/`
 ```
 modules/settings/
-├── index.js                           # Top-level Orchestrator & Public API
+├── index.js                           # Unified SettingsManager Orchestrator & Public API
 ├── index.test.js                      # Master Unit Test Suite
-├── README.md                          # Submodule Documentation
+├── README.md                          # Settings Domain Documentation
 │
-├── personal/                          # Standard User Preferences
-│   ├── account/                       # Profile, avatar, password
-│   ├── appearance/                    # 3D themes, studio lighting presets
-│   ├── notifications/                 # Daily outfit reminders, quiet hours
-│   ├── performance/                   # WebGL graphics fidelity
-│   └── privacy/                       # Consent, cache clear, export
+├── account/                           # User profile, subscription plans, auth state
+│   ├── AccountManager.js
+│   ├── AccountContract.js
+│   └── AccountManager.test.js
 │
-├── admin/                             # Administrative Submodules (Role-Gated)
-│   ├── rbac/                          # Role definition & permission checks
-│   ├── attendance/                    # Shift hours, grace period, shift policies
-│   ├── workflows/                     # Task status rules & PR checks
-│   ├── security/                      # 2FA enforcement & audit logging
-│   └── integrations/                  # Slack, GitHub webhooks, API tokens
+├── wardrobe/                          # NEW: Measurement units, sizing, style preferences
+│   ├── WardrobeSettingsManager.js
+│   ├── WardrobeSettingsContract.js
+│   └── WardrobeSettingsManager.test.js
 │
-└── contracts/                         # Contracts & Data Validations
-    ├── SettingsContract.js
-    ├── RbacContract.js
-    └── AttendancePolicyContract.js
+├── appearance/                        # 3D themes, studio lighting presets, UI theme
+│   ├── AppearanceManager.js
+│   ├── AppearanceContract.js
+│   └── AppearanceManager.test.js
+│
+├── avatar/                            # NEW: Default mannequin, fitting guides, proportions
+│   ├── AvatarSettingsManager.js
+│   ├── AvatarSettingsContract.js
+│   └── AvatarSettingsManager.test.js
+│
+├── notifications/                     # Daily outfit reminder, weather alerts, streak
+│   ├── NotificationsManager.js
+│   ├── NotificationsContract.js
+│   └── NotificationsManager.test.js
+│
+└── performance/                       # WebGL graphics, shadows, texture cache management
+    ├── PerformanceManager.js
+    ├── PerformanceContract.js
+    └── PerformanceManager.test.js
 ```
 
 ---
 
-## 9. Phased Implementation Roadmap
+## 7. Phased Implementation Roadmap
 
-Implementation will proceed across 4 non-breaking phases aligned with Work Deck tickets:
+Implementation will be executed across four non-breaking phases mapped to Work Deck tickets:
 
-| Phase | Milestone Scope | Estimated Time | Target Branch |
-| :--- | :--- | :--- | :--- |
-| **Phase 1: Navigation & Personal Hub** | Modernize Settings UI with two-column layout, add search (`Ctrl+K`), and create Unsaved Changes bar. | 3 Days | `feature/WD-401-settings-navigation` |
-| **Phase 2: RBAC & Role Gating** | Implement role tokens (`admin`, `reviewer`, `intern`), permission checks, and conditionally render the Admin section. | 3 Days | `feature/WD-402-settings-rbac` |
-| **Phase 3: Attendance & Task Rules** | Build Attendance Policy manager (shift hours, 15-min grace, shift rules) and Task Workflow editor. | 4 Days | `feature/WD-403-attendance-workflows` |
-| **Phase 4: Security, Audit & Integrations** | Add 2FA toggle, audit log viewer, and Slack/GitHub webhook settings. | 4 Days | `feature/WD-404-security-integrations` |
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        WOOBI SETTINGS IMPLEMENTATION ROADMAP                           │
+├─────────────────┬──────────────────────────────────┬──────────────┬────────────────────┤
+│ Phase           │ Scope & Deliverables             │ Duration     │ Target Branch      │
+├─────────────────┼──────────────────────────────────┼──────────────┼────────────────────┤
+│ Phase 1:        │ • Modern unified Settings Modal  │ 2-3 Days     │ feature/WD-401-    │
+│ Navigation &    │ • Category sidebar & mobile tabs │              │ settings-ui-core   │
+│ In-App Search   │ • In-settings search bar (Ctrl+K)│              │                    │
+│                 │ • Unsaved Changes safety drawer  │              │                    │
+├─────────────────┼──────────────────────────────────┼──────────────┼────────────────────┤
+│ Phase 2:        │ • WardrobeSettings submodule     │ 3 Days       │ feature/WD-402-    │
+│ Wardrobe &      │ • Metric/Imperial toggle logic   │              │ wardrobe-styling   │
+│ Styling Rules   │ • Color harmony rules integration│              │                    │
+│                 │ • Occasion tag preference system │              │                    │
+├─────────────────┼──────────────────────────────────┼──────────────┼────────────────────┤
+│ Phase 3:        │ • 3D studio live visual previews │ 3 Days       │ feature/WD-403-    │
+│ 3D Studio &     │ • Golden Hour lighting preset    │              │ studio-avatar-cfg  │
+│ Avatar Settings │ • Avatar mannequin base toggles  │              │                    │
+│                 │ • Camera sensitivity controls    │              │                    │
+├─────────────────┼──────────────────────────────────┼──────────────┼────────────────────┤
+│ Phase 4:        │ • Texture cache usage viewer     │ 2 Days       │ feature/WD-404-    │
+│ Storage, Sync & │ • Selective cache clearance      │              │ storage-sync-perf  │
+│ Performance     │ • Cloud sync status indicator    │              │                    │
+│                 │ • Subscription tier modal preview│              │                    │
+└─────────────────┴──────────────────────────────────┴──────────────┴────────────────────┘
+```
 
-### Testing & Verification Rules:
-- Unit tests written for every new manager (`*.test.js`).
-- Complete validation via `scripts/validation/validate-boundaries.ps1`.
-- All PRs reviewed and merged by designated reviewers (`@joyarnold21`).
+---
 
+## 8. Reviewer Sign-Off Checklist
+
+*For Joy Arnold J (`@joyarnold21`) review:*
+
+- [ ] **Section 1 & 2:** Existing Woobi settings limitations & fashion/creative app benchmarking approved.
+- [ ] **Section 3:** 6-category Information Architecture (Account, Wardrobe, 3D Studio, Avatar, Notifications, Storage) approved.
+- [ ] **Section 4:** Wardrobe measurement units, styling algorithms, and 3D studio parameters validated.
+- [ ] **Section 5:** UI/UX wireframes, live search (`Ctrl+K`), and unsaved changes safety bar accepted.
+- [ ] **Section 6 & 7:** Modular monorepo architecture and 4-phase rollout plan approved for development.
+
+**Reviewer Status:** `[  ] APPROVED  |  [  ] REVISIONS REQUESTED`  
+**Reviewer Signature / Date:** ________________________________________
+
+---
+*End of Document. Prepared for Joy Arnold J — Troyz Solutions.*
