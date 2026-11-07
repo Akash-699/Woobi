@@ -1817,7 +1817,7 @@
     if (target) target.classList.add('active');
 
     if (sm && sm.performance) {
-      const current = sm.performance.getSettings();
+      const current = typeof sm.performance.getSettings === 'function' ? sm.performance.getSettings() : sm.performance.getPerformanceSettings();
       const shadowEl = document.getElementById('toggleShadows');
       if (shadowEl) shadowEl.checked = current.shadows !== 'off';
       const reflEl = document.getElementById('toggleReflections');

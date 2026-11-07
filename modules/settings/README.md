@@ -27,3 +27,12 @@ The **Settings** module encapsulates all user-facing settings, personal account 
 
 ## Public Interface Contract
 The module exposes its public API through `index.js`, which exports all submodules and a unified `SettingsManager` orchestrator, as well as `window.WoobiSettings` for browser applications.
+
+## UI Design & Presentation Architecture
+The settings user interface is designed in alignment with Woobi's luxury fashion editorial aesthetic (`tokens.css`):
+- **Visual Palette**: Warm organic tones (`--bg-board: #F8F7F4`, `--bg-phone: #FAF9F6`, `--olive-primary: #52634B`, `--olive-soft: rgba(82, 99, 75, 0.12)`).
+- **Typography**: Display serif (`DM Serif Display`) for screen titles and Plus Jakarta Sans for UI labels and subheadings.
+- **Iconography**: Scalable, clean SVG icons (`stroke-width: 2`, `currentColor`) replacing legacy emojis across all landing and subpage menu items.
+- **Card-Based Component Layout**: Section cards (`.settings-section-card`, `.settings-card-group`) with subtle borders, elevation shadows, and touch-optimized interactive row targets (`.settings-item-row`, `.settings-toggle-row`).
+- **Responsive Adaptability**: Full fluid compatibility across mobile viewports (360px–480px), tablet screens (768px–1024px), and centered desktop application frames.
+

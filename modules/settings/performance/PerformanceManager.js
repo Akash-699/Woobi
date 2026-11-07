@@ -95,6 +95,10 @@ export class PerformanceManager {
     return { ...this.settings };
   }
 
+  getSettings() {
+    return this.getPerformanceSettings();
+  }
+
   detectOptimalPreset() {
     if (typeof navigator === 'undefined') return PERFORMANCE_PRESETS.HIGH;
 
