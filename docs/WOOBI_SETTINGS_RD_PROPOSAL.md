@@ -1,31 +1,6 @@
 # Woobi — 3D Virtual Fashion Studio & Wardrobe
 ## Settings Module Redesign: Complete Research & Development (R&D) Proposal
-**Document ID:** `RND-2026-WOOBI-SETTINGS-V3`  
-**Author:** Roni Sarkar (`@ronisarkar-official`) — Engineering Intern  
-**Reviewer:** Joy Arnold J (`@joyarnold21`) — Administrator / Manager  
-**Organization:** Troyz Solutions  
-**Repository:** `Troyz-Solutions/Woobi`  
-**Date:** 7 November 2026  
-**Status:** Under Management Review (Pre-Implementation Baseline)  
-**Target Milestone:** Work Deck Ticket `WD-400` Series (Woobi Settings Redesign)  
 
----
-
-## Executive Summary
-
-**Woobi** is Troyz Solutions' flagship fashion technology application — a virtual digital wardrobe and interactive 3D styling studio enabling users to organize garments, explore outfit combinations, customize realistic 3D avatars, and experiment with virtual try-on in an interactive 3D dressing room.
-
-Currently, Woobi's Settings page is fragmented across basic, disjointed mobile screens (`index.html`) and five isolated modules (`modules/settings/`). The interface lacks intuitive organization, unified search, comprehensive styling and wardrobe configurations, account tier management, and robust cloud sync controls.
-
-This Research & Development (R&D) proposal establishes a modern, cohesive, and user-centric architecture for **Woobi's Settings Module**. Drawing best practices from premier consumer and creative platforms (such as **Canva, Figma, Apple iOS Settings, Pinterest, and ASOS**), this document details:
-1. Analysis of Woobi's current settings implementation and limitations.
-2. Industry benchmarking of top consumer fashion and creative 3D applications.
-3. A clean, categorised information architecture designed specifically for Woobi's fashion ecosystem.
-4. Comprehensive configurations for Wardrobe & Styling, 3D Studio & Lighting, Avatar & Fit, Graphics Performance, and Account/Subscriptions.
-5. High-fidelity UI/UX wireframes with dedicated in-settings search and dirty-state save protection.
-6. A phased technical implementation roadmap adhering strictly to Troyz Solutions' modular monorepo boundaries (`CONTRIBUTING.md`).
-
----
 
 ## 1. Existing Woobi Settings Audit & Limitations
 
@@ -307,20 +282,4 @@ Implementation will be executed across four non-breaking phases mapped to Work D
 └─────────────────┴──────────────────────────────────┴──────────────┴────────────────────┘
 ```
 
----
 
-## 8. Reviewer Sign-Off Checklist
-
-*For Joy Arnold J (`@joyarnold21`) review:*
-
-- [ ] **Section 1 & 2:** Existing Woobi settings limitations & fashion/creative app benchmarking approved.
-- [ ] **Section 3:** 6-category Information Architecture (Account, Wardrobe, 3D Studio, Avatar, Notifications, Storage) approved.
-- [ ] **Section 4:** Wardrobe measurement units, styling algorithms, and 3D studio parameters validated.
-- [ ] **Section 5:** UI/UX wireframes, live search (`Ctrl+K`), and unsaved changes safety bar accepted.
-- [ ] **Section 6 & 7:** Modular monorepo architecture and 4-phase rollout plan approved for development.
-
-**Reviewer Status:** `[  ] APPROVED  |  [  ] REVISIONS REQUESTED`  
-**Reviewer Signature / Date:** ________________________________________
-
----
-*End of Document. Prepared for Joy Arnold J — Troyz Solutions.*
