@@ -11,6 +11,7 @@ Responsible for the shared application foundation, routing, state management, ca
 5. `contracts/`: Canonical TypeScript/JSDoc data schemas (Garment, Look, Avatar, SceneState).
 6. `errors/`: Application error boundary, `ErrorBoundary3D`, WebGL context lost/restored handling.
 7. `platform/`: Touch/mouse device detection, mobile viewport resize handling, Android webview bridge.
+8. `login/`: Selected playable login interface, browser authentication preparation, and Android WebView source assets.
 
 ## Public Interface Contract
 The module exposes its public API through `index.js`.

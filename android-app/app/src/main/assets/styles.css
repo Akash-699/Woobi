@@ -11187,10 +11187,60 @@ body {
   background: #FFFFFF;
 }
 
-.camera-review-actions {
+.camera-review-actions,
+.camera-review-actions-trio {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
+  width: 100%;
+}
+
+.btn-camera-action {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 10px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(220, 208, 192, 0.85);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(45, 30, 18, 0.08);
+}
+
+.btn-camera-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 30, 18, 0.16);
+}
+
+.btn-camera-action:active {
+  transform: scale(0.97);
+}
+
+.btn-camera-download {
+  background: #FFFFFF;
+  color: #2F241A;
+  border-color: #D5C5B0;
+}
+
+.btn-camera-retake {
+  background: #F4EBE0;
+  color: #4A3B2C;
+  border-color: #D5C5B0;
+}
+
+.btn-camera-share {
+  background: var(--olive-primary, #52634B);
+  color: #FFFFFF;
+  border-color: var(--olive-primary, #52634B);
+}
+
+.btn-camera-share:hover {
+  background: var(--olive-dark, #3E4B39);
 }
 
 /* ==========================================================================
@@ -11311,8 +11361,34 @@ body {
   padding: 10px 12px 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   background: #FFFFFF;
+}
+
+.btn-memory-export,
+.btn-memory-save-gallery {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(82, 99, 75, 0.35);
+  background: rgba(82, 99, 75, 0.08);
+  color: var(--olive-primary, #52634B);
+  transition: all 0.2s ease;
+  margin-top: 2px;
+  width: 100%;
+}
+
+.btn-memory-export:hover,
+.btn-memory-save-gallery:hover {
+  background: var(--olive-primary, #52634B);
+  color: #FFFFFF;
+  border-color: var(--olive-primary, #52634B);
 }
 
 .memory-card-date {
@@ -11387,6 +11463,130 @@ body {
 .memory-detail-time {
   font-size: 0.78rem;
   color: #8C7A65;
+}
+
+.memory-detail-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-detail-export,
+.btn-detail-save-gallery {
+  flex: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--olive-primary, #52634B);
+  color: #FFFFFF;
+  border: 1px solid var(--olive-primary, #52634B);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(82, 99, 75, 0.25);
+}
+
+.btn-detail-export:hover,
+.btn-detail-save-gallery:hover {
+  background: var(--olive-dark, #3E4B39);
+  transform: translateY(-1px);
+}
+
+.btn-detail-share {
+  flex: 0.8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #FFFFFF;
+  color: #2F241A;
+  border: 1px solid #D5C5B0;
+  transition: all 0.2s ease;
+}
+
+.btn-detail-share:hover {
+  background: #F4EBE0;
+  transform: translateY(-1px);
+}
+
+/* Photo Export Sheet Modal (Buttons Only) */
+.export-modal-sheet {
+  position: relative;
+  max-width: 320px;
+  width: 88vw;
+  background: #FAF7F2;
+  border: 1.5px solid rgba(225, 212, 198, 0.95);
+  border-radius: 24px;
+  padding: 16px;
+  box-shadow: 0 20px 50px rgba(45, 30, 18, 0.35);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.btn-export-sheet-action {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(220, 208, 192, 0.85);
+}
+
+.btn-export-sheet-action.btn-export-download {
+  background: #FFFFFF;
+  color: #2F241A;
+  border-color: #D5C5B0;
+}
+
+.btn-export-sheet-action.btn-export-download:hover {
+  background: #F4EBE0;
+  transform: translateY(-1px);
+}
+
+.btn-export-sheet-action.btn-export-share {
+  background: var(--olive-primary, #52634B);
+  color: #FFFFFF;
+  border-color: var(--olive-primary, #52634B);
+}
+
+.btn-export-sheet-action.btn-export-share:hover {
+  background: var(--olive-dark, #3E4B39);
+  transform: translateY(-1px);
+}
+
+.btn-export-sheet-cancel {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: #8C7A65;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-export-sheet-cancel:hover {
+  color: #2F241A;
 }
 
 /* Missed Streak Bonfire Smoke Image */
@@ -12290,11 +12490,11 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   height: 0 !important;
 }
 
+/* Screen Premium - Full dark luxury viewport matching uploaded images */
 #screen-premium {
-  background: #FBEDEE !important;
-  background: linear-gradient(180deg, #FDF2F4 0%, #FAEAEB 100%) !important;
-  color: #27221D;
-  padding: clamp(14px, 2.2vh, 20px) 18px clamp(10px, 1.6vh, 16px) !important;
+  background: #090d16 !important;
+  color: #ffffff;
+  padding: 0 !important;
   margin: 0 !important;
   height: 100% !important;
   max-height: 100% !important;
@@ -12307,36 +12507,43 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   -ms-overflow-style: none !important;
   display: none;
   flex-direction: column;
-  justify-content: flex-start !important;
+  justify-content: space-between !important;
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  touch-action: none !important;
+  touch-action: pan-x !important;
   overscroll-behavior: none !important;
   user-select: none;
-}
-
-#screen-premium .phone-home-indicator,
-#screen-premium .phone-bottom-nav {
-  display: none !important;
 }
 
 #screen-premium.active {
   display: flex !important;
 }
 
-/* Header (The Capsule / Woobi) - Balanced editorial breathing room */
-.seren-plan-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: clamp(2px, 0.6vh, 6px) 2px clamp(6px, 1.2vh, 12px);
+#screen-premium .phone-home-indicator {
+  display: block !important;
+}
+
+#screen-premium .phone-bottom-nav {
+  display: flex !important;
+  position: relative;
+  z-index: 10;
   flex-shrink: 0;
 }
 
-.seren-plan-icon-btn {
-  background: transparent;
-  border: none;
-  color: #3A3229;
+/* Sticky Minimal Header */
+.premium-sticky-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 4px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.premium-back-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -12344,398 +12551,428 @@ body.premium-mode .phone-screen-container::-webkit-scrollbar,
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 0;
   transition: all 0.2s ease;
+  padding: 0;
 }
 
-.seren-plan-icon-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  transform: scale(1.06);
+.premium-back-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  transform: scale(1.05);
 }
 
-.seren-plan-brand {
-  font-family: 'Playfair Display', 'DM Serif Display', Georgia, serif;
-  font-size: clamp(0.95rem, 2vh, 1.12rem);
-  letter-spacing: 3.5px;
-  color: #27221D;
-  font-weight: 500;
+.premium-header-brand {
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: #ffffff;
   text-transform: uppercase;
 }
 
-/* Intro Title & Subtitle - Harmonious balanced spacing */
-.seren-plan-intro {
-  text-align: center;
-  padding: clamp(2px, 0.5vh, 6px) 10px clamp(8px, 1.4vh, 14px);
-  flex-shrink: 0;
+.premium-header-action {
+  background: transparent;
+  border: none;
+  color: #e5c378;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: opacity 0.2s ease;
 }
 
-.seren-plan-title {
-  font-family: 'Playfair Display', 'DM Serif Display', Georgia, serif;
-  font-size: clamp(1.45rem, 3.2vh, 1.9rem);
-  font-weight: 500;
-  color: #27221D;
-  margin: 0 0 clamp(4px, 0.7vh, 7px);
-  letter-spacing: -0.2px;
-  line-height: 1.2;
+.premium-header-action:hover {
+  opacity: 0.8;
 }
 
-.seren-plan-subtitle {
-  font-size: clamp(0.72rem, 1.4vh, 0.82rem);
-  color: #7D7267;
-  margin: 0;
-  line-height: 1.35;
+/* Main Container - strictly non-scrolling */
+.premium-scroll-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding: 0 14px 6px;
+  box-sizing: border-box;
+  overflow: hidden !important;
+  min-height: 0;
 }
 
-/* Cadence Switcher Pill (Monthly | Annual | Lifetime) */
-.seren-cadence-switcher-wrap {
+/* Top Sliding Segmented Button Switcher */
+.plan-switcher-container {
   display: flex;
   justify-content: center;
-  padding: clamp(2px, 0.5vh, 6px) 0 clamp(12px, 2vh, 18px);
+  padding: 4px 0 8px;
   flex-shrink: 0;
 }
 
-.seren-cadence-pill {
+.plan-segmented-slider {
   display: flex;
-  background: #EEDDDA;
+  position: relative;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 999px;
   padding: 3px;
   width: 100%;
-  max-width: 350px;
-  gap: 2px;
+  max-width: 320px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-.seren-cadence-tab {
+.segmented-slide-pill {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px) / 3);
+  border-radius: 999px;
+  transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1), background 0.32s ease, box-shadow 0.32s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.segmented-slide-pill.pill-free {
+  transform: translateX(0%);
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.segmented-slide-pill.pill-basic {
+  transform: translateX(100%);
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5);
+}
+
+.segmented-slide-pill.pill-pro {
+  transform: translateX(200%);
+  background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #c59b27 100%);
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.55);
+}
+
+.plan-segment-btn {
   flex: 1;
   border: none;
   background: transparent;
-  color: #8E8276;
-  font-size: clamp(0.66rem, 1.3vh, 0.74rem);
-  font-weight: 500;
-  padding: clamp(5px, 0.9vh, 7px) 6px;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 8px;
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  z-index: 2;
+  position: relative;
+  transition: color 0.2s ease;
   text-align: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.seren-cadence-tab.active {
-  background: #B66949;
-  color: #FFFFFF;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(182, 105, 73, 0.35);
+.plan-segment-btn.active {
+  color: #ffffff;
 }
 
-/* Plan Cards Stack - Vertically filled, no dead spaces */
-.seren-plan-cards-stack {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(10px, 1.6vh, 14px);
-  flex: 1 1 auto;
-  justify-content: space-between;
+#segBtnPro.active {
+  color: #12100a;
+}
+
+/* Plan Cards Viewport */
+.plan-cards-viewport {
   width: 100%;
-  max-width: 396px;
+  max-width: 350px;
   margin: 0 auto;
+  overflow: hidden;
+  border-radius: 22px;
+  position: relative;
   box-sizing: border-box;
+  flex: 1 1 auto;
+  display: block;
   min-height: 0;
 }
 
-.seren-plan-card {
+.plan-cards-slider-track {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border-radius: 18px;
-  padding: clamp(11px, 1.7vh, 15px) 18px clamp(11px, 1.7vh, 15px);
-  box-sizing: border-box;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  width: 100%;
-  min-height: 0;
-}
-
-.seren-plan-card:hover {
-  transform: translateY(-1px);
-}
-
-/* Card 1: Free (Ratio 0.88 - sized naturally to 2 bullets) */
-.seren-card-free {
-  flex: 0.88 1 0;
-  background: #FFFFFF;
-  border: 1px solid rgba(232, 218, 218, 0.9);
-  box-shadow: 0 4px 14px rgba(180, 100, 105, 0.05);
-}
-
-/* Card 2: Basic (Ratio 1.0 - sized naturally to 3 bullets) */
-.seren-card-basic {
-  flex: 1 1 0;
-  background: #FDF3EA;
-  border: 1px solid rgba(226, 186, 170, 0.8);
-  box-shadow: 0 4px 14px rgba(182, 105, 73, 0.08);
-}
-
-/* Card 3: Pro (Ratio 1.0 - sized naturally to 3 bullets) */
-.seren-card-pro {
-  flex: 1 1 0;
-  background: #B66949;
-  border: 1px solid #B66949;
-  box-shadow: 0 5px 18px rgba(182, 105, 73, 0.3);
-  color: #FFFFFF;
-}
-
-.seren-card-top-content {
-  display: flex;
-  flex-direction: column;
-  flex: 0 0 auto;
-  min-height: 0;
-}
-
-.seren-card-top-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 2px;
+  flex-direction: row;
+  width: 300%;
+  min-width: 300%;
   flex-shrink: 0;
+  transform: translateX(-66.666666%);
+  transition: transform 0.36s cubic-bezier(0.2, 0.9, 0.3, 1);
+  will-change: transform;
 }
 
-.seren-tier-title-wrap {
+/* Individual Card - Identical Fixed Dimensions across Free, Basic, Pro */
+.sub-plan-card {
+  width: 33.333333%;
+  min-width: 33.333333%;
+  max-width: 33.333333%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: #0d1322;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px;
+  padding: 18px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Plan Free */
+.plan-free {
+  background: #0c111d;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Plan Basic - Matches Image 2 */
+.plan-basic {
+  background: #0c1322;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.15), 0 12px 36px rgba(0, 0, 0, 0.6);
+}
+
+/* Plan Pro - Matches Image 1 with Dual Glowing Gold Border */
+.featured-pro-card {
+  background: #0d131f !important;
+  border: 1.5px solid #d4af37 !important;
+  box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.35), 0 12px 36px rgba(0, 0, 0, 0.7), 0 0 25px rgba(212, 175, 55, 0.16) !important;
+}
+
+.plan-header {
+  margin-bottom: 6px;
+}
+
+.plan-label-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  margin-bottom: 6px;
 }
 
-.seren-card-tier-name {
-  font-family: 'Playfair Display', 'DM Serif Display', Georgia, serif;
-  font-size: clamp(1.22rem, 2.5vh, 1.48rem);
-  font-weight: 600;
-  margin: 0;
-  line-height: 1.1;
-  color: #27221D;
-}
-
-.seren-card-pro .seren-card-tier-name {
-  color: #FFFFFF;
-}
-
-.seren-popular-pill {
-  background: #FCE6D5;
-  color: #B46C4E;
-  font-size: 0.6rem;
-  font-weight: 700;
-  padding: 2px 8px;
+.plan-pill-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 10px;
   border-radius: 999px;
-  letter-spacing: 0.3px;
-  text-transform: capitalize;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.seren-price-block {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-  flex-shrink: 0;
+.plan-pill-tag.basic-tag {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.4);
 }
 
-.seren-card-price-display {
-  font-family: 'Playfair Display', 'DM Serif Display', Georgia, serif;
-  font-size: clamp(1.22rem, 2.6vh, 1.54rem);
-  font-weight: 600;
-  color: #27221D;
-  line-height: 1.1;
-  display: flex;
-  align-items: baseline;
-  justify-content: flex-end;
-  gap: 2px;
+.plan-pill-tag.pro-tag {
+  background: transparent;
+  color: #e5c378;
+  border: 1px solid rgba(212, 175, 55, 0.6);
 }
 
-.seren-card-pro .seren-card-price-display {
-  color: #FFFFFF;
+.plan-heading-bold {
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 3px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
 
-.seren-price-period {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: clamp(0.64rem, 1.2vh, 0.72rem);
-  font-weight: 500;
-  color: #7D7267;
-  letter-spacing: 0.2px;
-}
-
-.seren-card-pro .seren-price-period {
-  color: #F5DDD3;
-}
-
-.seren-price-offer-sub {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: clamp(0.58rem, 1.1vh, 0.65rem);
-  font-weight: 600;
-  color: #B66949;
-  letter-spacing: 0.2px;
-  line-height: 1.1;
-  margin-top: 1px;
-  white-space: nowrap;
-}
-
-.seren-card-pro .seren-price-offer-sub {
-  color: #FFE3D6;
-}
-
-.seren-card-free .seren-price-offer-sub {
-  color: #8E8276;
-}
-
-.seren-card-tagline {
-  font-size: clamp(0.68rem, 1.3vh, 0.76rem);
-  color: #7D7267;
-  margin: 0 0 clamp(6px, 1.1vh, 9px) 0;
-  line-height: 1.25;
-  flex-shrink: 0;
-}
-
-.seren-card-pro .seren-card-tagline {
-  color: #F5DDD3;
-}
-
-/* Feature List with Checkmarks */
-.seren-card-feature-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 clamp(8px, 1.3vh, 12px) 0;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(3px, 0.6vh, 5px);
-}
-
-.seren-card-feature-list li {
-  font-size: clamp(0.7rem, 1.4vh, 0.78rem);
-  color: #3C332A;
-  line-height: 1.3;
-  display: flex;
+.plan-heading-bold.pro-heading-bold {
+  color: #ffffff;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-.seren-card-pro .seren-card-feature-list li {
-  color: #FFFFFF;
+.crown-icon-inline {
+  font-size: 1.25rem;
 }
 
-.seren-check {
-  font-size: 0.75rem;
+.plan-description {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  line-height: 1.3;
+  margin: 0 0 8px;
+}
+
+.plan-pricing-display {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.plan-pricing-display .currency {
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #27221D;
-  display: inline-flex;
-  align-items: center;
+  color: #ffffff;
 }
 
-.seren-card-pro .seren-check {
-  color: #FFFFFF;
+.plan-pricing-display .amount {
+  font-size: 1.95rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.5px;
 }
 
-/* CTA Buttons */
-.seren-card-btn {
-  width: 100%;
-  padding: clamp(8px, 1.4vh, 11px) 14px;
-  border-radius: 999px;
-  font-size: clamp(0.78rem, 1.5vh, 0.85rem);
+.plan-pricing-display .gold-amount {
+  color: #e5c378;
+}
+
+.plan-pricing-display .cadence {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-left: 3px;
+}
+
+.plan-highlight-strip {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.74rem;
+  color: #cbd5e1;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
-  user-select: none;
-  box-sizing: border-box;
-  margin-top: auto;
+}
+
+.plan-highlight-strip.basic-strip {
+  background: rgba(30, 58, 138, 0.35);
+  color: #93c5fd;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.plan-highlight-strip.gold-strip {
+  background: rgba(212, 175, 55, 0.08);
+  color: #f3e5ab;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.plan-body {
+  flex: 1 1 auto;
+  margin-bottom: 10px;
+}
+
+.features-label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.plan-features li {
+  font-size: 0.74rem;
+  color: #cbd5e1;
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.plan-features li strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.check-bullet {
+  font-weight: 900;
+  font-size: 0.82rem;
+  color: #94a3b8;
   flex-shrink: 0;
 }
 
-.seren-btn-free {
-  background: #FFFFFF;
-  border: 1px solid #27221D;
-  color: #27221D;
+.check-bullet.blue {
+  color: #60a5fa;
 }
 
-.seren-btn-free:hover {
-  background: #F7F2EC;
+.check-bullet.gold {
+  color: #e5c378;
 }
 
-.seren-btn-basic {
-  background: #B66949;
+/* Plan Footer & CTA Buttons */
+.plan-footer {
+  margin-top: 2px;
+}
+
+.btn-sub-tier {
+  width: 100%;
+  height: 42px;
+  border-radius: 999px;
   border: none;
-  color: #FFFFFF;
-  box-shadow: 0 3px 10px rgba(182, 105, 73, 0.25);
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
-.seren-btn-basic:hover {
-  background: #A45C3E;
-  box-shadow: 0 5px 14px rgba(182, 105, 73, 0.35);
-}
-
-.seren-btn-pro {
-  background: #2A1F18;
-  border: none;
-  color: #FFFFFF;
-  box-shadow: 0 3px 10px rgba(42, 31, 24, 0.35);
-}
-
-.seren-btn-pro:hover {
-  background: #1A130E;
-  box-shadow: 0 5px 14px rgba(42, 31, 24, 0.45);
-}
-
-.seren-card-btn.current-plan-btn {
-  background: rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  color: #776C60;
+.btn-plan-current {
+  background: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   cursor: default;
 }
 
-/* Trust / Disclaimer Footer - Snug at bottom */
-.seren-plan-trust-footer {
-  text-align: center;
-  padding: clamp(4px, 0.8vh, 8px) 10px clamp(4px, 0.8vh, 8px);
-  flex-shrink: 0;
-  margin-top: clamp(6px, 1.2vh, 12px);
+.btn-plan-upgrade {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
 }
 
-.seren-disclaimer-text {
-  font-size: clamp(0.66rem, 1.3vh, 0.74rem);
-  color: #8D8275;
-  margin: 0;
-  letter-spacing: 0.1px;
+.btn-plan-upgrade:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 255, 255, 0.25);
 }
 
-/* Adaptive optimization for compact viewports */
-@media (max-height: 700px) {
-  #screen-premium {
-    padding: 8px 14px 4px !important;
-  }
-  .seren-plan-intro {
-    padding: 1px 10px 2px;
-  }
-  .seren-plan-title {
-    font-size: 1.3rem;
-    margin-bottom: 1px;
-  }
-  .seren-cadence-switcher-wrap {
-    padding: 2px 0 6px;
-  }
-  .seren-plan-cards-stack {
-    gap: 7px;
-  }
-  .seren-plan-card {
-    padding: 8px 14px 9px;
-    border-radius: 14px;
-  }
-  .seren-card-feature-list {
-    margin-bottom: 6px;
-    gap: 2px;
-  }
-  .seren-card-btn {
-    padding: 7px 12px;
-  }
-  .seren-plan-trust-footer {
-    padding: 4px 10px 2px;
-    margin-top: 2px;
-  }
+.btn-plan-pro-gold {
+  background: linear-gradient(135deg, #e5c378 0%, #d4af37 50%, #b38b1e 100%);
+  color: #12100a;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.38);
 }
 
-/* =========================================================================
+.btn-plan-pro-gold:hover {
+  background: linear-gradient(135deg, #f3e5ab 0%, #e5c378 50%, #c59b27 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(212, 175, 55, 0.5);
+}
+
+.play-btn-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
    SUBSCRIPTION UPGRADE CONFIRMATION MODAL (MATCHING EDITORIAL WARM LUXE)
    ========================================================================= */
 
