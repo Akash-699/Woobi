@@ -2308,11 +2308,88 @@
     }
   }
 
-  function serenSetModelType(type, btn) {
-    if (btn) {
-      btn.parentElement.querySelectorAll('.vanity-chip').forEach(c => c.classList.remove('active'));
-      btn.classList.add('active');
+  function toggleMannequinDropdown(event) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
     }
+    const btn = document.getElementById('selectMannequinBtn');
+    const menu = document.getElementById('mannequinDropdownMenu');
+    if (!menu) return;
+
+    const isOpen = menu.classList.contains('show');
+    if (isOpen) {
+      menu.classList.remove('show');
+      if (btn) {
+        btn.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    } else {
+      menu.classList.add('show');
+      if (btn) {
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    }
+  }
+
+  function selectMannequin(gender) {
+    const targetGender = gender === 'male' || gender === 'masculine' ? 'male' : 'female';
+    const maleOpt = document.getElementById('mannequinOptMale');
+    const femaleOpt = document.getElementById('mannequinOptFemale');
+    const menu = document.getElementById('mannequinDropdownMenu');
+    const btn = document.getElementById('selectMannequinBtn');
+
+    if (maleOpt && femaleOpt) {
+      if (targetGender === 'male') {
+        maleOpt.classList.add('active');
+        femaleOpt.classList.remove('active');
+      } else {
+        femaleOpt.classList.add('active');
+        maleOpt.classList.remove('active');
+      }
+    }
+
+    if (menu) menu.classList.remove('show');
+    if (btn) {
+      btn.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+
+    if (window.Studio3D && typeof window.Studio3D.setMannequinGender === 'function') {
+      window.Studio3D.setMannequinGender(targetGender);
+    } else if (window.Studio3D && typeof window.Studio3D.setGenderPresentation === 'function') {
+      window.Studio3D.setGenderPresentation(targetGender);
+    }
+
+    try {
+      localStorage.setItem('woobi_mannequin_gender', targetGender);
+    } catch (e) {}
+
+    showToast(`Switched to ${targetGender === 'male' ? 'Male' : 'Female'} Mannequin.`);
+  }
+
+  // Close mannequin dropdown on outside click
+  if (typeof document !== 'undefined') {
+    document.addEventListener('click', (e) => {
+      const container = document.getElementById('mannequinDropdownContainer');
+      if (container && !container.contains(e.target)) {
+        const menu = document.getElementById('mannequinDropdownMenu');
+        const btn = document.getElementById('selectMannequinBtn');
+        if (menu) menu.classList.remove('show');
+        if (btn) {
+          btn.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
+  }
+
+  function setMannequinGender(gender) {
+    return selectMannequin(gender);
+  }
+
+  function serenSetModelType(type, btn) {
     const isMale = (type === 'mannequin_male');
     const btnFemale = document.getElementById('btnQuickFemale');
     const btnMale = document.getElementById('btnQuickMale');
@@ -2320,12 +2397,25 @@
       btnFemale.classList.toggle('active', !isMale);
       btnMale.classList.toggle('active', isMale);
     }
+    selectMannequin(isMale ? 'male' : 'female');
     if (window.Studio3D && typeof window.Studio3D.setModelType === 'function') {
       window.Studio3D.setModelType(type);
     }
     const label = type === 'mannequin_female' ? 'Female Mannequin by Astra' :
                   type === 'mannequin_male' ? 'Male Mannequin by Astra' : 'Stylized Avatar';
     showToast(`Display model set to ${label}.`);
+  }
+
+  function serenSetGender(gender, btn) {
+    if (btn) {
+      btn.parentElement.querySelectorAll('.vanity-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    selectMannequin(gender);
+    if (window.Studio3D && typeof window.Studio3D.setGenderPresentation === 'function') {
+      window.Studio3D.setGenderPresentation(gender);
+    }
+    showToast(`Gender presentation set to ${gender}.`);
   }
 
   function toggleTestingDock(forceOpen) {
@@ -2557,7 +2647,14 @@
   }
 
   function serenSetGender(gender, btn) {
-    serenQuickSwitchGender(gender, btn);
+    if (typeof serenQuickSwitchGender === 'function') {
+      serenQuickSwitchGender(gender, btn);
+    }
+    selectMannequin(gender);
+    if (window.Studio3D && typeof window.Studio3D.setGenderPresentation === 'function') {
+      window.Studio3D.setGenderPresentation(gender);
+    }
+    showToast(`Gender presentation set to ${gender}.`);
   }
 
   function serenSetSkinTone(hex, btn) {
@@ -5369,6 +5466,9 @@
     serenCloseVanity,
     serenSwitchVanityTab,
     serenSetModelType,
+    toggleMannequinDropdown,
+    selectMannequin,
+    setMannequinGender,
     serenSetGender,
     serenQuickSwitchGender,
     serenSetAnatomy,
