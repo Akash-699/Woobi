@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Woobi user profile: users/{Firebase Auth UID}",
+  "description": "Documentation schema. Firestore stores timestamps natively; JSON exports use RFC 3339 strings. firestore.rules enforces the live database contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "uid", "displayName", "email", "photoURL", "providers", "createdAt", "updatedAt", "lastLoginAt"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "uid": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "displayName": { "type": ["string", "null"], "maxLength": 120 },
+    "email": { "type": ["string", "null"], "maxLength": 320 },
+    "photoURL": { "type": ["string", "null"], "maxLength": 2048, "pattern": "^https://" },
+    "providers": { "type": "array", "maxItems": 2, "items": { "enum": ["google.com", "password"] } },
+    "createdAt": { "type": "string", "format": "date-time", "description": "Immutable Firestore server timestamp." },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "lastLoginAt": { "type": "string", "format": "date-time", "description": "Profile activity only; not an authoritative security audit log." }
+  }
+}
