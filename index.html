@@ -2057,69 +2057,224 @@
         </section>
 
         <!-- ===================================================================
-             SCREEN 12: PROFILE
+             SCREEN 12: PROFILE (SETTINGS LANDING)
              =================================================================== -->
         <section class="phone-screen" id="screen-profile">
-          <div class="screen-body-padded" style="padding-top: 20px;">
-            <div class="profile-user-card">
-              <div class="user-avatar-circle">S</div>
-              <div class="user-meta-info">
-                <h2 class="user-name">Suriya</h2>
-                <span class="user-plan-label">Free plan</span>
+          <div class="screen-body-padded" style="padding-top: 18px; padding-bottom: 24px;">
+            <!-- Modern User Profile Card -->
+            <div class="profile-user-card-modern">
+              <div class="user-avatar-modern">
+                <span>S</span>
+                <span class="user-avatar-badge" title="Active"></span>
               </div>
-              <button class="btn-upgrade-link" onclick="app.goToScreen('premium')">
-                Upgrade ›
+              <div class="user-meta-info-modern">
+                <h2 class="user-name profile-user-name">Suriya</h2>
+                <div class="user-plan-badge-row">
+                  <span class="user-plan-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    Free tier
+                  </span>
+                  <span class="user-member-since">Member since Jan 2026</span>
+                </div>
+              </div>
+              <button class="btn-upgrade-pill" onclick="app.goToScreen('premium')">
+                <span>Pro</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="m9 18 6-6-6-6"/>
+                </svg>
               </button>
             </div>
 
-            <div class="profile-menu-list">
-              <div class="menu-item-row" onclick="app.goToScreen('style-pref')">
-                <span class="menu-icon">⚙️</span>
-                <span class="menu-text">Style preferences</span>
-                <span class="menu-chevron">›</span>
+            <!-- Group 1: Wardrobe & Styling -->
+            <div class="settings-group-header">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+              </svg>
+              <span>Wardrobe & Styling</span>
+            </div>
+            <div class="settings-card-group">
+              <div class="settings-item-row" onclick="app.goToScreen('style-pref')">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="4" y1="21" x2="4" y2="14"/>
+                    <line x1="4" y1="10" x2="4" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12" y2="3"/>
+                    <line x1="20" y1="21" x2="20" y2="16"/>
+                    <line x1="20" y1="12" x2="20" y2="3"/>
+                    <line x1="1" y1="14" x2="7" y2="14"/>
+                    <line x1="9" y1="8" x2="15" y2="8"/>
+                    <line x1="17" y1="16" x2="23" y2="16"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Style preferences</span>
+                  <span class="settings-item-subtitle">Fit, silhouette, color tones and aesthetics</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('weekly-planning')">
-                <span class="menu-icon">🗓️</span>
-                <span class="menu-text">Weekly planning</span>
-                <span class="menu-chevron">›</span>
+              <div class="settings-item-row" onclick="app.goToScreen('weekly-planning')">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Weekly planning</span>
+                  <span class="settings-item-subtitle">Organize looks across Monday through Sunday</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('wear-history')">
-                <span class="menu-icon">📅</span>
-                <span class="menu-text">Wear history</span>
-                <span class="menu-chevron">›</span>
+              <div class="settings-item-row" onclick="app.goToScreen('wear-history')">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Wear history</span>
+                  <span class="settings-item-subtitle">Recently worn combinations and frequency</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Group 2: App & 3D Studio Preferences -->
+            <div class="settings-group-header">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+              <span>App & Studio</span>
+            </div>
+            <div class="settings-card-group">
+              <div class="settings-item-row" onclick="app.goToScreen('appearance-settings')">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/>
+                    <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
+                    <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>
+                    <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Appearance & 3D themes</span>
+                  <span class="settings-item-subtitle">App color theme, studio texture & lighting</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('reminders')">
-                <span class="menu-icon">🔔</span>
-                <span class="menu-text">Reminders</span>
-                <span class="menu-chevron">›</span>
+              <div class="settings-item-row" onclick="app.goToScreen('performance-settings')">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Performance & graphics</span>
+                  <span class="settings-item-subtitle">Quality presets, soft shadows & battery tuning</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('help-support')">
-                <span class="menu-icon">❓</span>
-                <span class="menu-text">Help and support</span>
-                <span class="menu-chevron">›</span>
+              <div class="settings-item-row" onclick="app.goToScreen('reminders')">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Reminders</span>
+                  <span class="settings-item-subtitle">Daily morning outfit notifications</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Group 3: Account & Support -->
+            <div class="settings-group-header">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span>Account & Security</span>
+            </div>
+            <div class="settings-card-group">
+              <div class="settings-item-row" onclick="app.goToScreen('account-privacy')">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Account and privacy</span>
+                  <span class="settings-item-subtitle">Profile details, data export & local privacy</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('appearance-settings')">
-                <span class="menu-icon">🎨</span>
-                <span class="menu-text">Appearance & 3D themes</span>
-                <span class="menu-chevron">›</span>
+              <div class="settings-item-row" onclick="app.goToScreen('help-support')">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Help and support</span>
+                  <span class="settings-item-subtitle">Frequently asked questions and contact</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
+            </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('performance-settings')">
-                <span class="menu-icon">⚡</span>
-                <span class="menu-text">Performance & graphics</span>
-                <span class="menu-chevron">›</span>
-              </div>
-
-              <div class="menu-item-row" onclick="app.goToScreen('account-privacy')">
-                <span class="menu-icon">⚙️</span>
-                <span class="menu-text">Account and privacy</span>
-                <span class="menu-chevron">›</span>
-              </div>
+            <!-- Version & App Footer -->
+            <div class="settings-footer-info">
+              <div><strong>Woobi Virtual Wardrobe</strong> • Phase 10</div>
+              <div>Version 1.0.0 • Troyz Solutions</div>
             </div>
           </div>
 
@@ -2442,18 +2597,26 @@
                 <path d="m15 18-6-6 6-6" />
               </svg>
             </button>
+            <span class="sub-header-title">Morning Reminders</span>
             <div style="width: 20px;"></div>
           </div>
 
           <div class="screen-body-padded">
-            <h1 class="screen-headline-serif">Your morning reminder</h1>
-            <p class="screen-caption-sub">Get a nudge to check your outfits and start the day with confidence.</p>
+            <h1 class="screen-headline-serif">Start your day</h1>
+            <p class="screen-caption-sub">Get a curated daily nudge to review today's outfits and dress with calm confidence.</p>
 
-            <div class="reminder-settings-card">
-              <div class="reminder-row">
-                <div class="r-icon-label">
-                  <span class="r-icon">🔔</span>
-                  <span>Daily outfit reminder</span>
+            <!-- Main Reminder Card -->
+            <div class="settings-section-card">
+              <div class="settings-toggle-row">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                </div>
+                <div class="settings-toggle-info">
+                  <span class="settings-toggle-label">Daily outfit reminder</span>
+                  <span class="settings-toggle-description">Delivers fresh outfit suggestions every morning</span>
                 </div>
                 <label class="switch-toggle">
                   <input type="checkbox" checked id="toggleReminder">
@@ -2461,51 +2624,72 @@
                 </label>
               </div>
 
-              <div class="reminder-row">
-                <div class="r-icon-label">
-                  <span class="r-icon">🕒</span>
-                  <span>Time</span>
+              <div class="settings-toggle-row">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
                 </div>
-                <div class="r-time-select">
-                  <span>7:30 AM</span>
-                  <span class="menu-chevron">›</span>
+                <div class="settings-toggle-info">
+                  <span class="settings-toggle-label">Preferred delivery time</span>
+                  <span class="settings-toggle-description">Optimal time before your morning dressing routine</span>
+                </div>
+                <div class="r-time-select" style="cursor: pointer; padding: 6px 10px; background: var(--bg-subtle); border-radius: 8px; border: 1px solid var(--bg-border);">
+                  <span style="font-weight: 700; color: var(--text-main);">7:30 AM</span>
                 </div>
               </div>
 
-              <div class="reminder-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-                <div class="r-icon-label">
-                  <span class="r-icon">📅</span>
-                  <span>Repeat on</span>
+              <!-- Day selector -->
+              <div style="padding-top: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                  <span class="settings-field-label" style="margin-bottom: 0;">Active repeat days</span>
+                  <span style="font-size: 0.72rem; color: var(--olive-primary); font-weight: 600;">Mon – Fri active</span>
                 </div>
-                <div class="day-bubbles-row">
-                  <button class="day-bubble active">M</button>
-                  <button class="day-bubble active">T</button>
-                  <button class="day-bubble active">W</button>
-                  <button class="day-bubble active">T</button>
-                  <button class="day-bubble active">F</button>
-                  <button class="day-bubble">S</button>
-                  <button class="day-bubble">S</button>
+                <div class="day-bubbles-row-modern">
+                  <button class="day-bubble-modern active" type="button" onclick="this.classList.toggle('active')">M</button>
+                  <button class="day-bubble-modern active" type="button" onclick="this.classList.toggle('active')">T</button>
+                  <button class="day-bubble-modern active" type="button" onclick="this.classList.toggle('active')">W</button>
+                  <button class="day-bubble-modern active" type="button" onclick="this.classList.toggle('active')">T</button>
+                  <button class="day-bubble-modern active" type="button" onclick="this.classList.toggle('active')">F</button>
+                  <button class="day-bubble-modern" type="button" onclick="this.classList.toggle('active')">S</button>
+                  <button class="day-bubble-modern" type="button" onclick="this.classList.toggle('active')">S</button>
                 </div>
               </div>
             </div>
 
-            <div class="push-notification-preview">
-              <div class="notif-header">
-                <div class="notif-app-mark">🌿 Wardrobe</div>
-                <span class="notif-time">7:30 AM</span>
+            <!-- Preview Card -->
+            <div class="settings-section-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+              <span>Notification Preview</span>
+            </div>
+            <div class="push-preview-modern">
+              <div class="notif-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <div class="notif-app-mark" style="display: flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 700; color: var(--olive-dark);">
+                  <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--olive-primary);"></span>
+                  WOOBI STYLING
+                </div>
+                <span class="notif-time" style="font-size: 0.72rem; color: var(--text-muted);">7:30 AM</span>
               </div>
-              <strong class="notif-title">Your outfits are ready</strong>
-              <p class="notif-msg">Time to look good today ✨</p>
+              <strong class="notif-title" style="font-size: 0.88rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 2px;">Your morning outfits are ready</strong>
+              <p class="notif-msg" style="font-size: 0.78rem; color: var(--text-sub); margin: 0;">Tailored to today's 24°C weather • Easy Casual look</p>
             </div>
 
             <div class="screen-footer-action">
               <button class="btn-olive-primary" onclick="app.saveReminderPreferences()">
-                Save preferences
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>Save preferences</span>
               </button>
             </div>
 
-            <p class="center-hint-text" style="font-size: 0.72rem; margin-top: 10px;">
-              You can turn reminders off anytime.
+            <p class="center-hint-text" style="font-size: 0.74rem; margin-top: 12px; color: var(--text-muted); text-align: center;">
+              You can adjust notification schedules or turn them off anytime.
             </p>
           </div>
           <div class="phone-home-indicator"></div>
@@ -2521,47 +2705,62 @@
                 <path d="m15 18-6-6 6-6" />
               </svg>
             </button>
+            <span class="sub-header-title">Account & Privacy</span>
             <div style="width: 20px;"></div>
           </div>
 
           <div class="screen-body-padded">
-            <h1 class="screen-headline-serif">Account and privacy</h1>
+            <h1 class="screen-headline-serif">Profile & data</h1>
+            <p class="screen-caption-sub">Manage your profile details, privacy preferences, local storage and account.</p>
 
             <!-- Profile Info Card & Editor -->
-            <div
-              style="background: var(--surface-card, #FFFFFF); border-radius: 12px; padding: 16px; margin-top: 14px; border: 1px solid var(--border-subtle, #EBE6DF);">
-              <span class="control-sublabel" style="margin-bottom: 8px;">Edit Profile</span>
-              <div style="margin-bottom: 10px;">
-                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Display
-                  Name</label>
-                <input type="text" id="inputProfileName" value="Suriya"
-                  style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle, #DDD); font-size: 0.85rem;">
+            <div class="settings-section-card">
+              <div class="settings-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Profile Details</span>
               </div>
-              <div style="margin-bottom: 12px;">
-                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Email
-                  Address</label>
-                <input type="email" id="inputProfileEmail" value="suriya@example.com"
-                  style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-subtle, #DDD); font-size: 0.85rem;">
+              <div class="settings-field-group">
+                <label class="settings-field-label" for="inputProfileName">Display Name</label>
+                <input type="text" id="inputProfileName" class="settings-text-input" value="Suriya" placeholder="Your name">
               </div>
-              <button class="btn-olive-primary" onclick="app.saveProfile()"
-                style="padding: 8px 16px; font-size: 0.82rem;">
-                Save Profile
+              <div class="settings-field-group">
+                <label class="settings-field-label" for="inputProfileEmail">Email Address</label>
+                <input type="email" id="inputProfileEmail" class="settings-text-input" value="suriya@example.com" placeholder="name@example.com">
+              </div>
+              <button class="btn-olive-primary" onclick="app.saveProfile()" style="padding: 10px 18px; margin-top: 4px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>Save Profile</span>
               </button>
             </div>
 
             <!-- Privacy & Consent Controls -->
-            <div
-              style="background: var(--surface-card, #FFFFFF); border-radius: 12px; padding: 16px; margin-top: 14px; border: 1px solid var(--border-subtle, #EBE6DF);">
-              <span class="control-sublabel" style="margin-bottom: 8px;">Privacy & Analytics Consent</span>
-              <div class="reminder-row" style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle, #F0ECE6);">
-                <span style="font-size: 0.82rem;">Anonymous Usage Telemetry</span>
+            <div class="settings-section-card">
+              <div class="settings-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span>Privacy & Consent Controls</span>
+              </div>
+              <div class="settings-toggle-row">
+                <div class="settings-toggle-info">
+                  <span class="settings-toggle-label">Anonymous Telemetry</span>
+                  <span class="settings-toggle-description">Helps improve outfit recommendations without identifying your account</span>
+                </div>
                 <label class="switch-toggle">
                   <input type="checkbox" id="toggleAnalyticsConsent" onchange="app.updatePrivacyConsent()">
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-              <div class="reminder-row" style="padding: 8px 0;">
-                <span style="font-size: 0.82rem;">Crash Diagnostics</span>
+              <div class="settings-toggle-row">
+                <div class="settings-toggle-info">
+                  <span class="settings-toggle-label">Crash Diagnostics</span>
+                  <span class="settings-toggle-description">Sends diagnostic logs to quickly fix rendering anomalies</span>
+                </div>
                 <label class="switch-toggle">
                   <input type="checkbox" checked id="toggleCrashReporting" onchange="app.updatePrivacyConsent()">
                   <span class="toggle-slider"></span>
@@ -2569,44 +2768,130 @@
               </div>
             </div>
 
-            <!-- Data Export & Cache Purging -->
-            <div class="profile-menu-list" style="margin-top: 16px;">
-              <div class="menu-item-row" onclick="app.exportUserData()">
-                <span class="menu-icon">📥</span>
-                <span class="menu-text">Export all user data (JSON)</span>
-                <span class="menu-chevron">›</span>
+            <!-- Data Export, Cache & Subscription -->
+            <div class="settings-group-header">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+              </svg>
+              <span>Data Management & Session</span>
+            </div>
+            <div class="settings-card-group">
+              <div class="settings-item-row" onclick="app.exportUserData()">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Export user data</span>
+                  <span class="settings-item-subtitle">Download your complete wardrobe & looks JSON package</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
 
-              <div class="menu-item-row" onclick="app.clearSavedLooksCache()">
-                <span class="menu-icon">🧹</span>
-                <span class="menu-text">Clear saved looks cache</span>
-                <span class="menu-chevron">›</span>
+              <div class="settings-item-row" onclick="app.clearSavedLooksCache()">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18"/>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Clear saved looks cache</span>
+                  <span class="settings-item-subtitle">Purge locally cached outfit combinations</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
 
-              <div class="menu-item-row" onclick="app.clearAvatarPreferencesCache()">
-                <span class="menu-icon">👤</span>
-                <span class="menu-text">Reset 3D avatar preferences</span>
-                <span class="menu-chevron">›</span>
+              <div class="settings-item-row" onclick="app.clearAvatarPreferencesCache()">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 4v6h-6"/>
+                    <path d="M1 20v-6h6"/>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Reset 3D avatar preferences</span>
+                  <span class="settings-item-subtitle">Restore default mannequin proportions & pose</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('manage-subscription')">
-                <span class="menu-icon">💳</span>
-                <span class="menu-text">Manage subscription</span>
-                <span class="menu-chevron">›</span>
+              <div class="settings-item-row" onclick="app.goToScreen('manage-subscription')">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                    <line x1="1" y1="10" x2="23" y2="10"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Manage subscription</span>
+                  <span class="settings-item-subtitle">Review billing, renewals and benefits</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
 
-              <div class="menu-item-row" onclick="app.signOut()">
-                <span class="menu-icon">🚪</span>
-                <span class="menu-text">Sign out</span>
-                <span class="menu-chevron">›</span>
+              <div class="settings-item-row" onclick="app.signOut()">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Sign out</span>
+                  <span class="settings-item-subtitle">Safely disconnect session on this device</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
             </div>
 
-            <div class="danger-zone-box">
-              <div class="danger-row" onclick="app.goToScreen('delete-account')">
-                <span class="danger-icon">🗑️</span>
-                <span class="danger-label">Delete account</span>
-                <span class="danger-chevron">›</span>
+            <!-- Danger Zone -->
+            <div class="danger-zone-modern">
+              <div class="danger-row-modern" onclick="app.goToScreen('delete-account')">
+                <div class="danger-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </div>
+                <div class="settings-item-text">
+                  <span class="settings-item-title" style="color: var(--color-danger);">Delete account</span>
+                  <span class="settings-item-subtitle" style="color: var(--color-danger); opacity: 0.85;">Permanently erase your wardrobe data and history</span>
+                </div>
+                <div class="settings-item-chevron" style="color: var(--color-danger);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
@@ -2614,7 +2899,7 @@
         </section>
 
         <!-- ===================================================================
-             SCREEN: APPEARANCE & 3D STUDIO THEMES (PHASE 6)
+             SCREEN: APPEARANCE & 3D STUDIO THEMES
              =================================================================== -->
         <section class="phone-screen" id="screen-appearance-settings">
           <div class="screen-sub-header">
@@ -2623,71 +2908,128 @@
                 <path d="m15 18-6-6 6-6" />
               </svg>
             </button>
+            <span class="sub-header-title">Appearance & 3D</span>
             <div style="width: 20px;"></div>
           </div>
 
           <div class="screen-body-padded">
-            <h1 class="screen-headline-serif">Appearance</h1>
-            <p class="screen-caption-sub">Customize app theme, 3D architectural textures, and studio lighting.</p>
+            <h1 class="screen-headline-serif">Studio aesthetic</h1>
+            <p class="screen-caption-sub">Customize app theme, 3D architectural textures, and cinematic studio lighting.</p>
 
             <!-- App Theme Segment -->
-            <span class="control-sublabel">App Interface Theme</span>
-            <div class="category-pill-group" style="margin-bottom: 16px;">
-              <button class="cat-pill active" id="btnThemeLight" onclick="app.setAppTheme('light')">Light</button>
-              <button class="cat-pill" id="btnThemeDark" onclick="app.setAppTheme('dark')">Dark</button>
-              <button class="cat-pill" id="btnThemeSystem" onclick="app.setAppTheme('system')">System</button>
+            <div class="settings-section-card">
+              <div class="settings-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="5"/>
+                  <line x1="12" y1="1" x2="12" y2="3"/>
+                  <line x1="12" y1="21" x2="12" y2="23"/>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                  <line x1="1" y1="12" x2="3" y2="12"/>
+                  <line x1="21" y1="12" x2="23" y2="12"/>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+                <span>App Interface Theme</span>
+              </div>
+              <div class="category-pill-group-modern" style="margin-bottom: 0;">
+                <button class="cat-pill-modern active" id="btnThemeLight" onclick="app.setAppTheme('light')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                  </svg>
+                  <span>Light</span>
+                </button>
+                <button class="cat-pill-modern" id="btnThemeDark" onclick="app.setAppTheme('dark')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                  </svg>
+                  <span>Dark</span>
+                </button>
+                <button class="cat-pill-modern" id="btnThemeSystem" onclick="app.setAppTheme('system')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                    <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                  </svg>
+                  <span>System</span>
+                </button>
+              </div>
             </div>
 
             <!-- 3D Studio Themes -->
-            <span class="control-sublabel">3D Studio Environment</span>
-            <div class="profile-menu-list" style="margin-bottom: 16px;">
-              <div class="menu-item-row" onclick="app.setStudioTheme('luxury-cream')">
-                <span class="menu-icon">🏛️</span>
-                <div class="menu-text">
-                  <strong>Luxury Cream (Default)</strong>
-                  <p style="font-size: 0.74rem; color: var(--text-muted);">Warm cream plaster & gold-veined marble</p>
-                </div>
-                <span class="menu-chevron" id="checkThemeLuxury">✓</span>
+            <div class="settings-section-card">
+              <div class="settings-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                  <polyline points="2 17 12 22 22 17"/>
+                  <polyline points="2 12 12 17 22 12"/>
+                </svg>
+                <span>3D Studio Environment</span>
               </div>
-              <div class="menu-item-row" onclick="app.setStudioTheme('nordic-minimal')">
-                <span class="menu-icon">❄️</span>
-                <div class="menu-text">
-                  <strong>Nordic Minimal</strong>
-                  <p style="font-size: 0.74rem; color: var(--text-muted);">Cool scandinavian daylight & light ash</p>
+
+              <div class="studio-theme-card active" onclick="app.setStudioTheme('luxury-cream')">
+                <div class="studio-swatch" style="background: linear-gradient(135deg, #F5F0E6 0%, #D8CFC0 100%);"></div>
+                <div style="flex: 1; min-width: 0;">
+                  <strong style="font-size: 0.88rem; display: block; color: var(--text-main);">Luxury Cream</strong>
+                  <p style="font-size: 0.74rem; color: var(--text-muted); margin: 2px 0 0;">Warm cream plaster & gold-veined Italian marble</p>
                 </div>
-                <span class="menu-chevron" id="checkThemeNordic" style="display:none;">✓</span>
+                <span class="studio-theme-check" id="theme-check-luxury">✓</span>
+                <span id="checkThemeLuxury" style="display:none;">✓</span>
               </div>
-              <div class="menu-item-row" onclick="app.setStudioTheme('warm-terracotta')">
-                <span class="menu-icon">🏺</span>
-                <div class="menu-text">
-                  <strong>Warm Terracotta</strong>
-                  <p style="font-size: 0.74rem; color: var(--text-muted);">Tuscan earthen clay & warm afternoon sun</p>
+
+              <div class="studio-theme-card" onclick="app.setStudioTheme('nordic-minimal')">
+                <div class="studio-swatch" style="background: linear-gradient(135deg, #E6EBF0 0%, #B8C7D4 100%);"></div>
+                <div style="flex: 1; min-width: 0;">
+                  <strong style="font-size: 0.88rem; display: block; color: var(--text-main);">Nordic Minimal</strong>
+                  <p style="font-size: 0.74rem; color: var(--text-muted); margin: 2px 0 0;">Cool Scandinavian daylight & bleached ash wood</p>
                 </div>
-                <span class="menu-chevron" id="checkThemeTerracotta" style="display:none;">✓</span>
+                <span class="studio-theme-check" id="theme-check-nordic"></span>
+                <span id="checkThemeNordic" style="display:none;"></span>
+              </div>
+
+              <div class="studio-theme-card" onclick="app.setStudioTheme('warm-terracotta')">
+                <div class="studio-swatch" style="background: linear-gradient(135deg, #E29578 0%, #A85A3E 100%);"></div>
+                <div style="flex: 1; min-width: 0;">
+                  <strong style="font-size: 0.88rem; display: block; color: var(--text-main);">Warm Terracotta</strong>
+                  <p style="font-size: 0.74rem; color: var(--text-muted); margin: 2px 0 0;">Tuscan earthen clay & warm afternoon sun</p>
+                </div>
+                <span class="studio-theme-check" id="theme-check-terracotta"></span>
+                <span id="checkThemeTerracotta" style="display:none;"></span>
               </div>
             </div>
 
             <!-- 3D Lighting Presets -->
-            <span class="control-sublabel">Studio Lighting Setup</span>
-            <div class="category-pill-group" style="margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
-              <button class="cat-pill active" id="btnLightSoft"
-                onclick="app.setStudioLighting('editorial_soft')">Editorial Soft</button>
-              <button class="cat-pill" id="btnLightAtelier" onclick="app.setStudioLighting('warm_atelier')">Warm
-                Atelier</button>
-              <button class="cat-pill" id="btnLightGolden" onclick="app.setStudioLighting('golden_hour')">Golden
-                Hour</button>
-              <button class="cat-pill" id="btnLightDramatic"
-                onclick="app.setStudioLighting('dramatic_chiaroscuro')">Dramatic</button>
-              <button class="cat-pill" id="btnLightClean" onclick="app.setStudioLighting('high_key_clean')">High
-                Key</button>
+            <div class="settings-section-card">
+              <div class="settings-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+                <span>Studio Lighting Setup</span>
+              </div>
+              <div class="category-pill-group-modern" style="margin-bottom: 0;">
+                <button class="cat-pill-modern active" id="btnLightSoft" onclick="app.setStudioLighting('editorial_soft')">Editorial Soft</button>
+                <button class="cat-pill-modern" id="btnLightAtelier" onclick="app.setStudioLighting('warm_atelier')">Warm Atelier</button>
+                <button class="cat-pill-modern" id="btnLightGolden" onclick="app.setStudioLighting('golden_hour')">Golden Hour</button>
+                <button class="cat-pill-modern" id="btnLightDramatic" onclick="app.setStudioLighting('dramatic_chiaroscuro')">Dramatic</button>
+                <button class="cat-pill-modern" id="btnLightClean" onclick="app.setStudioLighting('high_key_clean')">High Key</button>
+              </div>
             </div>
 
             <!-- Accessibility & Scaling -->
-            <span class="control-sublabel">Accessibility</span>
-            <div
-              style="background: var(--surface-card, #FFFFFF); border-radius: 12px; padding: 14px; border: 1px solid var(--border-subtle, #EBE6DF); margin-bottom: 16px;">
-              <div class="reminder-row">
-                <span style="font-size: 0.82rem;">High Contrast Mode</span>
+            <div class="settings-section-card">
+              <div class="settings-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 16v-4"/>
+                  <path d="M12 8h.01"/>
+                </svg>
+                <span>Accessibility</span>
+              </div>
+              <div class="settings-toggle-row">
+                <div class="settings-toggle-info">
+                  <span class="settings-toggle-label">High Contrast Mode</span>
+                  <span class="settings-toggle-description">Deepens contrast ratios for enhanced legibility</span>
+                </div>
                 <label class="switch-toggle">
                   <input type="checkbox" id="toggleHighContrast" onchange="app.toggleHighContrast(this.checked)">
                   <span class="toggle-slider"></span>
@@ -2695,16 +3037,20 @@
               </div>
             </div>
 
-            <button class="btn-olive-secondary" onclick="app.resetAppearance()"
-              style="width: 100%; padding: 10px; border-radius: 8px;">
-              Reset Appearance to Default
+            <button class="btn-secondary-modern" onclick="app.resetAppearance()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6"/>
+                <path d="M1 20v-6h6"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              <span>Reset Appearance to Default</span>
             </button>
           </div>
           <div class="phone-home-indicator"></div>
         </section>
 
         <!-- ===================================================================
-             SCREEN: PERFORMANCE & GRAPHICS (PHASE 6)
+             SCREEN: PERFORMANCE & GRAPHICS
              =================================================================== -->
         <section class="phone-screen" id="screen-performance-settings">
           <div class="screen-sub-header">
@@ -2713,34 +3059,71 @@
                 <path d="m15 18-6-6 6-6" />
               </svg>
             </button>
+            <span class="sub-header-title">Graphics & Fidelity</span>
             <div style="width: 20px;"></div>
           </div>
 
           <div class="screen-body-padded">
-            <h1 class="screen-headline-serif">Performance</h1>
-            <p class="screen-caption-sub">Optimize 3D graphics fidelity, shadow maps, and device battery life.</p>
+            <h1 class="screen-headline-serif">Render fidelity</h1>
+            <p class="screen-caption-sub">Tune 3D graphics quality, real-time lighting shadows, and battery consumption.</p>
 
             <!-- Quality Presets -->
-            <span class="control-sublabel">Graphics Fidelity Preset</span>
-            <div class="category-pill-group" style="margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
-              <button class="cat-pill active" id="btnPerfHigh" onclick="app.setPerformancePreset('high')">High (60
-                FPS)</button>
-              <button class="cat-pill" id="btnPerfMedium" onclick="app.setPerformancePreset('medium')">Medium</button>
-              <button class="cat-pill" id="btnPerfLow" onclick="app.setPerformancePreset('low')">Low</button>
-              <button class="cat-pill" id="btnPerfBattery" onclick="app.setPerformancePreset('battery_saver')">Battery
-                Saver</button>
-              <button class="cat-pill" id="btnPerfAuto" onclick="app.setPerformancePreset('auto')">Auto Detect</button>
+            <div class="settings-section-card">
+              <div class="settings-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+                <span>Graphics Fidelity Preset</span>
+              </div>
+              <div class="category-pill-group-modern" style="margin-bottom: 0;">
+                <button class="cat-pill-modern active" id="btnPerfHigh" onclick="app.setPerformancePreset('high')">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                  </svg>
+                  <span>High (60 FPS)</span>
+                </button>
+                <button class="cat-pill-modern" id="btnPerfMedium" onclick="app.setPerformancePreset('medium')">
+                  <span>Medium</span>
+                </button>
+                <button class="cat-pill-modern" id="btnPerfLow" onclick="app.setPerformancePreset('low')">
+                  <span>Low</span>
+                </button>
+                <button class="cat-pill-modern" id="btnPerfBattery" onclick="app.setPerformancePreset('battery_saver')">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="13" x2="23" y2="11"/>
+                  </svg>
+                  <span>Battery Saver</span>
+                </button>
+                <button class="cat-pill-modern" id="btnPerfAuto" onclick="app.setPerformancePreset('auto')">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <span>Auto Detect</span>
+                </button>
+              </div>
             </div>
 
             <!-- Granular Toggles -->
-            <span class="control-sublabel">Advanced Render Options</span>
-            <div
-              style="background: var(--surface-card, #FFFFFF); border-radius: 12px; padding: 14px; border: 1px solid var(--border-subtle, #EBE6DF); margin-bottom: 16px;">
-              <div class="reminder-row" style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle, #F0ECE6);">
-                <div>
-                  <strong style="font-size: 0.82rem; display: block;">Real-Time Soft Shadows</strong>
-                  <span style="font-size: 0.72rem; color: var(--text-muted);">Dynamic contact shadows under wardrobe &
-                    avatar</span>
+            <div class="settings-section-card">
+              <div class="settings-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="4" y1="21" x2="4" y2="14"/>
+                  <line x1="4" y1="10" x2="4" y2="3"/>
+                  <line x1="12" y1="21" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12" y2="3"/>
+                  <line x1="20" y1="21" x2="20" y2="16"/>
+                  <line x1="20" y1="12" x2="20" y2="3"/>
+                  <line x1="1" y1="14" x2="7" y2="14"/>
+                  <line x1="9" y1="8" x2="15" y2="8"/>
+                  <line x1="17" y1="16" x2="23" y2="16"/>
+                </svg>
+                <span>Advanced Render Options</span>
+              </div>
+
+              <div class="settings-toggle-row">
+                <div class="settings-toggle-info">
+                  <span class="settings-toggle-label">Real-Time Soft Shadows</span>
+                  <span class="settings-toggle-description">Dynamic contact shadows under wardrobe & avatar</span>
                 </div>
                 <label class="switch-toggle">
                   <input type="checkbox" checked id="toggleShadows" onchange="app.toggleShadowQuality(this.checked)">
@@ -2748,36 +3131,45 @@
                 </label>
               </div>
 
-              <div class="reminder-row" style="padding: 8px 0; border-bottom: 1px solid var(--border-subtle, #F0ECE6);">
-                <div>
-                  <strong style="font-size: 0.82rem; display: block;">Vanity Mirror Reflections</strong>
-                  <span style="font-size: 0.72rem; color: var(--text-muted);">Real-time WebGL render pass on arched
-                    vanity mirror</span>
+              <div class="settings-toggle-row">
+                <div class="settings-toggle-info">
+                  <span class="settings-toggle-label">Vanity Mirror Reflections</span>
+                  <span class="settings-toggle-description">Real-time WebGL render pass on arched vanity mirror</span>
                 </div>
                 <label class="switch-toggle">
-                  <input type="checkbox" checked id="toggleReflections"
-                    onchange="app.toggleReflectionQuality(this.checked)">
+                  <input type="checkbox" checked id="toggleReflections" onchange="app.toggleReflectionQuality(this.checked)">
                   <span class="toggle-slider"></span>
                 </label>
               </div>
 
-              <div class="reminder-row" style="padding: 8px 0;">
-                <div>
-                  <strong style="font-size: 0.82rem; display: block;">Avatar Secondary Breathing Motion</strong>
-                  <span style="font-size: 0.72rem; color: var(--text-muted);">Subtle organic idle chest and posture
-                    kinetics</span>
+              <div class="settings-toggle-row">
+                <div class="settings-toggle-info">
+                  <span class="settings-toggle-label">Avatar Breathing Motion</span>
+                  <span class="settings-toggle-description">Subtle organic idle chest and posture kinetics</span>
                 </div>
                 <label class="switch-toggle">
-                  <input type="checkbox" checked id="toggleIdleMotion"
-                    onchange="app.toggleIdleAnimations(this.checked)">
+                  <input type="checkbox" checked id="toggleIdleMotion" onchange="app.toggleIdleAnimations(this.checked)">
                   <span class="toggle-slider"></span>
                 </label>
               </div>
             </div>
 
-            <button class="btn-olive-secondary" onclick="app.resetPerformance()"
-              style="width: 100%; padding: 10px; border-radius: 8px;">
-              Reset Graphics to Default High
+            <!-- Diagnostic status banner -->
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--olive-soft); border: 1px solid var(--olive-border); border-radius: var(--radius-sm); margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-success); display: inline-block;"></span>
+                <span style="font-size: 0.74rem; font-weight: 600; color: var(--olive-dark);">WebGL 2.0 Acceleration Active</span>
+              </div>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">DPR 2.0x • 60 FPS</span>
+            </div>
+
+            <button class="btn-secondary-modern" onclick="app.resetPerformance()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6"/>
+                <path d="M1 20v-6h6"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              <span>Reset Graphics to Default High</span>
             </button>
           </div>
           <div class="phone-home-indicator"></div>
@@ -3422,7 +3814,7 @@
         </section>
 
         <!-- ===================================================================
-             SCREEN 26: HELP AND SUPPORT (NEW)
+             SCREEN 26: HELP AND SUPPORT
              =================================================================== -->
         <section class="phone-screen" id="screen-help-support">
           <div class="screen-sub-header">
@@ -3431,86 +3823,140 @@
                 <path d="m15 18-6-6 6-6" />
               </svg>
             </button>
+            <span class="sub-header-title">Help & Support</span>
             <div style="width: 20px;"></div>
           </div>
 
           <div class="screen-body-padded">
             <h1 class="screen-headline-serif">How can we help?</h1>
-            <p class="screen-caption-sub">Search for help or browse common questions.</p>
+            <p class="screen-caption-sub">Search our knowledge base or reach out to our styling support team.</p>
 
-            <div class="search-input-box" style="margin-bottom: 18px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A8073" stroke-width="2">
+            <div class="search-input-modern">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2">
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.3-4.3" />
               </svg>
-              <input type="text" placeholder="Search help articles...">
+              <input type="text" placeholder="Search guides, styling tips, FAQs...">
             </div>
 
-            <span class="control-sublabel">Popular topics</span>
-            <div class="profile-menu-list" style="margin-bottom: 20px;">
-              <div class="menu-item-row">
-                <span class="menu-icon">🖼️</span>
-                <div class="menu-text">
-                  <strong>Add clothing photos</strong>
-                  <p style="font-size: 0.74rem; color: var(--text-muted); font-weight: normal;">Learn how to add items
-                    to your wardrobe.</p>
+            <div class="settings-group-header">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              <span>Common Questions</span>
+            </div>
+            <div class="settings-card-group">
+              <div class="settings-item-row" onclick="alert('Guide: Tap Wardrobe > Add Photos or take fresh shots with your camera against a neutral background for best 3D try-on results.');">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
                 </div>
-                <span class="menu-chevron">›</span>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Add clothing photos</span>
+                  <span class="settings-item-subtitle">How to capture & categorize wardrobe items</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('today')">
-                <span class="menu-icon">🔄</span>
-                <div class="menu-text">
-                  <strong>Change an outfit</strong>
-                  <p style="font-size: 0.74rem; color: var(--text-muted); font-weight: normal;">Edit or replace a
-                    planned outfit.</p>
+              <div class="settings-item-row" onclick="app.goToScreen('today')">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                  </svg>
                 </div>
-                <span class="menu-chevron">›</span>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Change an outfit</span>
+                  <span class="settings-item-subtitle">Swap garments or request new combinations</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('manage-subscription')">
-                <span class="menu-icon">🔁</span>
-                <div class="menu-text">
-                  <strong>Restore purchases</strong>
-                  <p style="font-size: 0.74rem; color: var(--text-muted); font-weight: normal;">Get your premium
-                    features back.</p>
+              <div class="settings-item-row" onclick="app.goToScreen('manage-subscription')">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
                 </div>
-                <span class="menu-chevron">›</span>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Manage subscription</span>
+                  <span class="settings-item-subtitle">Billing details, renewals and plan benefits</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
 
-              <div class="menu-item-row" onclick="app.goToScreen('delete-account')">
-                <span class="menu-icon">👤</span>
-                <div class="menu-text">
-                  <strong>Delete my account</strong>
-                  <p style="font-size: 0.74rem; color: var(--text-muted); font-weight: normal;">Learn how to delete your
-                    account.</p>
+              <div class="settings-item-row" onclick="app.goToScreen('delete-account')">
+                <div class="settings-icon-box">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="18" y1="8" x2="23" y2="13"/>
+                    <line x1="23" y1="8" x2="18" y2="13"/>
+                  </svg>
                 </div>
-                <span class="menu-chevron">›</span>
+                <div class="settings-item-text">
+                  <span class="settings-item-title">Delete my account</span>
+                  <span class="settings-item-subtitle">Learn about account data removal policy</span>
+                </div>
+                <div class="settings-item-chevron">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
               </div>
             </div>
 
             <!-- Message form -->
-            <span class="control-sublabel">Still need help?</span>
-            <p class="screen-caption-sub" style="margin-top: 0; margin-bottom: 10px;">Send us a message and we'll get
-              back to you.</p>
-
-            <div class="form-field-vertical" style="margin-bottom: 8px;">
-              <label class="field-label">Topic</label>
-              <div class="input-select-box">
-                <span class="field-val">Select a topic</span>
-                <span class="dropdown-chevron">∨</span>
+            <div class="settings-section-card">
+              <div class="settings-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span>Direct Stylist Message</span>
               </div>
-            </div>
+              <p class="screen-caption-sub" style="margin-top: 0; margin-bottom: 12px;">Send us feedback or questions. Our design team responds within 24 hours.</p>
 
-            <div class="form-field-vertical" style="margin-bottom: 14px;">
-              <label class="field-label">Message</label>
-              <textarea class="feedback-textarea" placeholder="Tell us more..."></textarea>
-            </div>
+              <div class="settings-field-group">
+                <label class="settings-field-label">Inquiry Topic</label>
+                <select class="settings-text-input">
+                  <option>Wardrobe & Photo Fitting</option>
+                  <option>3D Studio & Themes</option>
+                  <option>Outfit Streaks & Planning</option>
+                  <option>Subscription & Billing</option>
+                  <option>Feature Suggestion</option>
+                </select>
+              </div>
 
-            <button class="btn-olive-primary"
-              onclick="alert('Message sent! Our support team will reply within 24 hours.'); app.goToScreen('profile');">
-              Send message
-            </button>
+              <div class="settings-field-group">
+                <label class="settings-field-label">Your Message</label>
+                <textarea class="settings-text-input" rows="3" placeholder="Tell us what you'd like help with..." style="resize: vertical;"></textarea>
+              </div>
+
+              <button class="btn-olive-primary" onclick="alert('Message sent! Our support team will reply within 24 hours.'); app.goToScreen('profile');">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="22" y1="2" x2="11" y2="13"/>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+                <span>Send message</span>
+              </button>
+            </div>
           </div>
           <div class="phone-home-indicator"></div>
         </section>
