@@ -1,3 +1,4 @@
+
 /**
  * Woobi Core State - Store
  * Central reactive store with automatic localStorage persistence and legacy migration adapters.
@@ -15,7 +16,7 @@ const STORAGE_KEYS = {
 export class Store {
   constructor(initialState = {}) {
     this.listeners = new Set();
-    
+
     // Initialize default state
     this.state = {
       currentScreen: 'today',
@@ -51,17 +52,34 @@ export class Store {
   }
 
   _initPersistence() {
-    if (typeof localStorage === 'undefined') return;
-
     try {
-      // Restore user preferences
-      const rawPrefs = localStorage.getItem(STORAGE_KEYS.USER_PREFS);
-      if (rawPrefs) {
-        const prefs = JSON.parse(rawPrefs);
+      const storage = typeof window !== 'undefined'
+        ? window.WoobiStorageService
+        : null;
+
+      let prefs = null;
+
+      if (storage) {
+        prefs = storage.retrieve(STORAGE_KEYS.USER_PREFS, null);
+      } else if (typeof localStorage !== 'undefined') {
+        const rawPrefs = localStorage.getItem(STORAGE_KEYS.USER_PREFS);
+        if (rawPrefs) {
+          prefs = JSON.parse(rawPrefs);
+        }
+      }
+
+      if (
+        prefs &&
+        typeof prefs === 'object' &&
+        !Array.isArray(prefs)
+      ) {
         Object.assign(this.state, prefs);
       }
     } catch (e) {
-      console.warn('[Woobi Store] Could not restore user preferences from localStorage:', e);
+      console.warn(
+        '[Woobi Store] Could not restore user preferences:',
+        e
+      );
     }
   }
 
@@ -82,45 +100,113 @@ export class Store {
   }
 
   persist() {
-    if (typeof localStorage === 'undefined') return;
     try {
       const toSave = {
         currentPlan: this.state.currentPlan,
         isPremium: this.state.isPremium,
         wearHistoryCount: this.state.wearHistoryCount
       };
-      localStorage.setItem(STORAGE_KEYS.USER_PREFS, JSON.stringify(toSave));
+
+      const storage = typeof window !== 'undefined'
+        ? window.WoobiStorageService
+        : null;
+
+      if (storage) {
+        storage.save(STORAGE_KEYS.USER_PREFS, toSave);
+      } else if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(
+          STORAGE_KEYS.USER_PREFS,
+          JSON.stringify(toSave)
+        );
+      }
     } catch (e) {
-      console.warn('[Woobi Store] Could not save preferences to localStorage:', e);
+      console.warn(
+        '[Woobi Store] Could not save preferences:',
+        e
+      );
     }
   }
 
   // Storage helper with fallback to legacy keys
   getItem(primaryKey, fallbackKey) {
-    if (typeof localStorage === 'undefined') return null;
     try {
+      const storage = typeof window !== 'undefined'
+        ? window.WoobiStorageService
+        : null;
+
+      if (storage) {
+        const value = storage.retrieve(primaryKey, null);
+
+        if (value !== null) {
+          return value;
+        }
+
+        if (fallbackKey) {
+          return storage.retrieve(fallbackKey, null);
+        }
+
+        return null;
+      }
+
+      if (typeof localStorage === 'undefined') {
+        return null;
+      }
+
       const val = localStorage.getItem(primaryKey);
-      if (val !== null) return JSON.parse(val);
+
+      if (val !== null) {
+        return JSON.parse(val);
+      }
+
       if (fallbackKey) {
         const legacyVal = localStorage.getItem(fallbackKey);
-        if (legacyVal !== null) return JSON.parse(legacyVal);
+
+        if (legacyVal !== null) {
+          return JSON.parse(legacyVal);
+        }
       }
     } catch (e) {
-      console.warn(`[Woobi Store] Failed to read ${primaryKey}:`, e);
+      console.warn(
+        `[Woobi Store] Failed to read ${primaryKey}:`,
+        e
+      );
     }
+
     return null;
   }
 
   setItem(primaryKey, value, fallbackKey) {
-    if (typeof localStorage === 'undefined') return;
     try {
+      const storage = typeof window !== 'undefined'
+        ? window.WoobiStorageService
+        : null;
+
+      if (storage) {
+        storage.save(primaryKey, value);
+
+        if (fallbackKey) {
+          storage.save(fallbackKey, value);
+        }
+
+        return;
+      }
+
+      if (typeof localStorage === 'undefined') {
+        return;
+      }
+
       const serialized = JSON.stringify(value);
+
       localStorage.setItem(primaryKey, serialized);
+
       if (fallbackKey) {
         localStorage.setItem(fallbackKey, serialized);
       }
     } catch (e) {
-      console.warn(`[Woobi Store] Failed to write ${primaryKey}:`, e);
+      console.warn(
+        `[Woobi Store] Failed to write ${primaryKey}:`,
+        e
+      );
     }
   }
 }
@@ -132,7 +218,11 @@ export const createStore = (initialState) => new Store(initialState);
 if (typeof window !== 'undefined') {
   window.Store = Store;
   window.woobiStore = store;
-  if (!window.app) window.app = {};
+
+  if (!window.app) {
+    window.app = {};
+  }
+
   if (!window.app.state) {
     window.app.state = store.getState();
   }
