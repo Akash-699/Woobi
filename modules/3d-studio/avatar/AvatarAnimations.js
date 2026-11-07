@@ -64,66 +64,48 @@ export class AvatarAnimations {
     }
 
     // 2. Subtle Idle Breathing Motion & Waveform
-    const breath = Math.sin(time * 1.6) * 0.003;
-    const breathCycle = (time * this.breathingSpeed) % (Math.PI * 2);
-    const breathNormalized = Math.sin(breathCycle - Math.sin(breathCycle) * 0.28);
+    if (!this.mixer) {
+      const breath = Math.sin(time * this.breathingSpeed) * this.breathingAmplitude;
+      const breathCycle = (time * this.breathingSpeed) % (Math.PI * 2);
+      const breathNormalized = Math.sin(breathCycle - Math.sin(breathCycle) * 0.28);
 
-    // Natural postural slow movement angles (biomechanically anchored from ankle pivot)
-    const swayZ = Math.sin(time * this.swaySpeedCoronal) * this.swayAmplitudeCoronal;
-    const swayX = Math.sin(time * this.swaySpeedSagittal + 0.45) * this.swayAmplitudeSagittal + Math.sin(time * this.swaySpeedSagittal * 2.0) * 0.0025;
-    const swayY = Math.cos(time * this.microYawSpeed) * this.microYawAmplitude;
+      const swayZ = Math.sin(time * (this.swaySpeedCoronal || 1.1)) * (this.swayAmplitudeCoronal || 0.003);
+      const swayX = Math.sin(time * (this.swaySpeedSagittal || 0.9) + 0.45) * (this.swayAmplitudeSagittal || 0.004);
 
-    // A. Procedural Sculpted Rig animations
-    if (this.rig) {
-      if (this.rig.chestGroup) {
-        this.rig.chestGroup.position.y = this.baseChestY + breath;
-        this.rig.chestGroup.scale.x = 1.0 + breathNormalized * 0.015;
-        this.rig.chestGroup.scale.z = 1.0 + breathNormalized * 0.025;
-      }
-      if (this.rig.headGroup) {
-        this.rig.headGroup.position.y = this.baseHeadY + breath * 0.6;
-        this.rig.headGroup.rotation.z = swayZ * 0.50;
-        this.rig.headGroup.rotation.x = swayX * 0.50;
-      }
-    }
-
-    // B. Living Organic GLTF Mannequin Animations (Breathing & Natural Slow Movements)
-    const gltfModel = this.gltfAvatarGroup || (this.avatarRoot && this.avatarRoot.children && this.avatarRoot.children.find(c => c.name === 'GLTFAvatarGroup' || (c.isGroup && c !== (this.rig && this.rig.group))));
-    if (gltfModel) {
-      // 1. Thoracic breathing: Ribcage expansion and vertical elevation
-      // Origin is grounded at feet (y=0), so Y-scaling elevates chest and head while keeping feet firmly on dais
-      gltfModel.scale.set(
-        1.0 + breathNormalized * 0.018, // 1.8% lateral ribcage expansion
-        1.0 + breathNormalized * 0.012, // 1.2% (~2.1cm) vertical thoracic rise and fall
-        1.0 + breathNormalized * 0.034  // 3.4% chest and bust forward expansion
-      );
-
-      // 2. Natural living slow movements: graceful postural sway & weight shift from ankle/hip pivot
-      gltfModel.rotation.x = swayX;
-      gltfModel.rotation.z = swayZ;
-      gltfModel.rotation.y = swayY;
-    }
-
-    // 3. Natural Periodic Eyelid Blinking
-    this.blinkTimer += delta;
-    if (this.blinkTimer > this.nextBlinkTime) {
-      this.isBlinking = true;
-      this.blinkProgress += delta * this.blinkSpeed;
-      if (this.blinkProgress >= Math.PI) {
-        this.isBlinking = false;
-        this.blinkProgress = 0;
-        this.blinkTimer = 0;
-        this.nextBlinkTime = 2.8 + Math.random() * 2.6; // Random interval between 2.8s and 5.4s
-      }
-    }
-
-    if (this.rig && this.rig.eyelids && this.rig.eyelids.length > 0) {
-      const lidScaleY = this.isBlinking ? Math.sin(this.blinkProgress) * 0.72 : 0.02;
-      this.rig.eyelids.forEach((lid) => {
-        if (lid && lid.scale) {
-          lid.scale.y = Math.max(0.02, lidScaleY);
+      if (this.rig) {
+        if (this.rig.chestGroup) {
+          this.rig.chestGroup.position.y = this.baseChestY + breath;
+          this.rig.chestGroup.scale.x = 1.0 + breathNormalized * 0.015;
+          this.rig.chestGroup.scale.z = 1.0 + breathNormalized * 0.025;
         }
-      });
+        if (this.rig.headGroup) {
+          this.rig.headGroup.position.y = this.baseHeadY + breath * 0.6;
+          this.rig.headGroup.rotation.z = swayZ * 0.50;
+          this.rig.headGroup.rotation.x = swayX * 0.50;
+        }
+      }
+
+      // 3. Natural Periodic Eyelid Blinking
+      this.blinkTimer += delta;
+      if (this.blinkTimer > this.nextBlinkTime) {
+        this.isBlinking = true;
+        this.blinkProgress += delta * this.blinkSpeed;
+        if (this.blinkProgress >= Math.PI) {
+          this.isBlinking = false;
+          this.blinkProgress = 0;
+          this.blinkTimer = 0;
+          this.nextBlinkTime = 2.8 + Math.random() * 2.6; // Random interval between 2.8s and 5.4s
+        }
+      }
+
+      if (this.rig && this.rig.eyelids && this.rig.eyelids.length > 0) {
+        const lidScaleY = this.isBlinking ? Math.sin(this.blinkProgress) * 0.72 : 0.02;
+        this.rig.eyelids.forEach((lid) => {
+          if (lid && lid.scale) {
+            lid.scale.y = Math.max(0.02, lidScaleY);
+          }
+        });
+      }
     }
 
     // 4. Update AnimationMixer if rigged GLTF is active
