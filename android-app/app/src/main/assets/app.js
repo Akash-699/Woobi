@@ -162,6 +162,189 @@
     }
   });
 
+  const PERSISTENCE_KEYS = {
+    WARDROBE: 'woobi_wardrobe_v1',
+    BOOKMARKS: 'woobi_saved_bookmarks_v1',
+    WEAR_HISTORY: 'woobi_wear_history_v1'
+  };
+
+  function persistWardrobe() {
+    window.WoobiStorageService.save(
+      PERSISTENCE_KEYS.WARDROBE,
+      WARDROBE_ITEMS
+    );
+  }
+
+  function persistBookmarks() {
+    window.WoobiStorageService.save(
+      PERSISTENCE_KEYS.BOOKMARKS,
+      Array.from(state.savedBookmarks)
+    );
+  }
+
+  function persistWearHistory() {
+    window.WoobiStorageService.save(
+      PERSISTENCE_KEYS.WEAR_HISTORY,
+      state.wearHistoryCount
+    );
+  }
+
+  let savedLooksManager = null;
+
+  function initSavedLooksManager() {
+    const savedLooksAPI = window.WoobiStudioFeatures?.savedLooks;
+
+    if (!savedLooksAPI?.createSavedLooksManager) {
+      console.error('Saved Looks manager is unavailable');
+      return false;
+    }
+
+    savedLooksManager = savedLooksAPI.createSavedLooksManager({
+      primaryKey: 'woobi_saved_looks_v1',
+      legacyKey: 'seren_saved_looks',
+      maxLooks: 50,
+      autoPersist: true
+    });
+
+  state.savedLooks = savedLooksManager.getAllLooks();
+  return true;
+  }
+
+  function renderSavedLooks() {
+  const grid = document.getElementById('savedLooksGrid');
+
+  if (!grid) return;
+
+  grid.replaceChildren();
+
+  const looks = savedLooksManager
+    ? savedLooksManager.getAllLooks()
+    : [];
+
+  if (!looks.length) {
+    const emptyMessage = document.createElement('p');
+    emptyMessage.textContent =
+      'No saved looks yet. Save a look from the Studio to see it here.';
+    emptyMessage.className = 'saved-empty-state';
+    grid.appendChild(emptyMessage);
+    return;
+  }
+
+  looks.forEach(look => {
+    const tile = document.createElement('div');
+    tile.className = 'saved-look-tile';
+
+    const preview = document.createElement('div');
+    preview.className = 'saved-preview-box single-img';
+
+    const img = document.createElement('img');
+    const photo = look.outfit?.items?.[0]?.photo;
+
+    img.src =
+      typeof photo === 'string' &&
+      photo.startsWith('assets/') &&
+      !photo.includes('..')
+        ? photo
+        : 'assets/welcome_hero.jpg';
+
+    img.alt = look.name || 'Saved look';
+    img.loading = 'lazy';
+
+    const ribbon = document.createElement('div');
+    ribbon.className = 'saved-ribbon-flag';
+    ribbon.textContent = '🔖';
+
+    preview.append(img, ribbon);
+
+    const footer = document.createElement('div');
+    footer.className = 'saved-tile-footer';
+
+    const name = document.createElement('span');
+    name.textContent = look.name || 'Untitled look';
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'saved-look-remove-btn';
+    removeButton.textContent = 'Remove';
+    removeButton.setAttribute(
+      'aria-label',
+      `Remove ${look.name || 'saved look'}`
+    );
+
+    removeButton.addEventListener('click', () => {
+      if (!savedLooksManager) return;
+
+      const result = savedLooksManager.deleteLook(look.id);
+
+      if (!result.success) {
+        showToast(result.error || 'Could not remove saved look.');
+        return;
+      }
+
+      state.savedLooks = savedLooksManager.getAllLooks();
+      renderSavedLooks();
+      showToast('Saved look removed.');
+    });
+
+    footer.append(name, removeButton);
+    tile.append(preview, footer);
+    grid.appendChild(tile);
+  });
+}
+
+
+  function hydratePersistentState() {
+    const storage = window.WoobiStorageService;
+
+    // Restore wardrobe without replacing the original array reference.
+    const savedWardrobe = storage.retrieve(
+      PERSISTENCE_KEYS.WARDROBE,
+      null
+    );
+
+    if (
+      Array.isArray(savedWardrobe) &&
+      savedWardrobe.every(item =>
+        item &&
+        typeof item.id === 'string' &&
+        typeof item.name === 'string' &&
+        typeof item.category === 'string'
+      )
+    ) {
+      WARDROBE_ITEMS.splice(
+        0,
+        WARDROBE_ITEMS.length,
+        ...savedWardrobe
+      );
+    }
+
+    // Restore bookmarks as a Set.
+    const savedBookmarks = storage.retrieve(
+      PERSISTENCE_KEYS.BOOKMARKS,
+      null
+    );
+
+    if (
+      Array.isArray(savedBookmarks) &&
+      savedBookmarks.every(id => typeof id === 'string')
+    ) {
+      rawState.savedBookmarks = new Set(savedBookmarks);
+    }
+
+    // Restore wear history.
+    const savedWearHistory = storage.retrieve(
+      PERSISTENCE_KEYS.WEAR_HISTORY,
+      null
+    );
+
+    if (
+      Number.isSafeInteger(savedWearHistory) &&
+      savedWearHistory >= 0
+    ) {
+      rawState.wearHistoryCount = savedWearHistory;
+    }
+  }
+
   // =========================================================================
   // 2. SCREEN ROUTER & NAVIGATION
   // =========================================================================
@@ -988,9 +1171,11 @@
       showToast(`✨ Marked "${item.name}" as clean & ready to style!`);
     }
 
+    persistWardrobe();
+
     renderWardrobeGrid();
     updateStylistWardrobeStats();
-  }
+}
 
   function openConditionModal(itemId) {
     const item = WARDROBE_ITEMS.find(i => i.id === itemId);
@@ -1052,6 +1237,8 @@
     if (item) {
       item.condition = state.modalCondition;
       item.fit = state.modalFit;
+
+      persistWardrobe();
       showToast(`Updated "${item.name}": ${item.condition === 'clean' ? '✨ Clean' : '🧺 In Laundry'}, ${item.fit} fit`);
     }
     closeConditionModal();
@@ -1110,6 +1297,7 @@
   // =========================================================================
   function markAsWorn() {
     state.wearHistoryCount++;
+    persistWearHistory();
     showToast('✓ Great choice! Added to your wear history.');
     setTimeout(() => goToScreen('outfit-ready'), 600);
   }
@@ -1129,6 +1317,8 @@
       state.savedBookmarks.add(look.id);
       showToast('🔖 Saved outfit to your collection');
     }
+
+    persistBookmarks();
   }
 
   function toggleStyleChoice(cardEl) {
@@ -2199,21 +2389,58 @@
     serenCloseReview();
   }
 
-  function serenSaveCurrentLook() {
+    function serenSaveCurrentLook() {
+    if (!savedLooksManager) {
+      showToast('Saved Looks is currently unavailable.');
+      return;
+    }
+
+    const selection = state.builderSelection || {};
+
+    const selectedItems = [
+      selection.top,
+      selection.bottom,
+      selection.shoe,
+      selection.accessory
+    ]
+      .filter(Boolean)
+      .map(item => ({
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        photo: item.photo
+      }));
+
+    if (selectedItems.length === 0) {
+      showToast('Please select at least one wardrobe item first.');
+      return;
+    }
+
+    const date = new Date().toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+
     const currentOutfit = {
-      id: 'look_' + Date.now(),
-      name: 'Woobi Studio Look',
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      occasion: 'Everyday Luxury',
-      items: [
-        { name: 'Crop Tank', photo: 'assets/welcome_hero.jpg' },
-        { name: 'Cream Cardigan', photo: 'assets/style_casual.jpg' },
-        { name: 'Wide Linen Trousers', photo: 'assets/beige_chinos.jpg' }
-      ]
+      date,
+      occasion: 'Custom Outfit',
+      items: selectedItems
     };
 
-    if (!state.savedLooks) state.savedLooks = [];
-    state.savedLooks.unshift(currentOutfit);
+    const result = savedLooksManager.saveLook(
+      `My Outfit - ${date}`,
+      currentOutfit,
+      {},
+      ['Custom']
+    );
+
+    if (!result.success) {
+      showToast(result.error || 'Could not save look.');
+      return;
+    }
+
+    state.savedLooks = savedLooksManager.getAllLooks();
+    renderSavedLooks();
     showToast('Look saved to your collection! ♡');
   }
 
@@ -2308,11 +2535,88 @@
     }
   }
 
-  function serenSetModelType(type, btn) {
-    if (btn) {
-      btn.parentElement.querySelectorAll('.vanity-chip').forEach(c => c.classList.remove('active'));
-      btn.classList.add('active');
+  function toggleMannequinDropdown(event) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
     }
+    const btn = document.getElementById('selectMannequinBtn');
+    const menu = document.getElementById('mannequinDropdownMenu');
+    if (!menu) return;
+
+    const isOpen = menu.classList.contains('show');
+    if (isOpen) {
+      menu.classList.remove('show');
+      if (btn) {
+        btn.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    } else {
+      menu.classList.add('show');
+      if (btn) {
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    }
+  }
+
+  function selectMannequin(gender) {
+    const targetGender = gender === 'male' || gender === 'masculine' ? 'male' : 'female';
+    const maleOpt = document.getElementById('mannequinOptMale');
+    const femaleOpt = document.getElementById('mannequinOptFemale');
+    const menu = document.getElementById('mannequinDropdownMenu');
+    const btn = document.getElementById('selectMannequinBtn');
+
+    if (maleOpt && femaleOpt) {
+      if (targetGender === 'male') {
+        maleOpt.classList.add('active');
+        femaleOpt.classList.remove('active');
+      } else {
+        femaleOpt.classList.add('active');
+        maleOpt.classList.remove('active');
+      }
+    }
+
+    if (menu) menu.classList.remove('show');
+    if (btn) {
+      btn.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+
+    if (window.Studio3D && typeof window.Studio3D.setMannequinGender === 'function') {
+      window.Studio3D.setMannequinGender(targetGender);
+    } else if (window.Studio3D && typeof window.Studio3D.setGenderPresentation === 'function') {
+      window.Studio3D.setGenderPresentation(targetGender);
+    }
+
+    try {
+      localStorage.setItem('woobi_mannequin_gender', targetGender);
+    } catch (e) {}
+
+    showToast(`Switched to ${targetGender === 'male' ? 'Male' : 'Female'} Mannequin.`);
+  }
+
+  // Close mannequin dropdown on outside click
+  if (typeof document !== 'undefined') {
+    document.addEventListener('click', (e) => {
+      const container = document.getElementById('mannequinDropdownContainer');
+      if (container && !container.contains(e.target)) {
+        const menu = document.getElementById('mannequinDropdownMenu');
+        const btn = document.getElementById('selectMannequinBtn');
+        if (menu) menu.classList.remove('show');
+        if (btn) {
+          btn.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
+  }
+
+  function setMannequinGender(gender) {
+    return selectMannequin(gender);
+  }
+
+  function serenSetModelType(type, btn) {
     const isMale = (type === 'mannequin_male');
     const btnFemale = document.getElementById('btnQuickFemale');
     const btnMale = document.getElementById('btnQuickMale');
@@ -2320,12 +2624,25 @@
       btnFemale.classList.toggle('active', !isMale);
       btnMale.classList.toggle('active', isMale);
     }
+    selectMannequin(isMale ? 'male' : 'female');
     if (window.Studio3D && typeof window.Studio3D.setModelType === 'function') {
       window.Studio3D.setModelType(type);
     }
     const label = type === 'mannequin_female' ? 'Female Mannequin by Astra' :
                   type === 'mannequin_male' ? 'Male Mannequin by Astra' : 'Stylized Avatar';
     showToast(`Display model set to ${label}.`);
+  }
+
+  function serenSetGender(gender, btn) {
+    if (btn) {
+      btn.parentElement.querySelectorAll('.vanity-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    selectMannequin(gender);
+    if (window.Studio3D && typeof window.Studio3D.setGenderPresentation === 'function') {
+      window.Studio3D.setGenderPresentation(gender);
+    }
+    showToast(`Gender presentation set to ${gender}.`);
   }
 
   function toggleTestingDock(forceOpen) {
@@ -2557,7 +2874,14 @@
   }
 
   function serenSetGender(gender, btn) {
-    serenQuickSwitchGender(gender, btn);
+    if (typeof serenQuickSwitchGender === 'function') {
+      serenQuickSwitchGender(gender, btn);
+    }
+    selectMannequin(gender);
+    if (window.Studio3D && typeof window.Studio3D.setGenderPresentation === 'function') {
+      window.Studio3D.setGenderPresentation(gender);
+    }
+    showToast(`Gender presentation set to ${gender}.`);
   }
 
   function serenSetSkinTone(hex, btn) {
@@ -4969,7 +5293,7 @@
         const isSelected = day.dateKey === plannerState.selectedDateKey;
         const hasPlan = !!plannerState.plannedOutfits[day.dateKey];
         return `
-          <div class="day-col ${isSelected ? 'selected-day-col' : ''} ${day.isToday ? 'is-today' : ''}" 
+          <div class="day-col ${isSelected ? 'selected-day-col' : ''} ${day.isToday ? 'is-today' : ''}"
                onclick="app.selectPlannerDate('${day.dateKey}', true)"
                title="${day.fullDisplay}${hasPlan ? ' (Outfit Planned)' : ''}">
             <span class="d-name">${day.dayName}</span>
@@ -4992,8 +5316,8 @@
           ).join('');
 
           return `
-            <div class="day-plan-card has-outfit ${isSelected ? 'selected-day' : ''}" 
-                 id="card-${day.dateKey}" 
+            <div class="day-plan-card has-outfit ${isSelected ? 'selected-day' : ''}"
+                 id="card-${day.dateKey}"
                  onclick="app.selectPlannerDate('${day.dateKey}', false)">
               <div class="dp-day-info">
                 <strong>${day.dayName}</strong>
@@ -5024,8 +5348,8 @@
           `;
         } else {
           return `
-            <div class="day-plan-card empty-day ${isSelected ? 'selected-day' : ''}" 
-                 id="card-${day.dateKey}" 
+            <div class="day-plan-card empty-day ${isSelected ? 'selected-day' : ''}"
+                 id="card-${day.dateKey}"
                  onclick="app.selectPlannerDate('${day.dateKey}', false)">
               <div class="dp-day-info">
                 <strong>${day.dayName}</strong>
@@ -5174,7 +5498,7 @@
       ).join('');
 
       return `
-        <div class="planner-outfit-pick-card ${isCurrentlyAssigned ? 'currently-assigned' : ''}" 
+        <div class="planner-outfit-pick-card ${isCurrentlyAssigned ? 'currently-assigned' : ''}"
              onclick="app.assignPlannerOutfit('${escapeHtml(outfit.id)}')">
           <img src="${escapeHtml(outfit.previewPhoto)}" class="pick-card-photo" alt="${escapeHtml(outfit.title)}">
           <div class="pick-card-body">
@@ -5234,6 +5558,9 @@
       window.appBootstrap.start();
     }
     loadPersistedCapturedWardrobe();
+    hydratePersistentState();
+    initSavedLooksManager();
+    renderSavedLooks();
     initStreakState();
     initPlannerState();
 
@@ -5369,6 +5696,9 @@
     serenCloseVanity,
     serenSwitchVanityTab,
     serenSetModelType,
+    toggleMannequinDropdown,
+    selectMannequin,
+    setMannequinGender,
     serenSetGender,
     serenQuickSwitchGender,
     serenSetAnatomy,
