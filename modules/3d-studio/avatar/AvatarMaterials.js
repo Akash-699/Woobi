@@ -40,8 +40,8 @@ export class AvatarMaterials {
     // Primary Warm Radiant Ivory Skin Material
     this.skinMat = new THREE.MeshStandardMaterial({
       color: AVATAR_PALETTE.skinWarmIvory,
-      roughness: 0.38,
-      metalness: 0.02
+      roughness: 0.82,
+      metalness: 0.0
     });
     this.skinMaterials.push(this.skinMat);
     this.disposables.push(this.skinMat);
@@ -49,8 +49,8 @@ export class AvatarMaterials {
     // Rich Espresso Brown Hair Material
     this.hairMat = new THREE.MeshStandardMaterial({
       color: AVATAR_PALETTE.hairRichEspresso,
-      roughness: 0.28,
-      metalness: 0.04
+      roughness: 0.75,
+      metalness: 0.02
     });
     this.hairMaterials.push(this.hairMat);
     this.disposables.push(this.hairMat);
@@ -58,15 +58,15 @@ export class AvatarMaterials {
     // Satin Rosy Lip Material
     this.lipMat = new THREE.MeshStandardMaterial({
       color: AVATAR_PALETTE.lipSatinRosy,
-      roughness: 0.24,
-      metalness: 0.02
+      roughness: 0.60,
+      metalness: 0.0
     });
     this.disposables.push(this.lipMat);
 
     // Soft Blushing Cheek Material
     this.blushMat = new THREE.MeshStandardMaterial({
       color: AVATAR_PALETTE.blushSoftCoral,
-      roughness: 0.55,
+      roughness: 0.70,
       transparent: true,
       opacity: 0.35
     });
@@ -74,7 +74,7 @@ export class AvatarMaterials {
 
     // Eye Anatomy Materials
     this.scleraMat = new THREE.MeshBasicMaterial({ color: AVATAR_PALETTE.scleraWhite });
-    this.irisMat = new THREE.MeshStandardMaterial({ color: AVATAR_PALETTE.irisEspresso, roughness: 0.22 });
+    this.irisMat = new THREE.MeshStandardMaterial({ color: AVATAR_PALETTE.irisEspresso, roughness: 0.35 });
     this.pupilMat = new THREE.MeshBasicMaterial({ color: AVATAR_PALETTE.pupilDeepBlack });
     this.glintMat = new THREE.MeshBasicMaterial({ color: AVATAR_PALETTE.catchlightWhite });
     this.lashMat = new THREE.MeshBasicMaterial({ color: AVATAR_PALETTE.lashBlack });
@@ -85,42 +85,42 @@ export class AvatarMaterials {
     // Gold Hoop Earring Material
     this.hoopMat = new THREE.MeshStandardMaterial({
       color: AVATAR_PALETTE.earringWarmBrass,
-      metalness: 0.90,
-      roughness: 0.20
+      metalness: 0.85,
+      roughness: 0.25
     });
     this.disposables.push(this.hoopMat);
 
-    // Wearable Crop Tank Top Material with Tactile Ribbed Depth
+    // Wearable Crop Tank Top Material with Tactile Ribbed Depth - Soft Matte Finish
     this.tankMat = new THREE.MeshStandardMaterial({
       map: this.textures.ribbedKnit || null,
       bumpMap: this.textures.ribbedKnit || null,
       bumpScale: 0.0035,
       color: AVATAR_PALETTE.cropTankIvory,
-      roughness: 0.65,
-      metalness: 0.02
+      roughness: 0.85,
+      metalness: 0.01
     });
     this.disposables.push(this.tankMat);
 
-    // Fluid Tailored Sand Trousers Material with Tactile Linen Weave Depth
+    // Fluid Tailored Sand Trousers Material with Tactile Linen Weave Depth - Matte Finish
     this.trouserMat = new THREE.MeshStandardMaterial({
       map: this.textures.linenWeave || null,
       bumpMap: this.textures.linenWeave || null,
       bumpScale: 0.0030,
       color: AVATAR_PALETTE.trousersSand,
-      roughness: 0.76,
+      roughness: 0.88,
       metalness: 0.01
     });
     this.disposables.push(this.trouserMat);
 
-    // Chunky Platform Sneakers Materials (Crisp White Leather Upper + Textured Rubber Sole)
+    // Chunky Platform Sneakers Materials (Soft Clean Matte Upper + Textured Rubber Sole)
     this.sneakerMat = new THREE.MeshStandardMaterial({
       color: AVATAR_PALETTE.sneakersWhite,
-      roughness: 0.28,
-      metalness: 0.02
+      roughness: 0.72,
+      metalness: 0.01
     });
     this.soleMat = new THREE.MeshStandardMaterial({
       color: AVATAR_PALETTE.sneakersSole,
-      roughness: 0.58,
+      roughness: 0.78,
       metalness: 0.00
     });
     this.disposables.push(this.sneakerMat, this.soleMat);

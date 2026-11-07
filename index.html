@@ -555,6 +555,28 @@
               <span class="hint-icon">🔄</span>
               <span class="hint-text">Drag to Rotate</span>
             </div>
+            <!-- Select Mannequin Dropdown Control -->
+            <div class="mannequin-dropdown-container" id="mannequinDropdownContainer">
+              <button type="button" class="select-mannequin-btn" id="selectMannequinBtn" onclick="app.toggleMannequinDropdown(event)" aria-haspopup="true" aria-expanded="false" title="Select Mannequin">
+                <span class="mannequin-btn-text">Select Mannequin</span>
+                <span class="dropdown-chevron-icon" id="mannequinChevron">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m6 9 6 6 6-6"/>
+                  </svg>
+                </span>
+              </button>
+
+              <div class="mannequin-dropdown-menu" id="mannequinDropdownMenu" role="menu" aria-label="Mannequin Options">
+                <button type="button" class="mannequin-option-item" id="mannequinOptMale" role="menuitem" onclick="app.selectMannequin('male')">
+                  <span class="option-name">Male</span>
+                  <span class="option-check" id="checkMale">✓</span>
+                </button>
+                <button type="button" class="mannequin-option-item active" id="mannequinOptFemale" role="menuitem" onclick="app.selectMannequin('female')">
+                  <span class="option-name">Female</span>
+                  <span class="option-check" id="checkFemale">✓</span>
+                </button>
+              </div>
+            </div>
 
             <!-- Contextual Return to Studio Pill (Appears during close-up views) -->
             <button class="seren-back-studio-btn hidden" id="serenBackStudioBtn"

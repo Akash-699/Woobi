@@ -69,8 +69,13 @@ export class AvatarController {
   setGenderPresentation(gender) {
     if (!gender) return;
     this.avatarConfig.gender = gender;
-    if (this.model && this.model.morphs) {
-      this.model.morphs.setGenderPresentation(gender);
+    if (this.model) {
+      if (typeof this.model.setMannequinGender === 'function') {
+        this.model.setMannequinGender(gender);
+      }
+      if (this.model.morphs) {
+        this.model.morphs.setGenderPresentation(gender);
+      }
     }
     this.savePreferences();
   }
