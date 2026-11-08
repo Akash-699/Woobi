@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    function nullableString(value, length) {
+      return value == null || (value is string && value.size() <= length);
+    }
+    function validProfile(uid) {
+      let data = request.resource.data;
+      return data.keys().hasAll(['schemaVersion', 'uid', 'displayName', 'email',
+          'photoURL', 'providers', 'createdAt', 'updatedAt', 'lastLoginAt'])
+        && data.keys().hasOnly(['schemaVersion', 'uid', 'displayName', 'email',
+          'photoURL', 'providers', 'createdAt', 'updatedAt', 'lastLoginAt'])
+        && data.schemaVersion == 1
+        && data.uid == uid
+        && nullableString(data.displayName, 120)
+        && nullableString(data.email, 320)
+        && (data.email == null || data.email == request.auth.token.email)
+        && nullableString(data.photoURL, 2048)
+        && (data.photoURL == null || data.photoURL.matches('https://.*'))
+        && data.providers is list
+        && data.providers.size() <= 2
+        && data.providers.hasOnly(['google.com', 'password'])
+        && data.createdAt is timestamp
+        && data.updatedAt == request.time
+        && data.lastLoginAt == request.time;
+    }
+    match /users/{uid} {
+      allow get: if owner(uid);
+      allow list: if false;
+      allow create: if owner(uid) && validProfile(uid)
+        && request.resource.data.createdAt == request.time;
+      allow update: if owner(uid) && validProfile(uid)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      // Account deletion needs a separate flow that also deletes Auth identity.
+      allow delete: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

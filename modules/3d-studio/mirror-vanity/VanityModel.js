@@ -11,7 +11,7 @@ import { VanityLighting } from './VanityLighting.js';
 import { MirrorReflection } from './MirrorReflection.js';
 
 export const VANITY_CONFIG = {
-  position: { x: 1.15, y: 0, z: -2.20 },
+  position: { x: 1.60, y: 0, z: -3.30 },
   rotationY: -0.32,
   tableHeight: 0.84,
   tableWidth: 0.98,
@@ -253,10 +253,16 @@ export class VanityModel {
 
     this.group.add(proceduralGroup);
 
-    // 5. Attempt authentic GLB model loading (seren_vanity.glb)
+    // 5. Attempt authentic GLB model loading (woobi_vanity.glb)
     VanityAssets.loadVanityGLB(
       THREE,
       (model) => {
+        model.name = 'woobi_vanity_glb';
+        model.traverse((child) => {
+          if (child.isMesh && (child.name === 'Mirror_Surface' || child.name.toLowerCase().includes('mirror_surface'))) {
+            this.mirrorGlassMesh = child;
+          }
+        });
         this.group.add(model);
         this.isGLBLoaded = true;
         proceduralGroup.visible = false;

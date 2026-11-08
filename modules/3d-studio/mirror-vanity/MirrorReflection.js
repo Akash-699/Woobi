@@ -12,11 +12,11 @@ export class MirrorReflection {
     this.mirrorMesh = null;
     this.scene = null;
     this.isContextLost = false;
-    this.mirrorPosition = options.mirrorPosition || { x: 1.85, y: 1.25, z: -2.40 };
+    this.mirrorPosition = options.mirrorPosition || { x: 2.25, y: 1.25, z: -3.50 };
     this.lookAtPosition = options.lookAtPosition || { x: 0.0, y: 1.15, z: 0.0 };
     this.fov = options.fov || 24;
     this.near = options.near || 1.8;
-    this.far = options.far || 25;
+    this.far = options.far || 60;
   }
 
   /**
@@ -146,6 +146,7 @@ export class MirrorReflection {
         }
         this.mirrorCamera.fov = 24;
         this.mirrorCamera.near = Math.max(1.5, dot * 0.85);
+        this.mirrorCamera.far = 60.0;
         if (typeof this.mirrorCamera.updateProjectionMatrix === 'function') {
           this.mirrorCamera.updateProjectionMatrix();
         }
@@ -156,11 +157,28 @@ export class MirrorReflection {
         if (typeof this.mirrorCamera.lookAt === 'function') {
           this.mirrorCamera.lookAt(this.lookAtPosition.x, this.lookAtPosition.y, this.lookAtPosition.z);
         }
+        this.mirrorCamera.far = 60.0;
+        if (typeof this.mirrorCamera.updateProjectionMatrix === 'function') {
+          this.mirrorCamera.updateProjectionMatrix();
+        }
+      }
+
+      // Temporarily extend fog distance so the mirror reflection captures the complete room architecture without void fading
+      const origFog = scene.fog;
+      if (origFog && typeof origFog.color !== 'undefined') {
+        const FogClass = (scene.fog && scene.fog.constructor) || (typeof window !== 'undefined' && window.THREE && window.THREE.Fog);
+        if (FogClass) {
+          scene.fog = new FogClass(origFog.color, 18.0, 60.0);
+        }
       }
 
       renderer.setRenderTarget(this.renderTarget);
       renderer.render(scene, this.mirrorCamera);
       renderer.setRenderTarget(null);
+
+      if (origFog) {
+        scene.fog = origFog;
+      }
     } catch (err) {
       console.warn('[MirrorReflection] Error rendering mirror reflection:', err);
     } finally {

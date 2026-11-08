@@ -12,12 +12,22 @@ android {
         minSdk = 24
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file("upload-keystore.jks")
+            storePassword = "woobi2026"
+            keyAlias = "woobi-upload"
+            keyPassword = "woobi2026"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -81,4 +91,7 @@ dependencies {
   implementation(libs.androidx.navigation3.ui)
   implementation(libs.androidx.navigation3.runtime)
   implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+
+  // WebKit AssetLoader for offline local https:// asset serving & ES module support
+  implementation("androidx.webkit:webkit:1.12.1")
 }

@@ -44,6 +44,7 @@ run_server_writer.ps1
 check_title.ps1
 update_admin_html.ps1
 
+typings/
 # OS, Logs & Temporary Scratch Files
 .DS_Store
 Thumbs.db
@@ -55,3 +56,17 @@ pr-4.patch
 scratch_*.ps1
 
 
+# Local Firebase project configuration (copy the tracked example to set up)
+/modules/core/login/firebase-config.js
+
+
+
+# Security & Keystores
+*.jks
+*.keystore
+
+# Local Firebase project configuration
+/login/firebase-config.js
+
+__pycache__/
+*.pyc

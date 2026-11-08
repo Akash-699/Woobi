@@ -31,6 +31,19 @@ export class StageMaterials {
     });
   }
 
+  static createShagRugMaterial(THREE, shagTexture = null, bumpTexture = null) {
+    return new THREE.MeshStandardMaterial({
+      map: shagTexture || null,
+      bumpMap: bumpTexture || null,
+      bumpScale: 0.018,
+      roughness: 0.92,
+      metalness: 0.0,
+      color: 0xFFFFFF,
+      transparent: true,
+      alphaTest: 0.02
+    });
+  }
+
   static createRotationArcMaterial(THREE) {
     return new THREE.MeshBasicMaterial({
       color: 0xFFFFFF,

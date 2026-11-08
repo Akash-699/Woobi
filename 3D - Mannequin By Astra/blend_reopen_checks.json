@@ -1,0 +1,14 @@
+{
+  "Male": {
+    "blend_reopened": true,
+    "triangles": 26000,
+    "uv_layers": 1,
+    "materials": 1
+  },
+  "Female": {
+    "blend_reopened": true,
+    "triangles": 26000,
+    "uv_layers": 1,
+    "materials": 1
+  }
+}

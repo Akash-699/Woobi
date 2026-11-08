@@ -199,20 +199,20 @@ test('Rim light matches baseline color and intensity (0xFFE5BE, 0.85)', () => {
   assert.strictEqual(lighting.rimLight.position.z, -2.4);
 });
 
-test('Wardrobe spotlight targets oak wardrobe position (-1.20, 1.22, -2.40)', () => {
+test('Wardrobe spotlight targets oak wardrobe position (-1.65, 1.22, -3.50)', () => {
   const scene = new MockScene();
   const lighting = createStudioLighting(scene, 'luxury-warm', MockTHREE);
   assert.strictEqual(lighting.wardrobeSpot.intensity, 0.50);
-  assert.strictEqual(lighting.wardrobeSpot.target.position.x, -1.20);
+  assert.strictEqual(lighting.wardrobeSpot.target.position.x, -1.65);
   assert.strictEqual(lighting.wardrobeSpot.target.position.y, 1.22);
-  assert.strictEqual(lighting.wardrobeSpot.target.position.z, -2.40);
+  assert.strictEqual(lighting.wardrobeSpot.target.position.z, -3.50);
 });
 
-test('Vanity spotlight targets dressing mirror console position (1.15, 1.20, -2.20)', () => {
+test('Vanity spotlight targets dressing mirror console position (1.60, 1.20, -3.30)', () => {
   const scene = new MockScene();
   const lighting = createStudioLighting(scene, 'luxury-warm', MockTHREE);
   assert.strictEqual(lighting.vanitySpot.intensity, 0.80);
-  assert.strictEqual(lighting.vanitySpot.target.position.x, 1.15);
+  assert.strictEqual(lighting.vanitySpot.target.position.x, 1.60);
   assert.strictEqual(lighting.vanitySpot.target.position.y, 1.20);
 });
 

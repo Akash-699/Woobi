@@ -13,7 +13,7 @@ export const WARDROBE_CONFIG = {
   width: 2.20 * (2.40 / 3.00),
   height: 3.00 * (2.40 / 3.00),
   depth: 0.65 * (2.40 / 3.00),
-  position: { x: -1.20, y: 0, z: -2.40 },
+  position: { x: -1.65, y: 0, z: -3.50 },
   rotationY: 0.35
 };
 
@@ -96,7 +96,8 @@ export class WardrobeModel {
     this.disposables.push(plinthGeo);
 
     // Shelves with integrated warm LED glow strips
-    const shelfYPositions = [0.12, 0.52, 0.94, 1.34, 2.22];
+    // Balanced 3-tier layout: Bottom footwear shelf (0.12), Footwear separator (0.60), Upper shelf (2.22)
+    const shelfYPositions = [0.12, 0.60, 2.22];
     const shelfGeo = new THREE.BoxGeometry(width - 0.08, 0.030, depth - 0.02);
     this.disposables.push(shelfGeo);
 
@@ -123,8 +124,12 @@ export class WardrobeModel {
       proceduralGroup.add(shelfLight1);
 
       const shelfLight2 = new THREE.PointLight(0xFFA834, 0.90, 2.2);
-      shelfLight2.position.set(0, 1.25, 0.14);
+      shelfLight2.position.set(0, 1.35, 0.14);
       proceduralGroup.add(shelfLight2);
+
+      const shelfLight3 = new THREE.PointLight(0xFFA834, 0.80, 1.8);
+      shelfLight3.position.set(0, 0.55, 0.14);
+      proceduralGroup.add(shelfLight3);
     }
 
     // Top Shelf Luxury White Box with Brass Pull
@@ -136,14 +141,71 @@ export class WardrobeModel {
     proceduralGroup.add(topBox);
     this.disposables.push(boxMat, boxGeo);
 
-    // Main clothing rail
+    // 1. Upper clothing rail with neatly hung shirts (positioned slightly upwards, balanced)
+    const railY = 2.16;
     const railGeo = new THREE.CylinderGeometry(0.011, 0.011, width - 0.08, 16);
     const rail = new THREE.Mesh(railGeo, brassMat);
     rail.rotation.z = Math.PI / 2;
-    rail.position.set(0, 2.12, 0);
+    rail.position.set(0, railY, 0);
     rail.castShadow = true;
     proceduralGroup.add(rail);
     this.disposables.push(railGeo);
+
+    // Hanging shirts on upper rail
+    [-0.24, 0.00, 0.24].forEach((sx, idx) => {
+      const shirtGeo = new THREE.CylinderGeometry(0.08, 0.11, 0.46, 16);
+      const shirtColors = [0xF4ECE1, 0xFAF8F5, 0x33363B];
+      const shirtMat = new THREE.MeshStandardMaterial({ color: shirtColors[idx], roughness: 0.70 });
+      const shirt = new THREE.Mesh(shirtGeo, shirtMat);
+      shirt.position.set(sx, railY - 0.28, 0);
+      shirt.castShadow = true;
+      proceduralGroup.add(shirt);
+      this.disposables.push(shirtGeo, shirtMat);
+    });
+
+    // 2. Horizontal hanging rod directly below shirts section & vertically hanging trousers
+    const trouserRailY = 1.38;
+    const trRailGeo = new THREE.CylinderGeometry(0.010, 0.010, width - 0.08, 16);
+    const trRail = new THREE.Mesh(trRailGeo, brassMat);
+    trRail.rotation.z = Math.PI / 2;
+    trRail.position.set(0, trouserRailY, 0);
+    trRail.castShadow = true;
+    proceduralGroup.add(trRail);
+    this.disposables.push(trRailGeo);
+
+    // Hanging trousers
+    const trColors = [0x1E2A3A, 0xC4AA78, 0x5C6B4A];
+    [-0.24, 0.00, 0.24].forEach((tx, idx) => {
+      const legGeo = new THREE.BoxGeometry(0.14, 0.42, 0.06);
+      const trMat = new THREE.MeshStandardMaterial({ color: trColors[idx], roughness: 0.72 });
+      const tr = new THREE.Mesh(legGeo, trMat);
+      tr.position.set(tx, trouserRailY - 0.25, 0);
+      tr.castShadow = true;
+      proceduralGroup.add(tr);
+      this.disposables.push(legGeo, trMat);
+    });
+
+    // 3. Dedicated Footwear Area below trousers (shoes, sneakers, and sandals)
+    const shoeMatWhite = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.40 });
+    const shoeMatSandal = new THREE.MeshStandardMaterial({ color: 0xC49E6C, roughness: 0.45, metalness: 0.02 });
+    const shoeMatLoafer = new THREE.MeshStandardMaterial({ color: 0xF2ECE2, roughness: 0.38 });
+    this.disposables.push(shoeMatWhite, shoeMatSandal, shoeMatLoafer);
+
+    const footItems = [
+      { x: -0.28, mat: shoeMatWhite,  type: 'sneaker' },
+      { x: -0.09, mat: shoeMatSandal, type: 'sandal' },
+      { x: 0.09,  mat: shoeMatSandal, type: 'sandal' },
+      { x: 0.28,  mat: shoeMatLoafer, type: 'loafer' }
+    ];
+
+    footItems.forEach((fi) => {
+      const sGeo = new THREE.BoxGeometry(0.10, 0.024, 0.16);
+      const shoeMesh = new THREE.Mesh(sGeo, fi.mat);
+      shoeMesh.position.set(fi.x, 0.14, 0.02);
+      shoeMesh.castShadow = true;
+      proceduralGroup.add(shoeMesh);
+      this.disposables.push(sGeo);
+    });
 
     this.group.add(proceduralGroup);
 

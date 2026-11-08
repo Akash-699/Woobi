@@ -9,9 +9,10 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Three.js + OrbitControls + GLTFLoader -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="libs/three.min.js"></script>
+  <script src="libs/OrbitControls.js"></script>
+  <script src="libs/GLTFLoader.js"></script>
+
   <script src="wardrobe-astra-material.js?v=20261031_6"></script>
 
   <style>
@@ -280,6 +281,12 @@
     <button class="asset-tab active" data-mode="avatar">
       <span>👤</span> Avatar (Step 4)
     </button>
+    <button class="asset-tab" data-mode="mannequin-female">
+      <span>🧍‍♀️</span> Female Mannequin (Astra)
+    </button>
+    <button class="asset-tab" data-mode="mannequin-male">
+      <span>🧍‍♂️</span> Male Mannequin (Astra)
+    </button>
     <button class="asset-tab" data-mode="wardrobe">
       <span>🚪</span> Wardrobe (Step 1)
     </button>
@@ -297,6 +304,11 @@
     <button class="ctrl-btn" id="viewPortraitBtn">Portrait Close-Up</button>
     <button class="ctrl-btn" id="viewAngleBtn">3/4 Perspective</button>
     <button class="ctrl-btn" id="viewTopBtn">Top View</button>
+
+    <div class="separator"></div>
+
+    <button class="ctrl-btn active" id="silhouetteFitBtn" onclick="toggleMannequinFit()">✨ Slim & Fit</button>
+    <button class="ctrl-btn" id="fullnessBtn" onclick="cycleFullness()">Body Fullness: Slim & Fit (25%)</button>
 
     <div class="separator"></div>
 
@@ -340,6 +352,22 @@
         camPos: new THREE.Vector3(0, 1.15, 2.5),
         camLook: new THREE.Vector3(0, 0.95, 0),
         stats: "Objects: 54 | Vertices: 6,234 | Polygons: 6,196<br>Height: 1.72m | PBR SSS & Procedural Knit"
+      },
+      'mannequin-female': {
+        title: "Female Mannequin by Astra",
+        badge: "3D Mannequin by Astra",
+        desc: "Authentic procedural female fashion mannequin (1.70m stature, 26k triangles). Single connected manifold body mesh in studio A-pose with matte porcelain finish on central bouclé dais.",
+        camPos: new THREE.Vector3(0, 1.15, 2.5),
+        camLook: new THREE.Vector3(0, 0.95, 0),
+        stats: "Asset: Woobi_Female_Mannequin.glb | Stature: 1.70m<br>Triangles: 26,000 | Watertight Manifold Shell"
+      },
+      'mannequin-male': {
+        title: "Male Mannequin by Astra",
+        badge: "3D Mannequin by Astra",
+        desc: "Authentic procedural male fashion mannequin (1.80m stature, 26k triangles). Athletic build, anatomical contours, matte neutral finish, and studio A-pose for menswear tailoring.",
+        camPos: new THREE.Vector3(0, 1.20, 2.6),
+        camLook: new THREE.Vector3(0, 1.00, 0),
+        stats: "Asset: Woobi_Male_Mannequin.glb | Stature: 1.80m<br>Triangles: 26,000 | Watertight Manifold Shell"
       },
       wardrobe: {
         title: "Step 1: Oak Wardrobe",
@@ -529,6 +557,22 @@
           stage.position.set(0, 0, 0);
           activeGroup.add(stage);
           activeGroup.add(avatar);
+        } else if (mode === 'mannequin-female') {
+          const mannequin = await loadGLB('3D - Mannequin By Astra/Woobi_Female_Mannequin.glb')
+            .catch(() => loadGLB('woobi_female_mannequin.glb'));
+          const stage = await loadGLB('seren_stage.glb');
+          mannequin.position.set(0, 0.080, 0);
+          stage.position.set(0, 0, 0);
+          activeGroup.add(stage);
+          activeGroup.add(mannequin);
+        } else if (mode === 'mannequin-male') {
+          const mannequin = await loadGLB('3D - Mannequin By Astra/Woobi_Male_Mannequin.glb')
+            .catch(() => loadGLB('woobi_male_mannequin.glb'));
+          const stage = await loadGLB('seren_stage.glb');
+          mannequin.position.set(0, 0.080, 0);
+          stage.position.set(0, 0, 0);
+          activeGroup.add(stage);
+          activeGroup.add(mannequin);
         } else if (mode === 'wardrobe') {
           const wardrobe = await loadGLB('3D- Wardrobe by Astra/wardrobe.glb').catch(() => loadGLB('wardrobe.glb'));
           if (window.AstraWardrobeStyling) {
@@ -538,7 +582,9 @@
           wardrobe.rotation.y = Math.PI;
           activeGroup.add(wardrobe);
         } else if (mode === 'vanity') {
-          const vanity = await loadGLB('seren_vanity.glb');
+          const vanity = await loadGLB('3D - Mirror and stuffs/woobi_vanity.glb')
+            .catch(() => loadGLB('woobi_vanity.glb'))
+            .catch(() => loadGLB('seren_vanity.glb'));
           vanity.position.set(0, 0, 0);
           activeGroup.add(vanity);
         } else if (mode === 'stage') {
@@ -549,7 +595,7 @@
           // Complete Assembly
           const [wardrobe, vanity, stage, avatar] = await Promise.all([
             loadGLB('3D- Wardrobe by Astra/wardrobe.glb').catch(() => loadGLB('wardrobe.glb')),
-            loadGLB('seren_vanity.glb'),
+            loadGLB('3D - Mirror and stuffs/woobi_vanity.glb').catch(() => loadGLB('woobi_vanity.glb')).catch(() => loadGLB('seren_vanity.glb')),
             loadGLB('seren_stage.glb'),
             loadGLB('seren_avatar.glb')
           ]);
@@ -579,11 +625,52 @@
         // Animate camera to default pose for this mode
         targetCameraPos.copy(config.camPos);
         targetCameraLook.copy(config.camLook);
+        applyInspectorFullness();
       } catch (err) {
         console.error("Error loading asset:", err);
       } finally {
         loadingOverlay.classList.remove('visible');
       }
+    }
+
+    let currentFullness = 25;
+    let isSlimFit = true;
+
+    function applyInspectorFullness() {
+      if (['avatar', 'mannequin-female', 'mannequin-male', 'all'].includes(currentMode)) {
+        activeGroup.children.forEach(child => {
+          // If not the circular stage, apply scaling
+          if (child && !child.name.includes('stage') && child.position.y >= 0.07) {
+            const baseScaleX = isSlimFit ? 0.92 : 1.00;
+            const baseScaleY = isSlimFit ? 1.02 : 1.00;
+            const baseScaleZ = isSlimFit ? 0.90 : 1.00;
+            const fatMult = 0.86 + (currentFullness / 100) * 0.36;
+            child.scale.set(baseScaleX * fatMult, baseScaleY, baseScaleZ * fatMult);
+            child.position.y = 0.080;
+          }
+        });
+      }
+    }
+
+    function toggleMannequinFit() {
+      isSlimFit = !isSlimFit;
+      const btn = document.getElementById('silhouetteFitBtn');
+      if (btn) {
+        btn.classList.toggle('active', isSlimFit);
+        btn.textContent = isSlimFit ? '✨ Slim & Fit' : 'Classic Proportions';
+      }
+      applyInspectorFullness();
+    }
+
+    function cycleFullness() {
+      const levels = [15, 25, 50, 75];
+      const names = ['Ultra Lean (15%)', 'Slim & Fit (25%)', 'Natural (50%)', 'Full (75%)'];
+      const idx = levels.indexOf(currentFullness);
+      const nextIdx = (idx + 1) % levels.length;
+      currentFullness = levels[nextIdx];
+      const btn = document.getElementById('fullnessBtn');
+      if (btn) btn.textContent = `Body Fullness: ${names[nextIdx]}`;
+      applyInspectorFullness();
     }
 
     const targetCameraPos = new THREE.Vector3(0, 1.15, 2.5);

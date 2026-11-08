@@ -56,11 +56,26 @@ export class AvatarController {
     this.savePreferences();
   }
 
+  setBodyComposition(composition) {
+    if (!composition) return;
+    if (typeof composition.bodyFat !== 'undefined') this.avatarConfig.bodyFat = composition.bodyFat;
+    if (typeof composition.waistDefinition !== 'undefined') this.avatarConfig.waistDefinition = composition.waistDefinition;
+    if (this.model && this.model.morphs && typeof this.model.morphs.setBodyComposition === 'function') {
+      this.model.morphs.setBodyComposition(composition);
+    }
+    this.savePreferences();
+  }
+
   setGenderPresentation(gender) {
     if (!gender) return;
     this.avatarConfig.gender = gender;
-    if (this.model && this.model.morphs) {
-      this.model.morphs.setGenderPresentation(gender);
+    if (this.model) {
+      if (typeof this.model.setMannequinGender === 'function') {
+        this.model.setMannequinGender(gender);
+      }
+      if (this.model.morphs) {
+        this.model.morphs.setGenderPresentation(gender);
+      }
     }
     this.savePreferences();
   }
